@@ -51,6 +51,181 @@
           }
         }
       }
+    },
+    "campaign": {
+      "root": "apps/campaign",
+      "sourceRoot": "apps/campaign/src",
+      "projectType": "application",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/node:build",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "outputPath": "dist/apps/campaign",
+            "main": "apps/campaign/src/main.ts",
+            "tsConfig": "apps/campaign/tsconfig.app.json",
+            "assets": ["apps/campaign/src/assets"]
+          },
+          "configurations": {
+            "production": {
+              "optimization": true,
+              "extractLicenses": true,
+              "inspect": false,
+              "fileReplacements": [
+                {
+                  "replace": "apps/campaign/src/environments/environment.ts",
+                  "with": "apps/campaign/src/environments/environment.prod.ts"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "executor": "@nrwl/node:execute",
+          "options": {
+            "buildTarget": "campaign:build"
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "outputs": ["{options.outputFile}"],
+          "options": {
+            "lintFilePatterns": ["apps/campaign/**/*.ts"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/apps/campaign"],
+          "options": {
+            "jestConfig": "apps/campaign/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "contact": {
+      "root": "apps/contact",
+      "sourceRoot": "apps/contact/src",
+      "projectType": "application",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/node:build",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "outputPath": "dist/apps/contact",
+            "main": "apps/contact/src/main.ts",
+            "tsConfig": "apps/contact/tsconfig.app.json",
+            "assets": ["apps/contact/src/assets"]
+          },
+          "configurations": {
+            "production": {
+              "optimization": true,
+              "extractLicenses": true,
+              "inspect": false,
+              "fileReplacements": [
+                {
+                  "replace": "apps/contact/src/environments/environment.ts",
+                  "with": "apps/contact/src/environments/environment.prod.ts"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "executor": "@nrwl/node:execute",
+          "options": {
+            "buildTarget": "contact:build"
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "outputs": ["{options.outputFile}"],
+          "options": {
+            "lintFilePatterns": ["apps/contact/**/*.ts"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/apps/contact"],
+          "options": {
+            "jestConfig": "apps/contact/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "payment": {
+      "root": "apps/payment",
+      "sourceRoot": "apps/payment/src",
+      "projectType": "application",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/node:build",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "outputPath": "dist/apps/payment",
+            "main": "apps/payment/src/main.ts",
+            "tsConfig": "apps/payment/tsconfig.app.json",
+            "assets": ["apps/payment/src/assets"]
+          },
+          "configurations": {
+            "production": {
+              "optimization": true,
+              "extractLicenses": true,
+              "inspect": false,
+              "fileReplacements": [
+                {
+                  "replace": "apps/payment/src/environments/environment.ts",
+                  "with": "apps/payment/src/environments/environment.prod.ts"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "executor": "@nrwl/node:execute",
+          "options": {
+            "buildTarget": "payment:build"
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "outputs": ["{options.outputFile}"],
+          "options": {
+            "lintFilePatterns": ["apps/payment/**/*.ts"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/apps/payment"],
+          "options": {
+            "jestConfig": "apps/payment/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "podkrepi-types": {
+      "root": "libs/podkrepi-types",
+      "sourceRoot": "libs/podkrepi-types/src",
+      "projectType": "library",
+      "targets": {
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "outputs": ["{options.outputFile}"],
+          "options": {
+            "lintFilePatterns": ["libs/podkrepi-types/**/*.ts"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/podkrepi-types"],
+          "options": {
+            "jestConfig": "libs/podkrepi-types/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
     }
   },
   "cli": {
