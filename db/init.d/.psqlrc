@@ -1,0 +1,15 @@
+\set QUIET ON
+
+\set HISTFILE ~/.psql_history_:DBNAME
+\set HISTCONTROL ignoredups
+\set HISTSIZE 2000
+\set COMP_KEYWORD_CASE upper
+
+\pset linestyle unicode
+\pset border 2
+\pset null '[NULL]'
+\pset pager off
+\pset format wrapped
+\timing
+\encoding unicode
+\unset QUIET

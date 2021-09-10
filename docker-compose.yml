@@ -1,0 +1,134 @@
+version: '3.7'
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: ${TARGET_ENV?}
+      args:
+        TARGET_APP: api
+    container_name: ${COMPOSE_PROJECT_NAME?}-api
+    restart: always
+    environment:
+      PORT: ${API_PORT?}
+    ports:
+      - '${API_PORT?}:${API_PORT?}'
+    networks:
+      backend-net:
+        aliases:
+          - api.podkrepi.localhost
+
+  campaign:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: ${TARGET_ENV?}
+      args:
+        TARGET_APP: campaign
+    container_name: ${COMPOSE_PROJECT_NAME?}-camapign
+    restart: always
+    depends_on:
+      - pg-db
+    environment:
+      PORT: ${CAMPAIGN_PORT?}
+      DB_HOST: ${DB_HOST?}
+      DB_PASS: ${DB_PASS?}
+      DB_USER: ${DB_USER?}
+      DB_NAME: ${DB_NAME?}
+    ports:
+      - '${CAMPAIGN_PORT?}:${CAMPAIGN_PORT}'
+    networks:
+      backend-net:
+        aliases:
+          - campaign.podkrepi.localhost
+
+  contact:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: ${TARGET_ENV?}
+      args:
+        TARGET_APP: contact
+    container_name: ${COMPOSE_PROJECT_NAME?}-contact
+    restart: always
+    depends_on:
+      - pg-db
+    environment:
+      PORT: ${CONTACT_PORT?}
+      DB_HOST: ${DB_HOST?}
+      DB_PASS: ${DB_PASS?}
+      DB_USER: ${DB_USER?}
+      DB_NAME: ${DB_NAME?}
+    ports:
+      - '${CONTACT_PORT?}:${CONTACT_PORT?}'
+    networks:
+      backend-net:
+        aliases:
+          - campaign.podkrepi.localhost
+
+  payment:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: ${TARGET_ENV?}
+      args:
+        TARGET_APP: payment
+    container_name: ${COMPOSE_PROJECT_NAME?}-payment
+    restart: always
+    depends_on:
+      - pg-db
+    environment:
+      PORT: ${PAYMENT_PORT?}
+      DB_HOST: ${DB_HOST?}
+      DB_PASS: ${DB_PASS?}
+      DB_USER: ${DB_USER?}
+      DB_NAME: ${DB_NAME?}
+    ports:
+      - '${PAYMENT_PORT?}:${PAYMENT_PORT?}'
+    networks:
+      backend-net:
+        aliases:
+          - campaign.podkrepi.localhost
+
+  ## Postgres Development ##
+  ##########################
+  pg-db:
+    build:
+      context: ./db
+      dockerfile: ./Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME?}-pg-db
+    restart: always
+
+    volumes:
+      - pg-db-data:/bitnami/postgresql
+
+    environment:
+      ## https://github.com/bitnami/bitnami-docker-postgresql/blob/master/README.md
+      PGPASSWORD: ${DB_PASS?}
+      POSTGRESQL_USERNAME: ${DB_USER?}
+      POSTGRESQL_PASSWORD: ${DB_PASS?}
+      POSTGRESQL_DATABASE: ${DB_NAME?}
+
+    networks:
+      - backend-net
+
+  flyway:
+    build:
+      context: ./db
+      dockerfile: ./flyway/Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME?}-flyway
+    hostname: flyway
+    # https://flywaydb.org/documentation/configuration/configfile#reference
+    # jdbc:postgresql://<host>:<port>/<database>?<key1>=<value1>&<key2>=<value2>...
+    command: migrate
+    entrypoint: flyway -url=jdbc:postgresql://${DB_HOST?}:${DB_PORT?}/${DB_NAME?} -schemas=app,campaign,account -user=${DB_USER?} -password=${DB_PASS?} -connectRetries=60
+    depends_on:
+      - pg-db
+    networks:
+      - backend-net
+
+volumes:
+  pg-db-data:
+
+networks:
+  backend-net:
