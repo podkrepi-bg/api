@@ -15,6 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@podkrepi-bg/db-orm": ["libs/db-orm/src/index.ts"],
       "@podkrepi-bg/podkrepi-types": ["libs/podkrepi-types/src/index.ts"]
     }
   },

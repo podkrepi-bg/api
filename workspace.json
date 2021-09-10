@@ -154,6 +154,28 @@
         }
       }
     },
+    "db-orm": {
+      "root": "libs/db-orm",
+      "sourceRoot": "libs/db-orm/src",
+      "projectType": "library",
+      "targets": {
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "outputs": ["{options.outputFile}"],
+          "options": {
+            "lintFilePatterns": ["libs/db-orm/**/*.ts"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/db-orm"],
+          "options": {
+            "jestConfig": "libs/db-orm/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
     "payment": {
       "root": "apps/payment",
       "sourceRoot": "apps/payment/src",
