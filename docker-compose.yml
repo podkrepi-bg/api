@@ -35,6 +35,7 @@ services:
       DB_PASS: ${DB_PASS?}
       DB_USER: ${DB_USER?}
       DB_NAME: ${DB_NAME?}
+      DATABASE_URL: ${DATABASE_URL?}?schema=api
     ports:
       - '${CAMPAIGN_PORT?}:${CAMPAIGN_PORT}'
     networks:
@@ -59,6 +60,7 @@ services:
       DB_PASS: ${DB_PASS?}
       DB_USER: ${DB_USER?}
       DB_NAME: ${DB_NAME?}
+      DATABASE_URL: ${DATABASE_URL?}?schema=api
     ports:
       - '${CONTACT_PORT?}:${CONTACT_PORT?}'
     networks:
@@ -83,6 +85,7 @@ services:
       DB_PASS: ${DB_PASS?}
       DB_USER: ${DB_USER?}
       DB_NAME: ${DB_NAME?}
+      DATABASE_URL: ${DATABASE_URL?}?schema=payment
     ports:
       - '${PAYMENT_PORT?}:${PAYMENT_PORT?}'
     networks:
@@ -102,6 +105,9 @@ services:
     volumes:
       - pg-db-data:/bitnami/postgresql
 
+    ports:
+      - 5432:5432
+
     environment:
       ## https://github.com/bitnami/bitnami-docker-postgresql/blob/master/README.md
       PGPASSWORD: ${DB_PASS?}
@@ -112,20 +118,20 @@ services:
     networks:
       - backend-net
 
-  flyway:
-    build:
-      context: ./db
-      dockerfile: ./flyway/Dockerfile
-    container_name: ${COMPOSE_PROJECT_NAME?}-flyway
-    hostname: flyway
-    # https://flywaydb.org/documentation/configuration/configfile#reference
-    # jdbc:postgresql://<host>:<port>/<database>?<key1>=<value1>&<key2>=<value2>...
-    command: migrate
-    entrypoint: flyway -url=jdbc:postgresql://${DB_HOST?}:${DB_PORT?}/${DB_NAME?} -schemas=app,campaign,account -user=${DB_USER?} -password=${DB_PASS?} -connectRetries=60
-    depends_on:
-      - pg-db
-    networks:
-      - backend-net
+  # flyway:
+  #   build:
+  #     context: ./db
+  #     dockerfile: ./flyway/Dockerfile
+  #   container_name: ${COMPOSE_PROJECT_NAME?}-flyway
+  #   hostname: flyway
+  #   # https://flywaydb.org/documentation/configuration/configfile#reference
+  #   # jdbc:postgresql://<host>:<port>/<database>?<key1>=<value1>&<key2>=<value2>...
+  #   command: migrate
+  #   entrypoint: flyway -url=jdbc:postgresql://${DB_HOST?}:${DB_PORT?}/${DB_NAME?} -schemas=app,campaign,account -user=${DB_USER?} -password=${DB_PASS?} -connectRetries=60
+  #   depends_on:
+  #     - pg-db
+  #   networks:
+  #     - backend-net
 
 volumes:
   pg-db-data:
