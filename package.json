@@ -6,7 +6,8 @@
     "dev": "yarn nx serve --watch",
     "start": "yarn nx serve",
     "build": "yarn nx build",
-    "test": "yarn nx test"
+    "test": "yarn nx run-many --target test --all",
+    "format": "prettier --write apps/**/*.ts"
   },
   "private": true,
   "dependencies": {
