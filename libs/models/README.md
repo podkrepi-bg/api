@@ -16,8 +16,11 @@ yarn prisma db pull --schema ./src/prisma/schema.prisma
 
 ### Create migration
 
+- <https://www.prisma.io/docs/guides/database/developing-with-prisma-migrate/enable-native-database-functions>
+
 ```shell
 yarn prisma migrate dev --schema ./src/prisma/schema.prisma <name-of-migration>
+yarn prisma migrate dev --schema ./src/prisma/schema.prisma <name-of-migration> --create-only
 ```
 
 ### Reset database

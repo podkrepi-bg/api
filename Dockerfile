@@ -21,6 +21,7 @@ CMD yarn nx serve $TARGET_APP --watch
 FROM dependencies AS builder
 # RUN yarn global add nx
 COPY . .
+RUN yarn generate-model
 RUN yarn build $TARGET_APP
 
 # Build target production #

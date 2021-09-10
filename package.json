@@ -7,7 +7,8 @@
     "start": "yarn nx serve",
     "build": "yarn nx build",
     "test": "yarn nx run-many --target test --all",
-    "format": "prettier --write apps/**/*.ts"
+    "format": "prettier --write apps/**/*.ts",
+    "generate-model": "yarn nx run models:prisma-gen-client"
   },
   "private": true,
   "dependencies": {
