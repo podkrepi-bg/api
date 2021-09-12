@@ -1,16 +1,18 @@
 version: '3.7'
 services:
   api:
+    image: podkrepi-api
     build:
       context: .
       dockerfile: ./Dockerfile
       target: ${TARGET_ENV?}
-      args:
-        TARGET_APP: api
     container_name: ${COMPOSE_PROJECT_NAME?}-api
     restart: always
     environment:
       PORT: ${API_PORT?}
+    volumes:
+      # Local:Container mounting points
+      - ./:/app
     ports:
       - '${API_PORT?}:${API_PORT?}'
     networks:
@@ -19,14 +21,12 @@ services:
           - api.podkrepi.localhost
 
   campaign:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-      target: ${TARGET_ENV?}
-      args:
-        TARGET_APP: campaign
+    image: podkrepi-api
     container_name: ${COMPOSE_PROJECT_NAME?}-camapign
     restart: always
+    volumes:
+      # Local:Container mounting points
+      - ./:/app
     depends_on:
       - pg-db
     environment:
@@ -35,7 +35,7 @@ services:
       DB_PASS: ${DB_PASS?}
       DB_USER: ${DB_USER?}
       DB_NAME: ${DB_NAME?}
-      DATABASE_URL: ${DATABASE_URL?}?schema=api
+      DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
     ports:
       - '${CAMPAIGN_PORT?}:${CAMPAIGN_PORT}'
     networks:
@@ -44,12 +44,7 @@ services:
           - campaign.podkrepi.localhost
 
   contact:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-      target: ${TARGET_ENV?}
-      args:
-        TARGET_APP: contact
+    image: podkrepi-api
     container_name: ${COMPOSE_PROJECT_NAME?}-contact
     restart: always
     depends_on:
@@ -60,7 +55,10 @@ services:
       DB_PASS: ${DB_PASS?}
       DB_USER: ${DB_USER?}
       DB_NAME: ${DB_NAME?}
-      DATABASE_URL: ${DATABASE_URL?}?schema=api
+      DATABASE_URL: postgres://postgres:postgrespass@localhost:5432/postgres?schema=api
+    volumes:
+      # Local:Container mounting points
+      - ./:/app
     ports:
       - '${CONTACT_PORT?}:${CONTACT_PORT?}'
     networks:
@@ -69,12 +67,7 @@ services:
           - campaign.podkrepi.localhost
 
   payment:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-      target: ${TARGET_ENV?}
-      args:
-        TARGET_APP: payment
+    image: podkrepi-api
     container_name: ${COMPOSE_PROJECT_NAME?}-payment
     restart: always
     depends_on:
@@ -85,7 +78,10 @@ services:
       DB_PASS: ${DB_PASS?}
       DB_USER: ${DB_USER?}
       DB_NAME: ${DB_NAME?}
-      DATABASE_URL: ${DATABASE_URL?}?schema=payment
+      DATABASE_URL: postgres://postgres:postgrespass@localhost:5432/postgres?schema=payment
+    volumes:
+      # Local:Container mounting points
+      - ./:/app
     ports:
       - '${PAYMENT_PORT?}:${PAYMENT_PORT?}'
     networks:
