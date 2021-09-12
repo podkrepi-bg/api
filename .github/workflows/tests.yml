@@ -13,7 +13,7 @@ on:
 
 jobs:
   run-tests:
-    name: Build docker image
+    name: Run API tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
