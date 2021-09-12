@@ -30,15 +30,6 @@
     "api": {
       "tags": []
     },
-    "campaign": {
-      "tags": []
-    },
-    "contact": {
-      "tags": []
-    },
-    "payment": {
-      "tags": []
-    },
     "podkrepi-types": {
       "tags": []
     }

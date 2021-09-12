@@ -27,9 +27,6 @@ docker-compose up -d
 After starting your dev server visit:
 
 - <http://localhost:5010/api> (API)
-- <http://localhost:5020/api> (Campaigns)
-- <http://localhost:5030/api> (Contact)
-- <http://localhost:5040/api> (Payment)
 
 To shut down the dev server use:
 
@@ -50,9 +47,6 @@ yarn dev
 ```
 
 - <http://localhost:3310/api> (API)
-- <http://localhost:3320/api> (Campaigns)
-- <http://localhost:3330/api> (Contact)
-- <http://localhost:3340/api> (Payment)
 
 To shut down the db instance use:
 
@@ -66,7 +60,7 @@ Using NX we can scaffold different components in generic way
 
 <https://nx.dev/latest/node/nest/overview>
 
-Run `nx g @nrwl/nest:controller --project=campaign` to generate a new controller.
+Run `nx g @nrwl/nest:controller --project=api` to generate a new controller.
 
 You can also add the arg `--dry-run` to preview the changes without writing them.
 

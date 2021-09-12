@@ -11,6 +11,7 @@ services:
     environment:
       PORT: ${API_PORT?}
       TARGET_APP: api
+      DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
     volumes:
       # Local:Container mounting points
       - ./:/app
@@ -20,66 +21,6 @@ services:
       backend-net:
         aliases:
           - api.podkrepi.localhost
-
-  campaign:
-    image: podkrepi-api
-    container_name: ${COMPOSE_PROJECT_NAME?}-camapign
-    restart: always
-    volumes:
-      # Local:Container mounting points
-      - ./:/app
-    depends_on:
-      - pg-db
-    environment:
-      PORT: ${CAMPAIGN_PORT?}
-      TARGET_APP: campaign
-      DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
-    ports:
-      - '${CAMPAIGN_PORT?}:${CAMPAIGN_PORT}'
-    networks:
-      backend-net:
-        aliases:
-          - campaign.podkrepi.localhost
-
-  contact:
-    image: podkrepi-api
-    container_name: ${COMPOSE_PROJECT_NAME?}-contact
-    restart: always
-    depends_on:
-      - pg-db
-    environment:
-      PORT: ${CONTACT_PORT?}
-      TARGET_APP: contact
-      DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
-    volumes:
-      # Local:Container mounting points
-      - ./:/app
-    ports:
-      - '${CONTACT_PORT?}:${CONTACT_PORT?}'
-    networks:
-      backend-net:
-        aliases:
-          - contact.podkrepi.localhost
-
-  payment:
-    image: podkrepi-api
-    container_name: ${COMPOSE_PROJECT_NAME?}-payment
-    restart: always
-    depends_on:
-      - pg-db
-    environment:
-      PORT: ${PAYMENT_PORT?}
-      TARGET_APP: payment
-      DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
-    volumes:
-      # Local:Container mounting points
-      - ./:/app
-    ports:
-      - '${PAYMENT_PORT?}:${PAYMENT_PORT?}'
-    networks:
-      backend-net:
-        aliases:
-          - payment.podkrepi.localhost
 
   ## Postgres Development ##
   ##########################

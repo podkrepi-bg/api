@@ -20,7 +20,7 @@ describe('CityController', () => {
   });
 
   describe('getData', () => {
-    it('should return "Welcome to campaign!"', async () => {
+    it('should list all cities in db', async () => {
       expect(await controller.getData()).toEqual([
         {
           countryId: '09a56448-ac24-488c-a5fc-37cef53218e0',
