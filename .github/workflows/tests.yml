@@ -21,7 +21,6 @@ jobs:
         with:
           node-version: '16'
           cache: 'yarn'
-      - run: yarn
 
       - name: Nrwl Nx # https://github.com/marketplace/actions/nrwl-nx
         uses: MansaGroup/nrwl-nx-action@v2
