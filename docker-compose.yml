@@ -10,6 +10,7 @@ services:
     restart: always
     environment:
       PORT: ${API_PORT?}
+      TARGET_APP: api
     volumes:
       # Local:Container mounting points
       - ./:/app
@@ -31,10 +32,7 @@ services:
       - pg-db
     environment:
       PORT: ${CAMPAIGN_PORT?}
-      DB_HOST: ${DB_HOST?}
-      DB_PASS: ${DB_PASS?}
-      DB_USER: ${DB_USER?}
-      DB_NAME: ${DB_NAME?}
+      TARGET_APP: campaign
       DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
     ports:
       - '${CAMPAIGN_PORT?}:${CAMPAIGN_PORT}'
@@ -51,11 +49,8 @@ services:
       - pg-db
     environment:
       PORT: ${CONTACT_PORT?}
-      DB_HOST: ${DB_HOST?}
-      DB_PASS: ${DB_PASS?}
-      DB_USER: ${DB_USER?}
-      DB_NAME: ${DB_NAME?}
-      DATABASE_URL: postgres://postgres:postgrespass@localhost:5432/postgres?schema=api
+      TARGET_APP: contact
+      DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
     volumes:
       # Local:Container mounting points
       - ./:/app
@@ -64,7 +59,7 @@ services:
     networks:
       backend-net:
         aliases:
-          - campaign.podkrepi.localhost
+          - contact.podkrepi.localhost
 
   payment:
     image: podkrepi-api
@@ -74,11 +69,8 @@ services:
       - pg-db
     environment:
       PORT: ${PAYMENT_PORT?}
-      DB_HOST: ${DB_HOST?}
-      DB_PASS: ${DB_PASS?}
-      DB_USER: ${DB_USER?}
-      DB_NAME: ${DB_NAME?}
-      DATABASE_URL: postgres://postgres:postgrespass@localhost:5432/postgres?schema=payment
+      TARGET_APP: payment
+      DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
     volumes:
       # Local:Container mounting points
       - ./:/app
@@ -87,7 +79,7 @@ services:
     networks:
       backend-net:
         aliases:
-          - campaign.podkrepi.localhost
+          - payment.podkrepi.localhost
 
   ## Postgres Development ##
   ##########################
@@ -114,6 +106,7 @@ services:
     networks:
       - backend-net
 
+  # Flyway is deprecated, Prisma migrations are taking place
   # flyway:
   #   build:
   #     context: ./db

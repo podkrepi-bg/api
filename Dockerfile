@@ -1,12 +1,14 @@
 
-FROM node:14-alpine3.14 as base
+FROM node:16-alpine3.14 as base
 WORKDIR /app
+ARG TARGET_APP
+ENV TARGET_APP $TARGET_APP
 
 # Build target dependencies #
 #############################
 FROM base AS dependencies
 COPY package.json yarn.lock ./
-RUN yarn
+RUN yarn --production
 COPY schema.prisma .
 RUN yarn generate-model
 
@@ -19,7 +21,9 @@ CMD yarn dev
 # Build target builder #
 ########################
 FROM dependencies AS builder
-RUN yarn build-all
+COPY . .
+RUN yarn
+RUN yarn build-all --prod
 
 # Build target production #
 ###########################
@@ -27,4 +31,4 @@ FROM base AS production
 COPY --from=builder /app/dist /app
 COPY --from=dependencies /app/node_modules /app/node_modules
 # Start the app
-CMD node /app/main.js
+CMD node /app/apps/$TARGET_APP/main.js
