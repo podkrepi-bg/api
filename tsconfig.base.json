@@ -8,15 +8,14 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "target": "es2015",
-    "module": "esnext",
-    "lib": ["es2017", "dom"],
+    "target": "ES2018",
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "lib": ["ES2018", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@podkrepi-bg/db-orm": ["libs/db-orm/src/index.ts"],
-      "@podkrepi-bg/models": ["libs/models/src/index.ts"],
       "@podkrepi-bg/podkrepi-types": ["libs/podkrepi-types/src/index.ts"]
     }
   },

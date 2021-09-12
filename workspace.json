@@ -154,66 +154,6 @@
         }
       }
     },
-    "db-orm": {
-      "root": "libs/db-orm",
-      "sourceRoot": "libs/db-orm/src",
-      "projectType": "library",
-      "targets": {
-        "lint": {
-          "executor": "@nrwl/linter:eslint",
-          "outputs": ["{options.outputFile}"],
-          "options": {
-            "lintFilePatterns": ["libs/db-orm/**/*.ts"]
-          }
-        },
-        "test": {
-          "executor": "@nrwl/jest:jest",
-          "outputs": ["coverage/libs/db-orm"],
-          "options": {
-            "jestConfig": "libs/db-orm/jest.config.js",
-            "passWithNoTests": true
-          }
-        }
-      }
-    },
-    "models": {
-      "root": "libs/models",
-      "sourceRoot": "libs/models/src",
-      "projectType": "library",
-      "targets": {
-        "lint": {
-          "executor": "@nrwl/linter:eslint",
-          "outputs": ["{options.outputFile}"],
-          "options": {
-            "lintFilePatterns": ["libs/models/**/*.ts"]
-          }
-        },
-        "test": {
-          "executor": "@nrwl/jest:jest",
-          "outputs": ["coverage/libs/models"],
-          "options": {
-            "jestConfig": "libs/models/jest.config.js",
-            "passWithNoTests": true
-          }
-        },
-        "prisma-migrate-deploy": {
-          "builder": "@nrwl/workspace:run-commands",
-          "outputs": [],
-          "options": {
-            "command": "yarn prisma migrate deploy --schema ./src/prisma/schema.prisma",
-            "cwd": "libs/models"
-          }
-        },
-        "prisma-gen-client": {
-          "builder": "@nrwl/workspace:run-commands",
-          "outputs": [],
-          "options": {
-            "command": "yarn prisma generate --schema ./src/prisma/schema.prisma",
-            "cwd": "libs/models"
-          }
-        }
-      }
-    },
     "payment": {
       "root": "apps/payment",
       "sourceRoot": "apps/payment/src",
