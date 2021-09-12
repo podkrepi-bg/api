@@ -4,6 +4,7 @@
   "license": "MIT",
   "repository": "https://github.com/orgs/podkrepi-bg",
   "scripts": {
+    "nx": "nx",
     "dev": "yarn nx run-many --target serve --watch --all --parallel",
     "start": "yarn nx serve",
     "build": "yarn nx build",

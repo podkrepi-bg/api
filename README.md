@@ -97,9 +97,9 @@ You can use `yarn prisma db pull` to transform you local db updates to your [sch
 
 Read more for [db introspection here](https://www.prisma.io/docs/concepts/components/introspection)
 
-![](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/f7itiYw.png)
+![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/f7itiYw.png)
 
-![](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/ToNkpb2.png)
+![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/ToNkpb2.png)
 
 ### Rebuild Prisma Schema
 
