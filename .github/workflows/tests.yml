@@ -1,0 +1,25 @@
+name: API tests
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'
+    branches: [master]
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches: [master]
+
+jobs:
+  run-tests:
+    name: Build docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Nrwl Nx # https://github.com/marketplace/actions/nrwl-nx
+        uses: MansaGroup/nrwl-nx-action@v2
+        with:
+          targets: lint,test,build
+          projects: api
