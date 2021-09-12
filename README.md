@@ -7,6 +7,8 @@
   - [Prisma Migrate](https://www.prisma.io/docs/concepts/components/prisma-migrate)
 - API
   - <https://nestjs.com/>
+  - <https://www.prisma.io/nestjs>
+  - <https://docs.nestjs.com/recipes/prisma>
 - Workspace
   - <https://nx.dev/>
 
