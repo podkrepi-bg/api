@@ -1,0 +1,154 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Person {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstName      String           @map("first_name") @db.VarChar(100)
+  lastName       String           @map("lastName") @db.VarChar(100)
+  email          String?          @unique @db.Citext
+  phone          String?          @db.VarChar(50)
+  company        String?          @db.VarChar(50)
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime?        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  Beneficiary    Beneficiary[]
+  Coordinator    Coordinator[]
+  ContactRequest ContactRequest[]
+  SupportRequest SupportRequest[]
+
+  @@map("people")
+}
+
+model Coordinator {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  personId    String        @map("person_id") @db.Uuid
+  person      Person        @relation(fields: [personId], references: [id])
+  Beneficiary Beneficiary[]
+
+  @@map("coordinators")
+}
+
+enum BeneficiaryType {
+  Individual
+  Organisation
+
+  @@map("beneficiary_type")
+}
+
+model Beneficiary {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type          BeneficiaryType
+  personId      String          @db.Uuid
+  coordinatorId String          @db.Uuid
+  countryCode   String          @map("country_code") @db.Citext
+  cityId        String          @map("city_id") @db.Uuid
+  details       Json?
+  created_at    DateTime        @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updated_at    DateTime?       @updatedAt @map("updatedAt") @db.Timestamptz(6)
+  city          City            @relation(fields: [cityId], references: [id])
+  person        Person          @relation(fields: [personId], references: [id])
+  coordinator   Coordinator     @relation(fields: [coordinatorId], references: [id])
+  campaigns     Campaign[]
+
+  @@map("beneficiaries")
+}
+
+model CampaignType {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String     @db.VarChar(50)
+  slug        String     @db.VarChar(50)
+  description String?    @db.VarChar(200)
+  campaigns   Campaign[]
+
+  @@map("campaign_types")
+}
+
+enum CampaignState {
+  Initial
+  Draft
+  PendingValidation
+  Approved
+  Rejected
+  Active
+  ActivePendingValidation
+  Suspended
+  Complete
+  Disabled
+  Error
+
+  @@map("campaign_state")
+}
+
+model Campaign {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  state          CampaignState
+  slug           String        @db.VarChar(50)
+  title          String        @db.VarChar(200)
+  excerpt        String        @db.VarChar(500)
+  coordinatorId  String        @map("coordinator_id") @db.Uuid
+  beneficiaryId  String        @map("beneficiary_id") @db.Uuid
+  campaignTypeId String        @map("campaign_type_id") @db.Uuid
+  description    String?       @map("description")
+  targetAmount   Decimal?      @map("target_amount") @db.Decimal
+  currency       String?       @default("BGN")
+  startDate      DateTime?     @map("start_date") @db.Timestamptz(6)
+  endDate        DateTime?     @map("end_date") @db.Timestamptz(6)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  beneficiary    Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+  campaignTypes  CampaignType  @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([campaignTypeId])
+  @@map("campaigns")
+}
+
+model ContactRequest {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  personId  String    @map("person_id") @db.Uuid
+  message   String
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime? @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+  person    Person    @relation(fields: [personId], references: [id])
+
+  @@map("contact_requests")
+}
+
+model SupportRequest {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  personId    String    @map("person_id") @db.Uuid
+  supportData Json?     @map("support_data")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  person      Person    @relation(fields: [personId], references: [id])
+
+  @@map("support_requests")
+}
+
+model City {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  postalCode  Int           @map("postal_code")
+  countryId   String        @map("country_id") @db.Uuid
+  countryCode Country       @relation(fields: [countryId], references: [id])
+  Beneficiary Beneficiary[]
+
+  @@map("cities")
+}
+
+model Country {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  countryCode String @db.Citext
+  City        City[]
+
+  @@map("countries")
+}

@@ -36,12 +36,6 @@
     "contact": {
       "tags": []
     },
-    "db-orm": {
-      "tags": []
-    },
-    "models": {
-      "tags": []
-    },
     "payment": {
       "tags": []
     },
