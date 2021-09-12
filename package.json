@@ -1,7 +1,8 @@
 {
-  "name": "podkrepi-bg",
-  "version": "0.0.0",
+  "name": "podkrepi-bg-api",
+  "version": "0.0.1",
   "license": "MIT",
+  "repository": "https://github.com/orgs/podkrepi-bg",
   "scripts": {
     "dev": "yarn nx run-many --target serve --watch --all --parallel",
     "start": "yarn nx serve",
@@ -9,21 +10,21 @@
     "build-all": "yarn nx run-many --target build --all --parallel",
     "test": "yarn nx run-many --target test --all",
     "format": "prettier --write apps/**/*.ts",
-    "generate-model": "yarn prisma generate"
+    "generate-schema": "yarn prisma generate",
+    "studio": "yarn prisma studio"
   },
-  "private": true,
   "dependencies": {
-    "@nestjs/common": "^7.0.0",
-    "@nestjs/core": "^7.0.0",
-    "@nestjs/platform-express": "^7.0.0",
+    "@nestjs/common": "^8.0.6",
+    "@nestjs/core": "^8.0.6",
+    "@nestjs/platform-express": "^8.0.6",
     "@prisma/client": "^3.0.2",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "~6.6.3",
-    "tslib": "^2.0.0"
+    "rxjs": "~7.3.0",
+    "tslib": "^2.3.1"
   },
   "devDependencies": {
-    "@nestjs/schematics": "^7.0.0",
-    "@nestjs/testing": "^7.0.0",
+    "@nestjs/schematics": "^8.0.3",
+    "@nestjs/testing": "^8.0.6",
     "@nrwl/cli": "12.9.0",
     "@nrwl/eslint-plugin-nx": "12.9.0",
     "@nrwl/jest": "12.9.0",

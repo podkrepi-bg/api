@@ -10,7 +10,7 @@ FROM base AS dependencies
 COPY package.json yarn.lock ./
 RUN yarn --production
 COPY schema.prisma .
-RUN yarn generate-model
+RUN yarn generate-schema
 
 # Build target development #
 ############################
