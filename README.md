@@ -104,7 +104,11 @@ Read more for [db introspection here](https://www.prisma.io/docs/concepts/compon
 ### Rebuild Prisma Schema
 
 ```shell
+# run it locally via
 yarn generate-schema
+
+# or run it inside docker container via
+docker-compose exec api yarn generate-schema
 ```
 
 ### Iterate on database versions

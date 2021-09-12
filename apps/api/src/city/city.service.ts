@@ -1,11 +1,13 @@
-import { City, PrismaClient } from '.prisma/client';
+import { City } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 
-const prisma = new PrismaClient();
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class CityService {
-  listCities(): Promise<City[]> {
-    return prisma.city.findMany();
+  constructor(private prisma: PrismaService) {}
+
+  async listCities(): Promise<City[]> {
+    return this.prisma.city.findMany();
   }
 }
