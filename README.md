@@ -1,5 +1,6 @@
 # PodkrepiBg API
 
+- <https://www.postgresql.org/>
 - <https://nestjs.com/>
 - <https://prisma.io/>
 - <https://nx.dev/>
