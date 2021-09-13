@@ -1,5 +1,6 @@
-import { Person, SupportRequest } from '.prisma/client';
 import { Injectable } from '@nestjs/common';
+import { ContactRequest, Prisma, SupportRequest } from '.prisma/client';
+
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -7,8 +8,8 @@ export class SupportService {
   constructor(private prisma: PrismaService) {}
 
   async createSupportRequest(
-    person: Pick<Person, 'firstName' | 'lastName' | 'email' | 'phone'>,
-    supportData: SupportRequest['supportData']
+    person: Prisma.PersonCreateWithoutSupportRequestInput,
+    supportData: Prisma.SupportRequestCreateInput['supportData']
   ): Promise<SupportRequest> {
     return this.prisma.supportRequest.create({
       include: {
@@ -30,6 +31,32 @@ export class SupportService {
           },
         },
         supportData,
+      },
+    });
+  }
+
+  async createSupportInquiry(
+    person: Prisma.PersonCreateWithoutContactRequestInput,
+    message: ContactRequest['message']
+  ): Promise<ContactRequest> {
+    return this.prisma.contactRequest.create({
+      select: {
+        id: true,
+        person: false,
+        personId: true,
+        message: true,
+        createdAt: true,
+        deletedAt: true,
+        updatedAt: true,
+      },
+      data: {
+        person: {
+          connectOrCreate: {
+            create: person,
+            where: { email: person.email },
+          },
+        },
+        message,
       },
     });
   }
