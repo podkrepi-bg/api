@@ -153,6 +153,13 @@ The following command will run all tests in all your apps.
 yarn test
 ```
 
+## API Docs via Swagger
+
+Available at:
+
+- <http://localhost:3310/docs/>
+- <http://localhost:5010/docs/>
+
 ## Understand your workspace
 
 Run `nx dep-graph` to see a diagram of the dependencies of your projects.
