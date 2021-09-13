@@ -23,6 +23,19 @@ services:
           - api.podkrepi.localhost
 
   ## Postgres Development ##
+  migrate-db:
+    image: podkrepi-api
+    container_name: ${COMPOSE_PROJECT_NAME?}-api
+    restart: always
+    environment:
+      DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
+    command: 'yarn migrate'
+    networks:
+      backend-net:
+        aliases:
+          - api.podkrepi.localhost
+
+  ## Postgres Development ##
   ##########################
   pg-db:
     build:
