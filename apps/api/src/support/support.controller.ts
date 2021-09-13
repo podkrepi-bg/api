@@ -1,14 +1,25 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Logger, Post, ValidationPipe } from '@nestjs/common'
 
-import { SupportService } from './support.service';
+import { CreateRequestDto } from './create-request.dto'
+import { SupportService } from './support.service'
 
 @Controller('support')
 export class SupportController {
   constructor(private readonly supportService: SupportService) {}
 
-  @Get('create-request')
-  async createRequest() {
-    const hash = Math.random().toString(36).substring(7);
+  private readonly logger = new Logger(SupportController.name)
+
+  @Post('create-request')
+  async createRequest(@Body() createDto: CreateRequestDto) {
+    const hash = Math.random().toString(36).substring(7)
+
+    const entity = CreateRequestDto.toEntity(createDto)
+    console.log(entity)
+    // const data = Prisma.validator<Prisma.SupportRequestCreateInput>()(entity)
+
+    // this.logger.log(data)
+    // this.logger.log(createDto)
+
     return await this.supportService.createSupportRequest(
       {
         firstName: 'John',
@@ -18,20 +29,14 @@ export class SupportController {
         company: null,
       },
       {
-        roles: [
-          'benefactor',
-          'partner',
-          'associationMember',
-          'company',
-          'volunteer',
-        ],
-      }
-    );
+        roles: ['benefactor', 'partner', 'associationMember', 'company', 'volunteer'],
+      },
+    )
   }
 
-  @Get('create-inquiry')
+  @Post('create-inquiry')
   async createInquiry() {
-    const hash = Math.random().toString(36).substring(7);
+    const hash = Math.random().toString(36).substring(7)
     return await this.supportService.createSupportInquiry(
       {
         firstName: 'John',
@@ -40,7 +45,7 @@ export class SupportController {
         phone: '+359000000000',
         company: 'Doe Ltd.',
       },
-      'test best west'
-    );
+      'test best west',
+    )
   }
 }

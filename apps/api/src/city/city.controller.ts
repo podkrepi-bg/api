@@ -1,6 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common'
 
-import { CityService } from './city.service';
+import { CityService } from './city.service'
 
 @Controller('city')
 export class CityController {
@@ -8,6 +8,6 @@ export class CityController {
 
   @Get('list')
   async getData() {
-    return await this.cityService.listCities();
+    return await this.cityService.listCities()
   }
 }

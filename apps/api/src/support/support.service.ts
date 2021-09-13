@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { ContactRequest, Prisma, SupportRequest } from '.prisma/client';
+import { Injectable } from '@nestjs/common'
+import { ContactRequest, Prisma, SupportRequest } from '.prisma/client'
 
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service'
 
 @Injectable()
 export class SupportService {
@@ -9,7 +9,7 @@ export class SupportService {
 
   async createSupportRequest(
     person: Prisma.PersonCreateWithoutSupportRequestInput,
-    supportData: Prisma.SupportRequestCreateInput['supportData']
+    supportData: Prisma.SupportRequestCreateInput['supportData'],
   ): Promise<SupportRequest> {
     return this.prisma.supportRequest.create({
       include: {
@@ -32,12 +32,12 @@ export class SupportService {
         },
         supportData,
       },
-    });
+    })
   }
 
   async createSupportInquiry(
     person: Prisma.PersonCreateWithoutContactRequestInput,
-    message: ContactRequest['message']
+    message: ContactRequest['message'],
   ): Promise<ContactRequest> {
     return this.prisma.contactRequest.create({
       select: {
@@ -58,6 +58,6 @@ export class SupportService {
         },
         message,
       },
-    });
+    })
   }
 }

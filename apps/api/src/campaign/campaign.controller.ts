@@ -1,6 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common'
 
-import { CampaignService } from './campaign.service';
+import { CampaignService } from './campaign.service'
 
 @Controller('campaign')
 export class CampaignController {
@@ -8,6 +8,6 @@ export class CampaignController {
 
   @Get('list')
   getData() {
-    return this.campaignService.listCampaigns();
+    return this.campaignService.listCampaigns()
   }
 }
