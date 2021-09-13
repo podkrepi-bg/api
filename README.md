@@ -101,6 +101,10 @@ Read more for [db introspection here](https://www.prisma.io/docs/concepts/compon
 
 ![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/ToNkpb2.png)
 
+### Running raw sql queries
+
+Read more at: <https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access>
+
 ### Rebuild Prisma Schema
 
 ```shell
