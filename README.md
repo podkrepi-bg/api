@@ -46,8 +46,6 @@ docker-compose up -d pg-db
 yarn dev
 ```
 
-- <http://localhost:3310/api> (API)
-
 To shut down the db instance use:
 
 ```shell
@@ -157,7 +155,6 @@ yarn test
 
 Available at:
 
-- <http://localhost:3310/docs/>
 - <http://localhost:5010/docs/>
 
 ## Understand your workspace
