@@ -123,14 +123,37 @@ model ContactRequest {
 }
 
 model SupportRequest {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  personId    String    @map("person_id") @db.Uuid
-  supportData Json?     @map("support_data")
-  comment     String?
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
-  person      Person    @relation(fields: [personId], references: [id])
+  id                           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  personId                     String    @map("person_id") @db.Uuid
+  roleBenefactor               Boolean   @default(false) @map("role_benefactor")
+  rolePartner                  Boolean   @default(false) @map("role_partner")
+  roleAssociationMember        Boolean   @default(false) @map("role_association_member")
+  roleCompany                  Boolean   @default(false) @map("role_company")
+  roleVolunteer                Boolean   @default(false) @map("role_volunteer")
+  benefactorCampaign           Boolean   @default(false) @map("benefactor_campaign")
+  benefactorPlatform           Boolean   @default(false) @map("benefactor_platform")
+  partnerNpo                   Boolean   @default(false) @map("partner_npo")
+  partnerBussiness             Boolean   @default(false) @map("partner_bussiness")
+  partnerOtherText             String?   @map("partner_other_text")
+  volunteerBackend             Boolean   @default(false) @map("volunteer_backend")
+  volunteerFrontend            Boolean   @default(false) @map("volunteer_frontend")
+  volunteerMarketing           Boolean   @default(false) @map("volunteer_marketing")
+  volunteerDesigner            Boolean   @default(false) @map("volunteer_designer")
+  volunteerProjectManager      Boolean   @default(false) @map("volunteer_project_manager")
+  volunteerDevOps              Boolean   @default(false) @map("volunteer_dev_ops")
+  volunteerSecurity            Boolean   @default(false) @map("volunteer_security")
+  volunteerFinancesAndAccounts Boolean   @default(false) @map("volunteer_finances_and_accounts")
+  volunteerLawyer              Boolean   @default(false) @map("volunteer_lawyer")
+  volunteerQa                  Boolean   @default(false) @map("volunteer_qa")
+  associationMember            Boolean   @default(false) @map("association_member")
+  companySponsor               Boolean   @default(false) @map("company_sponsor")
+  companyVolunteer             Boolean   @default(false) @map("company_volunteer")
+  companyOtherText             String?   @map("company_other_text")
+  comment                      String?
+  createdAt                    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                    DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt                    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  person                       Person    @relation(fields: [personId], references: [id])
 
   @@map("support_requests")
 }
