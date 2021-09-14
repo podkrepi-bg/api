@@ -15,6 +15,7 @@ model Person {
   email          String           @unique @db.Citext
   phone          String?          @db.VarChar(50)
   company        String?          @db.VarChar(50)
+  newsletter     Boolean?         @default(false)
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime?        @updatedAt @map("updated_at") @db.Timestamptz(6)
   Beneficiary    Beneficiary[]
@@ -125,6 +126,7 @@ model SupportRequest {
   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   personId    String    @map("person_id") @db.Uuid
   supportData Json?     @map("support_data")
+  comment     String?
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
