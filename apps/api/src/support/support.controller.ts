@@ -10,17 +10,19 @@ import { SupportService } from './support.service'
 export class SupportController {
   constructor(private readonly supportService: SupportService) {}
 
+  @Post('create-request')
   @Public()
   @Scopes()
-  @Post('create-request')
   async createRequest(@Body() createDto: CreateRequestDto) {
+    console.log(createDto)
     return await this.supportService.createSupportRequest(createDto)
   }
 
+  @Post('create-inquiry')
   @Public()
   @Scopes()
-  @Post('create-inquiry')
   async createInquiry(@Body() createDto: CreateInquiryDto) {
+    console.log(createDto)
     return await this.supportService.createSupportInquiry(createDto)
   }
 }

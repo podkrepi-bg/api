@@ -16,17 +16,6 @@ export class SupportService {
     } = inputDto
 
     return this.prisma.supportRequest.create({
-      include: {
-        person: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            createdAt: true,
-          },
-        },
-      },
       data: {
         comment,
         person: {

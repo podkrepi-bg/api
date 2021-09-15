@@ -1,7 +1,8 @@
-import { Prisma } from '.prisma/client'
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
-import { classToPlain, plainToClass, Type } from 'class-transformer'
+import { Expose, Type } from 'class-transformer'
+
+@Expose()
 export class RolesDto {
   @ApiProperty()
   @IsBoolean()
@@ -24,6 +25,7 @@ export class RolesDto {
   volunteer: boolean
 }
 
+@Expose()
 export class BenefactorDto {
   @ApiProperty()
   @IsBoolean()
@@ -34,6 +36,7 @@ export class BenefactorDto {
   platformBenefactor: boolean
 }
 
+@Expose()
 export class PartnerDto {
   @ApiProperty()
   @IsBoolean()
@@ -51,6 +54,7 @@ export class PartnerDto {
   @IsString()
   otherText: string
 }
+@Expose()
 export class VolunteerDto {
   @ApiProperty()
   @IsBoolean()
@@ -93,12 +97,14 @@ export class VolunteerDto {
   qa: boolean
 }
 
+@Expose()
 export class AssociationMemberDto {
   @ApiProperty()
   @IsBoolean()
   isMember: boolean
 }
 
+@Expose()
 export class CompanyDto {
   @ApiProperty()
   @IsBoolean()
@@ -124,41 +130,43 @@ export class SupportDataDto {
 
   @ApiProperty()
   @IsNotEmpty()
+  @Expose()
+  @ValidateNested()
   @Type(() => RolesDto)
   public readonly roles: RolesDto
 
   @ApiProperty()
   @IsNotEmpty()
+  @Expose()
+  @ValidateNested()
   @Type(() => BenefactorDto)
   public readonly benefactor: BenefactorDto
 
   @ApiProperty()
   @IsNotEmpty()
+  @Expose()
+  @ValidateNested()
   @Type(() => PartnerDto)
   public readonly partner: PartnerDto
 
   @ApiProperty()
   @IsNotEmpty()
+  @Expose()
+  @ValidateNested()
   @Type(() => VolunteerDto)
   public readonly volunteer: VolunteerDto
 
   @ApiProperty()
   @IsNotEmpty()
+  @Expose()
+  @ValidateNested()
   @Type(() => AssociationMemberDto)
   public readonly associationMember: AssociationMemberDto
 
   @ApiProperty()
   @IsNotEmpty()
+  @Expose()
+  @ValidateNested()
   @Type(() => CompanyDto)
   public readonly company: CompanyDto
-
-  public toJson(): Prisma.JsonObject {
-    return classToPlain<SupportDataDto>(this, { excludeExtraneousValues: true })
-  }
-
-  public static fromJson(input: Prisma.JsonObject): SupportDataDto {
-    return plainToClass<SupportDataDto, Prisma.JsonObject>(SupportDataDto, input, {
-      excludeExtraneousValues: true,
-    })
-  }
 }

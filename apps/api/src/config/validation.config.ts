@@ -4,22 +4,23 @@ import { useContainer } from 'class-validator'
 
 import { AppModule } from '../app/app.module'
 
-export function setupValidation(app: INestApplication): void {
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      stopAtFirstError: false,
-      disableErrorMessages: false,
-      transformOptions: {
-        strategy: 'excludeAll',
-        excludeExtraneousValues: true,
-      },
-      validationError: { target: true, value: true },
-    }),
-  )
+const globalValidationPipe = new ValidationPipe({
+  transform: true,
+  transformOptions: {
+    strategy: 'excludeAll',
+    excludeExtraneousValues: false,
+  },
+  stopAtFirstError: false,
+  forbidUnknownValues: true,
+  disableErrorMessages: false,
+  validationError: { target: true, value: false },
+})
 
+export function setupValidation(app: INestApplication): void {
   // https://github.com/typestack/class-validator#using-service-container
   useContainer(app.select(AppModule), { fallbackOnErrors: true })
+
+  app.useGlobalPipes(globalValidationPipe)
 }
 
 export const validationSchema = Joi.object({
