@@ -76,7 +76,7 @@ export class SupportService {
         id: true,
         person: false,
         personId: true,
-        message: true,
+        message: true, // TODO: Find how to hide `message` prop from response
         createdAt: true,
         deletedAt: true,
         updatedAt: true,

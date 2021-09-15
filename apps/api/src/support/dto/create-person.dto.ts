@@ -1,8 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { plainToClass } from 'class-transformer'
 import { IsEmail, IsString, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator'
-
-import { PersonEntity } from '../entity/person.entity'
 
 export class CreatePersonDto {
   @ApiProperty()
@@ -35,16 +32,4 @@ export class CreatePersonDto {
   @IsOptional()
   @IsString()
   public readonly company: string | null
-
-  public toEntity(): PersonEntity {
-    return plainToClass<PersonEntity, Partial<CreatePersonDto>>(PersonEntity, this, {
-      excludeExtraneousValues: true,
-    })
-  }
-
-  public static fromEntity(entity: PersonEntity): CreatePersonDto {
-    return plainToClass<CreatePersonDto, Partial<PersonEntity>>(CreatePersonDto, entity, {
-      excludeExtraneousValues: true,
-    })
-  }
 }
