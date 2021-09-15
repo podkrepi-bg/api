@@ -25,6 +25,8 @@
     "class-transformer": "^0.4.0",
     "class-validator": "^0.13.1",
     "joi": "^17.4.2",
+    "keycloak-connect": "^15.0.2",
+    "nest-keycloak-connect": "^1.7.5",
     "reflect-metadata": "^0.1.13",
     "rxjs": "~7.3.0",
     "swagger-ui-express": "^4.1.6",
