@@ -4,6 +4,7 @@
   - <https://www.postgresql.org/>
   - <https://hub.docker.com/r/bitnami/postgresql/>
   - <https://prisma.io/>
+  - <https://github.com/juliandavidmr/awesome-nestjs#awesome-nest>
   - [Prisma Migrate](https://www.prisma.io/docs/concepts/components/prisma-migrate)
 - API
   - <https://nestjs.com/>

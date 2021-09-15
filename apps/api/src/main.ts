@@ -3,7 +3,7 @@
  * This is only a minimal backend to get started.
  */
 
-import { Logger } from '@nestjs/common'
+import { Logger, VersioningType } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 
 import { AppModule } from './app/app.module'
@@ -18,6 +18,7 @@ async function bootstrap() {
   })
   const globalPrefix = 'api'
   app.setGlobalPrefix(globalPrefix)
+  app.enableVersioning({ type: VersioningType.URI })
 
   setupCors(app)
   setupSwagger(app)
