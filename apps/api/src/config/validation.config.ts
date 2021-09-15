@@ -7,8 +7,8 @@ import { AppModule } from '../app/app.module'
 const globalValidationPipe = new ValidationPipe({
   transform: true,
   transformOptions: {
-    strategy: 'excludeAll',
-    excludeExtraneousValues: false,
+    strategy: 'exposeAll',
+    excludeExtraneousValues: true,
   },
   stopAtFirstError: false,
   forbidUnknownValues: true,
