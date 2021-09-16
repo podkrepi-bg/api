@@ -1,6 +1,6 @@
 import { Prisma } from '.prisma/client'
 import { ApiProperty } from '@nestjs/swagger'
-import { Expose } from 'class-transformer'
+import { Expose, Type } from 'class-transformer'
 import { IsEmail, IsString, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator'
 
 @Expose()
@@ -41,6 +41,19 @@ export class CreatePersonDto {
   @IsBoolean()
   public readonly newsletter: boolean | null
 
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  @IsString()
+  public readonly address: string | null
+
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  @IsString()
+  @Type(() => Date)
+  public readonly birthday: Date
+
   public toEntity(): Prisma.PersonCreateInput {
     return {
       firstName: this.firstName,
@@ -49,6 +62,8 @@ export class CreatePersonDto {
       phone: this.phone,
       newsletter: this.newsletter,
       company: this.company,
+      address: this.address,
+      birthday: this.birthday,
     }
   }
 }
