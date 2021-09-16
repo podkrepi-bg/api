@@ -8,7 +8,7 @@ import {
 } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose, Type } from 'class-transformer'
-import { BeneficiaryType, Prisma } from '.prisma/client'
+import { BeneficiaryType, PersonRelation, Prisma } from '.prisma/client'
 import { CreatePersonDto } from '@podkrepi-bg/podkrepi-types'
 
 @Expose()
@@ -36,6 +36,11 @@ export class CreateBeneficiaryDto {
 
   @ApiProperty()
   @Expose()
+  @IsEnum(PersonRelation)
+  coordinatorRelation: PersonRelation
+
+  @ApiProperty()
+  @Expose()
   @IsISO31661Alpha2()
   countryCode: string
 
@@ -51,11 +56,13 @@ export class CreateBeneficiaryDto {
 
   public toEntity(): Prisma.BeneficiaryCreateInput {
     return {
-      city: {
-        connect: { id: this.cityId },
-      },
-      countryCode: 'BG',
       type: this.type,
+      person: {
+        connectOrCreate: {
+          create: this.beneficiary.toEntity(),
+          where: { email: this.beneficiary.email },
+        },
+      },
       coordinator: {
         // Here we might also implement creation by coordinator ID
         create: {
@@ -67,12 +74,10 @@ export class CreateBeneficiaryDto {
           },
         },
       },
-      person: {
-        connectOrCreate: {
-          create: this.beneficiary.toEntity(),
-          where: { email: this.beneficiary.email },
-        },
-      },
+      coordinatorRelation: this.coordinatorRelation,
+      details: this.details,
+      city: { connect: { id: this.cityId } },
+      countryCode: 'BG',
     }
   }
 }
