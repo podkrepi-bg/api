@@ -15,6 +15,7 @@ import { AppConfigModule } from '../config/app-config.module'
 import { validationSchema } from '../config/validation.config'
 import { KeycloakConfigService } from '../config/keycloak-config.service'
 import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.filter'
+import { BeneficiaryModule } from '../beneficiary/beneficiary.module'
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
     AccountModule,
     CampaignModule,
     SupportModule,
+    BeneficiaryModule,
     CityModule,
   ],
   controllers: [AppController],

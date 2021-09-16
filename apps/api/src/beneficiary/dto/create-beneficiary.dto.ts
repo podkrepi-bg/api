@@ -1,0 +1,78 @@
+import {
+  IsEnum,
+  IsISO31661Alpha2,
+  IsNotEmpty,
+  IsObject,
+  IsUUID,
+  ValidateNested,
+} from 'class-validator'
+import { ApiProperty } from '@nestjs/swagger'
+import { Expose, Type } from 'class-transformer'
+import { BeneficiaryType, Prisma } from '.prisma/client'
+import { CreatePersonDto } from '@podkrepi-bg/podkrepi-types'
+
+@Expose()
+export class CreateBeneficiaryDto {
+  @ApiProperty()
+  @Expose()
+  @IsEnum(BeneficiaryType)
+  type: BeneficiaryType
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @Expose()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => CreatePersonDto)
+  public readonly beneficiary: CreatePersonDto
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @Expose()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => CreatePersonDto)
+  public readonly coordinator: CreatePersonDto
+
+  @ApiProperty()
+  @Expose()
+  @IsISO31661Alpha2()
+  countryCode: string
+
+  @ApiProperty()
+  @Expose()
+  @IsNotEmpty()
+  @IsUUID()
+  cityId: string
+
+  @ApiProperty()
+  @Expose()
+  details: Prisma.JsonValue | null
+
+  public toEntity(): Prisma.BeneficiaryCreateInput {
+    return {
+      city: {
+        connect: { id: this.cityId },
+      },
+      countryCode: 'BG',
+      type: this.type,
+      coordinator: {
+        // Here we might also implement creation by coordinator ID
+        create: {
+          person: {
+            connectOrCreate: {
+              create: this.coordinator.toEntity(),
+              where: { email: this.coordinator.email },
+            },
+          },
+        },
+      },
+      person: {
+        connectOrCreate: {
+          create: this.beneficiary.toEntity(),
+          where: { email: this.beneficiary.email },
+        },
+      },
+    }
+  }
+}

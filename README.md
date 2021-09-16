@@ -99,6 +99,8 @@ Read more for [db introspection here](https://www.prisma.io/docs/concepts/compon
 
 ![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/f7itiYw.png)
 
+![schema](https://www.prisma.io/blog/posts/2021-03-migrate-source-of-truth.png)
+
 ![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/ToNkpb2.png)
 
 ### Running raw sql queries
@@ -138,7 +140,7 @@ Notes:
 
 - Prisma works only on single schema
 - Prisma Migrate tries to deploy your database in [shadow database schema](https://www.prisma.io/docs/concepts/components/prisma-migrate/shadow-database) to verify it is in a good state
-- Prisma
+- Prisma can pull structure from the db to regenerate the schema file
 
 ### Seed initial data in db
 
