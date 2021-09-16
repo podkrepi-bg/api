@@ -4,10 +4,10 @@ const prisma = new PrismaClient()
 export async function countriesSeed() {
   console.log('Countries seed')
 
-  const country = await prisma.country.createMany({
+  const insert = await prisma.country.createMany({
     data: [{ name: 'Bulgaria', countryCode: 'BG' }],
     skipDuplicates: true,
   })
 
-  console.log({ country })
+  console.log({ insert })
 }
