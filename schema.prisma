@@ -61,11 +61,14 @@ model Beneficiary {
 }
 
 model CampaignType {
-  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String     @db.VarChar(50)
-  slug        String     @db.VarChar(50)
-  description String?    @db.VarChar(200)
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String         @db.VarChar(50)
+  slug        String         @unique @db.VarChar(50)
+  parentId    String?        @map("parent_id") @db.Uuid
+  description String?        @db.VarChar(200)
   campaigns   Campaign[]
+  parent      CampaignType?  @relation("ParentCategory", fields: [parentId], references: [id])
+  children    CampaignType[] @relation("ParentCategory")
 
   @@map("campaign_types")
 }
