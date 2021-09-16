@@ -15,7 +15,9 @@ model Person {
   email          String           @unique @db.Citext
   phone          String?          @db.VarChar(50)
   company        String?          @db.VarChar(50)
+  address        String?          @db.VarChar(50)
   newsletter     Boolean?         @default(false)
+  birthday       DateTime?        @db.Timestamptz(6)
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime?        @updatedAt @map("updated_at") @db.Timestamptz(6)
   Beneficiary    Beneficiary[]
@@ -36,26 +38,50 @@ model Coordinator {
 }
 
 enum BeneficiaryType {
-  Individual
-  Organisation
+  individual
+  organisation
 
   @@map("beneficiary_type")
 }
 
+/// https://developers.google.com/people/api/rest/v1/people?hl=pt#relation
+enum PersonRelation {
+  none
+  parent
+  spouse
+  child
+  mother
+  father
+  brother
+  sister
+  friend
+  relative
+  partner
+  domesticPartner
+  manager
+  assistant
+  colleague
+
+  @@map("person_relation")
+}
+
 model Beneficiary {
-  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type          BeneficiaryType
-  personId      String          @db.Uuid
-  coordinatorId String          @db.Uuid
-  countryCode   String          @map("country_code") @db.Citext
-  cityId        String          @map("city_id") @db.Uuid
-  details       Json?
-  created_at    DateTime        @default(now()) @map("createdAt") @db.Timestamptz(6)
-  updated_at    DateTime?       @updatedAt @map("updatedAt") @db.Timestamptz(6)
-  city          City            @relation(fields: [cityId], references: [id])
-  person        Person          @relation(fields: [personId], references: [id])
-  coordinator   Coordinator     @relation(fields: [coordinatorId], references: [id])
-  campaigns     Campaign[]
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type                BeneficiaryType
+  /// Person in need
+  personId            String          @db.Uuid
+  countryCode         String          @map("country_code") @db.Citext
+  cityId              String          @map("city_id") @db.Uuid
+  details             Json?
+  /// Coordinator for this beneficiary
+  coordinatorId       String          @db.Uuid
+  coordinatorRelation PersonRelation  @default(none) @map("coordinator_relation")
+  created_at          DateTime        @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updated_at          DateTime?       @updatedAt @map("updatedAt") @db.Timestamptz(6)
+  city                City            @relation(fields: [cityId], references: [id])
+  person              Person          @relation(fields: [personId], references: [id])
+  coordinator         Coordinator     @relation(fields: [coordinatorId], references: [id])
+  campaigns           Campaign[]
 
   @@map("beneficiaries")
 }
@@ -164,7 +190,7 @@ model SupportRequest {
 model City {
   id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String
-  postalCode  Int           @map("postal_code")
+  postalCode  Int           @unique @map("postal_code")
   countryId   String        @map("country_id") @db.Uuid
   countryCode Country       @relation(fields: [countryId], references: [id])
   Beneficiary Beneficiary[]

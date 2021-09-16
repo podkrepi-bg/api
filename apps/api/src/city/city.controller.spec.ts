@@ -37,7 +37,13 @@ describe('CityController', () => {
         },
         {
           countryId: '09a56448-ac24-488c-a5fc-37cef53218e0',
-          id: '30e2c968-6571-4cba-9949-1075a21a9b82',
+          id: '5f4ca541-7ef0-457f-95bc-8bfc0319ac94',
+          name: 'Plovdiv',
+          postalCode: 4000,
+        },
+        {
+          countryId: '09a56448-ac24-488c-a5fc-37cef53218e0',
+          id: '9e0e1c67-1736-43cc-b235-7ccd6f9b90e2',
           name: 'Varna',
           postalCode: 9000,
         },
