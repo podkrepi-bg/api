@@ -13,7 +13,7 @@ import { CreatePersonDto } from '@podkrepi-bg/podkrepi-types'
 
 @Expose()
 export class CreateBeneficiaryDto {
-  @ApiProperty()
+  @ApiProperty({ enum: BeneficiaryType })
   @Expose()
   @IsEnum(BeneficiaryType)
   type: BeneficiaryType
@@ -34,7 +34,7 @@ export class CreateBeneficiaryDto {
   @Type(() => CreatePersonDto)
   public readonly coordinator: CreatePersonDto
 
-  @ApiProperty()
+  @ApiProperty({ enum: PersonRelation })
   @Expose()
   @IsEnum(PersonRelation)
   coordinatorRelation: PersonRelation

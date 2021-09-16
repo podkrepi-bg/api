@@ -35,19 +35,19 @@ export class CreatePersonDto {
   @IsString()
   public readonly company: string | null
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true, required: false })
   @Expose()
   @IsOptional()
   @IsBoolean()
   public readonly newsletter: boolean | null
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true, required: false })
   @Expose()
   @IsOptional()
   @IsString()
   public readonly address: string | null
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true, required: false })
   @Expose()
   @IsOptional()
   @IsString()
