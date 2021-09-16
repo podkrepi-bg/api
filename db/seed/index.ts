@@ -1,11 +1,12 @@
 import { PrismaClient } from '@prisma/client'
 
-import { seedCampaignTypes } from './campaign-type.seed'
+import { countriesSeed } from './countries.seed'
+import { campaignTypesSeed } from './campaign-type.seed'
 
 const prisma = new PrismaClient()
 
 async function main() {
-  await Promise.all([await seedCampaignTypes()])
+  await Promise.all([await countriesSeed(), await campaignTypesSeed()])
 }
 
 main()

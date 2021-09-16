@@ -175,7 +175,7 @@ model City {
 model Country {
   id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String
-  countryCode String @db.Citext
+  countryCode String @unique @db.Citext
   City        City[]
 
   @@map("countries")

@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
-export async function seedCampaignTypes() {
+export async function campaignTypesSeed() {
   console.log('CampaignTypes seed')
 
   const treatment = await prisma.campaignType.upsert({
