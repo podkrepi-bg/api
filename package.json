@@ -5,12 +5,13 @@
   "repository": "https://github.com/orgs/podkrepi-bg",
   "scripts": {
     "nx": "nx",
+    "lint": "nx lint",
     "dev": "yarn nx run-many --target serve --watch --all --parallel",
     "start": "yarn nx serve",
     "build": "yarn nx build",
     "build-all": "yarn nx run-many --target build --all --parallel",
     "test": "yarn nx run-many --target test --all",
-    "format": "prettier --write apps/**/*.ts",
+    "format": "prettier --write apps/**/*.{ts,js,json}",
     "migrate": "yarn prisma migrate deploy",
     "generate-schema": "yarn prisma generate",
     "studio": "yarn prisma studio"
@@ -49,15 +50,25 @@
     "@typescript-eslint/parser": "~4.28.3",
     "eslint": "7.22.0",
     "eslint-config-prettier": "8.1.0",
+    "husky": "^7.0.2",
     "jest": "27.0.3",
+    "lint-staged": "^11.1.2",
     "nx": "12.9.0",
     "prettier": "^2.3.1",
     "prisma": "^3.0.2",
-    "ts-node": "^10.2.1",
     "ts-jest": "27.0.3",
+    "ts-node": "^10.2.1",
     "typescript": "~4.3.5"
   },
   "prisma": {
     "seed": "ts-node db/seed/index.ts"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js}": [
+      "yarn run lint"
+    ],
+    "*.{ts,tsx,js,json}": [
+      "yarn run format"
+    ]
   }
 }
