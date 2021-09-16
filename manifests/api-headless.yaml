@@ -9,9 +9,9 @@ spec:
     app: api-headless
   clusterIP: None
   ports:
-  - name: http
-    port: 80
-    targetPort: 5010
+    - name: http
+      port: 80
+      targetPort: 5010
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -31,21 +31,21 @@ spec:
         app: api-headless
     spec:
       initContainers:
-      - name: migrate-database
-        image: ghcr.io/podkrepi-bg/api:v0.1.0
-        env:
-        - name: DATABASE_URL
-          value: postgresql://postgresql-headless.postgresql:5432/podkrepibg
-        args: ["yarn", "migrate"]
+        - name: migrate-database
+          image: ghcr.io/podkrepi-bg/api:v0.1.0
+          env:
+            - name: DATABASE_URL
+              value: postgresql://postgresql-headless.postgresql:5432/podkrepibg
+          args: ['yarn', 'migrate']
       containers:
-      - name: api-headless
-        image: ghcr.io/podkrepi-bg/api:v0.1.0
-        env:
-        - name: PORT
-          value: 80
-        - name: TARGET_APP
-          value: api
-        - name: DATABASE_URL
-          value: postgresql://postgresql-headless.postgresql:5432/podkrepibg
-        ports:
-        - containerPort: 80
+        - name: api-headless
+          image: ghcr.io/podkrepi-bg/api:v0.1.0
+          env:
+            - name: PORT
+              value: 80
+            - name: TARGET_APP
+              value: api
+            - name: DATABASE_URL
+              value: postgresql://postgresql-headless.postgresql:5432/podkrepibg
+          ports:
+            - containerPort: 80

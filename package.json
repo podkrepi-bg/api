@@ -5,13 +5,12 @@
   "repository": "https://github.com/orgs/podkrepi-bg",
   "scripts": {
     "nx": "nx",
-    "lint": "nx lint",
     "dev": "yarn nx run-many --target serve --watch --all --parallel",
     "start": "yarn nx serve",
     "build": "yarn nx build",
     "build-all": "yarn nx run-many --target build --all --parallel",
     "test": "yarn nx run-many --target test --all",
-    "format": "prettier --write apps/**/*.{ts,js,json}",
+    "format": "nx format affected",
     "migrate": "yarn prisma migrate deploy",
     "generate-schema": "yarn prisma generate",
     "studio": "yarn prisma studio"
@@ -65,10 +64,10 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "yarn lint --lintFilePatterns"
+      "nx affected:lint --uncommitted --fix --parallel"
     ],
     "*.{ts,tsx,js,json}": [
-      "yarn format"
+      "nx format:write --uncommitted"
     ]
   }
 }

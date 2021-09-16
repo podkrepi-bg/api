@@ -1,3 +1,3 @@
 export function podkrepiTypes(): string {
-  return 'podkrepi-types';
+  return 'podkrepi-types'
 }

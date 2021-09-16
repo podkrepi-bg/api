@@ -1,7 +1,7 @@
-import { podkrepiTypes } from './podkrepi-types';
+import { podkrepiTypes } from './podkrepi-types'
 
 describe('podkrepiTypes', () => {
   it('should work', () => {
-    expect(podkrepiTypes()).toEqual('podkrepi-types');
-  });
-});
+    expect(podkrepiTypes()).toEqual('podkrepi-types')
+  })
+})
