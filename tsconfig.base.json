@@ -19,5 +19,5 @@
       "@podkrepi-bg/podkrepi-types": ["libs/podkrepi-types/src/index.ts"]
     }
   },
-  "exclude": ["node_modules", "tmp", "prisma"]
+  "exclude": ["node_modules", "tmp"]
 }

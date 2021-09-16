@@ -1,8 +1,8 @@
 import { Prisma } from '.prisma/client'
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose, Type } from 'class-transformer'
+import { CreatePersonDto } from '@podkrepi-bg/podkrepi-types'
 import { IsNotEmpty, IsObject, IsString, ValidateNested } from 'class-validator'
-import { CreatePersonDto } from './create-person.dto'
 
 @Expose()
 export class CreateInquiryDto {
