@@ -9,6 +9,7 @@ import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app/app.module'
 import { setupCors } from './config/cors.config'
 import { setupSwagger } from './config/swagger.config'
+import { setupExceptions } from './config/exceptions.config'
 import { setupValidation } from './config/validation.config'
 import { setupShutdownHooks } from './config/shutdown.config'
 
@@ -22,6 +23,7 @@ async function bootstrap() {
 
   setupCors(app)
   setupSwagger(app)
+  setupExceptions(app)
   setupValidation(app)
   setupShutdownHooks(app)
 

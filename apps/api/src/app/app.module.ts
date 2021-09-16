@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common'
-import { APP_GUARD } from '@nestjs/core'
+import { APP_FILTER, APP_GUARD } from '@nestjs/core'
 import { ConfigModule } from '@nestjs/config'
 import { KeycloakConnectModule, ResourceGuard, RoleGuard, AuthGuard } from 'nest-keycloak-connect'
 
@@ -14,6 +14,7 @@ import { CampaignModule } from '../campaign/campaign.module'
 import { AppConfigModule } from '../config/app-config.module'
 import { validationSchema } from '../config/validation.config'
 import { KeycloakConfigService } from '../config/keycloak-config.service'
+import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.filter'
 
 @Module({
   imports: [
@@ -31,6 +32,10 @@ import { KeycloakConfigService } from '../config/keycloak-config.service'
   providers: [
     AppService,
     PrismaService,
+    {
+      provide: APP_FILTER,
+      useClass: PrismaClientExceptionFilter,
+    },
     // Will return a 401 unauthorized when it is unable to
     // verify the JWT token or Bearer header is missing.
     { provide: APP_GUARD, useClass: AuthGuard },
