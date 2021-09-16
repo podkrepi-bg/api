@@ -1,15 +1,16 @@
 # PodkrepiBg API
 
-- Database
-  - <https://www.postgresql.org/>
-  - <https://hub.docker.com/r/bitnami/postgresql/>
-  - <https://prisma.io/>
-  - <https://github.com/juliandavidmr/awesome-nestjs#awesome-nest>
-  - [Prisma Migrate](https://www.prisma.io/docs/concepts/components/prisma-migrate)
 - API
   - <https://nestjs.com/>
   - <https://www.prisma.io/nestjs>
   - <https://docs.nestjs.com/recipes/prisma>
+  - <https://github.com/juliandavidmr/awesome-nestjs#awesome-nest>
+- Database
+  - <https://www.postgresql.org/>
+  - <https://hub.docker.com/r/bitnami/postgresql/>
+  - <https://prisma.io/>
+  - [Prisma Migrate](https://www.prisma.io/docs/concepts/components/prisma-migrate)
+  - <https://github.com/catalinmiron/awesome-prisma>
 - Workspace
   - <https://nx.dev/>
 
@@ -42,9 +43,9 @@ If you don't want to develop inside docker using mounted volumes or your setup i
 This setup runs only the Postgres DB inside docker, and uses localhost setup to access it
 
 ```shell
-docker-compose up -d pg-db
+docker-compose up -d pg-db migrate-db
 
-yarn dev
+yarn dev # or nx serve
 ```
 
 To shut down the db instance use:
@@ -118,6 +119,9 @@ docker-compose exec api yarn generate-schema
 
 ```shell
 yarn prisma migrate dev
+yarn prisma migrate dev --create-only
+yarn prisma migrate dev --skip-generate
+yarn prisma migrate dev --skip-seed
 ```
 
 ```shell
@@ -135,6 +139,12 @@ Notes:
 - Prisma works only on single schema
 - Prisma Migrate tries to deploy your database in [shadow database schema](https://www.prisma.io/docs/concepts/components/prisma-migrate/shadow-database) to verify it is in a good state
 - Prisma
+
+### Seed initial data in db
+
+```shell
+yarn prisma db seed
+```
 
 ## Data
 
