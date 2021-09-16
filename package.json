@@ -64,11 +64,11 @@
     "seed": "ts-node db/seed/index.ts"
   },
   "lint-staged": {
-    "*.{ts,tsx,js}": [
-      "yarn run lint"
+    "*.{ts,tsx}": [
+      "yarn lint"
     ],
     "*.{ts,tsx,js,json}": [
-      "yarn run format"
+      "yarn format"
     ]
   }
 }
