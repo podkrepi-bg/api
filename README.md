@@ -1,4 +1,4 @@
-# PodkrepiBg API
+# PodkrepiBg API Dependencies and References
 
 - API
   - <https://nestjs.com/>
@@ -14,16 +14,43 @@
 - Workspace
   - <https://nx.dev/>
 
+# Setup Development Environment
+
 ## Install dependencies
 
 ```shell
 yarn
 ```
 
-## Development server (docker)
-
+## Create the Database Instance in Docker
 ```shell
-docker-compose up -d
+docker-compose up -d pg-db
+```
+
+## Initialize the Database with Prisma Migration scripts
+
+This is needed first time only. We use [Prisma](https://www.prisma.io/) as Database management and versioning tool the following migration command will init the dataabase from the schema.prisma file. See Database Development Guidelines below for further details. 
+```shell
+yarn prisma migrate reset
+```
+## Run the tests
+Testing the initialization is done correctly.
+```shell
+yarn test
+```
+
+## Run the Local API Server in Development Mode
+```shell
+yarn dev
+```
+and it will listen on <http://localhost:5010/api> 
+
+# Setup Development Environment To Run inside Docker
+
+First build the images locally and start the containers. Then iterate on the code and changes will be picked up through the mounted folders.
+```shell
+docker-compose build
+docker-compose up
 ```
 
 After starting your dev server visit:
@@ -36,23 +63,7 @@ To shut down the dev server use:
 docker-compose down
 ```
 
-## Development server (local)
-
-If you don't want to develop inside docker using mounted volumes or your setup is limited you can start the app on your local machine via:
-
-This setup runs only the Postgres DB inside docker, and uses localhost setup to access it
-
-```shell
-docker-compose up -d pg-db migrate-db
-
-yarn dev # or nx serve
-```
-
-To shut down the db instance use:
-
-```shell
-docker-compose down
-```
+# Development Guidelines
 
 ## Code scaffolding
 
