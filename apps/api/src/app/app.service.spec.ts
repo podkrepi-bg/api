@@ -14,8 +14,8 @@ describe('AppService', () => {
   })
 
   describe('getData', () => {
-    it('should return "Welcome to Podkrepi.bg!"', () => {
-      expect(service.getData()).toEqual({ message: 'Welcome to Podkrepi.bg!' })
+    it('should return "Welcome to Podkrepi.bg Backend API! See Swagger docs at /docs"', () => {
+      expect(service.getData()).toEqual({ message: 'Welcome to Podkrepi.bg Backend API! See Swagger docs at /docs' })
     })
   })
 })
