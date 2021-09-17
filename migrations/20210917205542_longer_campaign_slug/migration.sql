@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "campaigns" ALTER COLUMN "slug" SET DATA TYPE VARCHAR(250);

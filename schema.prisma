@@ -118,7 +118,7 @@ enum CampaignState {
 model Campaign {
   id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   state          CampaignState @default(initial)
-  slug           String        @unique @db.VarChar(50)
+  slug           String        @unique @db.VarChar(250)
   title          String        @db.VarChar(200)
   excerpt        String        @db.VarChar(500)
   coordinatorId  String        @map("coordinator_id") @db.Uuid
