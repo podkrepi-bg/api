@@ -7,7 +7,7 @@ ENV TARGET_APP $TARGET_APP
 # Build target dependencies #
 #############################
 FROM base AS dependencies
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock .yarnrc ./
 
 # The @prisma/client package defines its own postinstall hook that's being
 # executed whenever the package is being installed. This hook invokes the
