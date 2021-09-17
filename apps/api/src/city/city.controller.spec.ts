@@ -5,6 +5,8 @@ import { PrismaService } from '../prisma/prisma.service'
 import { CityController } from './city.controller'
 import { CityService } from './city.service'
 
+import 'jest-extended';
+
 describe('CityController', () => {
   let controller: CityController
   let prismaService: PrismaService
@@ -28,32 +30,32 @@ describe('CityController', () => {
 
   describe('getData', () => {
     it('should list all cities in db', async () => {
-      const result: City[] = [
+      const expectedCities: City[] = [
         {
-          countryId: '09a56448-ac24-488c-a5fc-37cef53218e0',
-          id: 'c7cf8351-562d-418a-b832-fade92a412ab',
+          countryId: expect.any(String),
+          id: expect.any(String),
           name: 'Sofia',
           postalCode: 1000,
         },
         {
-          countryId: '09a56448-ac24-488c-a5fc-37cef53218e0',
-          id: '5f4ca541-7ef0-457f-95bc-8bfc0319ac94',
+          countryId: expect.any(String),
+          id: expect.any(String),
           name: 'Plovdiv',
           postalCode: 4000,
         },
         {
-          countryId: '09a56448-ac24-488c-a5fc-37cef53218e0',
-          id: '9e0e1c67-1736-43cc-b235-7ccd6f9b90e2',
+          countryId: expect.any(String),
+          id: expect.any(String),
           name: 'Varna',
           postalCode: 9000,
         },
       ]
 
-      const mockCityList = jest.fn<PrismaPromise<City[]>, []>().mockResolvedValue(result)
+      const mockCityList = jest.fn<PrismaPromise<City[]>, []>().mockResolvedValue(expectedCities)
 
       jest.spyOn(prismaService.city, 'findMany').mockImplementation(mockCityList)
 
-      expect(await controller.getData()).toEqual(result)
+      expect(await controller.getData()).toIncludeSameMembers(expectedCities)
     })
   })
 })
