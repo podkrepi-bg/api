@@ -23,31 +23,39 @@ yarn
 ```
 
 ## Create the Database Instance in Docker
+
 ```shell
 docker-compose up -d pg-db
 ```
 
 ## Initialize the Database with Prisma Migration scripts
 
-This is needed first time only. We use [Prisma](https://www.prisma.io/) as Database management and versioning tool the following migration command will init the dataabase from the schema.prisma file. See Database Development Guidelines below for further details. 
+This is needed first time only. We use [Prisma](https://www.prisma.io/) as Database management and versioning tool the following migration command will init the dataabase from the schema.prisma file. See Database Development Guidelines below for further details.
+
 ```shell
 yarn prisma migrate reset
 ```
+
 ## Run the tests
+
 Testing the initialization is done correctly.
+
 ```shell
 yarn test
 ```
 
 ## Run the Local API Server in Development Mode
+
 ```shell
 yarn dev
 ```
-and it will listen on <http://localhost:5010/api> 
+
+and it will listen on <http://localhost:5010/api>
 
 # Setup Development Environment To Run inside Docker
 
 First build the images locally and start the containers. Then iterate on the code and changes will be picked up through the mounted folders.
+
 ```shell
 docker-compose build
 docker-compose up
@@ -93,6 +101,19 @@ You can generate the following components automatically:
 - [provider](https://nx.dev/latest/node/nest/provider)
 - [resolver](https://nx.dev/latest/node/nest/resolver)
 - [service](https://nx.dev/latest/node/nest/service)
+
+## Using Nest CLI
+
+In order to use the default cli for Nestjs you need to install it globally
+
+```shell
+npm i -g @nestjs/cli
+
+cd apps/api
+nest generate resource --help
+```
+
+Read more at <https://docs.nestjs.com/cli/overview>
 
 ## Build
 
