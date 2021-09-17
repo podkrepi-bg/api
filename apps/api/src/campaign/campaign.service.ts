@@ -12,6 +12,10 @@ export class CampaignService {
     return this.prisma.campaign.findMany()
   }
 
+  async getCampaignBySlug(slug: string): Promise<Campaign> {
+    return this.prisma.campaign.findFirst({ where: { slug } })
+  }
+
   async listCampaignTypes(): Promise<CampaignType[]> {
     return this.prisma.campaignType.findMany()
   }

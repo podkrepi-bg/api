@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post } from '@nestjs/common'
 import { Public, Resource, Scopes } from 'nest-keycloak-connect'
 
 import { CampaignService } from './campaign.service'
@@ -14,6 +14,14 @@ export class CampaignController {
   @Scopes('view')
   getData() {
     return this.campaignService.listCampaigns()
+  }
+
+  @Get(':slug')
+  @Public()
+  @Scopes('view')
+  async viewBySlug(@Param('slug') slug: string) {
+    const campaign = await this.campaignService.getCampaignBySlug(slug)
+    return { campaign }
   }
 
   @Post('create-campaign')
