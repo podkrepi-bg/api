@@ -223,7 +223,7 @@ Run `nx dep-graph` to see a diagram of the dependencies of your projects.
 | NODE_ENV               | Node build environment                    | development                                                                       |
 | TARGET_ENV             | Docker multi-stage target                 | development                                                                       |
 | TARGET_APP             | Run specific application from the image.  | api                                                                               |
-| DATABASE_URL           | Database connection string.               | postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api |
+| DATABASE_URL           | Database connection string.               | postgres://user:pass@host:5432/dbname?schema=api                                  |
 | KEYCLOAK_URL           | Keycloak authentication url               | <https://keycloak-dev.podkrepi.bg/auth>                                           |
 | KEYCLOAK_REALM         | Keycloak Realm name                       | webapp-dev                                                                        |
 | KEYCLOAK_CLIENT_ID     | Keycloak Client name                      | jwt-headless                                                                      |
