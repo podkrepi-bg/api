@@ -216,28 +216,28 @@ Run `nx dep-graph` to see a diagram of the dependencies of your projects.
 
 ### Environment variables
 
-| Setting                | Description                               | Default value                                                                     |
-| ---------------------- | ----------------------------------------- | --------------------------------------------------------------------------------- |
-| PORT                   | The address on which the module binds.    | 5010                                                                              |
-| APP_ENV                | Application runtime environment           | development                                                                       |
-| NODE_ENV               | Node build environment                    | development                                                                       |
-| TARGET_ENV             | Docker multi-stage target                 | development                                                                       |
-| TARGET_APP             | Run specific application from the image.  | api                                                                               |
-| DATABASE_URL           | Database connection string.               | postgres://user:pass@host:5432/dbname?schema=api                                  |
-| KEYCLOAK_URL           | Keycloak authentication url               | <https://keycloak-dev.podkrepi.bg/auth>                                           |
-| KEYCLOAK_REALM         | Keycloak Realm name                       | webapp-dev                                                                        |
-| KEYCLOAK_CLIENT_ID     | Keycloak Client name                      | jwt-headless                                                                      |
-| KEYCLOAK_SECRET        | Secret to reach Keycloak in headless mode | \*\*\*\*\*\*                                                                      |
-| SENTRY_DSN             | Sentry Data Source Name                   | <https://58b71cdea21f45c0bcbe5c1b49317973@o540074.ingest.sentry.io/5707518>       |
-| SENTRY_ORG             | Sentry organization                       | podkrepibg                                                                        |
-| SENTRY_PROJECT         | Sentry project                            | rest-api                                                                          |
-| SENTRY_AUTH_TOKEN      | Sentry build auth token                   | \*\*\*\*\*\*                                                                      |
-| SENTRY_SERVER_ROOT_DIR | App directory inside the docker image     | /app                                                                              |
+| Setting                | Description                               | Default value                                                               |
+| ---------------------- | ----------------------------------------- | --------------------------------------------------------------------------- |
+| PORT                   | The address on which the module binds.    | 5010                                                                        |
+| APP_ENV                | Application runtime environment           | development                                                                 |
+| NODE_ENV               | Node build environment                    | development                                                                 |
+| TARGET_ENV             | Docker multi-stage target                 | development                                                                 |
+| TARGET_APP             | Run specific application from the image.  | api                                                                         |
+| DATABASE_URL           | Database connection string.               | postgres://postgres:postgrespass@localhost:5432/postgres?schema=api         |
+| KEYCLOAK_URL           | Keycloak authentication url               | <https://keycloak.podkrepi.bg/auth>                                         |
+| KEYCLOAK_REALM         | Keycloak Realm name                       | webapp                                                                      |
+| KEYCLOAK_CLIENT_ID     | Keycloak Client name                      | jwt-headless                                                                |
+| KEYCLOAK_SECRET        | Secret to reach Keycloak in headless mode | \*\*\*\*\*\*                                                                |
+| SENTRY_DSN             | Sentry Data Source Name                   | <https://58b71cdea21f45c0bcbe5c1b49317973@o540074.ingest.sentry.io/5707518> |
+| SENTRY_ORG             | Sentry organization                       | podkrepibg                                                                  |
+| SENTRY_PROJECT         | Sentry project                            | rest-api                                                                    |
+| SENTRY_AUTH_TOKEN      | Sentry build auth token                   | \*\*\*\*\*\*                                                                |
+| SENTRY_SERVER_ROOT_DIR | App directory inside the docker image     | /app                                                                        |
 
 ### Deployment
 
 ```sql
 CREATE SCHEMA api;
-CREATE USER api_user WITH ENCRYPTED PASSWORD 'secretpass';
-GRANT ALL PRIVILEGES ON SCHEMA api TO api_user;
+CREATE USER postgres WITH ENCRYPTED PASSWORD 'postgrespass';
+GRANT ALL PRIVILEGES ON SCHEMA api TO postgres;
 ```
