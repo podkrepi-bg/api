@@ -1,4 +1,6 @@
-# PodkrepiBg API Dependencies and References
+# Дарителска Платформа Подкрепи.бг API 
+
+## Dependencies and References
 
 - API
   - <https://nestjs.com/>
