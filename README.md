@@ -19,13 +19,16 @@
 ## Install dependencies
 
 ```shell
+git clone git@github.com:podkrepi-bg/api.git
+cd api
+
 yarn
 ```
 
 ## Create the Database Instance in Docker
 
 ```shell
-docker-compose up -d pg-db
+docker-compose up --build -d pg-db
 ```
 
 ## Initialize the Database with Prisma Migration scripts
@@ -33,7 +36,11 @@ docker-compose up -d pg-db
 This is needed first time only. We use [Prisma](https://www.prisma.io/) as Database management and versioning tool the following migration command will init the dataabase from the schema.prisma file. See Database Development Guidelines below for further details.
 
 ```shell
-yarn prisma migrate reset
+# Create db schema
+yarn prisma migrate deploy
+
+# Add initial data
+yarn prisma db seed
 ```
 
 ## Run the tests
@@ -57,8 +64,7 @@ and it will listen on <http://localhost:5010/api>
 First build the images locally and start the containers. Then iterate on the code and changes will be picked up through the mounted folders.
 
 ```shell
-docker-compose build
-docker-compose up
+docker-compose up --build -d
 ```
 
 After starting your dev server visit:
