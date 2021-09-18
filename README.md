@@ -238,6 +238,6 @@ Run `nx dep-graph` to see a diagram of the dependencies of your projects.
 
 ```sql
 CREATE SCHEMA api;
-CREATE USER api WITH ENCRYPTED PASSWORD 'secretpass';
-GRANT ALL PRIVILEGES ON SCHEMA contact TO module_contact;
+CREATE USER api_user WITH ENCRYPTED PASSWORD 'secretpass';
+GRANT ALL PRIVILEGES ON SCHEMA api TO api_user;
 ```
