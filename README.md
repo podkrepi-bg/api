@@ -1,4 +1,4 @@
-# Дарителска Платформа Подкрепи.бг API 
+# Дарителска Платформа Подкрепи.бг API
 
 ## Dependencies and References
 
@@ -16,9 +16,9 @@
 - Workspace
   - <https://nx.dev/>
 
-# Setup Development Environment
+## Setup Development Environment
 
-## Install dependencies
+### Install dependencies
 
 ```shell
 git clone git@github.com:podkrepi-bg/api.git
@@ -27,13 +27,13 @@ cd api
 yarn
 ```
 
-## Create the Database Instance in Docker
+### Create the Database Instance in Docker
 
 ```shell
 docker-compose up --build -d pg-db
 ```
 
-## Initialize the Database with Prisma Migration scripts
+### Initialize the Database with Prisma Migration scripts
 
 This is needed first time only. We use [Prisma](https://www.prisma.io/) as Database management and versioning tool the following migration command will init the dataabase from the schema.prisma file. See Database Development Guidelines below for further details.
 
@@ -45,7 +45,7 @@ yarn prisma migrate deploy
 yarn prisma db seed
 ```
 
-## Run the tests
+### Run the tests
 
 Testing the initialization is done correctly.
 
@@ -53,7 +53,7 @@ Testing the initialization is done correctly.
 yarn test
 ```
 
-## Run the Local API Server in Development Mode
+### Run the Local API Server in Development Mode
 
 ```shell
 yarn dev
@@ -61,7 +61,7 @@ yarn dev
 
 and it will listen on <http://localhost:5010/api>
 
-# Setup Development Environment To Run inside Docker
+## Setup Development Environment To Run inside Docker
 
 First build the images locally and start the containers. Then iterate on the code and changes will be picked up through the mounted folders.
 
@@ -79,9 +79,9 @@ To shut down the dev server use:
 docker-compose down
 ```
 
-# Development Guidelines
+## Development Guidelines
 
-## Code scaffolding
+### Code scaffolding
 
 Using NX we can scaffold different components in generic way
 
@@ -110,7 +110,7 @@ You can generate the following components automatically:
 - [resolver](https://nx.dev/latest/node/nest/resolver)
 - [service](https://nx.dev/latest/node/nest/service)
 
-## Using Nest CLI
+### Using Nest CLI
 
 In order to use the default cli for Nestjs you need to install it globally
 
@@ -123,11 +123,11 @@ nest generate resource --help
 
 Read more at <https://docs.nestjs.com/cli/overview>
 
-## Build
+### Build
 
 Run `yarn build-all` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
 
-## Database
+### Database
 
 For the database layer we're using [Prisma](https://prisma.io). In order to get familiar with the concept please read [What is Prisma?](https://www.prisma.io/docs/concepts/overview/what-is-prisma) and watch some intro videos on [YouTube](https://www.youtube.com/watch?v=EEDGwLB55bI&ab_channel=Prisma).
 
@@ -137,9 +137,9 @@ You can use `yarn prisma db pull` to transform you local db updates to your [sch
 
 Read more for [db introspection here](https://www.prisma.io/docs/concepts/components/introspection)
 
-How it works|DB First Dev|Schema First DB
----|---|---
-![schema](https://www.prisma.io/blog/posts/2021-03-migrate-source-of-truth.png)|![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/f7itiYw.png)|![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/ToNkpb2.png)
+| How it works                                                                    | DB First Dev                                                                             | Schema First DB                                                                          |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| ![schema](https://www.prisma.io/blog/posts/2021-03-migrate-source-of-truth.png) | ![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/f7itiYw.png) | ![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/ToNkpb2.png) |
 
 ### Running raw sql queries
 
@@ -186,7 +186,7 @@ Notes:
 yarn prisma db seed
 ```
 
-## Data
+### Data
 
 Analyze your data via Prisma Studio
 
@@ -194,7 +194,7 @@ Analyze your data via Prisma Studio
 yarn prisma studio
 ```
 
-## Test
+### Test
 
 The following command will run all tests in all your apps.
 
@@ -202,12 +202,42 @@ The following command will run all tests in all your apps.
 yarn test
 ```
 
-## API Docs via Swagger
+### API Docs via Swagger
 
 Available at:
 
 - <http://localhost:5010/docs/>
 
-## Understand your workspace
+### Understand your workspace
 
 Run `nx dep-graph` to see a diagram of the dependencies of your projects.
+
+## Production environment
+
+### Environment variables
+
+| Setting                | Description                               | Default value                                                                     |
+| ---------------------- | ----------------------------------------- | --------------------------------------------------------------------------------- |
+| PORT                   | The address on which the module binds.    | 5010                                                                              |
+| APP_ENV                | Application runtime environment           | development                                                                       |
+| NODE_ENV               | Node build environment                    | development                                                                       |
+| TARGET_ENV             | Docker multi-stage target                 | development                                                                       |
+| TARGET_APP             | Run specific application from the image.  | api                                                                               |
+| DATABASE_URL           | Database connection string.               | postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api |
+| KEYCLOAK_URL           | Keycloak authentication url               | <https://keycloak-dev.podkrepi.bg/auth>                                           |
+| KEYCLOAK_REALM         | Keycloak Realm name                       | webapp-dev                                                                        |
+| KEYCLOAK_CLIENT_ID     | Keycloak Client name                      | jwt-headless                                                                      |
+| KEYCLOAK_SECRET        | Secret to reach Keycloak in headless mode | \*\*\*\*\*\*                                                                      |
+| SENTRY_DSN             | Sentry Data Source Name                   | <https://58b71cdea21f45c0bcbe5c1b49317973@o540074.ingest.sentry.io/5707518>       |
+| SENTRY_ORG             | Sentry organization                       | podkrepibg                                                                        |
+| SENTRY_PROJECT         | Sentry project                            | rest-api                                                                          |
+| SENTRY_AUTH_TOKEN      | Sentry build auth token                   | \*\*\*\*\*\*                                                                      |
+| SENTRY_SERVER_ROOT_DIR | App directory inside the docker image     | /app                                                                              |
+
+### Deployment
+
+```sql
+CREATE SCHEMA api;
+CREATE USER api WITH ENCRYPTED PASSWORD 'secretpass';
+GRANT ALL PRIVILEGES ON SCHEMA contact TO module_contact;
+```
