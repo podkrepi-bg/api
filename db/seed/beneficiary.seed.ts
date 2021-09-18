@@ -4,7 +4,7 @@ const prisma = new PrismaClient()
 export async function beneficiarySeed() {
   console.log('Beneficiary seed')
 
-  const persons = await prisma.person.findMany({ where: { newsletter: true } })
+  const persons = await prisma.person.findMany()
   console.log(persons)
 
   if (!persons) {
@@ -32,7 +32,7 @@ export async function beneficiarySeed() {
     throw new Error('No coordinator')
   }
 
-  var result= new Array();
+  var result = [];
   persons.map(p => {result.push( { type: "individual", personId: p.id, countryCode: bg.countryCode, cityId: cityFromDb.id, details: {}, coordinatorId: coordinatorFromDb.id, coordinatorRelation: PersonRelation.none });})
 
   console.log(result);
