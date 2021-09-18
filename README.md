@@ -135,11 +135,9 @@ You can use `yarn prisma db pull` to transform you local db updates to your [sch
 
 Read more for [db introspection here](https://www.prisma.io/docs/concepts/components/introspection)
 
-![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/f7itiYw.png)
-
-![schema](https://www.prisma.io/blog/posts/2021-03-migrate-source-of-truth.png)
-
-![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/ToNkpb2.png)
+DB Introspection|How it works|Evolve DB
+---|---|---
+![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/f7itiYw.png)|![schema](https://www.prisma.io/blog/posts/2021-03-migrate-source-of-truth.png)|![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/ToNkpb2.png)
 
 ### Running raw sql queries
 
