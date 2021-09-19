@@ -1,4 +1,4 @@
-# Дарителска Платформа Подкрепи.бг API
+# Дарителска Платформа Подкрепи.бг Backend API
 
 ## Dependencies and References
 
@@ -16,9 +16,9 @@
 - Workspace
   - <https://nx.dev/>
 
-## Setup Development Environment
+# Setup Development Environment (recommended)
 
-### Install dependencies
+## Install dependencies
 
 ```shell
 git clone git@github.com:podkrepi-bg/api.git
@@ -27,19 +27,19 @@ cd api
 yarn
 ```
 
-### Create the Database Instance in Docker
+## Create the Database Instance in Docker
 
 ```shell
 docker-compose up --build -d pg-db
 ```
 
-### Initialize the Database with Prisma Migration scripts
+## Initialize the Database with Prisma Migration scripts
 
 This is needed first time only. We use [Prisma](https://www.prisma.io/) as Database management and versioning tool the following migration command will init the dataabase from the schema.prisma file. See Database Development Guidelines below for further details.
 
 ```shell
 # Create db schema
-yarn prisma migrate deploy
+yarn prisma migrate dev
 
 # Add initial data
 yarn prisma db seed
@@ -61,7 +61,7 @@ yarn dev
 
 and it will listen on <http://localhost:5010/api>
 
-## Setup Development Environment To Run inside Docker
+## (Alternative)  Development Environment To Run Inside Docker
 
 First build the images locally and start the containers. Then iterate on the code and changes will be picked up through the mounted folders.
 
@@ -79,11 +79,19 @@ To shut down the dev server use:
 docker-compose down
 ```
 
-## Development Guidelines
+# Development Guidelines
+## API Docs via Swagger
 
-### Code scaffolding
+Available at <http://localhost:5010/docs/>
 
-Use [Nestjs generators](https://docs.nestjs.com/cli/usages#nest-generate) to create different nestsj components in generic way. 
+## Understand your workspace
+
+Run `nx dep-graph` to see a diagram of the dependencies of your projects.
+
+
+## NestJS Code Generaators
+
+We recommend using [Nestjs generators](https://docs.nestjs.com/cli/usages#nest-generate) to create different nestsj components in generic way. 
 
 ```shell
 yarn nest #will print all generators
@@ -94,98 +102,76 @@ Use the [Nest resource generator](https://docs.nestjs.com/recipes/crud-generator
 yarn nest generate resource [name] -p api
 ```
 
-### Building
+## Building
 
 Run `yarn build-all` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
 
-### Database Guidelines
+# Database Guidelines
 
 For the database layer we're using [Prisma](https://prisma.io). In order to get familiar with the concept please read [What is Prisma?](https://www.prisma.io/docs/concepts/overview/what-is-prisma) and watch some intro videos on [YouTube](https://www.youtube.com/watch?v=EEDGwLB55bI&ab_channel=Prisma).
 
-### Pull changes from local db via introspection
+## Database Development Workflow
 
-You can use `yarn prisma db pull` to transform you local db updates to your [schema file](https://www.prisma.io/docs/concepts/components/prisma-schema).
+The project already contains the database shema in shema.prisma file and initialization "seed" scripts for inital data are in db/seed folder.
 
-Read more for [db introspection here](https://www.prisma.io/docs/concepts/components/introspection)
-
-| How it works                                                                    | DB First Dev                                                                             | Schema First DB                                                                          |
-| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| ![schema](https://www.prisma.io/blog/posts/2021-03-migrate-source-of-truth.png) | ![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/f7itiYw.png) | ![schema](https://res.cloudinary.com/prismaio/image/upload/v1628761155/docs/ToNkpb2.png) |
-
-### Running raw sql queries
-
-Read more at: <https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access>
-
-### Rebuild Prisma Schema
-
-```shell
-# run it locally via
-yarn generate-schema
-
-# or run it inside docker container via
-docker-compose exec api yarn generate-schema
-```
-
-### Iterate on database versions
-
-```shell
-yarn prisma migrate dev
-yarn prisma migrate dev --create-only
-yarn prisma migrate dev --skip-generate
-yarn prisma migrate dev --skip-seed
-```
-
-```shell
-#yarn prisma migrate reset
-```
-
-### Deploy database version
-
+## On an empty database
+Initialize the database using these commands. It will initialize the database using the schema.prisma, the migration scripts and the db/seed scripts to insert data records for the API to work.
 ```shell
 yarn prisma migrate deploy
+yarn prisma seed
 ```
 
-Notes:
-
-- Prisma works only on single schema
-- Prisma Migrate tries to deploy your database in [shadow database schema](https://www.prisma.io/docs/concepts/components/prisma-migrate/shadow-database) to verify it is in a good state
-- Prisma can pull structure from the db to regenerate the schema file
-
-### Seed initial data in db
-
-```shell
-yarn prisma db seed
-```
-
-### Data
-
-Analyze your data via Prisma Studio
-
+Prisma offers a nice Web Client to review and edit the database:
 ```shell
 yarn prisma studio
 ```
 
-### Test
+## Making DB Schema Changes
 
-The following command will run all tests in all your apps.
+There are two ways to work with the database:
+* schema first - make changes in schema.prisma and update the database
+* db first - make changes directly in the database and introspect to update the schema.prisma
+
+### 1. Workflow for Schema First approach (recommended)
+After initializing the database, feel free to edit the schema.prisma file in the main folder. When done with changes execute to update the database:
 
 ```shell
-yarn test
+yarn prisma migrate dev
 ```
 
-### API Docs via Swagger
+The command will ask you to name your changes and will generate a migration script that will be saved in ./migrations folder. 
 
-Available at:
+Run the tests again `yarn test` to ensure all ok.
 
-- <http://localhost:5010/docs/>
+If you don't want to generate small migrations for every change, after finishing the work on your branch, delete the migration files manually and run again `yarn prisma migrate dev` to create one single feature level migration.
 
-### Understand your workspace
+Read more about [Team development with Prisma Migrate here.](https://www.prisma.io/docs/guides/database/developing-with-prisma-migrate/team-development/)
 
-Run `nx dep-graph` to see a diagram of the dependencies of your projects.
+### 2. Workflow for Databased First approach
+After initializing the database, open prisma stidio or your favorite DB Management IDE and feel free to make db changes. When done with changes, execute:
 
-## Production environment
+```shell 
+yarn prisma db pull
+```
+This will read all changed from you db instance and will update the schema.prisma file with nessary translations.
 
-### Environment variables
+Now that the schema file is updated, we need to update the prismajs client which is used by our app by running:
+```shell
+yarn prisma generate
+```
+
+This process is called [Prisma DB Introspection](https://www.prisma.io/docs/concepts/components/introspection).
+
+## Resetting to master
+If things go bad, there is a way to reset your database to the original state. This will delete the database and will create it from the schema, executing also the seeding.
+
+```shell
+yarn prisma migrate reset
+```
+
+# Production environment
+
+## Environment variables
 
 | Setting                | Description                               | Default value                                                               |
 | ---------------------- | ----------------------------------------- | --------------------------------------------------------------------------- |
@@ -205,7 +191,7 @@ Run `nx dep-graph` to see a diagram of the dependencies of your projects.
 | SENTRY_AUTH_TOKEN      | Sentry build auth token                   | \*\*\*\*\*\*                                                                |
 | SENTRY_SERVER_ROOT_DIR | App directory inside the docker image     | /app                                                                        |
 
-### Deployment
+## Deployment
 
 ```sql
 CREATE SCHEMA api;
