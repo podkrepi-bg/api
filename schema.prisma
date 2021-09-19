@@ -44,14 +44,14 @@ model Beneficiary {
   /// Person in need
   personId            String          @map("person_id") @db.Uuid
   /// Coordinator for this beneficiary
-  coordinatorId       String          @map("coordinator-id") @db.Uuid
+  coordinatorId       String          @map("coordinator_id") @db.Uuid
   countryCode         String          @map("country_code") @db.Citext
   cityId              String          @map("city_id") @db.Uuid
   description         String?         @db.VarChar(1000)
   publicData          Json?           @map("public_data")
   privateData         Json?           @map("private_data")
-  createdAt           DateTime        @default(now()) @map("created-at") @db.Timestamptz(6)
-  updatedAt           DateTime?       @map("updated-at") @db.Timestamptz(6)
+  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime?       @map("updated_at") @db.Timestamptz(6)
   coordinatorRelation PersonRelation  @default(none) @map("coordinator_relation")
   city                City            @relation(fields: [cityId], references: [id])
   coordinator         Coordinator     @relation(fields: [coordinatorId], references: [id])
