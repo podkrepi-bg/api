@@ -38,12 +38,12 @@ export async function campaignSeed() {
 
   const insert = await prisma.campaign.createMany({
     data: [
-      { state: CampaignState.active, slug: 'for-the-children', title: 'For the children', excerpt: persons[0].id, coordinatorId: coordinatorFromDb.id, beneficiaryId: beneficiaryFromDb.id, campaignTypeId: campaignTypeFromDb.id, description: descrText, targetAmount: 10000, currency: "BGN", },
-      { state: CampaignState.active, slug: 'for-the-children1', title: 'For the children1', excerpt: persons[0].id, coordinatorId: coordinatorFromDb.id, beneficiaryId: beneficiaryFromDb.id, campaignTypeId: campaignTypeFromDb.id, description: descrText, targetAmount: 100000, currency: "BGN", },
-      { state: CampaignState.active, slug: 'for-the-children2', title: 'For the children2', excerpt: persons[0].id, coordinatorId: coordinatorFromDb.id, beneficiaryId: beneficiaryFromDb.id, campaignTypeId: campaignTypeFromDb.id, description: descrText, targetAmount: 1000, currency: "BGN", },
-      { state: CampaignState.active, slug: 'for-the-children3', title: 'For the children3', excerpt: persons[0].id, coordinatorId: coordinatorFromDb.id, beneficiaryId: beneficiaryFromDb.id, campaignTypeId: campaignTypeFromDb.id, description: descrText2, targetAmount: 900, currency: "BGN", },
-      { state: CampaignState.active, slug: 'for-the-children4', title: 'For the children4', excerpt: persons[0].id, coordinatorId: coordinatorFromDb.id, beneficiaryId: beneficiaryFromDb.id, campaignTypeId: campaignTypeFromDb.id, description: descrText2, targetAmount: 2000000, currency: "BGN", },
-      { state: CampaignState.active, slug: 'for-the-children5', title: 'For the children5', excerpt: persons[0].id, coordinatorId: coordinatorFromDb.id, beneficiaryId: beneficiaryFromDb.id, campaignTypeId: campaignTypeFromDb.id, description: descrText2, targetAmount: 123456, currency: "BGN", },
+      { state: CampaignState.active, slug: 'for-the-children', title: 'For the children', essence: "campaign brief", coordinatorId: coordinatorFromDb.id, beneficiaryId: beneficiaryFromDb.id, campaignTypeId: campaignTypeFromDb.id, description: descrText, targetAmount: 10000, currency: "BGN", },
+      { state: CampaignState.active, slug: 'for-the-children1', title: 'For the children1', essence: "campaign brief", coordinatorId: coordinatorFromDb.id, beneficiaryId: beneficiaryFromDb.id, campaignTypeId: campaignTypeFromDb.id, description: descrText, targetAmount: 100000, currency: "BGN", },
+      { state: CampaignState.active, slug: 'for-the-children2', title: 'For the children2', essence: "campaign brief", coordinatorId: coordinatorFromDb.id, beneficiaryId: beneficiaryFromDb.id, campaignTypeId: campaignTypeFromDb.id, description: descrText, targetAmount: 1000, currency: "BGN", },
+      { state: CampaignState.active, slug: 'for-the-children3', title: 'For the children3', essence: "campaign brief", coordinatorId: coordinatorFromDb.id, beneficiaryId: beneficiaryFromDb.id, campaignTypeId: campaignTypeFromDb.id, description: descrText2, targetAmount: 900, currency: "BGN", },
+      { state: CampaignState.active, slug: 'for-the-children4', title: 'For the children4', essence: "campaign brief", coordinatorId: coordinatorFromDb.id, beneficiaryId: beneficiaryFromDb.id, campaignTypeId: campaignTypeFromDb.id, description: descrText2, targetAmount: 2000000, currency: "BGN", },
+      { state: CampaignState.active, slug: 'for-the-children5', title: 'For the children5', essence: "campaign brief", coordinatorId: coordinatorFromDb.id, beneficiaryId: beneficiaryFromDb.id, campaignTypeId: campaignTypeFromDb.id, description: descrText2, targetAmount: 123456, currency: "BGN", },
       ],
     skipDuplicates: true,
   })
