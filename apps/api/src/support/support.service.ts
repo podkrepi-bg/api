@@ -9,22 +9,23 @@ import { CreateInquiryDto } from './dto/create-inquiry.dto'
 export class SupportService {
   constructor(private prisma: PrismaService) {}
 
-  async createSupportRequest(inputDto: CreateRequestDto): Promise<SupportRequest> {
-    return this.prisma.supportRequest.create({ data: inputDto.toEntity() })
+  async createSupportRequest(
+    inputDto: CreateRequestDto,
+  ): Promise<Pick<SupportRequest, 'id' | 'personId'>> {
+    const request = await this.prisma.supportRequest.create({ data: inputDto.toEntity() })
+    return {
+      id: request.id,
+      personId: request.personId,
+    }
   }
 
-  async createSupportInquiry(inputDto: CreateInquiryDto): Promise<ContactRequest> {
-    return this.prisma.contactRequest.create({
-      select: {
-        id: true,
-        person: false,
-        personId: true,
-        message: true, // TODO: Find how to hide `message` prop from response
-        createdAt: true,
-        deletedAt: true,
-        updatedAt: true,
-      },
-      data: inputDto.toEntity(),
-    })
+  async createSupportInquiry(
+    inputDto: CreateInquiryDto,
+  ): Promise<Pick<ContactRequest, 'id' | 'personId'>> {
+    const request = await this.prisma.contactRequest.create({ data: inputDto.toEntity() })
+    return {
+      id: request.id,
+      personId: request.personId,
+    }
   }
 }
