@@ -83,51 +83,22 @@ docker-compose down
 
 ### Code scaffolding
 
-Using NX we can scaffold different components in generic way
-
-<https://nx.dev/latest/node/nest/overview>
-
-Run `nx g @nrwl/nest:controller --project=api` to generate a new controller.
-
-You can also add the arg `--dry-run` to preview the changes without writing them.
-
-You can generate the following components automatically:
-
-- [application](https://nx.dev/latest/node/nest/application)
-- [class](https://nx.dev/latest/node/nest/class)
-- [controller](https://nx.dev/latest/node/nest/controller)
-- [decorator](https://nx.dev/latest/node/nest/decorator)
-- [filter](https://nx.dev/latest/node/nest/filter)
-- [gateway](https://nx.dev/latest/node/nest/gateway)
-- [guard](https://nx.dev/latest/node/nest/guard)
-- [interceptor](https://nx.dev/latest/node/nest/interceptor)
-- [interface](https://nx.dev/latest/node/nest/interface)
-- [library](https://nx.dev/latest/node/nest/library)
-- [middleware](https://nx.dev/latest/node/nest/middleware)
-- [module](https://nx.dev/latest/node/nest/module)
-- [pipe](https://nx.dev/latest/node/nest/pipe)
-- [provider](https://nx.dev/latest/node/nest/provider)
-- [resolver](https://nx.dev/latest/node/nest/resolver)
-- [service](https://nx.dev/latest/node/nest/service)
-
-### Using Nest CLI
-
-In order to use the default cli for Nestjs you need to install it globally
+Use [Nestjs generators](https://docs.nestjs.com/cli/usages#nest-generate) to create different nestsj components in generic way. 
 
 ```shell
-npm i -g @nestjs/cli
-
-cd apps/api
-nest generate resource --help
+yarn nest #will print all generators
 ```
 
-Read more at <https://docs.nestjs.com/cli/overview>
+Use the [Nest resource generator](https://docs.nestjs.com/recipes/crud-generator) to create all interfaces for CRUD operations around a new entity/resource
+```shell
+yarn nest generate resource [name] -p api
+```
 
-### Build
+### Building
 
 Run `yarn build-all` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
 
-### Database
+### Database Guidelines
 
 For the database layer we're using [Prisma](https://prisma.io). In order to get familiar with the concept please read [What is Prisma?](https://www.prisma.io/docs/concepts/overview/what-is-prisma) and watch some intro videos on [YouTube](https://www.youtube.com/watch?v=EEDGwLB55bI&ab_channel=Prisma).
 
