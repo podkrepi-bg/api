@@ -79,7 +79,7 @@ model Campaign {
   state          CampaignState @default(draft)
   slug           String        @unique @db.VarChar(250)
   title          String        @db.VarChar(200)
-  essence        String        @default("") @db.VarChar(500)
+  essence        String        @db.VarChar(500)
   coordinatorId  String        @map("coordinator_id") @db.Uuid
   beneficiaryId  String        @map("beneficiary_id") @db.Uuid
   campaignTypeId String        @map("campaign_type_id") @db.Uuid

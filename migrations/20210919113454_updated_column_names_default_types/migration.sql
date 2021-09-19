@@ -2,17 +2,9 @@
   Warnings:
 
   - The values [pendingvalidation,activependingvalidation] on the enum `campaign_state` will be removed. If these variants are still used in the database, this will fail.
-  - You are about to drop the column `coordinatorId` on the `beneficiaries` table. All the data in the column will be lost.
-  - You are about to drop the column `createdAt` on the `beneficiaries` table. All the data in the column will be lost.
-  - You are about to drop the column `details` on the `beneficiaries` table. All the data in the column will be lost.
-  - You are about to drop the column `personId` on the `beneficiaries` table. All the data in the column will be lost.
-  - You are about to drop the column `updatedAt` on the `beneficiaries` table. All the data in the column will be lost.
-  - You are about to drop the column `excerpt` on the `campaigns` table. All the data in the column will be lost.
-  - You are about to alter the column `currency` on the `campaigns` table. The data in that column could be lost. The data in that column will be cast from `Text` to `VarChar(3)`.
   - You are about to alter the column `name` on the `cities` table. The data in that column could be lost. The data in that column will be cast from `Text` to `VarChar(100)`.
   - You are about to drop the column `countryCode` on the `countries` table. All the data in the column will be lost.
   - You are about to alter the column `name` on the `countries` table. The data in that column could be lost. The data in that column will be cast from `Text` to `VarChar(100)`.
-  - You are about to drop the column `lastName` on the `people` table. All the data in the column will be lost.
   - You are about to drop the `contact_requests` table. If the table is not empty, all the data it contains will be lost.
   - You are about to drop the `support_requests` table. If the table is not empty, all the data it contains will be lost.
   - A unique constraint covering the columns `[country_code]` on the table `countries` will be added. If there are existing duplicate values, this will fail.
@@ -49,37 +41,35 @@ ALTER TABLE "support_requests" DROP CONSTRAINT "support_requests_person_id_fkey"
 DROP INDEX "countries_countryCode_key";
 
 -- AlterTable
-ALTER TABLE "beneficiaries" DROP COLUMN "coordinatorId",
-DROP COLUMN "createdAt",
+ALTER TABLE "beneficiaries" RENAME COLUMN "coordinatorId" TO "coordinator_id";
+ALTER TABLE "beneficiaries" RENAME COLUMN "createdAt" TO "created_at";
+ALTER TABLE "beneficiaries" RENAME COLUMN "updatedAt" TO "updated_at";
+ALTER TABLE "beneficiaries" RENAME COLUMN "personId" TO "person_id";
+
+ALTER TABLE "beneficiaries"
 DROP COLUMN "details",
-DROP COLUMN "personId",
-DROP COLUMN "updatedAt",
-ADD COLUMN     "coordinator_id" UUID NOT NULL,
-ADD COLUMN     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN     "description" VARCHAR(1000),
-ADD COLUMN     "person_id" UUID NOT NULL,
-ADD COLUMN     "private_data" JSONB,
-ADD COLUMN     "public_data" JSONB,
-ADD COLUMN     "updated_at" TIMESTAMPTZ(6);
+ADD COLUMN  "description" VARCHAR(1000),
+ADD COLUMN  "private_data" JSONB,
+ADD COLUMN  "public_data" JSONB;
 
 -- AlterTable
-ALTER TABLE "campaigns" DROP COLUMN "excerpt",
-ADD COLUMN     "essence" VARCHAR(500) NOT NULL DEFAULT E'',
+ALTER TABLE "campaigns" RENAME COLUMN "excerpt" TO "essence";
+
+ALTER TABLE "campaigns"
 ALTER COLUMN "state" SET DEFAULT E'draft',
-ALTER COLUMN "currency" SET DATA TYPE VARCHAR(3);
+ALTER COLUMN "currency" SET DATA TYPE VARCHAR(3), 
+ALTER COLUMN "currency" SET DEFAULT E'BGN';
 
 -- AlterTable
 ALTER TABLE "cities" ALTER COLUMN "name" SET DATA TYPE VARCHAR(100);
 
 -- AlterTable
-ALTER TABLE "countries" DROP COLUMN "countryCode",
-ADD COLUMN     "country_code" CITEXT NOT NULL,
-ALTER COLUMN "name" SET DATA TYPE VARCHAR(100);
+ALTER TABLE "countries" RENAME COLUMN "countryCode" TO "country_code";
+ALTER TABLE "countries" ALTER COLUMN "name" SET DATA TYPE VARCHAR(100);
 
 -- AlterTable
-ALTER TABLE "people" DROP COLUMN "lastName",
-ADD COLUMN     "email_confirmed" BOOLEAN DEFAULT false,
-ADD COLUMN     "last_name" VARCHAR(100) NOT NULL;
+ALTER TABLE "people" RENAME COLUMN "lastName" TO "last_name";
+ALTER TABLE "people" ADD COLUMN "email_confirmed" BOOLEAN DEFAULT false;
 
 -- DropTable
 DROP TABLE "contact_requests";
