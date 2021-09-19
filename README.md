@@ -99,7 +99,7 @@ yarn nest #will print all generators
 
 Use the [Nest resource generator](https://docs.nestjs.com/recipes/crud-generator) to create all interfaces for CRUD operations around a new entity/resource
 ```shell
-yarn nest generate resource [name] -p api
+yarn nest generate resource [name]
 ```
 
 ## Building
