@@ -198,3 +198,10 @@ CREATE SCHEMA api;
 CREATE USER postgres WITH ENCRYPTED PASSWORD 'postgrespass';
 GRANT ALL PRIVILEGES ON SCHEMA api TO postgres;
 ```
+
+## Migrations deployment
+
+```shell
+docker build -f Dockerfile.migrations .
+docker run  --env-file .env --network host <image-id>
+```
