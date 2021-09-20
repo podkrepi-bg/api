@@ -1,3 +1,4 @@
+import { Campaign } from '.prisma/client'
 import { Body, Controller, Get, Param, Post } from '@nestjs/common'
 import { Public, Resource, Scopes } from 'nest-keycloak-connect'
 
@@ -19,7 +20,7 @@ export class CampaignController {
   @Get(':slug')
   @Public()
   @Scopes('view')
-  async viewBySlug(@Param('slug') slug: string) {
+  async viewBySlug(@Param('slug') slug: string): Promise<{ campaign: Campaign | null }> {
     const campaign = await this.campaignService.getCampaignBySlug(slug)
     return { campaign }
   }

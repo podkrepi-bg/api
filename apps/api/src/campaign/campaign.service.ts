@@ -4,6 +4,8 @@ import { Campaign, CampaignType } from '.prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 
+import { NotFoundException } from '@nestjs/common'
+
 @Injectable()
 export class CampaignService {
   constructor(private prisma: PrismaService) {}
@@ -12,8 +14,16 @@ export class CampaignService {
     return this.prisma.campaign.findMany()
   }
 
-  async getCampaignBySlug(slug: string): Promise<Campaign> {
-    return this.prisma.campaign.findFirst({ where: { slug } })
+  async getCampaignBySlug(slug: string): Promise<Campaign | null> {
+    const campaign = this.prisma.campaign.findFirst({ where: { slug } })
+    
+    if(campaign === null) {
+      console.warn('No campaign record with slug: ' + slug);
+      throw new NotFoundException('No campaign record with slug: ' + slug)
+    }
+
+    return campaign
+      
   }
 
   async listCampaignTypes(): Promise<CampaignType[]> {

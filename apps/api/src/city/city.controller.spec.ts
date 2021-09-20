@@ -2,24 +2,27 @@ import { City, PrismaPromise } from '.prisma/client'
 import { Test, TestingModule } from '@nestjs/testing'
 
 import { PrismaService } from '../prisma/prisma.service'
+import { prismaMock } from '../prisma/prisma-client.mock'
 import { CityController } from './city.controller'
 import { CityService } from './city.service'
-
-import 'jest-extended';
 
 describe('CityController', () => {
   let controller: CityController
   let prismaService: PrismaService
 
   beforeEach(() => {
-    prismaService = new PrismaService()
+    prismaService = prismaMock
   })
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CityController],
       providers: [CityService, PrismaService],
-    }).compile()
+    })
+      // remove the db mock from next two lines to enable testing with queries to the real database instance
+      .overrideProvider(PrismaService)
+      .useValue(prismaMock)
+      .compile()
 
     controller = module.get<CityController>(CityController)
   })
