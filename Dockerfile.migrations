@@ -7,6 +7,6 @@ WORKDIR /app
 # into the default location `node_modules/.prisma/client`
 RUN yarn add prisma
 COPY schema.prisma .
-COPY migrations prisma/migrations
+COPY migrations migrations/
 
 CMD yarn prisma migrate deploy
