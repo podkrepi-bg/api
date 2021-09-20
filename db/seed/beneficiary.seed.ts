@@ -30,7 +30,6 @@ export async function beneficiarySeed() {
       personId: person.id,
       countryCode: bg.countryCode,
       cityId: cityFromDb.id,
-      details: {},
       coordinatorId: coordinatorFromDb.id,
       coordinatorRelation: PersonRelation.none,
     })),

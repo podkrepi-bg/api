@@ -24,7 +24,7 @@ export class CreateRequestDto {
   @Type(() => SupportDataDto)
   public readonly supportData: SupportDataDto
 
-  public toEntity(): Prisma.SupportRequestCreateInput {
+  public toEntity(): Prisma.SupporterCreateInput {
     const {
       person,
       supportData: { roles, benefactor, partner, company, volunteer, associationMember, comment },

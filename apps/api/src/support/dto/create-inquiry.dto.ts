@@ -19,7 +19,7 @@ export class CreateInquiryDto extends PickType(CreatePersonDto, [
   @IsString()
   public readonly message: string
 
-  public toEntity(): Prisma.ContactRequestCreateInput {
+  public toEntity(): Prisma.InfoRequestCreateInput {
     return {
       person: {
         connectOrCreate: {
