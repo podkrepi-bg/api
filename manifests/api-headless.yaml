@@ -33,6 +33,7 @@ spec:
       initContainers:
         - name: migrate-database
           image: ghcr.io/podkrepi-bg/api/migrations:master
+          imagePullPolicy: Always
           env:
             - name: DATABASE_URL
               valueFrom:
@@ -42,6 +43,7 @@ spec:
       containers:
         - name: api-headless
           image: ghcr.io/podkrepi-bg/api:master
+          imagePullPolicy: Always
           env:
             - name: PORT
               value: "80"
