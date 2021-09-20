@@ -47,7 +47,7 @@ model Beneficiary {
   coordinatorId       String          @map("coordinator_id") @db.Uuid
   countryCode         String          @map("country_code") @db.Citext
   cityId              String          @map("city_id") @db.Uuid
-  description         String?         @db.VarChar(1000)
+  description         String?
   publicData          Json?           @map("public_data")
   privateData         Json?           @map("private_data")
   createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -84,8 +84,9 @@ model Campaign {
   beneficiaryId  String        @map("beneficiary_id") @db.Uuid
   campaignTypeId String        @map("campaign_type_id") @db.Uuid
   description    String?
-  targetAmount   Decimal?      @map("target_amount") @db.Decimal
-  currency       String?       @default("BGN") @db.VarChar(3)
+  targetAmount   Decimal?      @default(0) @map("target_amount") @db.Decimal
+  reachedAmount  Decimal?      @default(0) @map("reached_amount") @db.Decimal
+  currency       Currency?     @default(BGN)
   startDate      DateTime?     @map("start_date") @db.Timestamptz(6)
   endDate        DateTime?     @map("end_date") @db.Timestamptz(6)
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -209,4 +210,10 @@ enum CampaignState {
   deleted
 
   @@map("campaign_state")
+}
+
+enum Currency {
+  BGN
+  EUR
+  USD
 }
