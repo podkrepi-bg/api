@@ -21,6 +21,7 @@ describe('CityController', () => {
       controllers: [CityController],
       providers: [CityService, PrismaService],
     })
+    //remove the db mock from next two lines to enable testing with queries to the real database instance
     .overrideProvider(PrismaService)
     .useValue(prismaMock)
     .compile()
