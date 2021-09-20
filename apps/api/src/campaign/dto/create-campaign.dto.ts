@@ -28,7 +28,7 @@ export class CreateCampaignDto {
   @ApiProperty()
   @Expose()
   @IsString()
-  excerpt: string
+  essence: string
 
   @ApiProperty()
   @Expose()
@@ -87,7 +87,7 @@ export class CreateCampaignDto {
       title: this.title,
       slug: this.slug,
       description: this.description,
-      excerpt: this.excerpt,
+      essence: this.essence,
       currency: this.currency,
       targetAmount: this.targetAmount,
       coordinatorId: this.coordinatorId,

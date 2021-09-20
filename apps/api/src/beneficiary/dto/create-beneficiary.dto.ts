@@ -4,6 +4,8 @@ import {
   IsNotEmpty,
   IsObject,
   IsUUID,
+  IsString,
+  IsOptional,
   ValidateNested,
 } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
@@ -52,7 +54,19 @@ export class CreateBeneficiaryDto {
 
   @ApiProperty()
   @Expose()
-  details: Prisma.JsonValue | null
+  @IsOptional()
+  @IsString()
+  description: string
+
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  privateData: Prisma.JsonValue | null
+
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  publicData: Prisma.JsonValue | null
 
   public toEntity(): Prisma.BeneficiaryCreateInput {
     return {
@@ -75,9 +89,11 @@ export class CreateBeneficiaryDto {
         },
       },
       coordinatorRelation: this.coordinatorRelation,
-      details: this.details,
+      description: this.description,
       city: { connect: { id: this.cityId } },
       countryCode: 'BG',
+      privateData: this.privateData,
+      publicData: this.publicData,
     }
   }
 }

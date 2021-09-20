@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { ContactRequest, SupportRequest } from '.prisma/client'
+import { InfoRequest, Supporter } from '.prisma/client'
 
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateRequestDto } from './dto/create-request.dto'
@@ -9,12 +9,12 @@ import { CreateInquiryDto } from './dto/create-inquiry.dto'
 export class SupportService {
   constructor(private prisma: PrismaService) {}
 
-  async createSupportRequest(inputDto: CreateRequestDto): Promise<SupportRequest> {
-    return this.prisma.supportRequest.create({ data: inputDto.toEntity() })
+  async createSupportRequest(inputDto: CreateRequestDto): Promise<Supporter> {
+    return this.prisma.supporter.create({ data: inputDto.toEntity() })
   }
 
-  async createSupportInquiry(inputDto: CreateInquiryDto): Promise<ContactRequest> {
-    return this.prisma.contactRequest.create({
+  async createSupportInquiry(inputDto: CreateInquiryDto): Promise<InfoRequest> {
+    return this.prisma.infoRequest.create({
       select: {
         id: true,
         person: false,

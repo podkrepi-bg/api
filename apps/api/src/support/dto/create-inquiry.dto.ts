@@ -20,7 +20,7 @@ export class CreateInquiryDto {
   @IsString()
   public readonly message: string
 
-  public toEntity(): Prisma.ContactRequestCreateInput {
+  public toEntity(): Prisma.InfoRequestCreateInput {
     return {
       person: {
         connectOrCreate: {
