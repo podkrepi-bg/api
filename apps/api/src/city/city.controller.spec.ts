@@ -2,6 +2,7 @@ import { City, PrismaPromise } from '.prisma/client'
 import { Test, TestingModule } from '@nestjs/testing'
 
 import { PrismaService } from '../prisma/prisma.service'
+import { prismaMock } from '../prisma/prisma-singleton-mock'
 import { CityController } from './city.controller'
 import { CityService } from './city.service'
 
@@ -12,14 +13,17 @@ describe('CityController', () => {
   let prismaService: PrismaService
 
   beforeEach(() => {
-    prismaService = new PrismaService()
+    prismaService = prismaMock
   })
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CityController],
       providers: [CityService, PrismaService],
-    }).compile()
+    })
+    .overrideProvider(PrismaService)
+    .useValue(prismaMock)
+    .compile()
 
     controller = module.get<CityController>(CityController)
   })

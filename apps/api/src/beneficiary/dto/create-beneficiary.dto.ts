@@ -61,12 +61,12 @@ export class CreateBeneficiaryDto {
   @ApiProperty()
   @Expose()
   @IsOptional()
-  privateData: Prisma.JsonValue | null
+  privateData: Prisma.JsonValue
 
   @ApiProperty()
   @Expose()
   @IsOptional()
-  publicData: Prisma.JsonValue | null
+  publicData: Prisma.JsonValue
 
   public toEntity(): Prisma.BeneficiaryCreateInput {
     return {
@@ -92,8 +92,6 @@ export class CreateBeneficiaryDto {
       description: this.description,
       city: { connect: { id: this.cityId } },
       countryCode: 'BG',
-      privateData: this.privateData,
-      publicData: this.publicData,
     }
   }
 }

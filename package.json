@@ -25,6 +25,7 @@
     "@prisma/client": "^3.0.2",
     "class-transformer": "^0.4.0",
     "class-validator": "^0.13.1",
+    "jest-mock-extended": "^2.0.2-beta2",
     "joi": "^17.4.2",
     "keycloak-connect": "^15.0.2",
     "nest-keycloak-connect": "^1.7.5",
