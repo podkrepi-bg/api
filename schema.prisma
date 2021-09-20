@@ -17,7 +17,7 @@ model Person {
   phone          String?       @db.VarChar(50)
   company        String?       @db.VarChar(50)
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime?     @map("updated_at") @db.Timestamptz(6)
+  updatedAt      DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
   newsletter     Boolean?      @default(false)
   address        String?       @db.VarChar(50)
   birthday       DateTime?     @db.Timestamptz(6)
@@ -51,7 +51,7 @@ model Beneficiary {
   publicData          Json?           @map("public_data")
   privateData         Json?           @map("private_data")
   createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime?       @map("updated_at") @db.Timestamptz(6)
+  updatedAt           DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
   coordinatorRelation PersonRelation  @default(none) @map("coordinator_relation")
   city                City            @relation(fields: [cityId], references: [id])
   coordinator         Coordinator     @relation(fields: [coordinatorId], references: [id])
@@ -89,7 +89,7 @@ model Campaign {
   startDate      DateTime?     @map("start_date") @db.Timestamptz(6)
   endDate        DateTime?     @map("end_date") @db.Timestamptz(6)
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime?     @map("updated_at") @db.Timestamptz(6)
+  updatedAt      DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
   beneficiary    Beneficiary   @relation(fields: [beneficiaryId], references: [id])
   campaignTypes  CampaignType  @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -103,7 +103,7 @@ model InfoRequest {
   personId  String    @map("person_id") @db.Uuid
   message   String
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedAt DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
   person    Person    @relation(fields: [personId], references: [id])
 
@@ -114,7 +114,7 @@ model Supporter {
   id                           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   personId                     String    @map("person_id") @db.Uuid
   createdAt                    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt                    DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedAt                    DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt                    DateTime? @map("deleted_at") @db.Timestamptz(6)
   comment                      String?   @db.VarChar(500)
   associationMember            Boolean   @default(false) @map("association_member")
