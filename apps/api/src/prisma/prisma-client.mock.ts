@@ -1,3 +1,4 @@
+import 'jest-extended'
 import { mockDeep, mockReset } from 'jest-mock-extended'
 import { DeepMockProxy } from 'jest-mock-extended/lib/mjs/Mock'
 

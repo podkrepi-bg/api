@@ -6,8 +6,6 @@ import { prismaMock } from '../prisma/prisma-client.mock'
 import { CityController } from './city.controller'
 import { CityService } from './city.service'
 
-import 'jest-extended'
-
 describe('CityController', () => {
   let controller: CityController
   let prismaService: PrismaService
