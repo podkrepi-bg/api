@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { INestApplication, ValidationPipe } from '@nestjs/common'
+import { BadRequestException, INestApplication, ValidationPipe } from '@nestjs/common'
 import { useContainer } from 'class-validator'
 
 import { AppModule } from '../app/app.module'
@@ -13,7 +13,8 @@ const globalValidationPipe = new ValidationPipe({
   stopAtFirstError: false,
   forbidUnknownValues: true,
   disableErrorMessages: false,
-  validationError: { target: true, value: false },
+  exceptionFactory: (errors) => new BadRequestException(errors),
+  validationError: { target: false, value: false },
 })
 
 export function setupValidation(app: INestApplication): void {

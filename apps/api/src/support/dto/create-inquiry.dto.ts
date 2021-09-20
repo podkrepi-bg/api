@@ -1,19 +1,18 @@
 import { Prisma } from '.prisma/client'
-import { ApiProperty } from '@nestjs/swagger'
-import { Expose, Type } from 'class-transformer'
+import { Expose } from 'class-transformer'
+import { IsNotEmpty, IsString } from 'class-validator'
+import { ApiProperty, PickType } from '@nestjs/swagger'
 import { CreatePersonDto } from '@podkrepi-bg/podkrepi-types'
-import { IsNotEmpty, IsObject, IsString, ValidateNested } from 'class-validator'
 
 @Expose()
-export class CreateInquiryDto {
-  @ApiProperty()
-  @IsNotEmpty()
-  @Expose()
-  @IsObject()
-  @ValidateNested()
-  @Type(() => CreatePersonDto)
-  public readonly person: CreatePersonDto
-
+export class CreateInquiryDto extends PickType(CreatePersonDto, [
+  'firstName',
+  'lastName',
+  'email',
+  'phone',
+  'company',
+  'newsletter',
+]) {
   @ApiProperty()
   @Expose()
   @IsNotEmpty()
@@ -24,8 +23,14 @@ export class CreateInquiryDto {
     return {
       person: {
         connectOrCreate: {
-          create: this.person.toEntity(),
-          where: { email: this.person.email },
+          create: {
+            firstName: this.firstName,
+            lastName: this.lastName,
+            email: this.email,
+            phone: this.phone,
+            company: this.company,
+          },
+          where: { email: this.email },
         },
       },
       message: this.message,
