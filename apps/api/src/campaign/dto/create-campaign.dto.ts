@@ -1,5 +1,6 @@
 import {
   IsDate,
+  IsEnum,
   IsNumber,
   IsOptional,
   IsPositive,
@@ -11,7 +12,7 @@ import {
 } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose, Type } from 'class-transformer'
-import { Prisma } from '.prisma/client'
+import { Currency, Prisma } from '.prisma/client'
 
 @Expose()
 export class CreateCampaignDto {
@@ -62,11 +63,19 @@ export class CreateCampaignDto {
   @ApiProperty()
   @IsOptional()
   @Expose()
+  @IsNumber()
+  @IsPositive()
+  @Max(500000)
+  reachedAmount: number
+
+  @ApiProperty()
+  @IsOptional()
+  @Expose()
   @IsString()
   @MinLength(3)
   @MaxLength(3)
-  // TODO: Add additional validation for currency
-  currency: string
+  @IsEnum(Currency)
+  currency: Currency
 
   @ApiProperty()
   @Expose()
