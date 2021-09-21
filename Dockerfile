@@ -29,7 +29,7 @@ CMD yarn dev
 FROM dependencies AS builder
 COPY . .
 RUN yarn
-RUN yarn build-all --prod
+RUN yarn build-all --configuration=production
 
 # Build target production #
 ###########################
