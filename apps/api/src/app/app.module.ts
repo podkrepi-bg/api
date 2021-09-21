@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
-import { APP_FILTER, APP_GUARD } from '@nestjs/core'
-import { ConfigModule } from '@nestjs/config'
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
+import { SentryInterceptor, SentryModule, SentryModuleOptions } from '@ntegral/nestjs-sentry'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { KeycloakConnectModule, ResourceGuard, RoleGuard, AuthGuard } from 'nest-keycloak-connect'
 
 import { AppService } from './app.service'
@@ -20,6 +21,11 @@ import { BeneficiaryModule } from '../beneficiary/beneficiary.module'
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
+    SentryModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (config: ConfigService) => config.get('sentry', {}),
+      inject: [ConfigService],
+    }),
     KeycloakConnectModule.registerAsync({
       useExisting: KeycloakConfigService,
       imports: [AppConfigModule],
@@ -37,6 +43,10 @@ import { BeneficiaryModule } from '../beneficiary/beneficiary.module'
     {
       provide: APP_FILTER,
       useClass: PrismaClientExceptionFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useFactory: () => new SentryInterceptor(),
     },
     // Will return a 401 unauthorized when it is unable to
     // verify the JWT token or Bearer header is missing.
