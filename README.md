@@ -1,4 +1,11 @@
-# Дарителска Платформа Подкрепи.бг Backend API
+<h1><p align="center">
+  Дарителска Платформа Подкрепи.бг <br/>
+  REST API
+</p></h1>
+
+<p align="center">
+  <a href="https://podkrepi.bg/" target="blank"><img src="https://podkrepi.bg/podkrepi-bg-logo-en.svg" width="320" alt="Podkrepi.bg logo" /></a>
+</p>
 
 ## Links
 
