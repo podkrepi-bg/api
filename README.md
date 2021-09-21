@@ -7,6 +7,12 @@
   <a href="https://podkrepi.bg/" target="blank"><img src="https://podkrepi.bg/podkrepi-bg-logo-en.svg" width="320" alt="Podkrepi.bg logo" /></a>
 </p>
 
+
+<p align="center">
+<a href="https://github.com/podkrepi-bg/api/actions/workflows/tests.yml"><img src="https://github.com/podkrepi-bg/api/actions/workflows/tests.yml/badge.svg" alt="API tests" style="max-width: 100%;"></a> 
+<a href="https://github.com/podkrepi-bg/api/actions/workflows/docker-build-push.yml"><img src="https://github.com/podkrepi-bg/api/actions/workflows/docker-build-push.yml/badge.svg" alt="Build production image" style="max-width: 100%;"></a>
+</p>
+
 ## Links
 
 - Staging environemnt at <https://dev.podkrepi.bg/api>
