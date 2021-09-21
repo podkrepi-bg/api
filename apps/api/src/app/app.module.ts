@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common'
-import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
-import { SentryInterceptor, SentryModule, SentryModuleOptions } from '@ntegral/nestjs-sentry'
 import { ConfigModule, ConfigService } from '@nestjs/config'
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
+import { SentryInterceptor, SentryModule } from '@ntegral/nestjs-sentry'
 import { KeycloakConnectModule, ResourceGuard, RoleGuard, AuthGuard } from 'nest-keycloak-connect'
 
 import { AppService } from './app.service'
@@ -14,9 +14,9 @@ import { SupportModule } from '../support/support.module'
 import { CampaignModule } from '../campaign/campaign.module'
 import { AppConfigModule } from '../config/app-config.module'
 import { validationSchema } from '../config/validation.config'
+import { BeneficiaryModule } from '../beneficiary/beneficiary.module'
 import { KeycloakConfigService } from '../config/keycloak-config.service'
 import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.filter'
-import { BeneficiaryModule } from '../beneficiary/beneficiary.module'
 
 @Module({
   imports: [
