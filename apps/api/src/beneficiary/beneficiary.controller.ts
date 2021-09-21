@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common'
+import { Body, Controller, Get, Post } from '@nestjs/common'
 import { Public, Resource, Scopes } from 'nest-keycloak-connect'
 import { BeneficiaryService } from './beneficiary.service'
 import { CreateBeneficiaryDto } from './dto/create-beneficiary.dto'
@@ -14,5 +14,12 @@ export class BeneficiaryController {
   async create(@Body() createDto: CreateBeneficiaryDto) {
     console.log(createDto)
     return await this.beneficiaryService.createBeneficiary(createDto)
+  }
+
+  @Get('list')
+  @Public()
+  @Scopes()
+  async list() {
+    return await this.beneficiaryService.listBeneficiaries()
   }
 }

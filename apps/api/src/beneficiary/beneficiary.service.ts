@@ -10,4 +10,8 @@ export class BeneficiaryService {
   async createBeneficiary(inputDto: CreateBeneficiaryDto): Promise<Beneficiary> {
     return this.prisma.beneficiary.create({ data: inputDto.toEntity() })
   }
+
+  async listBeneficiaries(): Promise<Beneficiary[]> {
+    return this.prisma.beneficiary.findMany()
+  }
 }
