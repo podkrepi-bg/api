@@ -1,5 +1,10 @@
 # Дарителска Платформа Подкрепи.бг Backend API
 
+## Links
+
+- Staging environemnt at <https://dev.podkrepi.bg/api>
+- Swagger docs at <https://dev.podkrepi.bg/docs>
+
 ## Dependencies and References
 
 - API
