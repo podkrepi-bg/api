@@ -27,6 +27,7 @@
     "@sentry/node": "6.13.1",
     "class-transformer": "0.4.0",
     "class-validator": "0.13.1",
+    "helmet": "^4.6.0",
     "joi": "17.4.2",
     "keycloak-connect": "15.0.2",
     "nest-keycloak-connect": "1.7.5",
