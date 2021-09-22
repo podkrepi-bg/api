@@ -1138,7 +1138,7 @@
     yargs "15.4.1"
     yargs-parser "20.0.0"
 
-"@ntegral/nestjs-sentry@^3.0.6":
+"@ntegral/nestjs-sentry@3.0.6":
   version "3.0.6"
   resolved "https://registry.yarnpkg.com/@ntegral/nestjs-sentry/-/nestjs-sentry-3.0.6.tgz#723f829f15532be8f3064a2df45f5a56b32fd4c5"
   integrity sha512-UfBZeamrRlZ1IukRrNJ/fsJjxVHD9WGAGQ3wwBIlpLNFNHAyj+hedtkAnq8vcRECpndDnKeIH5X84L1pBgo5CQ==
