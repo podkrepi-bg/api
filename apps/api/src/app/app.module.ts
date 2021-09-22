@@ -10,6 +10,7 @@ import { AppController } from './app.controller'
 import configuration from '../config/configuration'
 import { PrismaService } from '../prisma/prisma.service'
 import { AccountModule } from '../account/account.module'
+import { HealthModule } from '../health/health.module'
 import { SupportModule } from '../support/support.module'
 import { CampaignModule } from '../campaign/campaign.module'
 import { AppConfigModule } from '../config/app-config.module'
@@ -35,6 +36,7 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
     SupportModule,
     BeneficiaryModule,
     CityModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [
