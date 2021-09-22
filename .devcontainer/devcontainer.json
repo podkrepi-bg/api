@@ -1,0 +1,19 @@
+{
+	"name": "NodeJS",
+	"image": "ghcr.io/podkrepi-bg/nodejs-devcontainer:v1.1.0",
+	"forwardPorts": [9229, 5010],
+	"containerEnv": {
+		"DATABASE_URL": "postgres://postgres:postgrespass@host.docker.internal:5432/postgres?schema=api"
+	},
+	"postStartCommand": "yarn",
+	"extensions": [
+		"ms-azuretools.vscode-docker",
+		"nrwl.angular-console",
+		"esbenp.prettier-vscode",
+		"firsttris.vscode-jest-runner",
+		"dbaeumer.vscode-eslint"
+	],
+	"mounts": [
+		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+	]
+}
