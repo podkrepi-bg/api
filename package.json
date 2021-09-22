@@ -22,7 +22,7 @@
     "@nestjs/core": "8.0.6",
     "@nestjs/platform-express": "8.0.6",
     "@nestjs/swagger": "5.0.9",
-    "@ntegral/nestjs-sentry": "^3.0.6",
+    "@ntegral/nestjs-sentry": "3.0.6",
     "@prisma/client": "3.0.2",
     "@sentry/node": "6.13.1",
     "class-transformer": "0.4.0",
