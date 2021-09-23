@@ -8,7 +8,7 @@ import { PrismaHealthIndicator } from '../prisma/prisma.health';
 export class HealthController {
   constructor(
     private health: HealthCheckService,
-    private prisma: PrismaHealthIndicator,
+    private prismaHealthIndicator: PrismaHealthIndicator,
   ) {}
 
   @Get()
@@ -17,7 +17,7 @@ export class HealthController {
   @Scopes()
   async check() {
     return await this.health.check([
-      async () => this.prisma.isHealthy('database')
+      async () => this.prismaHealthIndicator.isHealthy('database')
     ]);
   }
 }
