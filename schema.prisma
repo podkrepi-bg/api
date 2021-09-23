@@ -1,11 +1,19 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native"]
 }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+generator dbml {
+  provider            = "prisma-dbml-generator"
+  output              = "."
+  outputName          = "podkrepi.dbml"
+  projectName         = "Podkrepi.bg"
+  projectDatabaseType = "PostgreSQL"
 }
 
 model Person {

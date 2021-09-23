@@ -1,0 +1,210 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Project "Podkrepi.bg" {
+  database_type: 'PostgreSQL'
+  Note: ''
+}
+
+Table Person {
+  id String [pk]
+  firstName String [not null]
+  lastName String [not null]
+  email String [unique, not null]
+  emailConfirmed Boolean [default: false]
+  phone String
+  company String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  newsletter Boolean [default: false]
+  address String
+  birthday DateTime
+  Beneficiary Beneficiary [not null]
+  InfoRequest InfoRequest [not null]
+  Coordinator Coordinator [not null]
+  Supporter Supporter [not null]
+}
+
+Table Coordinator {
+  id String [pk]
+  personId String [not null]
+  person Person [not null]
+  Beneficiary Beneficiary [not null]
+}
+
+Table Beneficiary {
+  id String [pk]
+  type BeneficiaryType [not null]
+  personId String [not null, note: 'Person in need']
+  coordinatorId String [not null, note: 'Coordinator for this beneficiary']
+  countryCode String [not null]
+  cityId String [not null]
+  description String
+  publicData Json
+  privateData Json
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  coordinatorRelation PersonRelation [not null, default: 'none']
+  city City [not null]
+  coordinator Coordinator [not null]
+  person Person [not null]
+  campaigns Campaign [not null]
+}
+
+Table CampaignType {
+  id String [pk]
+  name String [not null]
+  slug String [unique, not null]
+  description String
+  parentId String
+  parent CampaignType
+  children CampaignType [not null]
+  campaigns Campaign [not null]
+}
+
+Table Campaign {
+  id String [pk]
+  state CampaignState [not null, default: 'draft']
+  slug String [unique, not null]
+  title String [not null]
+  essence String [not null]
+  coordinatorId String [not null]
+  beneficiaryId String [not null]
+  campaignTypeId String [not null]
+  description String
+  targetAmount Decimal [default: 0]
+  reachedAmount Decimal [default: 0]
+  currency Currency [default: 'BGN']
+  startDate DateTime
+  endDate DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  deletedAt DateTime
+  beneficiary Beneficiary [not null]
+  campaignTypes CampaignType [not null]
+}
+
+Table InfoRequest {
+  id String [pk]
+  personId String [not null]
+  message String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  deletedAt DateTime
+  person Person [not null]
+}
+
+Table Supporter {
+  id String [pk]
+  personId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  deletedAt DateTime
+  comment String
+  associationMember Boolean [not null, default: false]
+  benefactorCampaign Boolean [not null, default: false]
+  benefactorPlatform Boolean [not null, default: false]
+  companyOtherText String
+  companySponsor Boolean [not null, default: false]
+  companyVolunteer Boolean [not null, default: false]
+  partnerBussiness Boolean [not null, default: false]
+  partnerNpo Boolean [not null, default: false]
+  partnerOtherText String
+  roleAssociationMember Boolean [not null, default: false]
+  roleBenefactor Boolean [not null, default: false]
+  roleCompany Boolean [not null, default: false]
+  rolePartner Boolean [not null, default: false]
+  roleVolunteer Boolean [not null, default: false]
+  volunteerBackend Boolean [not null, default: false]
+  volunteerDesigner Boolean [not null, default: false]
+  volunteerDevOps Boolean [not null, default: false]
+  volunteerFinancesAndAccounts Boolean [not null, default: false]
+  volunteerFrontend Boolean [not null, default: false]
+  volunteerLawyer Boolean [not null, default: false]
+  volunteerMarketing Boolean [not null, default: false]
+  volunteerProjectManager Boolean [not null, default: false]
+  volunteerQa Boolean [not null, default: false]
+  volunteerSecurity Boolean [not null, default: false]
+  person Person [not null]
+}
+
+Table City {
+  id String [pk]
+  name String [not null]
+  postalCode Int [unique, not null]
+  countryId String [not null]
+  countryCode Country [not null]
+  Beneficiary Beneficiary [not null]
+}
+
+Table Country {
+  id String [pk]
+  name String [not null]
+  countryCode String [unique, not null]
+  City City [not null]
+}
+
+Enum BeneficiaryType {
+  individual
+  organisation
+}
+
+Enum PersonRelation {
+  none
+  parent
+  spouse
+  child
+  mother
+  father
+  brother
+  sister
+  friend
+  relative
+  partner
+  domesticPartner
+  manager
+  assistant
+  colleague
+}
+
+Enum CampaignState {
+  initial
+  draft
+  pending_validation
+  approved
+  rejected
+  active
+  active_pending_validation
+  suspended
+  complete
+  disabled
+  error
+  deleted
+}
+
+Enum Currency {
+  BGN
+  EUR
+  USD
+}
+
+Ref: Coordinator.personId > Person.id
+
+Ref: Beneficiary.cityId > City.id
+
+Ref: Beneficiary.coordinatorId > Coordinator.id
+
+Ref: Beneficiary.personId > Person.id
+
+Ref: CampaignType.parentId - CampaignType.id
+
+Ref: Campaign.beneficiaryId > Beneficiary.id
+
+Ref: Campaign.campaignTypeId > CampaignType.id [delete: Cascade]
+
+Ref: InfoRequest.personId > Person.id
+
+Ref: Supporter.personId > Person.id
+
+Ref: City.countryId > Country.id
