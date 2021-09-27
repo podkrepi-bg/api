@@ -203,7 +203,7 @@ Table Vault {
   Person Person [not null]
   Expense Expense [not null]
   Campaign Campaign [not null]
-  Withdraw Withdraw [not null]
+  Withdraw Withdrawal [not null]
   Donation Donation [not null]
   Subscription Subscription [not null]
   SourceTransfer Transfer [not null]
@@ -257,18 +257,20 @@ Table Transfer {
   Note: 'Move funds from one vault to another'
 }
 
-Table Withdraw {
+Table Withdrawal {
   id String [pk]
   type WithdrawType [not null]
   status WithdrawStatus [not null]
+  currency Currency [not null]
   amount Decimal [not null]
-  vaultId String [not null]
+  vaultId String [not null, note: 'Source vault']
+  bankAccountId String [not null, note: 'Destination bank account']
   documentId String
   targetDate DateTime [default: `now()`]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   vault Vault [not null]
-  BankAccount BankAccount [not null]
+  bankAccount BankAccount [not null]
 
   Note: 'Remove funds from a vault to given bank account'
 }
@@ -281,10 +283,9 @@ Table BankAccount {
   accountHolderType AccountHolderType [not null]
   bankName String
   fingerprint String
-  withdrawId String [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
-  withdraw Withdraw [not null]
+  Withdraw Withdrawal [not null]
 }
 
 Table Expense {
@@ -497,9 +498,9 @@ Ref: Transfer.sourceVaultId > Vault.id
 
 Ref: Transfer.targetVaultId > Vault.id
 
-Ref: Withdraw.vaultId > Vault.id
+Ref: Withdrawal.vaultId > Vault.id
 
-Ref: BankAccount.withdrawId > Withdraw.id
+Ref: Withdrawal.bankAccountId > BankAccount.id
 
 Ref: Expense.vaultId > Vault.id
 

@@ -237,7 +237,7 @@ model Vault {
   Person         Person[]
   Expense        Expense[]
   Campaign       Campaign[]
-  Withdraw       Withdraw[]
+  Withdraw       Withdrawal[]
   Donation       Donation[]
   Subscription   Subscription[]
   SourceTransfer Transfer[]     @relation("source")
@@ -303,20 +303,24 @@ model Transfer {
 }
 
 /// Remove funds from a vault to given bank account
-model Withdraw {
-  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type        WithdrawType
-  status      WithdrawStatus
-  amount      Decimal
-  vaultId     String         @map("vault_id") @db.Uuid
-  documentId  String?        @map("document_id") @db.Uuid
-  targetDate  DateTime?      @default(now()) @map("target_date")
-  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime?      @updatedAt @map("updated_at") @db.Timestamptz(6)
-  vault       Vault          @relation(fields: [vaultId], references: [id])
-  BankAccount BankAccount[]
+model Withdrawal {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type          WithdrawType
+  status        WithdrawStatus
+  currency      Currency
+  amount        Decimal
+  /// Source vault
+  vaultId       String         @map("vault_id") @db.Uuid
+  /// Destination bank account
+  bankAccountId String         @map("bank_account_id") @db.Uuid
+  documentId    String?        @map("document_id") @db.Uuid
+  targetDate    DateTime?      @default(now()) @map("target_date")
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime?      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  vault         Vault          @relation(fields: [vaultId], references: [id])
+  bankAccount   BankAccount    @relation(fields: [bankAccountId], references: [id])
 
-  @@map("withdraws")
+  @@map("withdrawals")
 }
 
 model BankAccount {
@@ -329,10 +333,9 @@ model BankAccount {
   accountHolderType AccountHolderType @map("account_holder_type")
   bankName          String?           @map("bank_name")
   fingerprint       String?
-  withdrawId        String            @map("withdraw_id") @db.Uuid
   createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
-  withdraw          Withdraw          @relation(fields: [withdrawId], references: [id])
+  Withdraw          Withdrawal[]
 
   @@map("bank_accounts")
 }
