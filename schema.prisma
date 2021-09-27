@@ -238,7 +238,7 @@ model Vault {
   Expense        Expense[]
   Campaign       Campaign[]
   Withdraw       Withdraw[]
-  Transaction    Transaction[]
+  Donation       Donation[]
   Subscription   Subscription[]
   SourceTransfer Transfer[]     @relation("source")
   TargetTransfer Transfer[]     @relation("target")
@@ -246,23 +246,23 @@ model Vault {
   @@map("vaults")
 }
 
-model Transaction {
-  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type            TransactionType
-  status          TransactionStatus @default(initial)
-  provider        PaymentProvider   @default(none)
+model Donation {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type            DonationType
+  status          DonationStatus  @default(initial)
+  provider        PaymentProvider @default(none)
   /// Vault where the funds are going
-  targetVaultId   String            @map("target_vault_id") @db.Uuid
+  targetVaultId   String          @map("target_vault_id") @db.Uuid
   /// Payment provider attributes
-  customerId      String            @map("customer_id")
-  paymentIntentId String            @map("payment_intent_id")
-  paymentMethodId String            @map("payment_method_id")
+  customerId      String          @map("customer_id")
+  paymentIntentId String          @map("payment_intent_id")
+  paymentMethodId String          @map("payment_method_id")
   ///
-  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
-  targetVault     Vault             @relation(fields: [targetVaultId], references: [id])
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  targetVault     Vault           @relation(fields: [targetVaultId], references: [id])
 
-  @@map("transactions")
+  @@map("donations")
 }
 
 /// Subscribe to donate on monthly basis
@@ -420,10 +420,10 @@ enum Currency {
   @@map("currency")
 }
 
-enum TransactionType {
+enum DonationType {
   donation
 
-  @@map("transaction_type")
+  @@map("donation_type")
 }
 
 enum TransferType {
@@ -493,7 +493,7 @@ enum DocumentType {
   @@map("document_type")
 }
 
-enum TransactionStatus {
+enum DonationStatus {
   initial
   invalid
   incomplete
@@ -505,7 +505,7 @@ enum TransactionStatus {
   refund
   paymentRequested
 
-  @@map("transaction_status")
+  @@map("donation_status")
 }
 
 enum WithdrawType {

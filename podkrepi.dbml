@@ -204,16 +204,16 @@ Table Vault {
   Expense Expense [not null]
   Campaign Campaign [not null]
   Withdraw Withdraw [not null]
-  Transaction Transaction [not null]
+  Donation Donation [not null]
   Subscription Subscription [not null]
   SourceTransfer Transfer [not null]
   TargetTransfer Transfer [not null]
 }
 
-Table Transaction {
+Table Donation {
   id String [pk]
-  type TransactionType [not null]
-  status TransactionStatus [not null, default: 'initial']
+  type DonationType [not null]
+  status DonationStatus [not null, default: 'initial']
   provider PaymentProvider [not null, default: 'none']
   targetVaultId String [not null, note: 'Vault where the funds are going']
   customerId String [not null, note: 'Payment provider attributes']
@@ -356,7 +356,7 @@ Enum Currency {
   USD
 }
 
-Enum TransactionType {
+Enum DonationType {
   donation
 }
 
@@ -415,7 +415,7 @@ Enum DocumentType {
   other
 }
 
-Enum TransactionStatus {
+Enum DonationStatus {
   initial
   invalid
   incomplete
@@ -485,7 +485,7 @@ Ref: Supporter.personId > Person.id
 
 Ref: City.countryId > Country.id
 
-Ref: Transaction.targetVaultId > Vault.id
+Ref: Donation.targetVaultId > Vault.id
 
 Ref: Subscription.vaultId > Vault.id
 
