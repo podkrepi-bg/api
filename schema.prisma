@@ -36,6 +36,8 @@ model Person {
   vaultId        String?        @map("vault_id") @db.Uuid
   vault          Vault?         @relation(fields: [vaultId], references: [id])
   Document       Document[]
+  Transfer       Transfer[]
+  Campaign       Campaign[]
   Supporter      Supporter[]
   Benefactor     Benefactor[]
   Beneficiary    Beneficiary[]
@@ -138,6 +140,7 @@ model Campaign {
   coordinatorId  String        @map("coordinator_id") @db.Uuid
   beneficiaryId  String        @map("beneficiary_id") @db.Uuid
   campaignTypeId String        @map("campaign_type_id") @db.Uuid
+  aprovedById    String?       @map("approved_by_id") @db.Uuid
   description    String?
   targetAmount   Decimal?      @default(0) @map("target_amount") @db.Decimal
   reachedAmount  Decimal?      @default(0) @map("reached_amount") @db.Decimal
@@ -148,6 +151,7 @@ model Campaign {
   updatedAt      DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
   vault          Vault?        @relation(fields: [vaultId], references: [id])
+  approvedBy     Person?       @relation(fields: [aprovedById], references: [id])
   beneficiary    Beneficiary   @relation(fields: [beneficiaryId], references: [id])
   campaignTypes  CampaignType  @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -287,9 +291,11 @@ model Transfer {
   reason        String       @db.VarChar(100)
   sourceVaultId String       @map("source_vault_id") @db.Uuid
   targetVaultId String       @map("target_vault_id") @db.Uuid
+  aprovedById   String?      @map("approved_by_id") @db.Uuid
   targetDate    DateTime?    @default(now()) @map("target_date")
   createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime?    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  approvedBy    Person?      @relation(fields: [aprovedById], references: [id])
   sourceVault   Vault        @relation("source", fields: [sourceVaultId], references: [id])
   targetVault   Vault        @relation("target", fields: [targetVaultId], references: [id])
 

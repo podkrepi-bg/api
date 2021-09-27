@@ -25,6 +25,8 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   vaultId String
   vault Vault
   Document Document [not null]
+  Transfer Transfer [not null]
+  Campaign Campaign [not null]
   Supporter Supporter [not null]
   Benefactor Benefactor [not null]
   Beneficiary Beneficiary [not null]
@@ -111,10 +113,11 @@ Table Campaign {
   slug String [unique, not null]
   title String [not null]
   essence String [not null]
-  vaultId String [not null]
+  vaultId String
   coordinatorId String [not null]
   beneficiaryId String [not null]
   campaignTypeId String [not null]
+  aprovedById String
   description String
   targetAmount Decimal [default: 0]
   reachedAmount Decimal [default: 0]
@@ -125,6 +128,7 @@ Table Campaign {
   updatedAt DateTime
   deletedAt DateTime
   vault Vault
+  approvedBy Person
   beneficiary Beneficiary [not null]
   campaignTypes CampaignType [not null]
 }
@@ -242,9 +246,11 @@ Table Transfer {
   reason String [not null]
   sourceVaultId String [not null]
   targetVaultId String [not null]
+  aprovedById String
   targetDate DateTime [default: `now()`]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
+  approvedBy Person
   sourceVault Vault [not null]
   targetVault Vault [not null]
 
@@ -467,6 +473,8 @@ Ref: CampaignType.parentId - CampaignType.id
 
 Ref: Campaign.vaultId > Vault.id
 
+Ref: Campaign.aprovedById > Person.id
+
 Ref: Campaign.beneficiaryId > Beneficiary.id
 
 Ref: Campaign.campaignTypeId > CampaignType.id [delete: Cascade]
@@ -482,6 +490,8 @@ Ref: Transaction.targetVaultId > Vault.id
 Ref: Subscription.vaultId > Vault.id
 
 Ref: Subscription.personId > Person.id
+
+Ref: Transfer.aprovedById > Person.id
 
 Ref: Transfer.sourceVaultId > Vault.id
 
