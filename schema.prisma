@@ -45,6 +45,7 @@ model Person {
   Coordinator    Coordinator[]
   Subscription   Subscription[]
 
+  Expense Expense[]
   @@map("people")
 }
 
@@ -305,7 +306,6 @@ model Transfer {
 /// Remove funds from a vault to given bank account
 model Withdrawal {
   id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type          WithdrawType
   status        WithdrawStatus
   currency      Currency
   amount        Decimal
@@ -342,12 +342,15 @@ model BankAccount {
 
 /// Pay for something from a given vault
 model Expense {
-  id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type       ExpenseType
-  vaultId    String      @map("vault_id") @db.Uuid
-  documentId String?     @map("document_id") @db.Uuid
-  vault      Vault       @relation(fields: [vaultId], references: [id])
-  document   Document?   @relation(fields: [documentId], references: [id])
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type        ExpenseType
+  description String?
+  vaultId     String      @map("vault_id") @db.Uuid
+  documentId  String?     @map("document_id") @db.Uuid
+  aprovedById String?     @db.Uuid
+  vault       Vault       @relation(fields: [vaultId], references: [id])
+  approvedBy  Person?     @relation(fields: [aprovedById], references: [id])
+  document    Document?   @relation(fields: [documentId], references: [id])
 
   @@map("expenses")
 }
@@ -355,9 +358,10 @@ model Expense {
 model Document {
   id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type        DocumentType
-  name        String
-  filetype    String?
-  description String?
+  name        String       @db.VarChar(100)
+  filename    String       @db.VarChar(100)
+  filetype    String?      @db.VarChar(3)
+  description String?      @db.VarChar(200)
   /// Data storage source url
   sourceUrl   String       @map("source_url")
   /// Person who uploaded the document
@@ -511,13 +515,6 @@ enum DonationStatus {
   @@map("donation_status")
 }
 
-enum WithdrawType {
-  cash
-  bank
-
-  @@map("payout_type")
-}
-
 enum WithdrawStatus {
   initial
   invalid
@@ -526,7 +523,7 @@ enum WithdrawStatus {
   cancelled
   succeeded
 
-  @@map("payout_status")
+  @@map("withdraw_status")
 }
 
 enum AccountHolderType {
