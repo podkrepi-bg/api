@@ -134,7 +134,7 @@ model Campaign {
   slug           String        @unique @db.VarChar(250)
   title          String        @db.VarChar(200)
   essence        String        @db.VarChar(500)
-  vaultId        String        @map("vault_id") @db.Uuid
+  vaultId        String?       @map("vault_id") @db.Uuid
   coordinatorId  String        @map("coordinator_id") @db.Uuid
   beneficiaryId  String        @map("beneficiary_id") @db.Uuid
   campaignTypeId String        @map("campaign_type_id") @db.Uuid

@@ -20,23 +20,62 @@ Table Person {
   newsletter Boolean [default: false]
   address String
   birthday DateTime
+  personalNumber String [unique, note: 'Uniform Civil Number (NCN, EGN)
+https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
+  vaultId String
+  vault Vault
+  Document Document [not null]
+  Supporter Supporter [not null]
+  Benefactor Benefactor [not null]
   Beneficiary Beneficiary [not null]
   InfoRequest InfoRequest [not null]
   Coordinator Coordinator [not null]
-  Supporter Supporter [not null]
+  Subscription Subscription [not null]
+
+  Note: 'Generic person object'
+}
+
+Table Company {
+  id String [pk]
+  companyName String [not null]
+  companyNumber String [unique, not null, note: 'BULSTAT Unified Identification Code (UIC)
+https://psc.egov.bg/en/psc-starting-a-business-bulstat']
+  legalPersonName String
+  countryCode String
+  cityId String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  Beneficiary Beneficiary [not null]
 }
 
 Table Coordinator {
   id String [pk]
   personId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
   person Person [not null]
   Beneficiary Beneficiary [not null]
+
+  Note: 'Coordinator is the person who manages the campaign on behalf of the Beneficiary
+Alias: Organizer'
+}
+
+Table Benefactor {
+  id String [pk]
+  personId String [not null]
+  customerId String [unique, note: 'Payment provider customer id']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  person Person [not null]
+
+  Note: 'Benefactor is the person who gives money'
 }
 
 Table Beneficiary {
   id String [pk]
   type BeneficiaryType [not null]
-  personId String [not null, note: 'Person in need']
+  personId String [note: 'Person in need when type is `individual`']
+  companyId String [note: 'Company in need when type is `company`']
   coordinatorId String [not null, note: 'Coordinator for this beneficiary']
   countryCode String [not null]
   cityId String [not null]
@@ -48,8 +87,11 @@ Table Beneficiary {
   coordinatorRelation PersonRelation [not null, default: 'none']
   city City [not null]
   coordinator Coordinator [not null]
-  person Person [not null]
+  person Person
+  company Company
   campaigns Campaign [not null]
+
+  Note: 'Beneficiary is the person who receives the benefit'
 }
 
 Table CampaignType {
@@ -69,6 +111,7 @@ Table Campaign {
   slug String [unique, not null]
   title String [not null]
   essence String [not null]
+  vaultId String [not null]
   coordinatorId String [not null]
   beneficiaryId String [not null]
   campaignTypeId String [not null]
@@ -81,6 +124,7 @@ Table Campaign {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   deletedAt DateTime
+  vault Vault
   beneficiary Beneficiary [not null]
   campaignTypes CampaignType [not null]
 }
@@ -145,13 +189,130 @@ Table Country {
   City City [not null]
 }
 
+Table Vault {
+  id String [pk]
+  type VaultType [not null]
+  amount Decimal [not null, default: 0]
+  currency Currency [not null, default: 'BGN']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  Person Person [not null]
+  Expense Expense [not null]
+  Campaign Campaign [not null]
+  Withdraw Withdraw [not null]
+  Transaction Transaction [not null]
+  Subscription Subscription [not null]
+  SourceTransfer Transfer [not null]
+  TargetTransfer Transfer [not null]
+}
+
+Table Transaction {
+  id String [pk]
+  type TransactionType [not null]
+  status TransactionStatus [not null, default: 'initial']
+  provider PaymentProvider [not null, default: 'none']
+  targetVaultId String [not null, note: 'Vault where the funds are going']
+  customerId String [not null, note: 'Payment provider attributes']
+  paymentIntentId String [not null]
+  paymentMethodId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  targetVault Vault [not null]
+}
+
+Table Subscription {
+  id String [pk]
+  status SubscriptionStatus [not null]
+  vaultId String [not null]
+  personId String [not null]
+  subscriptionId String [not null, note: 'Payment provider Subscription id']
+  customerId String [unique]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  sourceVault Vault [not null]
+  person Person [not null]
+
+  Note: 'Subscribe to donate on monthly basis'
+}
+
+Table Transfer {
+  id String [pk]
+  type TransferType [not null]
+  amount Decimal [not null]
+  reason String [not null]
+  sourceVaultId String [not null]
+  targetVaultId String [not null]
+  targetDate DateTime [default: `now()`]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  sourceVault Vault [not null]
+  targetVault Vault [not null]
+
+  Note: 'Move funds from one vault to another'
+}
+
+Table Withdraw {
+  id String [pk]
+  type WithdrawType [not null]
+  status WithdrawStatus [not null]
+  amount Decimal [not null]
+  vaultId String [not null]
+  documentId String
+  targetDate DateTime [default: `now()`]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  vault Vault [not null]
+  BankAccount BankAccount [not null]
+
+  Note: 'Remove funds from a vault to given bank account'
+}
+
+Table BankAccount {
+  id String [pk]
+  status BankAccountStatus [not null]
+  last4 String [not null, note: 'Last 4 digits of IBAN number']
+  accountHolderName String [not null, note: 'Name of account holder']
+  accountHolderType AccountHolderType [not null]
+  bankName String
+  fingerprint String
+  withdrawId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  withdraw Withdraw [not null]
+}
+
+Table Expense {
+  id String [pk]
+  type ExpenseType [not null]
+  vaultId String [not null]
+  documentId String
+  vault Vault [not null]
+  document Document
+
+  Note: 'Pay for something from a given vault'
+}
+
+Table Document {
+  id String [pk]
+  type DocumentType [not null]
+  name String [not null]
+  filetype String
+  description String
+  sourceUrl String [not null, note: 'Data storage source url']
+  ownerId String [not null, note: 'Person who uploaded the document']
+  owner Person [not null]
+  Expense Expense [not null]
+}
+
 Enum BeneficiaryType {
   individual
-  organisation
+  company
 }
 
 Enum PersonRelation {
   none
+  myself
+  myorg
   parent
   spouse
   child
@@ -189,7 +350,110 @@ Enum Currency {
   USD
 }
 
+Enum TransactionType {
+  donation
+}
+
+Enum TransferType {
+  withdraw
+  relocation
+}
+
+Enum ExpenseType {
+  none
+  internal
+  operating
+  administrative
+  medical
+  services
+  groceries
+  transport
+  accommodation
+  shipping
+  utility
+  rental
+  legal
+  bank
+  advertising
+  other
+}
+
+Enum PaymentProvider {
+  none
+  stripe
+  paypal
+  epay
+  bank
+  cash
+}
+
+Enum SubscriptionStatus {
+  trialing
+  active
+  canceled
+  incomplete
+  incompleteExpired
+  pastDue
+  unpaid
+}
+
+Enum VaultType {
+  personal
+  campaign
+}
+
+Enum DocumentType {
+  invoice
+  receipt
+  medical_record
+  other
+}
+
+Enum TransactionStatus {
+  initial
+  invalid
+  incomplete
+  declined
+  waiting
+  cancelled
+  succeeded
+  deleted
+  refund
+  paymentRequested
+}
+
+Enum WithdrawType {
+  cash
+  bank
+}
+
+Enum WithdrawStatus {
+  initial
+  invalid
+  incomplete
+  declined
+  cancelled
+  succeeded
+}
+
+Enum AccountHolderType {
+  individual
+  company
+}
+
+Enum BankAccountStatus {
+  new
+  validated
+  verified
+  verification_failed
+  errored
+}
+
+Ref: Person.vaultId > Vault.id
+
 Ref: Coordinator.personId > Person.id
+
+Ref: Benefactor.personId > Person.id
 
 Ref: Beneficiary.cityId > City.id
 
@@ -197,7 +461,11 @@ Ref: Beneficiary.coordinatorId > Coordinator.id
 
 Ref: Beneficiary.personId > Person.id
 
+Ref: Beneficiary.companyId > Company.id
+
 Ref: CampaignType.parentId - CampaignType.id
+
+Ref: Campaign.vaultId > Vault.id
 
 Ref: Campaign.beneficiaryId > Beneficiary.id
 
@@ -208,3 +476,23 @@ Ref: InfoRequest.personId > Person.id
 Ref: Supporter.personId > Person.id
 
 Ref: City.countryId > Country.id
+
+Ref: Transaction.targetVaultId > Vault.id
+
+Ref: Subscription.vaultId > Vault.id
+
+Ref: Subscription.personId > Person.id
+
+Ref: Transfer.sourceVaultId > Vault.id
+
+Ref: Transfer.targetVaultId > Vault.id
+
+Ref: Withdraw.vaultId > Vault.id
+
+Ref: BankAccount.withdrawId > Withdraw.id
+
+Ref: Expense.vaultId > Vault.id
+
+Ref: Expense.documentId > Document.id
+
+Ref: Document.ownerId > Person.id
