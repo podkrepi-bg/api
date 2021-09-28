@@ -326,13 +326,15 @@ model Withdrawal {
 model BankAccount {
   id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   status            BankAccountStatus
-  /// Last 4 digits of IBAN number
-  last4             String
+  /// IBAN number
+  ibanNumber        String            @db.VarChar(50)
   /// Name of account holder
   accountHolderName String            @map("account_holder_name")
   accountHolderType AccountHolderType @map("account_holder_type")
-  bankName          String?           @map("bank_name")
-  fingerprint       String?
+  bankName          String?           @map("bank_name") @db.VarChar(50)
+  /// Bank Identification Code, BIC/SWIFT code
+  bankIdCode        String?           @map("bank_id_code") @db.VarChar(50)
+  fingerprint       String?           @db.VarChar(100)
   createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
   Withdraw          Withdrawal[]
