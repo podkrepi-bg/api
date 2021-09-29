@@ -77,5 +77,8 @@
     "*.{ts,tsx,js,json}": [
       "nx format:write --uncommitted"
     ]
+  },
+  "resolutions": {
+    "set-value": "^4.0.1"
   }
 }
