@@ -79,6 +79,7 @@
     ]
   },
   "resolutions": {
-    "set-value": "^4.0.1"
+    "set-value": "^4.0.1",
+    "glob-parent": "^5.1.2"
   }
 }
