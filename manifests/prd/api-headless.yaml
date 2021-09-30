@@ -33,7 +33,6 @@ spec:
       initContainers:
         - name: migrate-database
           image: ghcr.io/podkrepi-bg/api/migrations:v0.1.0
-          imagePullPolicy: Always
           env:
             - name: NODE_ENV
               value: production
@@ -45,7 +44,6 @@ spec:
       containers:
         - name: api-headless
           image: ghcr.io/podkrepi-bg/api:v0.1.0
-          imagePullPolicy: Always
           env:
             - name: NODE_ENV
               value: production

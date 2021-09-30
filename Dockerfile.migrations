@@ -9,4 +9,4 @@ RUN yarn add prisma
 COPY schema.prisma .
 COPY migrations migrations/
 
-CMD yarn prisma migrate deploy
+CMD yarn prisma db seed && yarn prisma migrate deploy
