@@ -11,6 +11,11 @@ import { campaignSeed } from './campaign.seed'
 const prisma = new PrismaClient()
 
 async function main() {
+  await Promise.all([
+    await countriesSeed(),
+    await citiesSeed(),
+    await campaignTypesSeed()])
+
   const isDevConfig = process.env.NODE_ENV == 'development'
   if (isDevConfig) {
     console.warn('Executing development seeds')
@@ -21,11 +26,6 @@ async function main() {
       await campaignSeed()
     ])
   }
-
-  await Promise.all([
-    await countriesSeed(),
-    await citiesSeed(),
-    await campaignTypesSeed()])
 }
 
 main()

@@ -35,8 +35,6 @@ spec:
           image: ghcr.io/podkrepi-bg/api/migrations:master
           imagePullPolicy: Always
           env:
-            - name: NODE_ENV
-              value: development
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
