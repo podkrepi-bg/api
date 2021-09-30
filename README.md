@@ -15,8 +15,9 @@
 
 ## Links
 
-- Staging environemnt at <https://dev.podkrepi.bg/api>
-- Swagger docs at <https://dev.podkrepi.bg/docs>
+- Website live at <https://podkrepi.bg>
+- API running at <https://podkrepi.bg/api>
+- Swagger docs at <https://podkrepi.bg/docs>
 
 ## Dependencies and References
 
