@@ -198,6 +198,7 @@ yarn prisma migrate reset
 | Setting                | Description                               | Default value                                                               |
 | ---------------------- | ----------------------------------------- | --------------------------------------------------------------------------- |
 | PORT                   | The address on which the module binds.    | 5010                                                                        |
+| APP_VERSION            | The version of the application            | unknown                                                                     |
 | APP_ENV                | Application runtime environment           | development                                                                 |
 | NODE_ENV               | Node build environment                    | development                                                                 |
 | TARGET_ENV             | Docker multi-stage target                 | development                                                                 |
