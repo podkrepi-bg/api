@@ -45,6 +45,8 @@ spec:
           image: ghcr.io/podkrepi-bg/api:master
           imagePullPolicy: Always
           env:
+            - name: NODE_ENV
+              value: production
             - name: PORT
               value: "80"
             - name: TARGET_APP
