@@ -27,9 +27,10 @@ async function bootstrap() {
   app.setGlobalPrefix(globalPrefix)
   app.enableVersioning({ type: VersioningType.URI })
 
+  const appVersion = process.env.APP_VERSION || 'unknown'
   setupHelmet(app)
   setupCors(app)
-  setupSwagger(app)
+  setupSwagger(app, appVersion)
   setupExceptions(app)
   setupValidation(app)
   setupShutdownHooks(app)

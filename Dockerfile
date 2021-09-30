@@ -27,6 +27,8 @@ CMD yarn dev
 # Build target production #
 ###########################
 FROM base AS production
+ARG APP_VERSION=master
+ENV APP_VERSION $APP_VERSION
 COPY --from=builder /app/dist /app/dist
 COPY --from=dependencies /app/node_modules /app/node_modules
 COPY --from=builder /app/node_modules/.prisma /app/node_modules/.prisma
