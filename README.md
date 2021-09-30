@@ -35,7 +35,7 @@
   - <https://nx.dev/>
 
 # Setup Development Environment (recommended)
-To run and develop the module NodeJS 16 is required. If you wish to keep your host clean, it is also possible to develop the module in a Docker container. You can do that by using the [Visual Studio Code](https://code.visualstudio.com/download)'s [Remote Containers extension](https://code.visualstudio.com/docs/remote/containers).
+To run and develop the module NodeJS 16 is required. If you wish to keep your host clean, it is also possible to develop the module in a Docker container. You can do that by using the [Visual Studio Code](https://code.visualstudio.com/download)'s [Remote Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) and read [how to initialize your dev container](https://code.visualstudio.com/docs/remote/containers).
  - Make sure you have the extension installed
  - Open the folder of the module in VS Code
  - Hit `Ctrl`/`Cmd` + `Shift` + `P` -> Remote-Containers: Reopen Folder in Container
