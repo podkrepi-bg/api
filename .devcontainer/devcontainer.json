@@ -3,7 +3,8 @@
   "image": "ghcr.io/podkrepi-bg/nodejs-devcontainer:v1.1.0",
   "forwardPorts": [9229, 5010],
   "containerEnv": {
-    "DATABASE_URL": "postgres://postgres:postgrespass@host.docker.internal:5432/postgres?schema=api"
+    "DATABASE_URL": "postgres://postgres:postgrespass@host.docker.internal:5432/postgres?schema=api",
+    "NODE_ENV": "development"
   },
   "postStartCommand": "yarn",
   "extensions": [
