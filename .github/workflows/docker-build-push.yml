@@ -35,6 +35,8 @@ jobs:
         with:
           push: true
           target: production
+          build-args: |
+            APP_VERSION=${{ steps.vars.outputs.tag }}
           tags: ghcr.io/podkrepi-bg/api:${{ steps.vars.outputs.tag }}
 
   build-migrations-docker-image:
