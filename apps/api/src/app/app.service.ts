@@ -8,7 +8,10 @@ export class AppService {
     this.appVersion = process.env.APP_VERSION || 'unknown'
   }
 
-  getData(): { message: string } {
-    return { message: 'Welcome to Podkrepi.bg Backend API ' + this.appVersion + '! See Swagger docs at /docs' }
+  getData(): { version: string, message: string } {
+    return {
+      version: this.appVersion,
+      message: 'Welcome to Podkrepi.bg Backend API! See Swagger docs at /docs'
+    }
   }
 }

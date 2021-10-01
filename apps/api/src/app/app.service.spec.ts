@@ -17,7 +17,10 @@ describe('AppService', () => {
     it('should return "Welcome to Podkrepi.bg Backend API! See Swagger docs at /docs"', () => {
       const appVersion = process.env.APP_VERSION || 'unknown'
       expect(service.getData())
-        .toEqual({ message: 'Welcome to Podkrepi.bg Backend API ' + appVersion +  '! See Swagger docs at /docs' })
+        .toEqual({
+          version: appVersion,
+          message: 'Welcome to Podkrepi.bg Backend API! See Swagger docs at /docs'
+        })
     })
   })
 })
