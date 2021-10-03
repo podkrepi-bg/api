@@ -103,7 +103,7 @@ export class CreateCampaignDto {
       startDate: this.startDate,
       endDate: this.endDate,
       campaignTypes: { connect: { id: this.campaignTypeId } },
-      beneficiary: { connect: { id: this.beneficiaryId } },
+      beneficiaries: { connect: { id: this.beneficiaryId } },
     }
   }
 }
