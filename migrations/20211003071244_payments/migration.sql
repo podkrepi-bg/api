@@ -34,6 +34,9 @@ CREATE TYPE "recurring_donation_status" AS ENUM ('trialing', 'active', 'canceled
 CREATE TYPE "withdraw_status" AS ENUM ('initial', 'invalid', 'incomplete', 'declined', 'cancelled', 'succeeded');
 
 -- CreateEnum
+CREATE TYPE "transfer_status" AS ENUM ('initial', 'invalid', 'incomplete', 'declined', 'cancelled', 'succeeded');
+
+-- CreateEnum
 CREATE TYPE "account_holder_type" AS ENUM ('individual', 'company');
 
 -- CreateEnum
@@ -72,7 +75,7 @@ ALTER COLUMN "person_id" DROP NOT NULL;
 -- AlterTable
 ALTER TABLE "campaigns" ADD COLUMN     "approved_by_id" UUID,
 DROP COLUMN "currency",
-ADD COLUMN     "currency" "currency" DEFAULT E'BGN';
+ADD COLUMN     "currency" "currency" NOT NULL DEFAULT E'BGN';
 
 -- AlterTable
 ALTER TABLE "coordinators" ADD COLUMN     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -113,9 +116,9 @@ CREATE TABLE "benefactors" (
 -- CreateTable
 CREATE TABLE "vaults" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "campaignId" UUID NOT NULL,
-    "amount" DECIMAL(65,30) NOT NULL DEFAULT 0.0,
     "currency" "currency" NOT NULL DEFAULT E'BGN',
+    "amount" DECIMAL(65,30) NOT NULL DEFAULT 0.0,
+    "campaign_id" UUID NOT NULL,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6),
 
@@ -155,6 +158,8 @@ CREATE TABLE "recurring_donations" (
 -- CreateTable
 CREATE TABLE "transfers" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "status" "transfer_status" NOT NULL DEFAULT E'initial',
+    "currency" "currency" NOT NULL,
     "amount" DECIMAL(65,30) NOT NULL,
     "reason" VARCHAR(100) NOT NULL,
     "source_vault_id" UUID NOT NULL,
@@ -173,10 +178,12 @@ CREATE TABLE "transfers" (
 -- CreateTable
 CREATE TABLE "withdrawals" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "status" "withdraw_status" NOT NULL,
+    "status" "withdraw_status" NOT NULL DEFAULT E'initial',
     "currency" "currency" NOT NULL,
     "amount" DECIMAL(65,30) NOT NULL,
+    "reason" VARCHAR(100) NOT NULL,
     "source_vault_id" UUID NOT NULL,
+    "source_campaign_id" UUID NOT NULL,
     "bank_account_id" UUID NOT NULL,
     "document_id" UUID,
     "approved_by_id" UUID,
@@ -251,7 +258,7 @@ ALTER TABLE "beneficiaries" ADD CONSTRAINT "beneficiaries_company_id_fkey" FOREI
 ALTER TABLE "campaigns" ADD CONSTRAINT "campaigns_approved_by_id_fkey" FOREIGN KEY ("approved_by_id") REFERENCES "people"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "vaults" ADD CONSTRAINT "vaults_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "campaigns"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "vaults" ADD CONSTRAINT "vaults_campaign_id_fkey" FOREIGN KEY ("campaign_id") REFERENCES "campaigns"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "donations" ADD CONSTRAINT "donations_target_vault_id_fkey" FOREIGN KEY ("target_vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -278,13 +285,16 @@ ALTER TABLE "transfers" ADD CONSTRAINT "transfers_target_vault_id_fkey" FOREIGN 
 ALTER TABLE "transfers" ADD CONSTRAINT "transfers_target_campaign_id_fkey" FOREIGN KEY ("target_campaign_id") REFERENCES "campaigns"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "withdrawals" ADD CONSTRAINT "withdrawals_approved_by_id_fkey" FOREIGN KEY ("approved_by_id") REFERENCES "people"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "withdrawals" ADD CONSTRAINT "withdrawals_source_vault_id_fkey" FOREIGN KEY ("source_vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "withdrawals" ADD CONSTRAINT "withdrawals_bank_account_id_fkey" FOREIGN KEY ("bank_account_id") REFERENCES "bank_accounts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "withdrawals" ADD CONSTRAINT "withdrawals_source_campaign_id_fkey" FOREIGN KEY ("source_campaign_id") REFERENCES "campaigns"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "withdrawals" ADD CONSTRAINT "withdrawals_approved_by_id_fkey" FOREIGN KEY ("approved_by_id") REFERENCES "people"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "withdrawals" ADD CONSTRAINT "withdrawals_bank_account_id_fkey" FOREIGN KEY ("bank_account_id") REFERENCES "bank_accounts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "expenses" ADD CONSTRAINT "expenses_vault_id_fkey" FOREIGN KEY ("vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

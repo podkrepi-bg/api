@@ -120,7 +120,7 @@ Table Campaign {
   description String
   targetAmount Decimal [default: 0]
   reachedAmount Decimal [default: 0]
-  currency Currency [default: 'BGN']
+  currency Currency [not null, default: 'BGN']
   startDate DateTime
   endDate DateTime
   createdAt DateTime [default: `now()`, not null]
@@ -130,8 +130,9 @@ Table Campaign {
   beneficiaries Beneficiary [not null]
   campaignTypes CampaignType [not null]
   vaults Vault [not null]
-  sourceTransfers Transfer [not null]
-  targetTransfers Transfer [not null]
+  incomingTransfers Transfer [not null]
+  outgoingTransfers Transfer [not null]
+  withdrawals Withdrawal [not null]
 }
 
 Table InfoRequest {
@@ -196,9 +197,9 @@ Table Country {
 
 Table Vault {
   id String [pk]
-  campaignId String [not null]
-  amount Decimal [not null, default: 0]
   currency Currency [not null, default: 'BGN']
+  amount Decimal [not null, default: 0]
+  campaignId String [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   campaign Campaign [not null]
@@ -241,6 +242,8 @@ Table RecurringDonation {
 
 Table Transfer {
   id String [pk]
+  status TransferStatus [not null, default: 'initial']
+  currency Currency [not null]
   amount Decimal [not null]
   reason String [not null]
   sourceVaultId String [not null]
@@ -263,19 +266,22 @@ Table Transfer {
 
 Table Withdrawal {
   id String [pk]
-  status WithdrawStatus [not null]
+  status WithdrawStatus [not null, default: 'initial']
   currency Currency [not null]
   amount Decimal [not null]
+  reason String [not null]
   sourceVaultId String [not null, note: 'Source vault']
+  sourceCampaignId String [not null]
   bankAccountId String [not null, note: 'Destination bank account']
   documentId String
   approvedById String
   targetDate DateTime [default: `now()`]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
-  vault Vault [not null]
-  bankAccount BankAccount [not null]
   approvedBy Person
+  sourceVault Vault [not null]
+  sourceCampaign Campaign [not null]
+  bankAccount BankAccount [not null]
 
   Note: 'Remove funds from a vault to given bank account'
 }
@@ -443,6 +449,15 @@ Enum WithdrawStatus {
   succeeded
 }
 
+Enum TransferStatus {
+  initial
+  invalid
+  incomplete
+  declined
+  cancelled
+  succeeded
+}
+
 Enum AccountHolderType {
   individual
   company
@@ -500,11 +515,13 @@ Ref: Transfer.targetVaultId > Vault.id
 
 Ref: Transfer.targetCampaignId > Campaign.id
 
+Ref: Withdrawal.approvedById > Person.id
+
 Ref: Withdrawal.sourceVaultId > Vault.id
 
-Ref: Withdrawal.bankAccountId > BankAccount.id
+Ref: Withdrawal.sourceCampaignId > Campaign.id
 
-Ref: Withdrawal.approvedById > Person.id
+Ref: Withdrawal.bankAccountId > BankAccount.id
 
 Ref: Expense.vaultId > Vault.id
 
