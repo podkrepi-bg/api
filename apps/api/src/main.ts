@@ -14,16 +14,23 @@ import { setupShutdownHooks } from './config/shutdown.config'
 import { setupHelmet } from './config/helmet.config'
 
 async function bootstrap() {
+  const isDevConfig = process.env.NODE_ENV == 'development'
+  if (isDevConfig) {
+    Logger.warn('Running with development configuration')
+  }
+
   const app = await NestFactory.create(AppModule, {
-    logger: ['debug', 'error', 'log', 'verbose', 'warn'],
+    logger: isDevConfig ?
+      ['debug', 'error', 'log', 'verbose', 'warn'] : ['error', 'log', 'warn'],
   })
   const globalPrefix = 'api'
   app.setGlobalPrefix(globalPrefix)
   app.enableVersioning({ type: VersioningType.URI })
 
+  const appVersion = process.env.APP_VERSION || 'unknown'
   setupHelmet(app)
   setupCors(app)
-  setupSwagger(app)
+  setupSwagger(app, appVersion)
   setupExceptions(app)
   setupValidation(app)
   setupShutdownHooks(app)

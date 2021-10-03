@@ -32,9 +32,10 @@ spec:
     spec:
       initContainers:
         - name: migrate-database
-          image: ghcr.io/podkrepi-bg/api/migrations:master
-          imagePullPolicy: Always
+          image: ghcr.io/podkrepi-bg/api/migrations:v0.1.1
           env:
+            - name: NODE_ENV
+              value: production
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -42,9 +43,10 @@ spec:
                   key: url
       containers:
         - name: api-headless
-          image: ghcr.io/podkrepi-bg/api:master
-          imagePullPolicy: Always
+          image: ghcr.io/podkrepi-bg/api:v0.1.1
           env:
+            - name: NODE_ENV
+              value: production
             - name: PORT
               value: "80"
             - name: TARGET_APP
