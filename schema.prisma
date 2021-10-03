@@ -39,6 +39,7 @@ model Person {
   campaigns          Campaign[]
   supporters         Supporter[]
   benefactors        Benefactor[]
+  withdrawals        Withdrawal[]
   beneficiaries      Beneficiary[]
   infoRequests       InfoRequest[]
   coordinators       Coordinator[]
@@ -131,30 +132,31 @@ model CampaignType {
 }
 
 model Campaign {
-  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  state          CampaignState @default(draft)
-  slug           String        @unique @db.VarChar(250)
-  title          String        @db.VarChar(200)
-  essence        String        @db.VarChar(500)
-  coordinatorId  String        @map("coordinator_id") @db.Uuid
-  beneficiaryId  String        @map("beneficiary_id") @db.Uuid
-  campaignTypeId String        @map("campaign_type_id") @db.Uuid
-  aprovedById    String?       @map("approved_by_id") @db.Uuid
-  description    String?
-  targetAmount   Decimal?      @default(0) @map("target_amount") @db.Decimal
-  reachedAmount  Decimal?      @default(0) @map("reached_amount") @db.Decimal
-  currency       Currency?     @default(BGN)
-  startDate      DateTime?     @map("start_date") @db.Timestamptz(6)
-  endDate        DateTime?     @map("end_date") @db.Timestamptz(6)
-  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
-  approvedBy     Person?       @relation(fields: [aprovedById], references: [id])
-  beneficiaries  Beneficiary   @relation(fields: [beneficiaryId], references: [id])
-  campaignTypes  CampaignType  @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  vaults         Vault[]
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  state           CampaignState @default(draft)
+  slug            String        @unique @db.VarChar(250)
+  title           String        @db.VarChar(200)
+  essence         String        @db.VarChar(500)
+  coordinatorId   String        @map("coordinator_id") @db.Uuid
+  beneficiaryId   String        @map("beneficiary_id") @db.Uuid
+  campaignTypeId  String        @map("campaign_type_id") @db.Uuid
+  approvedById    String?       @map("approved_by_id") @db.Uuid
+  description     String?
+  targetAmount    Decimal?      @default(0) @map("target_amount") @db.Decimal
+  reachedAmount   Decimal?      @default(0) @map("reached_amount") @db.Decimal
+  currency        Currency?     @default(BGN)
+  startDate       DateTime?     @map("start_date") @db.Timestamptz(6)
+  endDate         DateTime?     @map("end_date") @db.Timestamptz(6)
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt       DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  approvedBy      Person?       @relation(fields: [approvedById], references: [id])
+  beneficiaries   Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+  campaignTypes   CampaignType  @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  vaults          Vault[]
+  sourceTransfers Transfer[]    @relation("source_campaign")
+  targetTransfers Transfer[]    @relation("target_campaign")
 
-  @@index([campaignTypeId])
   @@map("campaigns")
 }
 
@@ -235,8 +237,8 @@ model Vault {
   updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
   campaign           Campaign            @relation(fields: [campaignId], references: [id])
   expenses           Expense[]
-  sourceTransfers    Transfer[]          @relation("source")
-  targetTransfers    Transfer[]          @relation("target")
+  sourceTransfers    Transfer[]          @relation("source_vault")
+  targetTransfers    Transfer[]          @relation("target_vault")
   donations          Donation[]
   withdraws          Withdrawal[]
   recurringDonations RecurringDonation[]
@@ -283,19 +285,23 @@ model RecurringDonation {
 
 /// Move funds from one vault to another
 model Transfer {
-  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type          TransferType
-  amount        Decimal
-  reason        String       @db.VarChar(100)
-  sourceVaultId String       @map("source_vault_id") @db.Uuid
-  targetVaultId String       @map("target_vault_id") @db.Uuid
-  aprovedById   String?      @map("approved_by_id") @db.Uuid
-  targetDate    DateTime?    @default(now()) @map("target_date")
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime?    @updatedAt @map("updated_at") @db.Timestamptz(6)
-  approvedBy    Person?      @relation(fields: [aprovedById], references: [id])
-  sourceVault   Vault        @relation("source", fields: [sourceVaultId], references: [id])
-  targetVault   Vault        @relation("target", fields: [targetVaultId], references: [id])
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  amount           Decimal
+  reason           String    @db.VarChar(100)
+  sourceVaultId    String    @map("source_vault_id") @db.Uuid
+  sourceCampaignId String    @map("source_campaign_id") @db.Uuid
+  targetVaultId    String    @map("target_vault_id") @db.Uuid
+  targetCampaignId String    @map("target_campaign_id") @db.Uuid
+  approvedById     String?   @map("approved_by_id") @db.Uuid
+  documentId       String?   @map("document_id") @db.Uuid
+  targetDate       DateTime? @default(now()) @map("target_date")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  approvedBy       Person?   @relation(fields: [approvedById], references: [id])
+  sourceVault      Vault     @relation("source_vault", fields: [sourceVaultId], references: [id])
+  sourceCampaign   Campaign  @relation("source_campaign", fields: [sourceCampaignId], references: [id])
+  targetVault      Vault     @relation("target_vault", fields: [targetVaultId], references: [id])
+  targetCampaign   Campaign  @relation("target_campaign", fields: [targetCampaignId], references: [id])
 
   @@map("transfers")
 }
@@ -307,15 +313,17 @@ model Withdrawal {
   currency      Currency
   amount        Decimal
   /// Source vault
-  vaultId       String         @map("vault_id") @db.Uuid
+  sourceVaultId String         @map("source_vault_id") @db.Uuid
   /// Destination bank account
   bankAccountId String         @map("bank_account_id") @db.Uuid
   documentId    String?        @map("document_id") @db.Uuid
+  approvedById  String?        @map("approved_by_id") @db.Uuid
   targetDate    DateTime?      @default(now()) @map("target_date")
   createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime?      @updatedAt @map("updated_at") @db.Timestamptz(6)
-  vault         Vault          @relation(fields: [vaultId], references: [id])
+  vault         Vault          @relation(fields: [sourceVaultId], references: [id])
   bankAccount   BankAccount    @relation(fields: [bankAccountId], references: [id])
+  approvedBy    Person?        @relation(fields: [approvedById], references: [id])
 
   @@map("withdrawals")
 }
@@ -343,15 +351,15 @@ model BankAccount {
 
 /// Pay for something from a given vault
 model Expense {
-  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type        ExpenseType
-  description String?
-  vaultId     String      @map("vault_id") @db.Uuid
-  documentId  String?     @map("document_id") @db.Uuid
-  aprovedById String?     @db.Uuid
-  vault       Vault       @relation(fields: [vaultId], references: [id])
-  approvedBy  Person?     @relation(fields: [aprovedById], references: [id])
-  document    Document?   @relation(fields: [documentId], references: [id])
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type         ExpenseType
+  description  String?
+  vaultId      String      @map("vault_id") @db.Uuid
+  documentId   String?     @map("document_id") @db.Uuid
+  approvedById String?     @db.Uuid
+  vault        Vault       @relation(fields: [vaultId], references: [id])
+  approvedBy   Person?     @relation(fields: [approvedById], references: [id])
+  document     Document?   @relation(fields: [documentId], references: [id])
 
   @@map("expenses")
 }

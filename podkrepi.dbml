@@ -28,6 +28,7 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   campaigns Campaign [not null]
   supporters Supporter [not null]
   benefactors Benefactor [not null]
+  withdrawals Withdrawal [not null]
   beneficiaries Beneficiary [not null]
   infoRequests InfoRequest [not null]
   coordinators Coordinator [not null]
@@ -115,7 +116,7 @@ Table Campaign {
   coordinatorId String [not null]
   beneficiaryId String [not null]
   campaignTypeId String [not null]
-  aprovedById String
+  approvedById String
   description String
   targetAmount Decimal [default: 0]
   reachedAmount Decimal [default: 0]
@@ -129,6 +130,8 @@ Table Campaign {
   beneficiaries Beneficiary [not null]
   campaignTypes CampaignType [not null]
   vaults Vault [not null]
+  sourceTransfers Transfer [not null]
+  targetTransfers Transfer [not null]
 }
 
 Table InfoRequest {
@@ -238,18 +241,22 @@ Table RecurringDonation {
 
 Table Transfer {
   id String [pk]
-  type TransferType [not null]
   amount Decimal [not null]
   reason String [not null]
   sourceVaultId String [not null]
+  sourceCampaignId String [not null]
   targetVaultId String [not null]
-  aprovedById String
+  targetCampaignId String [not null]
+  approvedById String
+  documentId String
   targetDate DateTime [default: `now()`]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   approvedBy Person
   sourceVault Vault [not null]
+  sourceCampaign Campaign [not null]
   targetVault Vault [not null]
+  targetCampaign Campaign [not null]
 
   Note: 'Move funds from one vault to another'
 }
@@ -259,14 +266,16 @@ Table Withdrawal {
   status WithdrawStatus [not null]
   currency Currency [not null]
   amount Decimal [not null]
-  vaultId String [not null, note: 'Source vault']
+  sourceVaultId String [not null, note: 'Source vault']
   bankAccountId String [not null, note: 'Destination bank account']
   documentId String
+  approvedById String
   targetDate DateTime [default: `now()`]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   vault Vault [not null]
   bankAccount BankAccount [not null]
+  approvedBy Person
 
   Note: 'Remove funds from a vault to given bank account'
 }
@@ -291,7 +300,7 @@ Table Expense {
   description String
   vaultId String [not null]
   documentId String
-  aprovedById String
+  approvedById String
   vault Vault [not null]
   approvedBy Person
   document Document
@@ -461,7 +470,7 @@ Ref: Beneficiary.companyId > Company.id
 
 Ref: CampaignType.parentId - CampaignType.id
 
-Ref: Campaign.aprovedById > Person.id
+Ref: Campaign.approvedById > Person.id
 
 Ref: Campaign.beneficiaryId > Beneficiary.id
 
@@ -481,19 +490,25 @@ Ref: RecurringDonation.vaultId > Vault.id
 
 Ref: RecurringDonation.personId > Person.id
 
-Ref: Transfer.aprovedById > Person.id
+Ref: Transfer.approvedById > Person.id
 
 Ref: Transfer.sourceVaultId > Vault.id
 
+Ref: Transfer.sourceCampaignId > Campaign.id
+
 Ref: Transfer.targetVaultId > Vault.id
 
-Ref: Withdrawal.vaultId > Vault.id
+Ref: Transfer.targetCampaignId > Campaign.id
+
+Ref: Withdrawal.sourceVaultId > Vault.id
 
 Ref: Withdrawal.bankAccountId > BankAccount.id
 
+Ref: Withdrawal.approvedById > Person.id
+
 Ref: Expense.vaultId > Vault.id
 
-Ref: Expense.aprovedById > Person.id
+Ref: Expense.approvedById > Person.id
 
 Ref: Expense.documentId > Document.id
 

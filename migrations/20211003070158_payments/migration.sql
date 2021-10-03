@@ -62,6 +62,9 @@ ALTER TYPE "person_relation" ADD VALUE 'myorg';
 -- DropForeignKey
 ALTER TABLE "beneficiaries" DROP CONSTRAINT "beneficiaries_person_id_fkey";
 
+-- DropIndex
+DROP INDEX "campaigns_campaign_type_id_idx";
+
 -- AlterTable
 ALTER TABLE "beneficiaries" ADD COLUMN     "company_id" UUID,
 ALTER COLUMN "person_id" DROP NOT NULL;
@@ -152,12 +155,14 @@ CREATE TABLE "recurring_donations" (
 -- CreateTable
 CREATE TABLE "transfers" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "type" "transfer_type" NOT NULL,
     "amount" DECIMAL(65,30) NOT NULL,
     "reason" VARCHAR(100) NOT NULL,
     "source_vault_id" UUID NOT NULL,
+    "source_campaign_id" UUID NOT NULL,
     "target_vault_id" UUID NOT NULL,
+    "target_campaign_id" UUID NOT NULL,
     "approved_by_id" UUID,
+    "document_id" UUID,
     "target_date" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6),
@@ -171,9 +176,10 @@ CREATE TABLE "withdrawals" (
     "status" "withdraw_status" NOT NULL,
     "currency" "currency" NOT NULL,
     "amount" DECIMAL(65,30) NOT NULL,
-    "vault_id" UUID NOT NULL,
+    "source_vault_id" UUID NOT NULL,
     "bank_account_id" UUID NOT NULL,
     "document_id" UUID,
+    "approved_by_id" UUID,
     "target_date" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6),
@@ -204,7 +210,7 @@ CREATE TABLE "expenses" (
     "description" TEXT,
     "vault_id" UUID NOT NULL,
     "document_id" UUID,
-    "aprovedById" UUID,
+    "approvedById" UUID,
 
     CONSTRAINT "expenses_pkey" PRIMARY KEY ("id")
 );
@@ -263,19 +269,28 @@ ALTER TABLE "transfers" ADD CONSTRAINT "transfers_approved_by_id_fkey" FOREIGN K
 ALTER TABLE "transfers" ADD CONSTRAINT "transfers_source_vault_id_fkey" FOREIGN KEY ("source_vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "transfers" ADD CONSTRAINT "transfers_source_campaign_id_fkey" FOREIGN KEY ("source_campaign_id") REFERENCES "campaigns"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "transfers" ADD CONSTRAINT "transfers_target_vault_id_fkey" FOREIGN KEY ("target_vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "withdrawals" ADD CONSTRAINT "withdrawals_vault_id_fkey" FOREIGN KEY ("vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "transfers" ADD CONSTRAINT "transfers_target_campaign_id_fkey" FOREIGN KEY ("target_campaign_id") REFERENCES "campaigns"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "withdrawals" ADD CONSTRAINT "withdrawals_source_vault_id_fkey" FOREIGN KEY ("source_vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "withdrawals" ADD CONSTRAINT "withdrawals_bank_account_id_fkey" FOREIGN KEY ("bank_account_id") REFERENCES "bank_accounts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "withdrawals" ADD CONSTRAINT "withdrawals_approved_by_id_fkey" FOREIGN KEY ("approved_by_id") REFERENCES "people"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "expenses" ADD CONSTRAINT "expenses_vault_id_fkey" FOREIGN KEY ("vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "expenses" ADD CONSTRAINT "expenses_aprovedById_fkey" FOREIGN KEY ("aprovedById") REFERENCES "people"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "expenses" ADD CONSTRAINT "expenses_approvedById_fkey" FOREIGN KEY ("approvedById") REFERENCES "people"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "expenses" ADD CONSTRAINT "expenses_document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "documents"("id") ON DELETE SET NULL ON UPDATE CASCADE;
