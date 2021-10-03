@@ -16,6 +16,19 @@ generator dbml {
   projectDatabaseType = "PostgreSQL"
 }
 
+generator nestjsDto {
+  provider                        = "prisma-generator-nestjs-dto"
+  output                          = "apps/api/src/domain/generated"
+  outputToNestJsResourceStructure = "true"
+  exportRelationModifierClasses   = "true"
+  reExport                        = "true"
+  createDtoPrefix                 = "Create"
+  updateDtoPrefix                 = "Update"
+  dtoSuffix                       = "Dto"
+  entityPrefix                    = ""
+  entitySuffix                    = ""
+}
+
 /// Generic person object
 model Person {
   id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
