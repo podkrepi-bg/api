@@ -22,18 +22,16 @@ Table Person {
   birthday DateTime
   personalNumber String [unique, note: 'Uniform Civil Number (NCN, EGN)
 https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
-  vaultId String
-  vault Vault
-  Document Document [not null]
-  Transfer Transfer [not null]
-  Campaign Campaign [not null]
-  Supporter Supporter [not null]
-  Benefactor Benefactor [not null]
-  Beneficiary Beneficiary [not null]
-  InfoRequest InfoRequest [not null]
-  Coordinator Coordinator [not null]
-  Subscription Subscription [not null]
-  Expense Expense [not null]
+  expenses Expense [not null]
+  documents Document [not null]
+  transfers Transfer [not null]
+  campaigns Campaign [not null]
+  supporters Supporter [not null]
+  benefactors Benefactor [not null]
+  beneficiaries Beneficiary [not null]
+  infoRequests InfoRequest [not null]
+  coordinators Coordinator [not null]
+  recurringDonations RecurringDonation [not null]
 
   Note: 'Generic person object'
 }
@@ -48,7 +46,7 @@ https://psc.egov.bg/en/psc-starting-a-business-bulstat']
   cityId String
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
-  Beneficiary Beneficiary [not null]
+  beneficiaries Beneficiary [not null]
 }
 
 Table Coordinator {
@@ -57,7 +55,7 @@ Table Coordinator {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   person Person [not null]
-  Beneficiary Beneficiary [not null]
+  beneficiaries Beneficiary [not null]
 
   Note: 'Coordinator is the person who manages the campaign on behalf of the Beneficiary
 Alias: Organizer'
@@ -66,7 +64,7 @@ Alias: Organizer'
 Table Benefactor {
   id String [pk]
   personId String [not null]
-  customerId String [unique, note: 'Payment provider customer id']
+  extCustomerId String [unique, note: 'Payment provider customer id']
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   person Person [not null]
@@ -114,7 +112,6 @@ Table Campaign {
   slug String [unique, not null]
   title String [not null]
   essence String [not null]
-  vaultId String
   coordinatorId String [not null]
   beneficiaryId String [not null]
   campaignTypeId String [not null]
@@ -128,10 +125,10 @@ Table Campaign {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   deletedAt DateTime
-  vault Vault
   approvedBy Person
-  beneficiary Beneficiary [not null]
+  beneficiaries Beneficiary [not null]
   campaignTypes CampaignType [not null]
+  vaults Vault [not null]
 }
 
 Table InfoRequest {
@@ -184,31 +181,30 @@ Table City {
   postalCode Int [unique, not null]
   countryId String [not null]
   countryCode Country [not null]
-  Beneficiary Beneficiary [not null]
+  beneficiaries Beneficiary [not null]
 }
 
 Table Country {
   id String [pk]
   name String [not null]
   countryCode String [unique, not null]
-  City City [not null]
+  cities City [not null]
 }
 
 Table Vault {
   id String [pk]
-  type VaultType [not null]
+  campaignId String [not null]
   amount Decimal [not null, default: 0]
   currency Currency [not null, default: 'BGN']
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
-  Person Person [not null]
-  Expense Expense [not null]
-  Campaign Campaign [not null]
-  Withdraw Withdrawal [not null]
-  Donation Donation [not null]
-  Subscription Subscription [not null]
-  SourceTransfer Transfer [not null]
-  TargetTransfer Transfer [not null]
+  campaign Campaign [not null]
+  expenses Expense [not null]
+  sourceTransfers Transfer [not null]
+  targetTransfers Transfer [not null]
+  donations Donation [not null]
+  withdraws Withdrawal [not null]
+  recurringDonations RecurringDonation [not null]
 }
 
 Table Donation {
@@ -217,27 +213,27 @@ Table Donation {
   status DonationStatus [not null, default: 'initial']
   provider PaymentProvider [not null, default: 'none']
   targetVaultId String [not null, note: 'Vault where the funds are going']
-  customerId String [not null, note: 'Payment provider attributes']
-  paymentIntentId String [not null]
-  paymentMethodId String [not null]
+  extCustomerId String [not null, note: 'Payment provider attributes']
+  extPaymentIntentId String [not null]
+  extPaymentMethodId String [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   targetVault Vault [not null]
 }
 
-Table Subscription {
+Table RecurringDonation {
   id String [pk]
-  status SubscriptionStatus [not null]
+  status RecurringDonationStatus [not null]
   vaultId String [not null]
   personId String [not null]
-  subscriptionId String [not null, note: 'Payment provider Subscription id']
-  customerId String [unique]
+  extSubscriptionId String [not null, note: 'Payment provider Subscription id']
+  extCustomerId String
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   sourceVault Vault [not null]
   person Person [not null]
 
-  Note: 'Subscribe to donate on monthly basis'
+  Note: 'Donate on monthly basis'
 }
 
 Table Transfer {
@@ -277,15 +273,16 @@ Table Withdrawal {
 
 Table BankAccount {
   id String [pk]
-  status BankAccountStatus [not null]
-  last4 String [not null, note: 'Last 4 digits of IBAN number']
+  status BankAccountStatus [not null, default: 'new']
+  ibanNumber String [not null, note: 'IBAN number']
   accountHolderName String [not null, note: 'Name of account holder']
-  accountHolderType AccountHolderType [not null]
-  bankName String
+  accountHolderType AccountHolderType [not null, note: 'Company or individual']
+  bankName String [note: 'Bank name']
+  bankIdCode String [note: 'Bank Identification Code, BIC/SWIFT code']
   fingerprint String
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
-  Withdraw Withdrawal [not null]
+  withdraws Withdrawal [not null]
 }
 
 Table Expense {
@@ -312,7 +309,7 @@ Table Document {
   sourceUrl String [not null, note: 'Data storage source url']
   ownerId String [not null, note: 'Person who uploaded the document']
   owner Person [not null]
-  Expense Expense [not null]
+  expenses Expense [not null]
 }
 
 Enum BeneficiaryType {
@@ -361,10 +358,6 @@ Enum Currency {
   USD
 }
 
-Enum DonationType {
-  donation
-}
-
 Enum TransferType {
   withdraw
   relocation
@@ -398,26 +391,15 @@ Enum PaymentProvider {
   cash
 }
 
-Enum SubscriptionStatus {
-  trialing
-  active
-  canceled
-  incomplete
-  incompleteExpired
-  pastDue
-  unpaid
-}
-
-Enum VaultType {
-  personal
-  campaign
-}
-
 Enum DocumentType {
   invoice
   receipt
   medical_record
   other
+}
+
+Enum DonationType {
+  donation
 }
 
 Enum DonationStatus {
@@ -431,6 +413,16 @@ Enum DonationStatus {
   deleted
   refund
   paymentRequested
+}
+
+Enum RecurringDonationStatus {
+  trialing
+  active
+  canceled
+  incomplete
+  incompleteExpired
+  pastDue
+  unpaid
 }
 
 Enum WithdrawStatus {
@@ -455,8 +447,6 @@ Enum BankAccountStatus {
   errored
 }
 
-Ref: Person.vaultId > Vault.id
-
 Ref: Coordinator.personId > Person.id
 
 Ref: Benefactor.personId > Person.id
@@ -471,8 +461,6 @@ Ref: Beneficiary.companyId > Company.id
 
 Ref: CampaignType.parentId - CampaignType.id
 
-Ref: Campaign.vaultId > Vault.id
-
 Ref: Campaign.aprovedById > Person.id
 
 Ref: Campaign.beneficiaryId > Beneficiary.id
@@ -485,11 +473,13 @@ Ref: Supporter.personId > Person.id
 
 Ref: City.countryId > Country.id
 
+Ref: Vault.campaignId > Campaign.id
+
 Ref: Donation.targetVaultId > Vault.id
 
-Ref: Subscription.vaultId > Vault.id
+Ref: RecurringDonation.vaultId > Vault.id
 
-Ref: Subscription.personId > Person.id
+Ref: RecurringDonation.personId > Person.id
 
 Ref: Transfer.aprovedById > Person.id
 

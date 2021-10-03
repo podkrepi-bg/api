@@ -10,9 +10,6 @@
 CREATE TYPE "currency" AS ENUM ('BGN', 'EUR', 'USD');
 
 -- CreateEnum
-CREATE TYPE "transaction_type" AS ENUM ('donation');
-
--- CreateEnum
 CREATE TYPE "transfer_type" AS ENUM ('withdraw', 'relocation');
 
 -- CreateEnum
@@ -22,22 +19,19 @@ CREATE TYPE "expense_type" AS ENUM ('none', 'internal', 'operating', 'administra
 CREATE TYPE "payment_provider" AS ENUM ('none', 'stripe', 'paypal', 'epay', 'bank', 'cash');
 
 -- CreateEnum
-CREATE TYPE "subscription_status" AS ENUM ('trialing', 'active', 'canceled', 'incomplete', 'incompleteExpired', 'pastDue', 'unpaid');
-
--- CreateEnum
-CREATE TYPE "vault_type" AS ENUM ('personal', 'campaign');
-
--- CreateEnum
 CREATE TYPE "document_type" AS ENUM ('invoice', 'receipt', 'medical_record', 'other');
 
 -- CreateEnum
-CREATE TYPE "transaction_status" AS ENUM ('initial', 'invalid', 'incomplete', 'declined', 'waiting', 'cancelled', 'succeeded', 'deleted', 'refund', 'paymentRequested');
+CREATE TYPE "donation_type" AS ENUM ('donation');
 
 -- CreateEnum
-CREATE TYPE "payout_type" AS ENUM ('cash', 'bank');
+CREATE TYPE "donation_status" AS ENUM ('initial', 'invalid', 'incomplete', 'declined', 'waiting', 'cancelled', 'succeeded', 'deleted', 'refund', 'paymentRequested');
 
 -- CreateEnum
-CREATE TYPE "payout_status" AS ENUM ('initial', 'invalid', 'incomplete', 'declined', 'cancelled', 'succeeded');
+CREATE TYPE "recurring_donation_status" AS ENUM ('trialing', 'active', 'canceled', 'incomplete', 'incompleteExpired', 'pastDue', 'unpaid');
+
+-- CreateEnum
+CREATE TYPE "withdraw_status" AS ENUM ('initial', 'invalid', 'incomplete', 'declined', 'cancelled', 'succeeded');
 
 -- CreateEnum
 CREATE TYPE "account_holder_type" AS ENUM ('individual', 'company');
@@ -73,7 +67,7 @@ ALTER TABLE "beneficiaries" ADD COLUMN     "company_id" UUID,
 ALTER COLUMN "person_id" DROP NOT NULL;
 
 -- AlterTable
-ALTER TABLE "campaigns" ADD COLUMN     "vault_id" UUID,
+ALTER TABLE "campaigns" ADD COLUMN     "approved_by_id" UUID,
 DROP COLUMN "currency",
 ADD COLUMN     "currency" "currency" DEFAULT E'BGN';
 
@@ -83,7 +77,6 @@ ADD COLUMN     "updated_at" TIMESTAMPTZ(6);
 
 -- AlterTable
 ALTER TABLE "people" ADD COLUMN     "personal_number" TEXT,
-ADD COLUMN     "vault_id" UUID,
 ALTER COLUMN "address" SET DATA TYPE VARCHAR(100);
 
 -- DropEnum
@@ -107,7 +100,7 @@ CREATE TABLE "companies" (
 CREATE TABLE "benefactors" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "person_id" UUID NOT NULL,
-    "customer_id" TEXT,
+    "ext_customer_id" VARCHAR(50),
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6),
 
@@ -117,7 +110,7 @@ CREATE TABLE "benefactors" (
 -- CreateTable
 CREATE TABLE "vaults" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "type" "vault_type" NOT NULL,
+    "campaignId" UUID NOT NULL,
     "amount" DECIMAL(65,30) NOT NULL DEFAULT 0.0,
     "currency" "currency" NOT NULL DEFAULT E'BGN',
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -127,33 +120,33 @@ CREATE TABLE "vaults" (
 );
 
 -- CreateTable
-CREATE TABLE "transactions" (
+CREATE TABLE "donations" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "type" "transaction_type" NOT NULL,
-    "status" "transaction_status" NOT NULL DEFAULT E'initial',
+    "type" "donation_type" NOT NULL,
+    "status" "donation_status" NOT NULL DEFAULT E'initial',
     "provider" "payment_provider" NOT NULL DEFAULT E'none',
     "target_vault_id" UUID NOT NULL,
-    "customer_id" TEXT NOT NULL,
-    "payment_intent_id" TEXT NOT NULL,
-    "payment_method_id" TEXT NOT NULL,
+    "ext_customer_id" VARCHAR(50) NOT NULL,
+    "ext_payment_intent_id" TEXT NOT NULL,
+    "ext_payment_method_id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6),
 
-    CONSTRAINT "transactions_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "donations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "subscriptions" (
+CREATE TABLE "recurring_donations" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "status" "subscription_status" NOT NULL,
+    "status" "recurring_donation_status" NOT NULL,
     "vault_id" UUID NOT NULL,
     "person_id" UUID NOT NULL,
-    "subscription_id" TEXT NOT NULL,
-    "customer_id" TEXT,
+    "ext_subscription_id" VARCHAR(50) NOT NULL,
+    "ext_customer_id" VARCHAR(50),
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6),
 
-    CONSTRAINT "subscriptions_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "recurring_donations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -164,6 +157,7 @@ CREATE TABLE "transfers" (
     "reason" VARCHAR(100) NOT NULL,
     "source_vault_id" UUID NOT NULL,
     "target_vault_id" UUID NOT NULL,
+    "approved_by_id" UUID,
     "target_date" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6),
@@ -172,30 +166,31 @@ CREATE TABLE "transfers" (
 );
 
 -- CreateTable
-CREATE TABLE "withdraws" (
+CREATE TABLE "withdrawals" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "type" "payout_type" NOT NULL,
-    "status" "payout_status" NOT NULL,
+    "status" "withdraw_status" NOT NULL,
+    "currency" "currency" NOT NULL,
     "amount" DECIMAL(65,30) NOT NULL,
     "vault_id" UUID NOT NULL,
+    "bank_account_id" UUID NOT NULL,
     "document_id" UUID,
     "target_date" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6),
 
-    CONSTRAINT "withdraws_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "withdrawals_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "bank_accounts" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "status" "bank_account_status" NOT NULL,
-    "last4" TEXT NOT NULL,
+    "status" "bank_account_status" NOT NULL DEFAULT E'new',
+    "ibanNumber" VARCHAR(34) NOT NULL,
     "account_holder_name" TEXT NOT NULL,
     "account_holder_type" "account_holder_type" NOT NULL,
-    "bank_name" TEXT,
-    "fingerprint" TEXT,
-    "withdraw_id" UUID NOT NULL,
+    "bank_name" VARCHAR(50),
+    "bank_id_code" VARCHAR(50),
+    "fingerprint" VARCHAR(100),
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6),
 
@@ -206,8 +201,10 @@ CREATE TABLE "bank_accounts" (
 CREATE TABLE "expenses" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "type" "expense_type" NOT NULL,
+    "description" TEXT,
     "vault_id" UUID NOT NULL,
     "document_id" UUID,
+    "aprovedById" UUID,
 
     CONSTRAINT "expenses_pkey" PRIMARY KEY ("id")
 );
@@ -216,9 +213,10 @@ CREATE TABLE "expenses" (
 CREATE TABLE "documents" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "type" "document_type" NOT NULL,
-    "name" TEXT NOT NULL,
-    "filetype" TEXT,
-    "description" TEXT,
+    "name" VARCHAR(100) NOT NULL,
+    "filename" VARCHAR(100) NOT NULL,
+    "filetype" VARCHAR(3),
+    "description" VARCHAR(200),
     "source_url" TEXT NOT NULL,
     "owner_id" UUID NOT NULL,
 
@@ -229,16 +227,10 @@ CREATE TABLE "documents" (
 CREATE UNIQUE INDEX "companies_companyNumber_key" ON "companies"("companyNumber");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "benefactors_customer_id_key" ON "benefactors"("customer_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "subscriptions_customer_id_key" ON "subscriptions"("customer_id");
+CREATE UNIQUE INDEX "benefactors_ext_customer_id_key" ON "benefactors"("ext_customer_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "people_personal_number_key" ON "people"("personal_number");
-
--- AddForeignKey
-ALTER TABLE "people" ADD CONSTRAINT "people_vault_id_fkey" FOREIGN KEY ("vault_id") REFERENCES "vaults"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "benefactors" ADD CONSTRAINT "benefactors_person_id_fkey" FOREIGN KEY ("person_id") REFERENCES "people"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -250,16 +242,22 @@ ALTER TABLE "beneficiaries" ADD CONSTRAINT "beneficiaries_person_id_fkey" FOREIG
 ALTER TABLE "beneficiaries" ADD CONSTRAINT "beneficiaries_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "campaigns" ADD CONSTRAINT "campaigns_vault_id_fkey" FOREIGN KEY ("vault_id") REFERENCES "vaults"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "campaigns" ADD CONSTRAINT "campaigns_approved_by_id_fkey" FOREIGN KEY ("approved_by_id") REFERENCES "people"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "transactions" ADD CONSTRAINT "transactions_target_vault_id_fkey" FOREIGN KEY ("target_vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "vaults" ADD CONSTRAINT "vaults_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "campaigns"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_vault_id_fkey" FOREIGN KEY ("vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "donations" ADD CONSTRAINT "donations_target_vault_id_fkey" FOREIGN KEY ("target_vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_person_id_fkey" FOREIGN KEY ("person_id") REFERENCES "people"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "recurring_donations" ADD CONSTRAINT "recurring_donations_vault_id_fkey" FOREIGN KEY ("vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "recurring_donations" ADD CONSTRAINT "recurring_donations_person_id_fkey" FOREIGN KEY ("person_id") REFERENCES "people"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "transfers" ADD CONSTRAINT "transfers_approved_by_id_fkey" FOREIGN KEY ("approved_by_id") REFERENCES "people"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "transfers" ADD CONSTRAINT "transfers_source_vault_id_fkey" FOREIGN KEY ("source_vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -268,13 +266,16 @@ ALTER TABLE "transfers" ADD CONSTRAINT "transfers_source_vault_id_fkey" FOREIGN 
 ALTER TABLE "transfers" ADD CONSTRAINT "transfers_target_vault_id_fkey" FOREIGN KEY ("target_vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "withdraws" ADD CONSTRAINT "withdraws_vault_id_fkey" FOREIGN KEY ("vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "withdrawals" ADD CONSTRAINT "withdrawals_vault_id_fkey" FOREIGN KEY ("vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "bank_accounts" ADD CONSTRAINT "bank_accounts_withdraw_id_fkey" FOREIGN KEY ("withdraw_id") REFERENCES "withdraws"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "withdrawals" ADD CONSTRAINT "withdrawals_bank_account_id_fkey" FOREIGN KEY ("bank_account_id") REFERENCES "bank_accounts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "expenses" ADD CONSTRAINT "expenses_vault_id_fkey" FOREIGN KEY ("vault_id") REFERENCES "vaults"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "expenses" ADD CONSTRAINT "expenses_aprovedById_fkey" FOREIGN KEY ("aprovedById") REFERENCES "people"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "expenses" ADD CONSTRAINT "expenses_document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "documents"("id") ON DELETE SET NULL ON UPDATE CASCADE;
