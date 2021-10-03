@@ -10,9 +10,6 @@
 CREATE TYPE "currency" AS ENUM ('BGN', 'EUR', 'USD');
 
 -- CreateEnum
-CREATE TYPE "transfer_type" AS ENUM ('withdraw', 'relocation');
-
--- CreateEnum
 CREATE TYPE "expense_type" AS ENUM ('none', 'internal', 'operating', 'administrative', 'medical', 'services', 'groceries', 'transport', 'accommodation', 'shipping', 'utility', 'rental', 'legal', 'bank', 'advertising', 'other');
 
 -- CreateEnum

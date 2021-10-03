@@ -292,8 +292,10 @@ model Transfer {
   currency         Currency
   amount           Decimal
   reason           String         @db.VarChar(100)
+  /// Source vault
   sourceVaultId    String         @map("source_vault_id") @db.Uuid
   sourceCampaignId String         @map("source_campaign_id") @db.Uuid
+  /// Destination vault
   targetVaultId    String         @map("target_vault_id") @db.Uuid
   targetCampaignId String         @map("target_campaign_id") @db.Uuid
   approvedById     String?        @map("approved_by_id") @db.Uuid
@@ -441,13 +443,6 @@ enum Currency {
   USD
 
   @@map("currency")
-}
-
-enum TransferType {
-  withdraw
-  relocation
-
-  @@map("transfer_type")
 }
 
 enum ExpenseType {

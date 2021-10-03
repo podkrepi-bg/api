@@ -246,9 +246,9 @@ Table Transfer {
   currency Currency [not null]
   amount Decimal [not null]
   reason String [not null]
-  sourceVaultId String [not null]
+  sourceVaultId String [not null, note: 'Source vault']
   sourceCampaignId String [not null]
-  targetVaultId String [not null]
+  targetVaultId String [not null, note: 'Destination vault']
   targetCampaignId String [not null]
   approvedById String
   documentId String
@@ -371,11 +371,6 @@ Enum Currency {
   BGN
   EUR
   USD
-}
-
-Enum TransferType {
-  withdraw
-  relocation
 }
 
 Enum ExpenseType {
