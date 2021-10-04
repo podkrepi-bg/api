@@ -16,41 +16,102 @@ generator dbml {
   projectDatabaseType = "PostgreSQL"
 }
 
+generator nestjsDto {
+  provider                        = "prisma-generator-nestjs-dto"
+  output                          = "apps/api/src/domain/generated"
+  outputToNestJsResourceStructure = "true"
+  exportRelationModifierClasses   = "true"
+  reExport                        = "true"
+  createDtoPrefix                 = "Create"
+  updateDtoPrefix                 = "Update"
+  dtoSuffix                       = "Dto"
+  entityPrefix                    = ""
+  entitySuffix                    = ""
+}
+
+/// Generic person object
 model Person {
-  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  firstName      String        @map("first_name") @db.VarChar(100)
-  lastName       String        @map("last_name") @db.VarChar(100)
-  email          String        @unique @db.Citext
-  emailConfirmed Boolean?      @default(false) @map("email_confirmed")
-  phone          String?       @db.VarChar(50)
-  company        String?       @db.VarChar(50)
-  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
-  newsletter     Boolean?      @default(false)
-  address        String?       @db.VarChar(50)
-  birthday       DateTime?     @db.Timestamptz(6)
-  Beneficiary    Beneficiary[]
-  InfoRequest    InfoRequest[]
-  Coordinator    Coordinator[]
-  Supporter      Supporter[]
+  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstName          String              @map("first_name") @db.VarChar(100)
+  lastName           String              @map("last_name") @db.VarChar(100)
+  email              String              @unique @db.Citext
+  emailConfirmed     Boolean?            @default(false) @map("email_confirmed")
+  phone              String?             @db.VarChar(50)
+  company            String?             @db.VarChar(50)
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  newsletter         Boolean?            @default(false)
+  address            String?             @db.VarChar(100)
+  birthday           DateTime?           @db.Timestamptz(6)
+  /// Uniform Civil Number (NCN, EGN)
+  /// https://en.wikipedia.org/wiki/National_identification_number#Bulgaria
+  personalNumber     String?             @unique @map("personal_number")
+  expenses           Expense[]
+  documents          Document[]
+  transfers          Transfer[]
+  campaigns          Campaign[]
+  supporters         Supporter[]
+  benefactors        Benefactor[]
+  withdrawals        Withdrawal[]
+  beneficiaries      Beneficiary[]
+  infoRequests       InfoRequest[]
+  coordinators       Coordinator[]
+  recurringDonations RecurringDonation[]
 
   @@map("people")
 }
 
+model Company {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyName     String        @map("company_name") @db.VarChar(100)
+  /// BULSTAT Unified Identification Code (UIC)
+  /// https://psc.egov.bg/en/psc-starting-a-business-bulstat
+  companyNumber   String        @unique
+  legalPersonName String?       @map("legal_person_name")
+  countryCode     String?       @map("country_code") @db.Citext
+  cityId          String?       @map("city_id") @db.Uuid
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  beneficiaries   Beneficiary[]
+
+  @@map("companies")
+}
+
+/// Coordinator is the person who manages the campaign on behalf of the Beneficiary
+/// Alias: Organizer
 model Coordinator {
-  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  personId    String        @map("person_id") @db.Uuid
-  person      Person        @relation(fields: [personId], references: [id])
-  Beneficiary Beneficiary[]
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  personId      String        @map("person_id") @db.Uuid
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  person        Person        @relation(fields: [personId], references: [id])
+  beneficiaries Beneficiary[]
 
   @@map("coordinators")
 }
 
+/// Benefactor is the person who gives money
+model Benefactor {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  personId      String    @map("person_id") @db.Uuid
+  /// Payment provider customer id
+  extCustomerId String?   @unique @map("ext_customer_id") @db.VarChar(50)
+  ///
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  person        Person    @relation(fields: [personId], references: [id])
+
+  @@map("benefactors")
+}
+
+/// Beneficiary is the person who receives the benefit
 model Beneficiary {
   id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type                BeneficiaryType
-  /// Person in need
-  personId            String          @map("person_id") @db.Uuid
+  /// Person in need when type is `individual`
+  personId            String?         @map("person_id") @db.Uuid
+  /// Company in need when type is `company`
+  companyId           String?         @map("company_id") @db.Uuid
   /// Coordinator for this beneficiary
   coordinatorId       String          @map("coordinator_id") @db.Uuid
   countryCode         String          @map("country_code") @db.Citext
@@ -63,7 +124,8 @@ model Beneficiary {
   coordinatorRelation PersonRelation  @default(none) @map("coordinator_relation")
   city                City            @relation(fields: [cityId], references: [id])
   coordinator         Coordinator     @relation(fields: [coordinatorId], references: [id])
-  person              Person          @relation(fields: [personId], references: [id])
+  person              Person?         @relation(fields: [personId], references: [id])
+  company             Company?        @relation(fields: [companyId], references: [id])
   campaigns           Campaign[]
 
   @@map("beneficiaries")
@@ -83,27 +145,33 @@ model CampaignType {
 }
 
 model Campaign {
-  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  state          CampaignState @default(draft)
-  slug           String        @unique @db.VarChar(250)
-  title          String        @db.VarChar(200)
-  essence        String        @db.VarChar(500)
-  coordinatorId  String        @map("coordinator_id") @db.Uuid
-  beneficiaryId  String        @map("beneficiary_id") @db.Uuid
-  campaignTypeId String        @map("campaign_type_id") @db.Uuid
-  description    String?
-  targetAmount   Decimal?      @default(0) @map("target_amount") @db.Decimal
-  reachedAmount  Decimal?      @default(0) @map("reached_amount") @db.Decimal
-  currency       Currency?     @default(BGN)
-  startDate      DateTime?     @map("start_date") @db.Timestamptz(6)
-  endDate        DateTime?     @map("end_date") @db.Timestamptz(6)
-  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
-  beneficiary    Beneficiary   @relation(fields: [beneficiaryId], references: [id])
-  campaignTypes  CampaignType  @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  state             CampaignState @default(draft)
+  slug              String        @unique @db.VarChar(250)
+  title             String        @db.VarChar(200)
+  essence           String        @db.VarChar(500)
+  coordinatorId     String        @map("coordinator_id") @db.Uuid
+  beneficiaryId     String        @map("beneficiary_id") @db.Uuid
+  campaignTypeId    String        @map("campaign_type_id") @db.Uuid
+  approvedById      String?       @map("approved_by_id") @db.Uuid
+  description       String?
+  targetAmount      Decimal?      @default(0) @map("target_amount") @db.Decimal
+  reachedAmount     Decimal?      @default(0) @map("reached_amount") @db.Decimal
+  currency          Currency      @default(BGN)
+  startDate         DateTime?     @map("start_date") @db.Timestamptz(6)
+  endDate           DateTime?     @map("end_date") @db.Timestamptz(6)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  approvedBy        Person?       @relation(fields: [approvedById], references: [id])
+  beneficiaries     Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+  campaignTypes     CampaignType  @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  vaults            Vault[]
+  incomingTransfers Transfer[]    @relation("target_campaign")
+  outgoingTransfers Transfer[]    @relation("source_campaign")
+  withdrawals       Withdrawal[]
 
-  @@index([campaignTypeId])
+
   @@map("campaigns")
 }
 
@@ -156,12 +224,12 @@ model Supporter {
 }
 
 model City {
-  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String        @db.VarChar(100)
-  postalCode  Int           @unique @map("postal_code")
-  countryId   String        @map("country_id") @db.Uuid
-  countryCode Country       @relation(fields: [countryId], references: [id])
-  Beneficiary Beneficiary[]
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String        @db.VarChar(100)
+  postalCode    Int           @unique @map("postal_code")
+  countryId     String        @map("country_id") @db.Uuid
+  countryCode   Country       @relation(fields: [countryId], references: [id])
+  beneficiaries Beneficiary[]
 
   @@map("cities")
 }
@@ -170,14 +238,174 @@ model Country {
   id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String @db.VarChar(100)
   countryCode String @unique @map("country_code") @db.Citext
-  City        City[]
+  cities      City[]
 
   @@map("countries")
 }
 
+model Vault {
+  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  currency           Currency            @default(BGN)
+  amount             Decimal             @default(0.0)
+  campaignId         String              @map("campaign_id") @db.Uuid
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  campaign           Campaign            @relation(fields: [campaignId], references: [id])
+  expenses           Expense[]
+  sourceTransfers    Transfer[]          @relation("source_vault")
+  targetTransfers    Transfer[]          @relation("target_vault")
+  donations          Donation[]
+  withdraws          Withdrawal[]
+  recurringDonations RecurringDonation[]
+
+  @@map("vaults")
+}
+
+model Donation {
+  id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type               DonationType
+  status             DonationStatus  @default(initial)
+  provider           PaymentProvider @default(none)
+  /// Vault where the funds are going
+  targetVaultId      String          @map("target_vault_id") @db.Uuid
+  /// Payment provider attributes
+  extCustomerId      String          @map("ext_customer_id") @db.VarChar(50)
+  extPaymentIntentId String          @map("ext_payment_intent_id")
+  extPaymentMethodId String          @map("ext_payment_method_id")
+  ///
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  targetVault        Vault           @relation(fields: [targetVaultId], references: [id])
+
+  @@map("donations")
+}
+
+/// Donate on monthly basis
+model RecurringDonation {
+  id                String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status            RecurringDonationStatus
+  vaultId           String                  @map("vault_id") @db.Uuid
+  personId          String                  @map("person_id") @db.Uuid
+  /// Payment provider Subscription id
+  extSubscriptionId String                  @map("ext_subscription_id") @db.VarChar(50)
+  extCustomerId     String?                 @map("ext_customer_id") @db.VarChar(50)
+  ///
+  createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime?               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  sourceVault       Vault                   @relation(fields: [vaultId], references: [id])
+  person            Person                  @relation(fields: [personId], references: [id])
+
+  @@map("recurring_donations")
+}
+
+/// Move funds from one vault to another
+model Transfer {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status           TransferStatus @default(initial)
+  currency         Currency
+  amount           Decimal
+  reason           String         @db.VarChar(100)
+  /// Source vault
+  sourceVaultId    String         @map("source_vault_id") @db.Uuid
+  sourceCampaignId String         @map("source_campaign_id") @db.Uuid
+  /// Destination vault
+  targetVaultId    String         @map("target_vault_id") @db.Uuid
+  targetCampaignId String         @map("target_campaign_id") @db.Uuid
+  approvedById     String?        @map("approved_by_id") @db.Uuid
+  documentId       String?        @map("document_id") @db.Uuid
+  targetDate       DateTime?      @default(now()) @map("target_date")
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime?      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  approvedBy       Person?        @relation(fields: [approvedById], references: [id])
+  sourceVault      Vault          @relation("source_vault", fields: [sourceVaultId], references: [id])
+  sourceCampaign   Campaign       @relation("source_campaign", fields: [sourceCampaignId], references: [id])
+  targetVault      Vault          @relation("target_vault", fields: [targetVaultId], references: [id])
+  targetCampaign   Campaign       @relation("target_campaign", fields: [targetCampaignId], references: [id])
+
+  @@map("transfers")
+}
+
+/// Remove funds from a vault to given bank account
+model Withdrawal {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status           WithdrawStatus @default(initial)
+  currency         Currency
+  amount           Decimal
+  reason           String         @db.VarChar(100)
+  /// Source vault
+  sourceVaultId    String         @map("source_vault_id") @db.Uuid
+  sourceCampaignId String         @map("source_campaign_id") @db.Uuid
+  /// Destination bank account
+  bankAccountId    String         @map("bank_account_id") @db.Uuid
+  documentId       String?        @map("document_id") @db.Uuid
+  approvedById     String?        @map("approved_by_id") @db.Uuid
+  targetDate       DateTime?      @default(now()) @map("target_date")
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime?      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  approvedBy       Person?        @relation(fields: [approvedById], references: [id])
+  sourceVault      Vault          @relation(fields: [sourceVaultId], references: [id])
+  sourceCampaign   Campaign       @relation(fields: [sourceCampaignId], references: [id])
+  bankAccount      BankAccount    @relation(fields: [bankAccountId], references: [id])
+
+  @@map("withdrawals")
+}
+
+model BankAccount {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status            BankAccountStatus @default(new)
+  /// IBAN number
+  ibanNumber        String            @db.VarChar(34)
+  /// Name of account holder
+  accountHolderName String            @map("account_holder_name")
+  /// Company or individual
+  accountHolderType AccountHolderType @map("account_holder_type")
+  /// Bank name
+  bankName          String?           @map("bank_name") @db.VarChar(50)
+  /// Bank Identification Code, BIC/SWIFT code
+  bankIdCode        String?           @map("bank_id_code") @db.VarChar(50)
+  fingerprint       String?           @db.VarChar(100)
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  withdraws         Withdrawal[]
+
+  @@map("bank_accounts")
+}
+
+/// Pay for something from a given vault
+model Expense {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type         ExpenseType
+  description  String?
+  vaultId      String      @map("vault_id") @db.Uuid
+  documentId   String?     @map("document_id") @db.Uuid
+  approvedById String?     @db.Uuid
+  vault        Vault       @relation(fields: [vaultId], references: [id])
+  approvedBy   Person?     @relation(fields: [approvedById], references: [id])
+  document     Document?   @relation(fields: [documentId], references: [id])
+
+  @@map("expenses")
+}
+
+model Document {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type        DocumentType
+  name        String       @db.VarChar(100)
+  filename    String       @db.VarChar(100)
+  filetype    String?      @db.VarChar(3)
+  description String?      @db.VarChar(200)
+  /// Data storage source url
+  sourceUrl   String       @map("source_url")
+  /// Person who uploaded the document
+  ownerId     String       @map("owner_id") @db.Uuid
+  owner       Person       @relation(fields: [ownerId], references: [id])
+  expenses    Expense[]
+
+  @@map("documents")
+}
+
 enum BeneficiaryType {
   individual
-  organisation
+  company
 
   @@map("beneficiary_type")
 }
@@ -185,6 +413,8 @@ enum BeneficiaryType {
 /// https://developers.google.com/people/api/rest/v1/people?hl=pt#relation
 enum PersonRelation {
   none
+  myself
+  myorg
   parent
   spouse
   child
@@ -224,4 +454,131 @@ enum Currency {
   BGN
   EUR
   USD
+
+  @@map("currency")
+}
+
+enum ExpenseType {
+  none
+  internal
+  operating
+  administrative
+  medical
+  services
+  groceries
+  transport
+  accommodation
+  shipping
+  utility
+  rental
+  legal
+  bank
+  advertising
+  other
+
+  @@map("expense_type")
+}
+
+enum PaymentProvider {
+  none
+  stripe
+  paypal
+  epay
+  bank
+  cash
+
+  @@map("payment_provider")
+}
+
+enum DocumentType {
+  invoice
+  receipt
+  medical_record
+  other
+
+  @@map("document_type")
+}
+
+enum DonationType {
+  donation
+
+  @@map("donation_type")
+}
+
+enum DonationStatus {
+  initial
+  invalid
+  incomplete
+  declined
+  waiting
+  cancelled
+  succeeded
+  deleted
+  refund
+  paymentRequested
+
+  @@map("donation_status")
+}
+
+enum RecurringDonationStatus {
+  trialing
+  active
+  canceled
+  incomplete
+  incompleteExpired
+  pastDue
+  unpaid
+
+  @@map("recurring_donation_status")
+}
+
+enum WithdrawStatus {
+  initial
+  invalid
+  incomplete
+  declined
+  cancelled
+  succeeded
+
+  @@map("withdraw_status")
+}
+
+enum TransferStatus {
+  initial
+  invalid
+  incomplete
+  declined
+  cancelled
+  succeeded
+
+  @@map("transfer_status")
+}
+
+enum AccountHolderType {
+  individual
+  company
+
+  @@map("account_holder_type")
+}
+
+/// For bank accounts, possible values are `new`, `validated`, `verified`, `verification_failed`, or `errored`.
+/// A bank account that hasn’t had any activity or validation performed is `new`. If Stripe can determine
+/// that the bank account exists, its status will be `validated`. Note that there often isn’t enough
+/// information to know (e.g., for smaller credit unions), and the validation is not always run.
+/// If customer bank account verification has succeeded, the bank account status will be `verified`.
+/// If the verification failed for any reason, such as microdeposit failure, the status will be
+/// `verification_failed`. If a transfer sent to this bank account fails, we’ll set the status to `errored`
+/// and will not continue to send transfers until the bank details are updated.
+/// For external accounts, possible values are `new` and `errored`. Validations aren’t run against external
+/// accounts because they’re only used for payouts. This means the other statuses don’t apply. If a
+/// transfer fails, the status is set to errored and transfers are stopped until account details are updated.
+/// https://stripe.com/docs/api/customer_bank_accounts/object#customer_bank_account_object-status
+enum BankAccountStatus {
+  new
+  validated
+  verified
+  verification_failed
+  errored
+
+  @@map("bank_account_status")
 }
