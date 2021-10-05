@@ -11,7 +11,7 @@ export class RegisterController {
   @Post()
   @Public()
   @Scopes('view')
-  register(@Body() registerDto: RegisterDto) {
-    return { hello: 'name', registerDto }
+  async register(@Body() registerDto: RegisterDto) {
+    return await this.authService.createUser(registerDto)
   }
 }
