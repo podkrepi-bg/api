@@ -5,6 +5,7 @@ import { SentryInterceptor, SentryModule } from '@ntegral/nestjs-sentry'
 import { KeycloakConnectModule, RoleGuard, AuthGuard } from 'nest-keycloak-connect'
 
 import { AppService } from './app.service'
+import { AuthModule } from '../auth/auth.module'
 import { CityModule } from '../city/city.module'
 import { AppController } from './app.controller'
 import configuration from '../config/configuration'
@@ -31,6 +32,7 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
       useExisting: KeycloakConfigService,
       imports: [AppConfigModule],
     }),
+    AuthModule,
     AccountModule,
     CampaignModule,
     SupportModule,
