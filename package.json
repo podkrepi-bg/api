@@ -16,6 +16,7 @@
     "studio": "yarn prisma studio"
   },
   "dependencies": {
+    "@keycloak/keycloak-admin-client": "^15.0.2",
     "@nestjs/cli": "8.1.1",
     "@nestjs/common": "8.0.6",
     "@nestjs/config": "1.0.1",
