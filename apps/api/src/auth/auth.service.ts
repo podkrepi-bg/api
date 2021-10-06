@@ -1,31 +1,32 @@
 import { Injectable } from '@nestjs/common'
-import KcAdminClient from '@keycloak/keycloak-admin-client'
 import { ConfigService } from '@nestjs/config'
+import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
+
 import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'
+
 @Injectable()
 export class AuthService {
-  private admin: KcAdminClient
-
-  constructor(private config: ConfigService) {
-    this.admin = new KcAdminClient({
-      baseUrl: config.get<string>('keycloak.serverUrl'),
-      realmName: config.get<string>('keycloak.realm'),
-    })
-  }
+  constructor(private config: ConfigService, private admin: KeycloakAdminClient) {}
 
   async login(loginDto: LoginDto) {
     try {
       await this.admin.auth({
         clientId: this.config.get<string>('keycloak.clientId') || '',
+        clientSecret: this.config.get<string>('keycloak.secret') || '',
         grantType: 'password',
         username: loginDto.email,
         password: loginDto.password,
       })
-      return { jwt: 'xxxx' }
+      const jwt = this.admin.accessToken
+      return { jwt }
     } catch (error) {
-      console.error(error)
-      return { error: error.message }
+      const response = {
+        error: error.message,
+        data: error.response.data,
+      }
+      console.error(response)
+      return response
     }
   }
 
@@ -43,10 +44,16 @@ export class AuthService {
         email: registerDto.email,
         firstName: registerDto.firstName,
         lastName: registerDto.lastName,
+        enabled: true,
         credentials: [{ type: 'password', value: registerDto.password }],
       })
     } catch (error) {
-      console.error(error.message)
+      const response = {
+        error: error.message,
+        data: error.response.data,
+      }
+      console.error(response)
+      return response
     }
   }
 }
