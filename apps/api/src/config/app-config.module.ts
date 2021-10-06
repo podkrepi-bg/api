@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
+
 import { KeycloakConfigService } from './keycloak-config.service'
 
 @Module({
@@ -15,7 +17,17 @@ import { KeycloakConfigService } from './keycloak-config.service'
           config.get<string>('keycloak.secret'),
         ),
     },
+    {
+      provide: KeycloakAdminClient,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        return new KeycloakAdminClient({
+          baseUrl: config.get<string>('keycloak.serverUrl'),
+          realmName: config.get<string>('keycloak.realm'),
+        })
+      },
+    },
   ],
-  exports: [KeycloakConfigService],
+  exports: [KeycloakConfigService, KeycloakAdminClient],
 })
 export class AppConfigModule {}
