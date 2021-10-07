@@ -22,6 +22,7 @@ Table Person {
   birthday DateTime
   personalNumber String [unique, note: 'Uniform Civil Number (NCN, EGN)
 https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
+  keycloakId String
   expenses Expense [not null]
   documents Document [not null]
   transfers Transfer [not null]

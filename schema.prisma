@@ -46,6 +46,7 @@ model Person {
   /// Uniform Civil Number (NCN, EGN)
   /// https://en.wikipedia.org/wiki/National_identification_number#Bulgaria
   personalNumber     String?             @unique @map("personal_number")
+  keycloakId         String?             @map("keycloak_id") @db.Uuid
   expenses           Expense[]
   documents          Document[]
   transfers          Transfer[]

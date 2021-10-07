@@ -24,6 +24,7 @@ export class Person {
   address: string | null
   birthday: Date | null
   personalNumber: string | null
+  keycloakId: string | null
   expenses?: Expense[]
   documents?: Document[]
   transfers?: Transfer[]

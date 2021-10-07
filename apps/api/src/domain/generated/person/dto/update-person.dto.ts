@@ -9,4 +9,5 @@ export class UpdatePersonDto {
   address?: string
   birthday?: Date
   personalNumber?: string
+  keycloakId?: string
 }
