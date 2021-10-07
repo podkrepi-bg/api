@@ -9,4 +9,5 @@ export class CreatePersonDto {
   address?: string
   birthday?: Date
   personalNumber?: string
+  keycloakId?: string
 }
