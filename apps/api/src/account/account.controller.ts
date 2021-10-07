@@ -1,13 +1,6 @@
 import { Controller, Get } from '@nestjs/common'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-import {
-  AuthenticatedUser,
-  Public,
-  Resource,
-  RoleMatchingMode,
-  Roles,
-  Scopes,
-} from 'nest-keycloak-connect'
+import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
 import { AccountService } from './account.service'
 

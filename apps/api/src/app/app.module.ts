@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { SentryInterceptor, SentryModule } from '@ntegral/nestjs-sentry'
-import { KeycloakConnectModule, ResourceGuard, RoleGuard, AuthGuard } from 'nest-keycloak-connect'
+import { KeycloakConnectModule, RoleGuard, AuthGuard } from 'nest-keycloak-connect'
 
 import { AppService } from './app.service'
 import { CityModule } from '../city/city.module'
