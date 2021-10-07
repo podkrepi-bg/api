@@ -7,13 +7,13 @@ export class RegisterDto {
   @Expose()
   @IsNotEmpty()
   @IsEmail()
-  email: string
+  public readonly email: string
 
   @ApiProperty()
   @Expose()
   @IsNotEmpty()
   @IsString()
-  password: string
+  public readonly password: string
 
   @ApiProperty()
   @Expose()
