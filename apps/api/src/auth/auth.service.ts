@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
+import { RequiredActionAlias } from '@keycloak/keycloak-admin-client/lib/defs/requiredActionProviderRepresentation'
 
 import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'
@@ -23,7 +24,7 @@ export class AuthService {
     } catch (error) {
       const response = {
         error: error.message,
-        data: error.response.data,
+        data: error?.response?.data,
       }
       console.error(response)
       return response
@@ -45,12 +46,22 @@ export class AuthService {
         firstName: registerDto.firstName,
         lastName: registerDto.lastName,
         enabled: true,
-        credentials: [{ type: 'password', value: registerDto.password }],
+        emailVerified: false,
+        groups: [],
+        requiredActions: [RequiredActionAlias.VERIFY_EMAIL],
+        attributes: {},
+        credentials: [
+          {
+            type: 'password',
+            value: registerDto.password,
+            temporary: false,
+          },
+        ],
       })
     } catch (error) {
       const response = {
         error: error.message,
-        data: error.response.data,
+        data: error?.response?.data,
       }
       console.error(response)
       return response
