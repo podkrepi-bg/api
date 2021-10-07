@@ -56,7 +56,7 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
     // This adds a global level resource guard, which is permissive.
     // Only controllers annotated with @Resource and methods with @Scopes
     // are handled by this guard.
-    { provide: APP_GUARD, useClass: ResourceGuard },
+    // { provide: APP_GUARD, useClass: ResourceGuard },
     // This adds a global level role guard, which is permissive.
     // Used by `@Roles` decorator with the optional `@AllowAnyRole` decorator for allowing any
     // specified role passed.
