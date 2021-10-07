@@ -91,8 +91,34 @@ describe('AuthService', () => {
         clientSecret: 'a12345',
         grantType: 'password',
         username: email,
-        password: password,
+        password,
       })
+    })
+
+    it('should handle bad password', async () => {
+      admin.accessToken = 't23456'
+      const loginDto = plainToClass(LoginDto, { email, password })
+      const loginSpy = jest.spyOn(service, 'login')
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+      const issueTokenSpy = jest.spyOn(service, 'issueToken').mockRejectedValue({
+        message: 'Request failed with status code 409',
+        response: {
+          data: {
+            errorMessage: 'User exists with same username',
+          },
+        },
+      })
+
+      expect(await service.login(loginDto)).toEqual({
+        error: 'Request failed with status code 409',
+        data: {
+          errorMessage: 'User exists with same username',
+        },
+      })
+      expect(loginSpy).toHaveBeenCalledWith(loginDto)
+      expect(issueTokenSpy).toHaveBeenCalledWith(email, password)
+      expect(consoleSpy).toBeCalled()
+      consoleSpy.mockRestore()
     })
   })
 
