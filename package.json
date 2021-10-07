@@ -10,9 +10,10 @@
     "build": "yarn nx build",
     "build-all": "yarn nx run-many --target build --all --parallel",
     "test": "yarn nx run-many --target test --all",
+    "test:changed": "yarn nx test --watch --onlyChanged",
     "format": "nx format affected",
     "migrate": "yarn prisma migrate deploy",
-    "generate-schema": "yarn prisma generate",
+    "generate-schema": "yarn prisma generate && yarn format",
     "studio": "yarn prisma studio"
   },
   "dependencies": {
