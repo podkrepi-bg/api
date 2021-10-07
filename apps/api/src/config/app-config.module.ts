@@ -9,13 +9,14 @@ import { KeycloakConfigService } from './keycloak-config.service'
     {
       provide: KeycloakConfigService,
       inject: [ConfigService],
-      useFactory: async (config: ConfigService) =>
-        new KeycloakConfigService(
+      useFactory: async (config: ConfigService) => {
+        return new KeycloakConfigService(
           config.get<string>('keycloak.serverUrl'),
           config.get<string>('keycloak.realm'),
           config.get<string>('keycloak.clientId'),
           config.get<string>('keycloak.secret'),
-        ),
+        )
+      },
     },
     {
       provide: KeycloakAdminClient,

@@ -6,6 +6,9 @@ import { RequiredActionAlias } from '@keycloak/keycloak-admin-client/lib/defs/re
 import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'
 import { PrismaService } from '../prisma/prisma.service'
+import { Person } from '.prisma/client'
+
+type ErrorResponse = { error: string; data: unknown }
 
 @Injectable()
 export class AuthService {
@@ -26,7 +29,7 @@ export class AuthService {
     return this.admin.accessToken
   }
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto): Promise<{ jwt: string } | ErrorResponse> {
     try {
       const jwt = await this.issueToken(loginDto.email, loginDto.password)
       return { jwt }
@@ -40,7 +43,7 @@ export class AuthService {
     }
   }
 
-  async createUser(registerDto: RegisterDto) {
+  async createUser(registerDto: RegisterDto): Promise<Person | ErrorResponse> {
     try {
       await this.authenticateAdmin()
       // Create user in Keycloak
@@ -86,15 +89,17 @@ export class AuthService {
     })
   }
 
-  private async createPerson(registerDto: RegisterDto, id: string) {
+  private async createPerson(registerDto: RegisterDto, keycloakId: string) {
     return await this.prismaService.person.upsert({
+      // Create a person with the provided keycloakId
       create: {
-        id,
+        keycloakId,
         email: registerDto.email,
         firstName: registerDto.firstName,
         lastName: registerDto.lastName,
       },
-      update: {},
+      // Store keycloakId to the person with same email
+      update: { keycloakId },
       where: { email: registerDto.email },
     })
   }
