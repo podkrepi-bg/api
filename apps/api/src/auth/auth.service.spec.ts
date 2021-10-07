@@ -95,24 +95,26 @@ describe('AuthService', () => {
       })
     })
 
-    it('should handle bad password', async () => {
+    it('should handle bad password on login', async () => {
       admin.accessToken = 't23456'
       const loginDto = plainToClass(LoginDto, { email, password })
       const loginSpy = jest.spyOn(service, 'login')
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
       const issueTokenSpy = jest.spyOn(service, 'issueToken').mockRejectedValue({
-        message: 'Request failed with status code 409',
+        message: 'Request failed with status code 401',
         response: {
           data: {
-            errorMessage: 'User exists with same username',
+            error: 'invalid_grant',
+            error_description: 'Invalid user credentials',
           },
         },
       })
 
       expect(await service.login(loginDto)).toEqual({
-        error: 'Request failed with status code 409',
+        error: 'Request failed with status code 401',
         data: {
-          errorMessage: 'User exists with same username',
+          error: 'invalid_grant',
+          error_description: 'Invalid user credentials',
         },
       })
       expect(loginSpy).toHaveBeenCalledWith(loginDto)
@@ -180,6 +182,32 @@ describe('AuthService', () => {
         update: { keycloakId },
         where: { email },
       })
+    })
+
+    it('should handle bad password on registration', async () => {
+      admin.accessToken = 't23456'
+      const registerDto = plainToClass(RegisterDto, { email, password, firstName, lastName })
+      const createUserSpy = jest.spyOn(service, 'createUser')
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+      const adminSpy = jest.spyOn(admin.users, 'create').mockRejectedValue({
+        message: 'Request failed with status code 409',
+        response: {
+          data: {
+            errorMessage: 'User exists with same username',
+          },
+        },
+      })
+
+      expect(await service.createUser(registerDto)).toEqual({
+        error: 'Request failed with status code 409',
+        data: {
+          errorMessage: 'User exists with same username',
+        },
+      })
+      expect(createUserSpy).toHaveBeenCalledWith(registerDto)
+      expect(adminSpy).toHaveBeenCalled()
+      expect(consoleSpy).toBeCalled()
+      consoleSpy.mockRestore()
     })
   })
 })
