@@ -59,6 +59,7 @@ model Person {
   coordinators       Coordinator[]
   recurringDonations RecurringDonation[]
 
+  @@index([keycloakId], map: "keycloak_id_idx")
   @@map("people")
 }
 
