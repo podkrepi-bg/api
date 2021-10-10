@@ -44,7 +44,6 @@
   "quickLoginCheckMilliSeconds": 1000,
   "maxDeltaTimeSeconds": 43200,
   "failureFactor": 30,
-<<<<<<< HEAD:manifests/keycloak-realm.json
   "roles": {
     "realm": [
       {
@@ -464,8 +463,6 @@
       "subGroups": []
     }
   ],
-=======
->>>>>>> eb277e7... Added keycloak export for master and webapp realms:manifests/keycloak-webapp-realm.json
   "defaultRole": {
     "id": "1f35ff55-5df3-4e28-b15c-6f3b13b4be94",
     "name": "default-roles-webapp",
@@ -515,13 +512,9 @@
       "serviceAccountClientId": "admin-cli",
       "disableableCredentialTypes": [],
       "requiredActions": ["VERIFY_EMAIL"],
-<<<<<<< HEAD:manifests/keycloak-realm.json
       "realmRoles": ["default-roles-webapp"],
       "notBefore": 0,
       "groups": []
-=======
-      "notBefore": 0
->>>>>>> eb277e7... Added keycloak export for master and webapp realms:manifests/keycloak-webapp-realm.json
     },
     {
       "id": "4813ef46-625f-4266-9e53-a2b0e9e2fcfd",
@@ -533,16 +526,12 @@
       "serviceAccountClientId": "jwt-headless",
       "disableableCredentialTypes": [],
       "requiredActions": [],
-<<<<<<< HEAD:manifests/keycloak-realm.json
       "realmRoles": ["default-roles-webapp"],
       "clientRoles": {
         "jwt-headless": ["uma_protection"]
       },
       "notBefore": 0,
       "groups": []
-=======
-      "notBefore": 0
->>>>>>> eb277e7... Added keycloak export for master and webapp realms:manifests/keycloak-webapp-realm.json
     }
   ],
   "scopeMappings": [
