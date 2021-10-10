@@ -11,7 +11,6 @@ export class BeneficiaryController {
   @Post('create-beneficiary')
   @Public()
   async create(@Body() createDto: CreateBeneficiaryDto) {
-    console.log(createDto)
     return await this.beneficiaryService.createBeneficiary(createDto)
   }
 
