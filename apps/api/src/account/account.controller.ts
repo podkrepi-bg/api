@@ -1,12 +1,6 @@
 import { Controller, Get } from '@nestjs/common'
-import {
-  AuthenticatedUser,
-  Public,
-  Resource,
-  RoleMatchingMode,
-  Roles,
-  Scopes,
-} from 'nest-keycloak-connect'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
+import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
 import { AccountService } from './account.service'
 
@@ -42,13 +36,11 @@ interface KeycloakProfile {
 }
 
 @Controller('account')
-@Resource('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Get('me')
   @Public(false)
-  @Scopes()
   getHello(
     @AuthenticatedUser()
     user: KeycloakTokenParsed,
@@ -63,7 +55,6 @@ export class AccountController {
   }
 
   @Get('private')
-  @Scopes()
   getPrivate(
     @AuthenticatedUser()
     user: KeycloakTokenParsed,
@@ -73,8 +64,11 @@ export class AccountController {
   }
 
   @Get('admin')
-  @Roles({ roles: ['view-profile', 'manage-account'], mode: RoleMatchingMode.ANY })
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   adminRole() {
-    return 'Admin only!'
+    return { status: 'OK' }
   }
 }

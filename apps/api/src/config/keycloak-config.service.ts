@@ -17,9 +17,9 @@ export class KeycloakConfigService implements KeycloakConnectOptionsFactory {
   createKeycloakConnectOptions(): KeycloakConnectOptions {
     return {
       authServerUrl: this.serverUrl,
-      realm: this.realm ?? "",
+      realm: this.realm ?? '',
       clientId: this.clientId,
-      secret: this.secret ?? "",
+      secret: this.secret ?? '',
       bearerOnly: true,
       useNestLogger: true,
       cookieKey: 'KEYCLOAK_JWT',

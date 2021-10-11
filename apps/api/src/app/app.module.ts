@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { SentryInterceptor, SentryModule } from '@ntegral/nestjs-sentry'
-import { KeycloakConnectModule, ResourceGuard, RoleGuard, AuthGuard } from 'nest-keycloak-connect'
+import { KeycloakConnectModule, RoleGuard, AuthGuard } from 'nest-keycloak-connect'
 
 import { AppService } from './app.service'
 import { AuthModule } from '../auth/auth.module'
@@ -58,7 +58,7 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
     // This adds a global level resource guard, which is permissive.
     // Only controllers annotated with @Resource and methods with @Scopes
     // are handled by this guard.
-    { provide: APP_GUARD, useClass: ResourceGuard },
+    // { provide: APP_GUARD, useClass: ResourceGuard },
     // This adds a global level role guard, which is permissive.
     // Used by `@Roles` decorator with the optional `@AllowAnyRole` decorator for allowing any
     // specified role passed.
