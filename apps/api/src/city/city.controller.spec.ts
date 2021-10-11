@@ -17,12 +17,14 @@ describe('CityController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CityController],
-      providers: [CityService, PrismaService],
-    })
-      // remove the db mock from next two lines to enable testing with queries to the real database instance
-      .overrideProvider(PrismaService)
-      .useValue(prismaMock)
-      .compile()
+      providers: [
+        CityService,
+        {
+          provide: PrismaService,
+          useValue: prismaMock,
+        },
+      ],
+    }).compile()
 
     controller = module.get<CityController>(CityController)
   })
@@ -33,7 +35,7 @@ describe('CityController', () => {
 
   describe('getData', () => {
     it('should list all cities in db', async () => {
-      const expectedCities: City[] = [
+      const expected: City[] = [
         {
           countryId: expect.any(String),
           id: expect.any(String),
@@ -54,11 +56,11 @@ describe('CityController', () => {
         },
       ]
 
-      const mockCityList = jest.fn<PrismaPromise<City[]>, []>().mockResolvedValue(expectedCities)
+      const mockList = jest.fn<PrismaPromise<City[]>, []>().mockResolvedValue(expected)
 
-      jest.spyOn(prismaService.city, 'findMany').mockImplementation(mockCityList)
+      jest.spyOn(prismaService.city, 'findMany').mockImplementation(mockList)
 
-      expect(await controller.getData()).toIncludeSameMembers(expectedCities)
+      expect(await controller.getData()).toIncludeSameMembers(expected)
     })
   })
 })
