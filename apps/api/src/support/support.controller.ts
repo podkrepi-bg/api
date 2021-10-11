@@ -1,6 +1,11 @@
 import { Body, Controller, Get, Post } from '@nestjs/common'
 import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
-import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
+import {
+  ViewContactRequests,
+  RealmViewContactRequests,
+  RealmViewSupporters,
+  ViewSupporters,
+} from '@podkrepi-bg/podkrepi-types'
 
 import { SupportService } from './support.service'
 import { CreateInquiryDto } from './dto/create-inquiry.dto'
@@ -35,7 +40,7 @@ export class SupportController {
 
   @Get('info-requests')
   @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    roles: [RealmViewContactRequests.role, ViewContactRequests.role],
     mode: RoleMatchingMode.ANY,
   })
   async getInfoRequests() {
