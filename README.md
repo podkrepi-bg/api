@@ -52,6 +52,8 @@ yarn
 
 ## Create the Database Instance in Docker
 
+:information_source: Use `docker-compose` version `>=1.29`
+
 ```shell
 docker-compose up --build -d pg-db
 ```
