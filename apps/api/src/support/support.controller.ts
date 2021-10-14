@@ -22,7 +22,7 @@ export class SupportController {
     return await this.supportService.createSupporter(createDto)
   }
 
-  @Get('support-requests')
+  @Get('support-request/list')
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
@@ -38,7 +38,7 @@ export class SupportController {
     return await this.supportService.createInfoRequest(createDto)
   }
 
-  @Get('info-requests')
+  @Get('info-request/list')
   @Roles({
     roles: [RealmViewContactRequests.role, ViewContactRequests.role],
     mode: RoleMatchingMode.ANY,
