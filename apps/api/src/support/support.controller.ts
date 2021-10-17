@@ -1,9 +1,15 @@
-import { Public } from 'nest-keycloak-connect'
-import { Body, Controller, Post } from '@nestjs/common'
+import { Body, Controller, Get, Post } from '@nestjs/common'
+import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import {
+  ViewContactRequests,
+  RealmViewContactRequests,
+  RealmViewSupporters,
+  ViewSupporters,
+} from '@podkrepi-bg/podkrepi-types'
 
+import { SupportService } from './support.service'
 import { CreateInquiryDto } from './dto/create-inquiry.dto'
 import { CreateRequestDto } from './dto/create-request.dto'
-import { SupportService } from './support.service'
 
 @Controller('support')
 export class SupportController {
@@ -11,15 +17,33 @@ export class SupportController {
 
   @Post('create-request')
   @Public()
-  async createRequest(@Body() createDto: CreateRequestDto) {
+  async postSupporter(@Body() createDto: CreateRequestDto) {
     console.log(createDto)
-    return await this.supportService.createSupportRequest(createDto)
+    return await this.supportService.createSupporter(createDto)
+  }
+
+  @Get('support-request/list')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async getSuporters() {
+    return await this.supportService.listSupportRequests()
   }
 
   @Post('create-inquiry')
   @Public()
-  async createInquiry(@Body() createDto: CreateInquiryDto) {
+  async postInfoRequest(@Body() createDto: CreateInquiryDto) {
     console.log(createDto)
-    return await this.supportService.createSupportInquiry(createDto)
+    return await this.supportService.createInfoRequest(createDto)
+  }
+
+  @Get('info-request/list')
+  @Roles({
+    roles: [RealmViewContactRequests.role, ViewContactRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async getInfoRequests() {
+    return await this.supportService.listInfoRequests()
   }
 }

@@ -9,9 +9,7 @@ import { CreateInquiryDto } from './dto/create-inquiry.dto'
 export class SupportService {
   constructor(private prisma: PrismaService) {}
 
-  async createSupportRequest(
-    inputDto: CreateRequestDto,
-  ): Promise<Pick<Supporter, 'id' | 'personId'>> {
+  async createSupporter(inputDto: CreateRequestDto): Promise<Pick<Supporter, 'id' | 'personId'>> {
     const request = await this.prisma.supporter.create({ data: inputDto.toEntity() })
     return {
       id: request.id,
@@ -19,7 +17,11 @@ export class SupportService {
     }
   }
 
-  async createSupportInquiry(
+  async listSupportRequests(): Promise<Supporter[]> {
+    return await this.prisma.supporter.findMany()
+  }
+
+  async createInfoRequest(
     inputDto: CreateInquiryDto,
   ): Promise<Pick<InfoRequest, 'id' | 'personId'>> {
     const request = await this.prisma.infoRequest.create({ data: inputDto.toEntity() })
@@ -27,5 +29,9 @@ export class SupportService {
       id: request.id,
       personId: request.personId,
     }
+  }
+
+  async listInfoRequests(): Promise<InfoRequest[]> {
+    return await this.prisma.infoRequest.findMany()
   }
 }
