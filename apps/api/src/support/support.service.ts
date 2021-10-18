@@ -18,7 +18,7 @@ export class SupportService {
   }
 
   async listSupportRequests(): Promise<Supporter[]> {
-    return await this.prisma.supporter.findMany()
+    return await this.prisma.supporter.findMany({ include: { person: true } })
   }
 
   async createInfoRequest(
@@ -32,6 +32,6 @@ export class SupportService {
   }
 
   async listInfoRequests(): Promise<InfoRequest[]> {
-    return await this.prisma.infoRequest.findMany()
+    return await this.prisma.infoRequest.findMany({ include: { person: true } })
   }
 }
