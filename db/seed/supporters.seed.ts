@@ -10,7 +10,6 @@ export async function supportersSeed() {
   const insert = await prisma.supporter.createMany({
     data: persons.map((person) => ({
       personId: person.id,
-      message: faker.lorem.paragraph(),
       comment: faker.lorem.paragraph(),
       associationMember: faker.datatype.boolean(),
       benefactorCampaign: faker.datatype.boolean(),
