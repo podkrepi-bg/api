@@ -56,6 +56,11 @@ spec:
                 secretKeyRef:
                   name: db-api
                   key: url
+            - name: KEYCLOAK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-headless
+                  key: secret
           ports:
             - containerPort: 80
           livenessProbe:
