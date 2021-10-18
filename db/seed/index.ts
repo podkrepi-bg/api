@@ -6,24 +6,23 @@ import { citiesSeed } from './cities.seed'
 import { personSeed } from './person.seed'
 import { coordinatorSeed } from './coordinator.seed'
 import { beneficiarySeed } from './beneficiary.seed'
+import { infoRequestSeed } from './infoRequest.seed'
 import { campaignSeed } from './campaign.seed'
 
 const prisma = new PrismaClient()
 
 async function main() {
-  await Promise.all([
-    await countriesSeed(),
-    await citiesSeed(),
-    await campaignTypesSeed()])
+  await Promise.all([await countriesSeed(), await citiesSeed(), await campaignTypesSeed()])
 
   const isDevConfig = process.env.NODE_ENV == 'development'
   if (isDevConfig) {
     console.warn('Executing development seeds')
     await Promise.all([
       await personSeed(),
+      await infoRequestSeed(),
       await coordinatorSeed(),
       await beneficiarySeed(),
-      await campaignSeed()
+      await campaignSeed(),
     ])
   }
 }
