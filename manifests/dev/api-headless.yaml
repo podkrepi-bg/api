@@ -56,6 +56,26 @@ spec:
                 secretKeyRef:
                   name: db-api
                   key: url
+            - name: KEYCLOAK_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-headless
+                  key: url
+            - name: KEYCLOAK_REALM
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-headless
+                  key: realm
+            - name: KEYCLOAK_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-headless
+                  key: client-id
+            - name: KEYCLOAK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-headless
+                  key: secret
           ports:
             - containerPort: 80
           livenessProbe:
