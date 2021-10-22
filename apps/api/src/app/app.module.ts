@@ -13,6 +13,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { AccountModule } from '../account/account.module'
 import { HealthModule } from '../health/health.module'
 import { SupportModule } from '../support/support.module'
+import { PaymentsModule } from '../payments/payments.module'
 import { CampaignModule } from '../campaign/campaign.module'
 import { AppConfigModule } from '../config/app-config.module'
 import { validationSchema } from '../config/validation.config'
@@ -25,8 +26,8 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
     SentryModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (config: ConfigService) => config.get('sentry', {}),
       inject: [ConfigService],
+      useFactory: async (config: ConfigService) => config.get('sentry', {}),
     }),
     KeycloakConnectModule.registerAsync({
       useExisting: KeycloakConfigService,
@@ -35,6 +36,7 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
     AuthModule,
     AccountModule,
     CampaignModule,
+    PaymentsModule,
     SupportModule,
     BeneficiaryModule,
     CityModule,

@@ -1,5 +1,8 @@
 import { LogLevel } from '@sentry/types'
 
+/**
+ * Be sure to add `process.env` vars in validation schema at ./validation.config.ts
+ */
 export default () => ({
   keycloak: {
     serverUrl: process.env.KEYCLOAK_URL,
@@ -14,5 +17,9 @@ export default () => ({
     enabled: process.env.APP_ENV !== 'development',
     logLevel: LogLevel.Debug,
     tracesSampleRate: 1.0,
+  },
+  stripe: {
+    apikey: process.env.STRIPE_APIKEY,
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
   },
 })
