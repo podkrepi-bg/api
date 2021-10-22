@@ -17,6 +17,7 @@
     "studio": "yarn prisma studio"
   },
   "dependencies": {
+    "@golevelup/nestjs-stripe": "^0.2.2",
     "@keycloak/keycloak-admin-client": "^15.0.2",
     "@nestjs/cli": "8.1.1",
     "@nestjs/common": "8.0.6",
@@ -36,6 +37,7 @@
     "nest-keycloak-connect": "1.7.5",
     "reflect-metadata": "0.1.13",
     "rxjs": "7.3.0",
+    "stripe": "^8.184.0",
     "swagger-ui-express": "4.1.6",
     "tslib": "2.3.1"
   },
