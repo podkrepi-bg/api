@@ -19,7 +19,7 @@ export default () => ({
     tracesSampleRate: 1.0,
   },
   stripe: {
-    apikey: process.env.STRIPE_APIKEY,
+    secretKey: process.env.STRIPE_SECRET_KEY,
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
   },
 })

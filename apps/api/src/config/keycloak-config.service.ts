@@ -23,7 +23,6 @@ export class KeycloakConfigService implements KeycloakConnectOptionsFactory {
       bearerOnly: true,
       useNestLogger: true,
       cookieKey: 'KEYCLOAK_JWT',
-      logLevels: ['warn', 'verbose', 'log', 'error', 'debug'],
       policyEnforcement: PolicyEnforcementMode.ENFORCING,
       tokenValidation: TokenValidation.ONLINE,
     }

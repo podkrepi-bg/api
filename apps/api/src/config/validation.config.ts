@@ -42,6 +42,6 @@ export const validationSchema = Joi.object({
   KEYCLOAK_SECRET: Joi.string().required(),
 
   // Stripe
-  STRIPE_APIKEY: Joi.string().required(),
+  STRIPE_SECRET_KEY: Joi.string().required(),
   STRIPE_WEBHOOK_SECRET: Joi.string().required(),
 })

@@ -1,15 +1,22 @@
 import { Module } from '@nestjs/common'
+import { Public } from 'nest-keycloak-connect'
 import { StripeModule } from '@golevelup/nestjs-stripe'
 
 import { PaymentsService } from './payments.service'
 import { PaymentsController } from './payments.controller'
+import { PaymentSucceededService } from './events/payment-intent-succeeded.service'
+import { PaymentCreatedService } from './events/payment-created.service'
 
 @Module({
   imports: [
     StripeModule.forRoot(StripeModule, {
-      apiKey: `${process.env.STRIPE_APIKEY}`,
+      apiKey: `${process.env.STRIPE_SECRET_KEY}`,
       webhookConfig: {
+        requestBodyProperty: 'body',
         stripeWebhookSecret: `${process.env.STRIPE_WEBHOOK_SECRET}`,
+        decorators: [
+          Public(), // TODO: Verify that this is secure enough
+        ],
       },
     }),
     // Switch to factory version once this issue is closed
@@ -18,7 +25,7 @@ import { PaymentsController } from './payments.controller'
     //   imports: [StripeModule],
     //   inject: [ConfigService],
     //   useFactory: async (config: ConfigService) => ({
-    //     apiKey: config.get('stripe.apikey', ''),
+    //     apiKey: config.get('stripe.secretKey', ''),
     //     webhookConfig: {
     //       stripeWebhookSecret: config.get('stripe.webhookSecret', ''),
     //     },
@@ -26,6 +33,6 @@ import { PaymentsController } from './payments.controller'
     // }),
   ],
   controllers: [PaymentsController],
-  providers: [PaymentsService],
+  providers: [PaymentsService, PaymentCreatedService, PaymentSucceededService],
 })
 export class PaymentsModule {}
