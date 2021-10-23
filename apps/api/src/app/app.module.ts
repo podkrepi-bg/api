@@ -19,10 +19,10 @@ import { PrismaService } from '../prisma/prisma.service'
 import { AccountModule } from '../account/account.module'
 import { HealthModule } from '../health/health.module'
 import { SupportModule } from '../support/support.module'
-import { PaymentsModule } from '../payments/payments.module'
 import { CampaignModule } from '../campaign/campaign.module'
 import { AppConfigModule } from '../config/app-config.module'
 import { validationSchema } from '../config/validation.config'
+import { DonationsModule } from '../donations/donations.module'
 import { BeneficiaryModule } from '../beneficiary/beneficiary.module'
 import { KeycloakConfigService } from '../config/keycloak-config.service'
 import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.filter'
@@ -47,7 +47,7 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
     AuthModule,
     AccountModule,
     CampaignModule,
-    PaymentsModule,
+    DonationsModule,
     SupportModule,
     BeneficiaryModule,
     CityModule,

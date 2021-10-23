@@ -7,7 +7,7 @@ export class CustomAuthGuard extends AuthGuard {
     const [request] = extractRequest(context)
     // Skip auth guard for Stripe routes and pseudo requests
     if (request.url === '/api/stripe/webhook' || request.object === 'event') {
-      Logger.warn('Skip AuthGuard', 'CustomAuthGuard')
+      Logger.warn('Skip AuthGuard', CustomAuthGuard.name)
       return true
     }
     return super.canActivate(context)

@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common'
 import { Public } from 'nest-keycloak-connect'
 import { StripeModule } from '@golevelup/nestjs-stripe'
 
-import { PaymentsService } from './payments.service'
-import { PaymentsController } from './payments.controller'
+import { DonationsService } from './donations.service'
+import { DonationsController } from './donations.controller'
 import { PaymentSucceededService } from './events/payment-intent-succeeded.service'
 import { PaymentCreatedService } from './events/payment-created.service'
 
@@ -32,7 +32,7 @@ import { PaymentCreatedService } from './events/payment-created.service'
     //   }),
     // }),
   ],
-  controllers: [PaymentsController],
-  providers: [PaymentsService, PaymentCreatedService, PaymentSucceededService],
+  controllers: [DonationsController],
+  providers: [DonationsService, PaymentCreatedService, PaymentSucceededService],
 })
-export class PaymentsModule {}
+export class DonationsModule {}

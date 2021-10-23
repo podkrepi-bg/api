@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common'
-import { PaymentsService } from './payments.service'
+import { DonationsService } from './donations.service'
 import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 
-@Controller('payments')
-export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+@Controller('dontation')
+export class DonationsController {
+  constructor(private readonly paymentsService: DonationsService) {}
 
   @Post()
   create(@Body() createPaymentDto: CreatePaymentDto) {
