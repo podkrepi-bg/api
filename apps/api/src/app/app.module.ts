@@ -6,13 +6,14 @@ import {
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { SentryInterceptor, SentryModule } from '@ntegral/nestjs-sentry'
-import { KeycloakConnectModule, RoleGuard, AuthGuard } from 'nest-keycloak-connect'
+import { KeycloakConnectModule, RoleGuard } from 'nest-keycloak-connect'
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common'
 
 import { AppService } from './app.service'
 import { AuthModule } from '../auth/auth.module'
 import { CityModule } from '../city/city.module'
 import { AppController } from './app.controller'
+import { CustomAuthGuard } from './custom-auth.guard'
 import configuration from '../config/configuration'
 import { PrismaService } from '../prisma/prisma.service'
 import { AccountModule } from '../account/account.module'
@@ -68,7 +69,7 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
      * Will return a 401 unauthorized when it is unable to
      * verify the JWT token or Bearer header is missing.
      */
-    { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: CustomAuthGuard },
     /**
      * This adds a global level resource guard, which is permissive.
      * Only controllers annotated with @Resource and methods with @Scopes
