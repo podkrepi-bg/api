@@ -230,8 +230,8 @@ yarn prisma migrate reset
 | `KEYCLOAK_REALM`         | Keycloak Realm name                       | webapp                                                                      |
 | `KEYCLOAK_CLIENT_ID`     | Keycloak Client name                      | jwt-headless                                                                |
 | `KEYCLOAK_SECRET`        | Secret to reach Keycloak in headless mode | \*\*\*\*\*\*                                                                |
-| `STRIPE_SECRET_KEY`      | Stripe secret key                         |                                                                             |
-| `STRIPE_WEBHOOK_SECRET`  | Stripe webhook secret key                 |                                                                             |
+| `STRIPE_SECRET_KEY`      | Stripe secret key                         | \*\*\*\*\*\*                                                                |
+| `STRIPE_WEBHOOK_SECRET`  | Stripe webhook secret key                 | \*\*\*\*\*\*                                                                |
 | `SENTRY_DSN`             | Sentry Data Source Name                   | <https://58b71cdea21f45c0bcbe5c1b49317973@o540074.ingest.sentry.io/5707518> |
 | `SENTRY_ORG`             | Sentry organization                       | podkrepibg                                                                  |
 | `SENTRY_PROJECT`         | Sentry project                            | rest-api                                                                    |
