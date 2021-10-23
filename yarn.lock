@@ -452,6 +452,14 @@
     "@golevelup/nestjs-discovery" "^2.3.1"
     "@golevelup/nestjs-modules" "^0.4.3"
 
+"@golevelup/nestjs-webhooks@^0.2.8":
+  version "0.2.8"
+  resolved "https://registry.yarnpkg.com/@golevelup/nestjs-webhooks/-/nestjs-webhooks-0.2.8.tgz#fe1bbabd63705fd716dc3c58036fde0372715d31"
+  integrity sha512-b0xoEglVgrWRNjK4L1GXscZf0vVMrzfcFkxVKj9Iq4WeHfRHKYeLGUrsN831vSnU6/fMdlKulzquFv43BqyChw==
+  dependencies:
+    "@golevelup/nestjs-common" "^1.4.2"
+    "@golevelup/nestjs-modules" "^0.4.3"
+
 "@graphql-tools/merge@6.2.14":
   version "6.2.14"
   resolved "https://registry.yarnpkg.com/@graphql-tools/merge/-/merge-6.2.14.tgz#694e2a2785ba47558e5665687feddd2935e9d94e"

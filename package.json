@@ -5,12 +5,14 @@
   "repository": "https://github.com/orgs/podkrepi-bg",
   "scripts": {
     "nx": "nx",
-    "dev": "yarn nx run-many --target serve --watch --all --parallel",
+    "dev": "yarn nx serve --watch",
+    "dev-all": "yarn nx run-many --target serve --watch --all --parallel",
     "start": "yarn nx serve",
     "build": "yarn nx build",
     "build-all": "yarn nx run-many --target build --all --parallel",
     "test": "yarn nx run-many --target test --all",
     "test:changed": "yarn nx test --watch --onlyChanged",
+    "stripe:listen-webhook": "stripe listen --forward-to localhost:5010/api/stripe/webhook",
     "format": "nx format affected",
     "migrate": "yarn prisma migrate deploy",
     "generate-schema": "yarn prisma generate && yarn format",
@@ -18,6 +20,7 @@
   },
   "dependencies": {
     "@golevelup/nestjs-stripe": "^0.2.2",
+    "@golevelup/nestjs-webhooks": "^0.2.8",
     "@keycloak/keycloak-admin-client": "^15.0.2",
     "@nestjs/cli": "8.1.1",
     "@nestjs/common": "8.0.6",
