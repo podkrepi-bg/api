@@ -7,9 +7,8 @@
   <a href="https://podkrepi.bg/" target="blank"><img src="https://podkrepi.bg/podkrepi-bg-logo-en.svg" width="320" alt="Podkrepi.bg logo" /></a>
 </p>
 
-
 <p align="center">
-<a href="https://github.com/podkrepi-bg/api/actions/workflows/tests.yml"><img src="https://github.com/podkrepi-bg/api/actions/workflows/tests.yml/badge.svg" alt="API tests" style="max-width: 100%;"></a> 
+<a href="https://github.com/podkrepi-bg/api/actions/workflows/tests.yml"><img src="https://github.com/podkrepi-bg/api/actions/workflows/tests.yml/badge.svg" alt="API tests" style="max-width: 100%;"></a>
 <a href="https://github.com/podkrepi-bg/api/actions/workflows/docker-build-push.yml"><img src="https://github.com/podkrepi-bg/api/actions/workflows/docker-build-push.yml/badge.svg" alt="Build production image" style="max-width: 100%;"></a>
 </p>
 
@@ -36,10 +35,12 @@
   - <https://nx.dev/>
 
 # Setup Development Environment (recommended)
+
 To run and develop the module NodeJS 16 is required. If you wish to keep your host clean, it is also possible to develop the module in a Docker container. You can do that by using the [Visual Studio Code](https://code.visualstudio.com/download)'s [Remote Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) and read [how to initialize your dev container](https://code.visualstudio.com/docs/remote/containers).
- - Make sure you have the extension installed
- - Open the folder of the module in VS Code
- - Hit `Ctrl`/`Cmd` + `Shift` + `P` -> Remote-Containers: Reopen Folder in Container
+
+- Make sure you have the extension installed
+- Open the folder of the module in VS Code
+- Hit `Ctrl`/`Cmd` + `Shift` + `P` -> Remote-Containers: Reopen Folder in Container
 
 ## Install dependencies
 
@@ -70,6 +71,14 @@ yarn prisma migrate dev
 yarn prisma db seed
 ```
 
+## Setup local environment
+
+Copy example local env and add values
+
+```shell
+cp .env.local.example .env.local
+```
+
 ### Run the tests
 
 Testing the initialization is done correctly.
@@ -86,7 +95,7 @@ yarn dev
 
 and it will listen on <http://localhost:5010/api>
 
-## (Alternative)  Development Environment To Run Inside Docker
+## (Alternative) Development Environment To Run Inside Docker
 
 First build the images locally and start the containers. Then iterate on the code and changes will be picked up through the mounted folders.
 
@@ -105,6 +114,7 @@ docker-compose down
 ```
 
 # Development Guidelines
+
 ## API Docs via Swagger
 
 Available at <http://localhost:5010/docs/>
@@ -113,16 +123,16 @@ Available at <http://localhost:5010/docs/>
 
 Run `nx dep-graph` to see a diagram of the dependencies of your projects.
 
-
 ## NestJS Code Generaators
 
-We recommend using [Nestjs generators](https://docs.nestjs.com/cli/usages#nest-generate) to create different nestsj components in generic way. 
+We recommend using [Nestjs generators](https://docs.nestjs.com/cli/usages#nest-generate) to create different nestsj components in generic way.
 
 ```shell
 yarn nest #will print all generators
 ```
 
 Use the [Nest resource generator](https://docs.nestjs.com/recipes/crud-generator) to create all interfaces for CRUD operations around a new entity/resource
+
 ```shell
 yarn nest generate resource [name]
 ```
@@ -140,13 +150,16 @@ For the database layer we're using [Prisma](https://prisma.io). In order to get 
 The project already contains the database shema in shema.prisma file and initialization "seed" scripts for inital data are in db/seed folder.
 
 ## On an empty database
+
 Initialize the database using these commands. It will initialize the database using the schema.prisma, the migration scripts and the db/seed scripts to insert data records for the API to work.
+
 ```shell
 yarn prisma migrate deploy
 yarn prisma seed
 ```
 
 Prisma offers a nice Web Client to review and edit the database:
+
 ```shell
 yarn prisma studio
 ```
@@ -154,17 +167,19 @@ yarn prisma studio
 ## Making DB Schema Changes
 
 There are two ways to work with the database:
-* schema first - make changes in schema.prisma and update the database
-* db first - make changes directly in the database and introspect to update the schema.prisma
+
+- schema first - make changes in schema.prisma and update the database
+- db first - make changes directly in the database and introspect to update the schema.prisma
 
 ### 1. Workflow for Schema First approach (recommended)
+
 After initializing the database, feel free to edit the schema.prisma file in the main folder. When done with changes execute to update the database:
 
 ```shell
 yarn prisma migrate dev
 ```
 
-The command will ask you to name your changes and will generate a migration script that will be saved in ./migrations folder. 
+The command will ask you to name your changes and will generate a migration script that will be saved in ./migrations folder.
 
 Run the tests again `yarn test` to ensure all ok.
 
@@ -173,14 +188,17 @@ If you don't want to generate small migrations for every change, after finishing
 Read more about [Team development with Prisma Migrate here.](https://www.prisma.io/docs/guides/database/developing-with-prisma-migrate/team-development/)
 
 ### 2. Workflow for Databased First approach
+
 After initializing the database, open prisma stidio or your favorite DB Management IDE and feel free to make db changes. When done with changes, execute:
 
-```shell 
+```shell
 yarn prisma db pull
 ```
+
 This will read all changed from you db instance and will update the schema.prisma file with nessary translations.
 
 Now that the schema file is updated, we need to update the prismajs client which is used by our app by running:
+
 ```shell
 yarn prisma generate
 ```
@@ -188,6 +206,7 @@ yarn prisma generate
 This process is called [Prisma DB Introspection](https://www.prisma.io/docs/concepts/components/introspection).
 
 ## Resetting to master
+
 If things go bad, there is a way to reset your database to the original state. This will delete the database and will create it from the schema, executing also the seeding.
 
 ```shell
@@ -198,24 +217,26 @@ yarn prisma migrate reset
 
 ## Environment variables
 
-| Setting                | Description                               | Default value                                                               |
-| ---------------------- | ----------------------------------------- | --------------------------------------------------------------------------- |
-| PORT                   | The address on which the module binds.    | 5010                                                                        |
-| APP_VERSION            | The version of the application            | unknown                                                                     |
-| APP_ENV                | Application runtime environment           | development                                                                 |
-| NODE_ENV               | Node build environment                    | development                                                                 |
-| TARGET_ENV             | Docker multi-stage target                 | development                                                                 |
-| TARGET_APP             | Run specific application from the image.  | api                                                                         |
-| DATABASE_URL           | Database connection string.               | postgres://postgres:postgrespass@localhost:5432/postgres?schema=api         |
-| KEYCLOAK_URL           | Keycloak authentication url               | <https://keycloak.podkrepi.bg/auth>                                         |
-| KEYCLOAK_REALM         | Keycloak Realm name                       | webapp                                                                      |
-| KEYCLOAK_CLIENT_ID     | Keycloak Client name                      | jwt-headless                                                                |
-| KEYCLOAK_SECRET        | Secret to reach Keycloak in headless mode | \*\*\*\*\*\*                                                                |
-| SENTRY_DSN             | Sentry Data Source Name                   | <https://58b71cdea21f45c0bcbe5c1b49317973@o540074.ingest.sentry.io/5707518> |
-| SENTRY_ORG             | Sentry organization                       | podkrepibg                                                                  |
-| SENTRY_PROJECT         | Sentry project                            | rest-api                                                                    |
-| SENTRY_AUTH_TOKEN      | Sentry build auth token                   | \*\*\*\*\*\*                                                                |
-| SENTRY_SERVER_ROOT_DIR | App directory inside the docker image     | /app                                                                        |
+| Setting                  | Description                               | Default value                                                               |
+| ------------------------ | ----------------------------------------- | --------------------------------------------------------------------------- |
+| `PORT`                   | The address on which the module binds.    | 5010                                                                        |
+| `APP_VERSION`            | The version of the application            | "unknown"                                                                   |
+| `APP_ENV`                | Application runtime environment           | development                                                                 |
+| `NODE_ENV`               | Node build environment                    | development                                                                 |
+| `TARGET_ENV`             | Docker multi-stage target                 | development                                                                 |
+| `TARGET_APP`             | Run specific application from the image.  | api                                                                         |
+| `DATABASE_URL`           | Database connection string.               | postgres://postgres:postgrespass@localhost:5432/postgres?schema=api         |
+| `KEYCLOAK_URL`           | Keycloak authentication url               | <https://keycloak.podkrepi.bg/auth>                                         |
+| `KEYCLOAK_REALM`         | Keycloak Realm name                       | webapp                                                                      |
+| `KEYCLOAK_CLIENT_ID`     | Keycloak Client name                      | jwt-headless                                                                |
+| `KEYCLOAK_SECRET`        | Secret to reach Keycloak in headless mode | \*\*\*\*\*\*                                                                |
+| `STRIPE_SECRET_KEY`      | Stripe secret key                         |                                                                             |
+| `STRIPE_WEBHOOK_SECRET`  | Stripe webhook secret key                 |                                                                             |
+| `SENTRY_DSN`             | Sentry Data Source Name                   | <https://58b71cdea21f45c0bcbe5c1b49317973@o540074.ingest.sentry.io/5707518> |
+| `SENTRY_ORG`             | Sentry organization                       | podkrepibg                                                                  |
+| `SENTRY_PROJECT`         | Sentry project                            | rest-api                                                                    |
+| `SENTRY_AUTH_TOKEN`      | Sentry build auth token                   | \*\*\*\*\*\*                                                                |
+| `SENTRY_SERVER_ROOT_DIR` | App directory inside the docker image     | /app                                                                        |
 
 ## Deployment
 
