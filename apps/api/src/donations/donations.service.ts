@@ -1,26 +1,13 @@
+import Stripe from 'stripe'
 import { Injectable } from '@nestjs/common'
-import { CreatePaymentDto } from './dto/create-payment.dto'
-import { UpdatePaymentDto } from './dto/update-payment.dto'
+import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 
 @Injectable()
 export class DonationsService {
-  create(createPaymentDto: CreatePaymentDto) {
-    return 'This action adds a new payment'
-  }
+  constructor(@InjectStripeClient() private stripeClient: Stripe) {}
 
-  findAll() {
-    return `This action returns all payments`
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} payment`
-  }
-
-  update(id: number, updatePaymentDto: UpdatePaymentDto) {
-    return `This action updates a #${id} payment`
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} payment`
+  async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
+    const list = await this.stripeClient.prices.list({ active, type })
+    return list.data
   }
 }

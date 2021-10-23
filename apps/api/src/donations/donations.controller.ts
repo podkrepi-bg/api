@@ -1,34 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common'
+import { Controller, Get } from '@nestjs/common'
+import { Public } from 'nest-keycloak-connect'
 import { DonationsService } from './donations.service'
-import { CreatePaymentDto } from './dto/create-payment.dto'
-import { UpdatePaymentDto } from './dto/update-payment.dto'
 
-@Controller('dontation')
+@Controller('donation')
 export class DonationsController {
   constructor(private readonly paymentsService: DonationsService) {}
 
-  @Post()
-  create(@Body() createPaymentDto: CreatePaymentDto) {
-    return this.paymentsService.create(createPaymentDto)
-  }
-
   @Get()
-  findAll() {
-    return this.paymentsService.findAll()
+  @Public()
+  findPrices() {
+    return this.paymentsService.listPrices()
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.paymentsService.findOne(+id)
+  @Get('single')
+  @Public()
+  findSinglePrices() {
+    return this.paymentsService.listPrices('one_time')
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePaymentDto: UpdatePaymentDto) {
-    return this.paymentsService.update(+id, updatePaymentDto)
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.paymentsService.remove(+id)
+  @Get('recurring')
+  @Public()
+  findRecurringPrices() {
+    return this.paymentsService.listPrices('recurring')
   }
 }
