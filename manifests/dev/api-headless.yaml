@@ -47,10 +47,10 @@ spec:
           resources:
             limits:
               memory: 512Mi
-              cpu: "1"
+              cpu: '1'
             requests:
               memory: 256Mi
-              cpu: "0.2"
+              cpu: '0.2'
           ports:
             - containerPort: 80
           livenessProbe:
@@ -71,7 +71,7 @@ spec:
             - name: NODE_ENV
               value: production
             - name: PORT
-              value: "80"
+              value: '80'
             - name: TARGET_APP
               value: api
             - name: DATABASE_URL
@@ -99,7 +99,7 @@ spec:
                 secretKeyRef:
                   name: keycloak-headless
                   key: secret
-            - name: STRIPE_APIKEY
+            - name: STRIPE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: stripe-headless
