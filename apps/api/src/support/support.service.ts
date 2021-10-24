@@ -52,7 +52,7 @@ export class SupportService {
     this.email.send({
       to: [inputDto.person.email],
       from: this.emailSender,
-      subject: "Добре дошли в Подкрепи.бг",
+      subject: "Добре дошъл в Подкрепи.бг",
       html
     })
   }
@@ -66,7 +66,7 @@ export class SupportService {
     this.email.send({
       to: [inputDto.email],
       from: this.emailSender,
-      subject: "Получихме вашето запитване",
+      subject: "Получено съобщение в Подкрепи.бг",
       html
     })
   }

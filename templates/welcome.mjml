@@ -2,17 +2,28 @@
   <mj-body background-color="#ffffff" font-size="13px">
     <mj-section background-color="#009FE3" vertical-align="top" padding-bottom="0px" padding-top="0">
       <mj-column vertical-align="top" width="100%">
-        <mj-text align="left" color="#ffffff" font-size="45px" font-weight="bold" font-family="open Sans Helvetica, Arial, sans-serif" padding-left="25px" padding-right="25px" padding-bottom="30px" padding-top="50px">Добре дошъл в Подкрепи.бг</mj-text>
+        <mj-text align="left" color="#ffffff" font-size="45px" font-weight="bold" font-family="open Sans Helvetica, Arial, sans-serif" padding-left="25px" padding-right="25px" padding-bottom="30px" padding-top="50px">
+        Добре дошъл в Подкрепи.бг</mj-text>
       </mj-column>
     </mj-section>
     <mj-section background-color="#009fe3" padding-bottom="20px" padding-top="20px">
       <mj-column vertical-align="middle" width="100%">
         <mj-text align="left" color="#ffffff" font-size="22px" font-family="open Sans Helvetica, Arial, sans-serif" padding-left="25px" padding-right="25px">
-          <span style="color:#FEEB35">Здравей {{person.firstName}},</span>
+          <span style="color:#FEEB35">
+            Здравейте {{person.firstName}},
+          </span>
           <br /><br />
         </mj-text>
-        <mj-text align="left" color="#ffffff" font-size="15px" font-family="open Sans Helvetica, Arial, sans-serif" padding-left="25px" padding-right="25px">Радваме се че избра да подкрепиш Подкрепи.бг - </mj-text>
-        <mj-text align="left" color="#ffffff" font-size="15px" font-family="open Sans Helvetica, Arial, sans-serif" padding-left="25px" padding-right="25px">Thanks, <br /> The {{companyName}} Team</mj-text>
+        <mj-text align="left" color="#ffffff" font-size="15px" font-family="open Sans Helvetica, Arial, sans-serif" padding-left="25px" padding-right="25px">
+          Благодарим, че проявихте интерес и желание да се включите с помощ в проекта!<br/><br/>
+          Предлагаме да продължим комуникацията в <a href="https://discord.gg/pwkfzvPBSm" target="_blank">Discord сървъра</a>, където се помещава нашият виртуален офис. Съветът ни е да прочетете внимателно какво пише на началната страница в канал #започни-от-тук.
+          <br/><br/>
+          След това може да се включите в дискусиите и Ви чакаме на обща среща в понеделник от 18:30 ч. в гласовия канал #обща-среща-пон-18:30 на сървъра. <br/><br/>
+          Още веднъж благодарим за готовността да помогнете за нашата кауза!
+        </mj-text>
+        <mj-text align="left" color="#ffffff" font-size="15px" font-family="open Sans Helvetica, Arial, sans-serif" padding-left="25px" padding-right="25px">
+          Поздрави, <br />
+          Екипът на Подкрепи.бг</mj-text>
       </mj-column>
     </mj-section>
   </mj-body>
