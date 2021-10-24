@@ -25,10 +25,11 @@ export class TemplateService {
       const template = Handlebars.compile(result.html)
       // build the final html
       const html = template(templateData.data)
+      // extract extra info (e.g. subject)
       const email = await this.getEmailData(`./templates/${templateData.fileName}.json`)
       return {
         html,
-        email: email
+        email
       }
     } catch (err) {
       Logger.error(`can not get html from template=${templateData.fileName}`, err)

@@ -1,8 +1,8 @@
-export type EmailData = string|{ name?: string; email: string; }
+export type EmailData = string | { name?: string; email: string; }
 
 export interface Email {
   to: EmailData[];
-  cc?: string[];
+  cc?: EmailData[];
   from: EmailData;
   subject: string;
   html: string;
