@@ -44,7 +44,7 @@ export class SupportService {
   }
 
   async sendWelcomeEmail(inputDto: CreateRequestDto) {
-    const html = await this.template.getHtmlFromTemplate({
+    const { html, email } = await this.template.getTemplate({
       fileName: 'welcome',
       data: inputDto
     })
@@ -52,13 +52,13 @@ export class SupportService {
     this.email.send({
       to: [inputDto.person.email],
       from: this.emailSender,
-      subject: "Добре дошъл в Подкрепи.бг",
+      subject: email.subject,
       html
     })
   }
 
   async sendInquiryReceivedEmail(inputDto: CreateInquiryDto) {
-    const html = await this.template.getHtmlFromTemplate({
+    const { html, email } = await this.template.getTemplate({
       fileName: 'inquiry-received',
       data: inputDto
     })
@@ -66,7 +66,7 @@ export class SupportService {
     this.email.send({
       to: [inputDto.email],
       from: this.emailSender,
-      subject: "Получено съобщение в Подкрепи.бг",
+      subject: email.subject,
       html
     })
   }

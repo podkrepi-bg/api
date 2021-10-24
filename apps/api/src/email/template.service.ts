@@ -5,10 +5,17 @@ import mjml from 'mjml';
 import Handlebars from 'handlebars'
 import { TemplateData } from './template.interface';
 
+export interface Template {
+  html: string;
+  email: {
+    subject: string
+  }
+}
+
 @Injectable()
 export class TemplateService {
 
-  async getHtmlFromTemplate(templateData: TemplateData): Promise<string> {
+  async getTemplate(templateData: TemplateData): Promise<Template> {
     try {
       // read the file
       const file = await readFile(`./templates/${templateData.fileName}.mjml`, { encoding: "utf-8" })
@@ -17,10 +24,24 @@ export class TemplateService {
       // compile the handlebar template
       const template = Handlebars.compile(result.html)
       // build the final html
-      return template(templateData.data)
+      const html = template(templateData.data)
+      const email = await this.getEmailData(`./templates/${templateData.fileName}.json`)
+      return {
+        html,
+        email: email
+      }
     } catch (err) {
       Logger.error(`can not get html from template=${templateData.fileName}`, err)
       throw err
+    }
+  }
+
+  async getEmailData(path: string) {
+    try {
+      const contents = await readFile(path, { encoding: "utf-8" })
+      return JSON.parse(contents)
+    } catch {
+      return {};
     }
   }
 }
