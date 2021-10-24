@@ -33,6 +33,7 @@ export class SupportService {
   ): Promise<Pick<InfoRequest, 'id' | 'personId'>> {
     const request = await this.prisma.infoRequest.create({ data: inputDto.toEntity() })
     this.sendInquiryReceivedEmail(inputDto)
+
     return {
       id: request.id,
       personId: request.personId,

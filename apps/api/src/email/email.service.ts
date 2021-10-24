@@ -23,5 +23,4 @@ export class EmailService {
       Logger.warn(`error sending email`, err);
     }
   }
-
 }
