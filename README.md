@@ -61,7 +61,7 @@ docker-compose up --build -d pg-db
 
 ## Initialize the Database with Prisma Migration scripts
 
-This is needed first time only. We use [Prisma](https://www.prisma.io/) as Database management and versioning tool the following migration command will init the dataabase from the schema.prisma file. See Database Development Guidelines below for further details.
+This is needed first time only. We use [Prisma](https://www.prisma.io/) as Database management and versioning tool the following migration command will init the database from the schema.prisma file. See Database Development Guidelines below for further details.
 
 ```shell
 # Create db schema
@@ -237,6 +237,8 @@ yarn prisma migrate reset
 | `SENTRY_PROJECT`         | Sentry project                            | rest-api                                                                    |
 | `SENTRY_AUTH_TOKEN`      | Sentry build auth token                   | \*\*\*\*\*\*                                                                |
 | `SENTRY_SERVER_ROOT_DIR` | App directory inside the docker image     | /app                                                                        |
+| `SENDGRID_API_KEY`       | SendGrid API key                          | `""` - emails disabled if not set                                           |
+| `SENDGRID_SENDER_EMAIL`  | SendGrid sender email                     | info@podkrepi.bg                                                            |
 
 ## Deployment
 

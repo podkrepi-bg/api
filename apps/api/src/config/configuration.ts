@@ -18,6 +18,10 @@ export default () => ({
     logLevel: LogLevel.Debug,
     tracesSampleRate: 1.0,
   },
+  sendgrid: {
+    apiKey: process.env.SENDGRID_API_KEY,
+    sender: process.env.SENDGRID_SENDER_EMAIL,
+  },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY,
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,

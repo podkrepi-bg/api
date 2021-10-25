@@ -42,6 +42,10 @@ export const validationSchema = Joi.object({
   KEYCLOAK_CLIENT_ID: Joi.string().required(),
   KEYCLOAK_SECRET: Joi.string().required(),
 
+  // SendGrid
+  SENDGRID_API_KEY: Joi.string().optional(),
+  SENDGRID_SENDER_EMAIL: Joi.string().email().required(),
+
   // Stripe
   STRIPE_SECRET_KEY: Joi.string().required(),
   STRIPE_WEBHOOK_SECRET: Joi.string().required(),
