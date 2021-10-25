@@ -108,6 +108,14 @@ Table CampaignType {
   campaigns Campaign [not null]
 }
 
+Table CampaignSummary {
+  id String [pk]
+  campaign Campaign [not null]
+  reachedAmount Int [default: 0]
+
+  Note: 'VIEW'
+}
+
 Table Campaign {
   id String [pk]
   state CampaignState [not null, default: 'draft']
@@ -134,6 +142,7 @@ Table Campaign {
   incomingTransfers Transfer [not null]
   outgoingTransfers Transfer [not null]
   withdrawals Withdrawal [not null]
+  summary CampaignSummary [not null]
 }
 
 Table InfoRequest {
@@ -486,6 +495,8 @@ Ref: Beneficiary.personId > Person.id
 Ref: Beneficiary.companyId > Company.id
 
 Ref: CampaignType.parentId - CampaignType.id
+
+Ref: CampaignSummary.id > Campaign.id
 
 Ref: Campaign.approvedById > Person.id
 
