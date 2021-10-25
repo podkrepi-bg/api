@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { Campaign, CampaignState, CampaignType } from '.prisma/client'
 
 import { PrismaService } from '../prisma/prisma.service'
@@ -17,7 +17,7 @@ export class CampaignService {
   async getCampaignById(campaignId: string): Promise<Campaign> {
     const campaign = await this.prisma.campaign.findFirst({ where: { id: campaignId } })
     if (campaign === null) {
-      console.warn('No campaign record with ID: ' + campaignId)
+      Logger.warn('No campaign record with ID: ' + campaignId)
       throw new NotFoundException('No campaign record with ID: ' + campaignId)
     }
     return campaign
@@ -26,7 +26,7 @@ export class CampaignService {
   async getCampaignBySlug(slug: string): Promise<Campaign> {
     const campaign = await this.prisma.campaign.findFirst({ where: { slug } })
     if (campaign === null) {
-      console.warn('No campaign record with slug: ' + slug)
+      Logger.warn('No campaign record with slug: ' + slug)
       throw new NotFoundException('No campaign record with slug: ' + slug)
     }
     return campaign
@@ -39,6 +39,18 @@ export class CampaignService {
   async createCampaign(inputDto: CreateCampaignDto): Promise<Campaign> {
     return this.prisma.campaign.create({
       data: inputDto.toEntity(),
+    })
+  }
+
+  async donateToCampaign(campaignId: string, amount: number): Promise<Campaign> {
+    Logger.log('[ DonateToCampaign ]', { campaignId, amount })
+    return await this.prisma.campaign.update({
+      data: {
+        reachedAmount: {
+          increment: amount,
+        },
+      },
+      where: { id: campaignId },
     })
   }
 
