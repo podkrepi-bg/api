@@ -1,8 +1,12 @@
+import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
 
-import { DonationsController } from './donations.controller'
 import { DonationsService } from './donations.service'
+import { PrismaService } from '../prisma/prisma.service'
+import { prismaMock } from '../prisma/prisma-client.mock'
+import { DonationsController } from './donations.controller'
+import { CampaignService } from '../campaign/campaign.service'
 
 describe('DonationsController', () => {
   let controller: DonationsController
@@ -11,8 +15,13 @@ describe('DonationsController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DonationsController],
       providers: [
+        ConfigService,
+        CampaignService,
         DonationsService,
-        DonationsService,
+        {
+          provide: PrismaService,
+          useValue: prismaMock,
+        },
         {
           provide: STRIPE_CLIENT_TOKEN,
           useValue: jest.fn(),
