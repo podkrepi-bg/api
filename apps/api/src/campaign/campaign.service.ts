@@ -1,17 +1,28 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { Campaign, CampaignState, CampaignType } from '.prisma/client'
+import {
+  Campaign,
+  CampaignState,
+  CampaignType,
+  DonationStatus,
+  DonationType,
+  PaymentProvider,
+  Vault,
+} from '.prisma/client'
+import Stripe from 'stripe'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
-
-import { NotFoundException } from '@nestjs/common'
 
 @Injectable()
 export class CampaignService {
   constructor(private prisma: PrismaService) {}
 
   async listCampaigns(): Promise<Campaign[]> {
-    return this.prisma.campaign.findMany()
+    return this.prisma.campaign.findMany({
+      include: {
+        summary: { select: { reachedAmount: true } },
+      },
+    })
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
@@ -24,7 +35,12 @@ export class CampaignService {
   }
 
   async getCampaignBySlug(slug: string): Promise<Campaign> {
-    const campaign = await this.prisma.campaign.findFirst({ where: { slug } })
+    const campaign = await this.prisma.campaign.findFirst({
+      include: {
+        summary: { select: { reachedAmount: true } },
+      },
+      where: { slug },
+    })
     if (campaign === null) {
       Logger.warn('No campaign record with slug: ' + slug)
       throw new NotFoundException('No campaign record with slug: ' + slug)
@@ -42,8 +58,68 @@ export class CampaignService {
     })
   }
 
-  async donateToCampaign(campaignId: string, amount: number): Promise<Campaign> {
-    Logger.log('[ DonateToCampaign ]', { campaignId, amount })
+  async getCampaignVault(campaignId: string): Promise<Vault | null> {
+    return this.prisma.vault.findFirst({ where: { campaignId } })
+  }
+
+  async donateToCampaign(
+    campaign: Campaign,
+    paymentIntent: Stripe.PaymentIntent,
+  ): Promise<Campaign> {
+    const campaignId = campaign.id
+    const { currency } = campaign
+    const { amount, customer } = paymentIntent
+    Logger.log('[ DonateToCampaign ]', { campaignId, customer, amount })
+
+    /**
+     * Create or connect campaign vault
+     */
+    const vault = await this.getCampaignVault(campaignId)
+    const targetVault = vault
+      ? // Connect the existing vault to this donation
+        { connect: { id: vault.id } }
+      : // Create new vault for the campaign
+        { create: { campaignId, currency, amount } }
+
+    /**
+     * Create donation object
+     */
+    await this.prisma.donation.create({
+      data: {
+        amount,
+        currency,
+        targetVault,
+        provider: PaymentProvider.stripe,
+        type: DonationType.donation,
+        status: DonationStatus.succeeded,
+        extCustomerId: typeof customer === 'string' ? customer : customer?.id ?? 'none',
+        extPaymentIntentId: paymentIntent.id,
+        extPaymentMethodId:
+          typeof paymentIntent.payment_method === 'string'
+            ? paymentIntent.payment_method
+            : paymentIntent.payment_method?.id ?? 'none',
+      },
+    })
+
+    /**
+     * Update vault amount
+     * TODO: Replace with joined view
+     */
+    if (vault) {
+      await this.prisma.vault.update({
+        data: {
+          amount: {
+            increment: amount,
+          },
+        },
+        where: { id: vault.id },
+      })
+    }
+
+    /**
+     * Update campaign reached amount
+     * TODO: Replace with joined view
+     */
     return await this.prisma.campaign.update({
       data: {
         reachedAmount: {
