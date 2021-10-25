@@ -1,4 +1,4 @@
-import { Prisma, CampaignState, Currency } from '@prisma/client'
+import { CampaignState, Currency } from '@prisma/client'
 import { Person } from '../../person/entities/person.entity'
 import { Beneficiary } from '../../beneficiary/entities/beneficiary.entity'
 import { CampaignType } from '../../campaignType/entities/campaignType.entity'
@@ -17,8 +17,8 @@ export class Campaign {
   campaignTypeId: string
   approvedById: string | null
   description: string | null
-  targetAmount: Prisma.Decimal | null
-  reachedAmount: Prisma.Decimal | null
+  targetAmount: number | null
+  reachedAmount: number | null
   currency: Currency
   startDate: Date | null
   endDate: Date | null

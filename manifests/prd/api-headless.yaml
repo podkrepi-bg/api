@@ -44,11 +44,34 @@ spec:
       containers:
         - name: api-headless
           image: ghcr.io/podkrepi-bg/api:v0.1.2
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: '1'
+            requests:
+              memory: 256Mi
+              cpu: '0.2'
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
           env:
+            - name: APP_ENV
+              value: production
             - name: NODE_ENV
               value: production
             - name: PORT
-              value: "80"
+              value: '80'
             - name: TARGET_APP
               value: api
             - name: DATABASE_URL
@@ -76,17 +99,13 @@ spec:
                 secretKeyRef:
                   name: keycloak-headless
                   key: secret
-          ports:
-            - containerPort: 80
-          livenessProbe:
-            httpGet:
-              path: /api/health
-              port: 80
-            initialDelaySeconds: 10
-            periodSeconds: 5
-          readinessProbe:
-            httpGet:
-              path: /api/health
-              port: 80
-            initialDelaySeconds: 5
-            periodSeconds: 5
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: stripe-headless
+                  key: apikey
+            - name: STRIPE_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: stripe-headless
+                  key: webhookSecret

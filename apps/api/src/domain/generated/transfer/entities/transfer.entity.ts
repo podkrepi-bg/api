@@ -1,4 +1,4 @@
-import { Prisma, TransferStatus, Currency } from '@prisma/client'
+import { TransferStatus, Currency } from '@prisma/client'
 import { Person } from '../../person/entities/person.entity'
 import { Vault } from '../../vault/entities/vault.entity'
 import { Campaign } from '../../campaign/entities/campaign.entity'
@@ -7,7 +7,7 @@ export class Transfer {
   id: string
   status: TransferStatus
   currency: Currency
-  amount: Prisma.Decimal
+  amount: number
   reason: string
   sourceVaultId: string
   sourceCampaignId: string

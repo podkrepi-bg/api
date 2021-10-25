@@ -28,7 +28,7 @@ describe('SupportController', () => {
         },
         EmailService,
         TemplateService,
-        ConfigService
+        ConfigService,
       ],
     }).compile()
 

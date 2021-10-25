@@ -10,13 +10,18 @@ import { TemplateService } from '../email/template.service'
 export class SupportService {
   emailSender: string
 
-  constructor(private prisma: PrismaService, private email: EmailService, private template: TemplateService, private config: ConfigService) {
+  constructor(
+    private prisma: PrismaService,
+    private email: EmailService,
+    private template: TemplateService,
+    private config: ConfigService,
+  ) {
     this.emailSender = this.config.get<string>('sendgrid.sender') ?? 'info@podkrepi.bg'
   }
 
   async createSupporter(inputDto: CreateRequestDto): Promise<Pick<Supporter, 'id' | 'personId'>> {
     const request = await this.prisma.supporter.create({ data: inputDto.toEntity() })
-    this.sendWelcomeEmail(inputDto);
+    this.sendWelcomeEmail(inputDto)
 
     return {
       id: request.id,
@@ -47,28 +52,28 @@ export class SupportService {
   async sendWelcomeEmail(inputDto: CreateRequestDto) {
     const { html, email } = await this.template.getTemplate({
       fileName: 'welcome',
-      data: inputDto
+      data: inputDto,
     })
 
     this.email.send({
       to: [inputDto.person.email],
       from: this.emailSender,
       subject: email.subject,
-      html
+      html,
     })
   }
 
   async sendInquiryReceivedEmail(inputDto: CreateInquiryDto) {
     const { html, email } = await this.template.getTemplate({
       fileName: 'inquiry-received',
-      data: inputDto
+      data: inputDto,
     })
 
     this.email.send({
       to: [inputDto.email],
       from: this.emailSender,
       subject: email.subject,
-      html
+      html,
     })
   }
 }

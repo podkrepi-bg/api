@@ -46,7 +46,7 @@ export async function campaignSeed() {
         beneficiaryId: beneficiaryFromDb.id,
         campaignTypeId: campaignTypeFromDb.id,
         description: faker.lorem.paragraphs(4),
-        targetAmount: faker.finance.amount(2000, 200000),
+        targetAmount: parseInt(faker.finance.amount(2000, 200000)),
         currency: Currency.BGN,
       }
     }),

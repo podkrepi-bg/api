@@ -157,8 +157,8 @@ model Campaign {
   campaignTypeId    String        @map("campaign_type_id") @db.Uuid
   approvedById      String?       @map("approved_by_id") @db.Uuid
   description       String?
-  targetAmount      Decimal?      @default(0) @map("target_amount") @db.Decimal
-  reachedAmount     Decimal?      @default(0) @map("reached_amount") @db.Decimal
+  targetAmount      Int?          @default(0) @map("target_amount") @db.Integer
+  reachedAmount     Int?          @default(0) @map("reached_amount") @db.Integer
   currency          Currency      @default(BGN)
   startDate         DateTime?     @map("start_date") @db.Timestamptz(6)
   endDate           DateTime?     @map("end_date") @db.Timestamptz(6)
@@ -248,7 +248,7 @@ model Country {
 model Vault {
   id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   currency           Currency            @default(BGN)
-  amount             Decimal             @default(0.0)
+  amount             Int                 @default(0) @db.Integer
   campaignId         String              @map("campaign_id") @db.Uuid
   createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -305,7 +305,7 @@ model Transfer {
   id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   status           TransferStatus @default(initial)
   currency         Currency
-  amount           Decimal
+  amount           Int            @default(0) @db.Integer
   reason           String         @db.VarChar(100)
   /// Source vault
   sourceVaultId    String         @map("source_vault_id") @db.Uuid
@@ -332,7 +332,7 @@ model Withdrawal {
   id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   status           WithdrawStatus @default(initial)
   currency         Currency
-  amount           Decimal
+  amount           Int            @default(0) @db.Integer
   reason           String         @db.VarChar(100)
   /// Source vault
   sourceVaultId    String         @map("source_vault_id") @db.Uuid

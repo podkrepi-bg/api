@@ -119,8 +119,8 @@ Table Campaign {
   campaignTypeId String [not null]
   approvedById String
   description String
-  targetAmount Decimal [default: 0]
-  reachedAmount Decimal [default: 0]
+  targetAmount Int [default: 0]
+  reachedAmount Int [default: 0]
   currency Currency [not null, default: 'BGN']
   startDate DateTime
   endDate DateTime
@@ -199,7 +199,7 @@ Table Country {
 Table Vault {
   id String [pk]
   currency Currency [not null, default: 'BGN']
-  amount Decimal [not null, default: 0]
+  amount Int [not null, default: 0]
   campaignId String [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
@@ -245,7 +245,7 @@ Table Transfer {
   id String [pk]
   status TransferStatus [not null, default: 'initial']
   currency Currency [not null]
-  amount Decimal [not null]
+  amount Int [not null, default: 0]
   reason String [not null]
   sourceVaultId String [not null, note: 'Source vault']
   sourceCampaignId String [not null]
@@ -269,7 +269,7 @@ Table Withdrawal {
   id String [pk]
   status WithdrawStatus [not null, default: 'initial']
   currency Currency [not null]
-  amount Decimal [not null]
+  amount Int [not null, default: 0]
   reason String [not null]
   sourceVaultId String [not null, note: 'Source vault']
   sourceCampaignId String [not null]

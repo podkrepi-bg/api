@@ -1,29 +1,27 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
-
-import { Logger, VersioningType } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
+import { Logger, LogLevel, VersioningType } from '@nestjs/common'
+
 import { AppModule } from './app/app.module'
 import { setupCors } from './config/cors.config'
+import { setupHelmet } from './config/helmet.config'
 import { setupSwagger } from './config/swagger.config'
 import { setupExceptions } from './config/exceptions.config'
 import { setupValidation } from './config/validation.config'
 import { setupShutdownHooks } from './config/shutdown.config'
-import { setupHelmet } from './config/helmet.config'
+
+const globalPrefix = 'api'
+const logLevels: LogLevel[] = ['error', 'log', 'warn']
 
 async function bootstrap() {
-  const isDevConfig = process.env.NODE_ENV == 'development'
+  const isDevConfig = process.env.NODE_ENV === 'development'
   if (isDevConfig) {
     Logger.warn('Running with development configuration')
   }
 
   const app = await NestFactory.create(AppModule, {
-    logger: isDevConfig ?
-      ['debug', 'error', 'log', 'verbose', 'warn'] : ['error', 'log', 'warn'],
+    bodyParser: false, // Body parsing is enabled later on via middlewares
+    logger: isDevConfig ? ['debug', 'verbose', ...logLevels] : logLevels,
   })
-  const globalPrefix = 'api'
   app.setGlobalPrefix(globalPrefix)
   app.enableVersioning({ type: VersioningType.URI })
 
@@ -37,8 +35,8 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3310
   await app.listen(port, () => {
-    Logger.log('Listening at http://localhost:' + port + '/' + globalPrefix)
-    Logger.log('Swagger Docs at http://localhost:' + port + '/docs')
+    Logger.log(`Listening at http://localhost:${port}/${globalPrefix}`, 'bootstrap')
+    Logger.log(`Swagger Docs at http://localhost:${port}/docs`, 'bootstrap')
   })
 }
 

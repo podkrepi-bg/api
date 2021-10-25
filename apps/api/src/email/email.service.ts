@@ -6,7 +6,6 @@ import { Email } from './email.interface'
 
 @Injectable()
 export class EmailService {
-
   constructor(private config: ConfigService) {
     const apiKey = config.get<string>('sendgrid.apiKey')
     if (apiKey) {
@@ -18,9 +17,9 @@ export class EmailService {
 
   async send(email: Email) {
     try {
-      await sgMail.send(email);
+      await sgMail.send(email)
     } catch (err) {
-      Logger.warn(`error sending email`, err);
+      Logger.warn(`error sending email`, err)
     }
   }
 }
