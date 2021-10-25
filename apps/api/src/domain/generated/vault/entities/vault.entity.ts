@@ -1,4 +1,4 @@
-import { Prisma, Currency } from '@prisma/client'
+import { Currency } from '@prisma/client'
 import { Campaign } from '../../campaign/entities/campaign.entity'
 import { Expense } from '../../expense/entities/expense.entity'
 import { Transfer } from '../../transfer/entities/transfer.entity'
@@ -9,7 +9,7 @@ import { RecurringDonation } from '../../recurringDonation/entities/recurringDon
 export class Vault {
   id: string
   currency: Currency
-  amount: Prisma.Decimal
+  amount: number
   campaignId: string
   createdAt: Date
   updatedAt: Date | null
