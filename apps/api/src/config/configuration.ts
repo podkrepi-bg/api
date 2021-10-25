@@ -15,4 +15,8 @@ export default () => ({
     logLevel: LogLevel.Debug,
     tracesSampleRate: 1.0,
   },
+  sendgrid: {
+    apiKey: process.env.SENDGRID_API_KEY,
+    sender: process.env.SENDGRID_SENDER_EMAIL
+  }
 })

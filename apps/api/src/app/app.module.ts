@@ -19,7 +19,8 @@ import { validationSchema } from '../config/validation.config'
 import { BeneficiaryModule } from '../beneficiary/beneficiary.module'
 import { KeycloakConfigService } from '../config/keycloak-config.service'
 import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.filter'
-
+import { EmailService } from '../email/email.service'
+import { TemplateService } from '../email/template.service'
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -44,6 +45,8 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
   providers: [
     AppService,
     PrismaService,
+    EmailService,
+    TemplateService,
     {
       provide: APP_FILTER,
       useClass: PrismaClientExceptionFilter,
