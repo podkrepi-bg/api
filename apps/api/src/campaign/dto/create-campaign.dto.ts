@@ -102,6 +102,7 @@ export class CreateCampaignDto {
       coordinatorId: this.coordinatorId,
       startDate: this.startDate,
       endDate: this.endDate,
+      vaults: { create: { currency: this.currency } },
       campaignTypes: { connect: { id: this.campaignTypeId } },
       beneficiaries: { connect: { id: this.beneficiaryId } },
     }
