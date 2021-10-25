@@ -146,7 +146,7 @@ model CampaignType {
   @@map("campaign_types")
 }
 
-/// VIEW
+/// @view
 model CampaignSummary {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   campaign      Campaign @relation(fields: [id], references: [id])
@@ -167,7 +167,6 @@ model Campaign {
   approvedById      String?           @map("approved_by_id") @db.Uuid
   description       String?
   targetAmount      Int?              @default(0) @map("target_amount") @db.Integer
-  reachedAmount     Int?              @default(0) @map("reached_amount") @db.Integer
   currency          Currency          @default(BGN)
   startDate         DateTime?         @map("start_date") @db.Timestamptz(6)
   endDate           DateTime?         @map("end_date") @db.Timestamptz(6)

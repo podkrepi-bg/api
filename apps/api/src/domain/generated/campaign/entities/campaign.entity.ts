@@ -19,7 +19,6 @@ export class Campaign {
   approvedById: string | null
   description: string | null
   targetAmount: number | null
-  reachedAmount: number | null
   currency: Currency
   startDate: Date | null
   endDate: Date | null

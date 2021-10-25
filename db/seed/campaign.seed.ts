@@ -39,7 +39,7 @@ export async function campaignSeed() {
       const title = faker.lorem.sentence()
       return {
         state: CampaignState.active,
-        slug: faker.helpers.slugify(title),
+        slug: faker.helpers.slugify(title).replace('.', '').toLowerCase(),
         title,
         essence: faker.company.catchPhrase(),
         coordinatorId: coordinatorFromDb.id,

@@ -113,7 +113,7 @@ Table CampaignSummary {
   campaign Campaign [not null]
   reachedAmount Int [default: 0]
 
-  Note: 'VIEW'
+  Note: '@view'
 }
 
 Table Campaign {
@@ -128,7 +128,6 @@ Table Campaign {
   approvedById String
   description String
   targetAmount Int [default: 0]
-  reachedAmount Int [default: 0]
   currency Currency [not null, default: 'BGN']
   startDate DateTime
   endDate DateTime
