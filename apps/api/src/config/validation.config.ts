@@ -27,6 +27,7 @@ export function setupValidation(app: INestApplication): void {
 export const validationSchema = Joi.object({
   APP_ENV: Joi.string().valid('development', 'staging', 'production').default('development'),
   NODE_ENV: Joi.string().valid('development', 'test', 'production').default('development'),
+  APP_URL: Joi.string().uri(),
   PORT: Joi.number().default(5010),
 
   // Sentry
