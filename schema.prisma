@@ -268,6 +268,8 @@ model Donation {
   type               DonationType
   status             DonationStatus  @default(initial)
   provider           PaymentProvider @default(none)
+  currency           Currency        @default(BGN)
+  amount             Int             @default(0) @db.Integer
   /// Vault where the funds are going
   targetVaultId      String          @map("target_vault_id") @db.Uuid
   /// Payment provider attributes
@@ -288,6 +290,8 @@ model RecurringDonation {
   status            RecurringDonationStatus
   vaultId           String                  @map("vault_id") @db.Uuid
   personId          String                  @map("person_id") @db.Uuid
+  currency          Currency                @default(BGN)
+  amount            Int                     @default(0) @db.Integer
   /// Payment provider Subscription id
   extSubscriptionId String                  @map("ext_subscription_id") @db.VarChar(50)
   extCustomerId     String?                 @map("ext_customer_id") @db.VarChar(50)
@@ -377,6 +381,8 @@ model BankAccount {
 model Expense {
   id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type         ExpenseType
+  currency     Currency    @default(BGN)
+  amount       Int         @default(0) @db.Integer
   description  String?
   vaultId      String      @map("vault_id") @db.Uuid
   documentId   String?     @map("document_id") @db.Uuid

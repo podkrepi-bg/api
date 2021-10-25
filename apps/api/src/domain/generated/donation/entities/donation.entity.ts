@@ -1,4 +1,4 @@
-import { DonationType, DonationStatus, PaymentProvider } from '@prisma/client'
+import { DonationType, DonationStatus, PaymentProvider, Currency } from '@prisma/client'
 import { Vault } from '../../vault/entities/vault.entity'
 
 export class Donation {
@@ -6,6 +6,8 @@ export class Donation {
   type: DonationType
   status: DonationStatus
   provider: PaymentProvider
+  currency: Currency
+  amount: number
   targetVaultId: string
   extCustomerId: string
   extPaymentIntentId: string

@@ -217,6 +217,8 @@ Table Donation {
   type DonationType [not null]
   status DonationStatus [not null, default: 'initial']
   provider PaymentProvider [not null, default: 'none']
+  currency Currency [not null, default: 'BGN']
+  amount Int [not null, default: 0]
   targetVaultId String [not null, note: 'Vault where the funds are going']
   extCustomerId String [not null, note: 'Payment provider attributes']
   extPaymentIntentId String [not null]
@@ -231,6 +233,8 @@ Table RecurringDonation {
   status RecurringDonationStatus [not null]
   vaultId String [not null]
   personId String [not null]
+  currency Currency [not null, default: 'BGN']
+  amount Int [not null, default: 0]
   extSubscriptionId String [not null, note: 'Payment provider Subscription id']
   extCustomerId String
   createdAt DateTime [default: `now()`, not null]
@@ -304,6 +308,8 @@ Table BankAccount {
 Table Expense {
   id String [pk]
   type ExpenseType [not null]
+  currency Currency [not null, default: 'BGN']
+  amount Int [not null, default: 0]
   description String
   vaultId String [not null]
   documentId String
