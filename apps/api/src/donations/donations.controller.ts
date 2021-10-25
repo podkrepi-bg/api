@@ -6,19 +6,19 @@ import { DonationsService } from './donations.service'
 export class DonationsController {
   constructor(private readonly paymentsService: DonationsService) {}
 
-  @Get()
+  @Get('prices')
   @Public()
   findPrices() {
     return this.paymentsService.listPrices()
   }
 
-  @Get('single')
+  @Get('prices/single')
   @Public()
   findSinglePrices() {
     return this.paymentsService.listPrices('one_time')
   }
 
-  @Get('recurring')
+  @Get('prices/recurring')
   @Public()
   findRecurringPrices() {
     return this.paymentsService.listPrices('recurring')
