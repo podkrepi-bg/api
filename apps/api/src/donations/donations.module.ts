@@ -7,9 +7,13 @@ import { DonationsService } from './donations.service'
 import { DonationsController } from './donations.controller'
 import { PaymentSucceededService } from './events/payment-intent-succeeded.service'
 import { PaymentCreatedService } from './events/payment-created.service'
+import { CampaignService } from '../campaign/campaign.service'
+import { CampaignModule } from '../campaign/campaign.module'
+import { PrismaService } from '../prisma/prisma.service'
 
 @Module({
   imports: [
+    CampaignModule,
     StripeModule.forRootAsync(StripeModule, {
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => ({
@@ -28,6 +32,12 @@ import { PaymentCreatedService } from './events/payment-created.service'
     }),
   ],
   controllers: [DonationsController],
-  providers: [DonationsService, PaymentCreatedService, PaymentSucceededService],
+  providers: [
+    DonationsService,
+    PaymentCreatedService,
+    PaymentSucceededService,
+    CampaignService,
+    PrismaService,
+  ],
 })
 export class DonationsModule {}

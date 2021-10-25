@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Campaign, CampaignType } from '.prisma/client'
+import { Campaign, CampaignState, CampaignType } from '.prisma/client'
 
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
@@ -14,16 +14,22 @@ export class CampaignService {
     return this.prisma.campaign.findMany()
   }
 
-  async getCampaignBySlug(slug: string): Promise<Campaign | null> {
-    const campaign = this.prisma.campaign.findFirst({ where: { slug } })
-    
-    if(campaign === null) {
-      console.warn('No campaign record with slug: ' + slug);
+  async getCampaignById(campaignId: string): Promise<Campaign> {
+    const campaign = await this.prisma.campaign.findFirst({ where: { id: campaignId } })
+    if (campaign === null) {
+      console.warn('No campaign record with ID: ' + campaignId)
+      throw new NotFoundException('No campaign record with ID: ' + campaignId)
+    }
+    return campaign
+  }
+
+  async getCampaignBySlug(slug: string): Promise<Campaign> {
+    const campaign = await this.prisma.campaign.findFirst({ where: { slug } })
+    if (campaign === null) {
+      console.warn('No campaign record with slug: ' + slug)
       throw new NotFoundException('No campaign record with slug: ' + slug)
     }
-
     return campaign
-      
   }
 
   async listCampaignTypes(): Promise<CampaignType[]> {
@@ -34,5 +40,16 @@ export class CampaignService {
     return this.prisma.campaign.create({
       data: inputDto.toEntity(),
     })
+  }
+
+  async canAcceptDonations(campaignId: string): Promise<boolean> {
+    const campaign = await this.getCampaignById(campaignId)
+
+    const validStates: CampaignState[] = ['active']
+    if (!validStates.includes(campaign.state)) {
+      return false
+    }
+
+    return true
   }
 }

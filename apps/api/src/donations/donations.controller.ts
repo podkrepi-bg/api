@@ -11,7 +11,7 @@ export class DonationsController {
   @Post('create-checkout-session')
   @Public()
   createCheckoutSession(@Body() sessionDto: CreateSessionDto) {
-    return this.paymentsService.createCheckoutSession(sessionDto.priceId, sessionDto.mode)
+    return this.paymentsService.createCheckoutSession(sessionDto)
   }
 
   @Get('prices')

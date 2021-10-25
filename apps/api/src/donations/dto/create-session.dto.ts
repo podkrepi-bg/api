@@ -1,7 +1,7 @@
 import Stripe from 'stripe'
 import { Expose } from 'class-transformer'
 import { ApiProperty } from '@nestjs/swagger'
-import { IsIn, IsNotEmpty, IsString } from 'class-validator'
+import { IsIn, IsNotEmpty, IsOptional, IsString, IsUrl, IsUUID } from 'class-validator'
 
 export class CreateSessionDto {
   @ApiProperty()
@@ -19,6 +19,18 @@ export class CreateSessionDto {
   @ApiProperty()
   @Expose()
   @IsNotEmpty()
-  @IsString()
+  @IsUUID()
   public readonly campaignId: string
+
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  @IsUrl()
+  successUrl: string
+
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  @IsUrl()
+  cancelUrl: string
 }
