@@ -2,6 +2,7 @@ import {
   Campaign,
   CampaignState,
   CampaignType,
+  Donation,
   DonationStatus,
   DonationType,
   PaymentProvider,
@@ -65,7 +66,7 @@ export class CampaignService {
   async donateToCampaign(
     campaign: Campaign,
     paymentIntent: Stripe.PaymentIntent,
-  ): Promise<Campaign> {
+  ): Promise<Donation> {
     const campaignId = campaign.id
     const { currency } = campaign
     const { amount, customer } = paymentIntent
@@ -84,7 +85,7 @@ export class CampaignService {
     /**
      * Create donation object
      */
-    await this.prisma.donation.create({
+    const donation = await this.prisma.donation.create({
       data: {
         amount,
         currency,
@@ -116,18 +117,7 @@ export class CampaignService {
       })
     }
 
-    /**
-     * Update campaign reached amount
-     * TODO: Replace with joined view
-     */
-    return await this.prisma.campaign.update({
-      data: {
-        reachedAmount: {
-          increment: amount,
-        },
-      },
-      where: { id: campaignId },
-    })
+    return donation
   }
 
   async canAcceptDonations(campaignId: string): Promise<boolean> {
