@@ -8,7 +8,7 @@ import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 @Injectable()
 export class SupportService {
-  emailSender: string
+  internalNotifications: string
 
   constructor(
     private prisma: PrismaService,
@@ -16,12 +16,13 @@ export class SupportService {
     private template: TemplateService,
     private config: ConfigService,
   ) {
-    this.emailSender = this.config.get<string>('sendgrid.sender') ?? 'info@podkrepi.bg'
+    this.internalNotifications = this.config.get<string>('sendgrid.internalNotificationsEmail') ?? 'info@podkrepi.bg'
   }
 
   async createSupporter(inputDto: CreateRequestDto): Promise<Pick<Supporter, 'id' | 'personId'>> {
     const request = await this.prisma.supporter.create({ data: inputDto.toEntity() })
     this.sendWelcomeEmail(inputDto)
+    this.sendWelcomeInternalEmail(inputDto)
 
     return {
       id: request.id,
@@ -50,30 +51,18 @@ export class SupportService {
   }
 
   async sendWelcomeEmail(inputDto: CreateRequestDto) {
-    const { html, email } = await this.template.getTemplate({
-      fileName: 'welcome',
-      data: inputDto,
-    })
+    this.email.sendFromTemplate('welcome', inputDto, { to: [inputDto.person.email] });
+  }
 
-    this.email.send({
-      to: [inputDto.person.email],
-      from: this.emailSender,
-      subject: email.subject,
-      html,
-    })
+  async sendWelcomeInternalEmail(inputDto: CreateRequestDto) {
+    this.email.sendFromTemplate('welcome-internal', inputDto, { to: [this.internalNotifications] });
   }
 
   async sendInquiryReceivedEmail(inputDto: CreateInquiryDto) {
-    const { html, email } = await this.template.getTemplate({
-      fileName: 'inquiry-received',
-      data: inputDto,
-    })
+    this.email.sendFromTemplate('inquiry-received', inputDto, { to: [inputDto.email] });
+  }
 
-    this.email.send({
-      to: [inputDto.email],
-      from: this.emailSender,
-      subject: email.subject,
-      html,
-    })
+  async sendInquiryReceivedInternalEmail(inputDto: CreateInquiryDto) {
+    this.email.sendFromTemplate('inquiry-received-internal', inputDto, { to: [this.internalNotifications] });
   }
 }
