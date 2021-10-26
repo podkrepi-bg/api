@@ -9,6 +9,7 @@ import { Beneficiary } from '../../beneficiary/entities/beneficiary.entity'
 import { InfoRequest } from '../../infoRequest/entities/infoRequest.entity'
 import { Coordinator } from '../../coordinator/entities/coordinator.entity'
 import { RecurringDonation } from '../../recurringDonation/entities/recurringDonation.entity'
+import { Donation } from '../../donation/entities/donation.entity'
 
 export class Person {
   id: string
@@ -36,4 +37,5 @@ export class Person {
   infoRequests?: InfoRequest[]
   coordinators?: Coordinator[]
   recurringDonations?: RecurringDonation[]
+  Donation?: Donation[]
 }

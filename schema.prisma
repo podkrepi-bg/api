@@ -59,6 +59,7 @@ model Person {
   coordinators       Coordinator[]
   recurringDonations RecurringDonation[]
 
+  Donation Donation[]
   @@index([keycloakId], map: "keycloak_id_idx")
   @@map("people")
 }
@@ -276,6 +277,7 @@ model Donation {
   type               DonationType
   status             DonationStatus  @default(initial)
   provider           PaymentProvider @default(none)
+  personId           String?         @map("person_id") @db.Uuid
   currency           Currency        @default(BGN)
   amount             Int             @default(0) @db.Integer
   /// Vault where the funds are going
@@ -288,6 +290,7 @@ model Donation {
   createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
   targetVault        Vault           @relation(fields: [targetVaultId], references: [id])
+  person             Person?         @relation(fields: [personId], references: [id], onDelete: SetNull)
 
   @@map("donations")
 }
