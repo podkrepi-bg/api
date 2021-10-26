@@ -17,7 +17,7 @@ export class TemplateService {
   async getTemplate(templateData: TemplateData): Promise<Template> {
     try {
       // read the file
-      const file = await readFile(`./templates/${templateData.fileName}.mjml`, {
+      const file = await readFile(`./templates/${templateData.name}.mjml`, {
         encoding: 'utf-8',
       })
       // pass it through mjml to produce html template
@@ -27,13 +27,13 @@ export class TemplateService {
       // build the final html
       const html = template(templateData.data)
       // extract extra info (e.g. subject)
-      const email = await this.getEmailData(`./templates/${templateData.fileName}.json`)
+      const email = await this.getEmailData(`./templates/${templateData.name}.json`)
       return {
         html,
         email,
       }
     } catch (err) {
-      Logger.error(`can not get html from template=${templateData.fileName}`, err)
+      Logger.error(`can not get html from template=${templateData.name}`, err)
       throw err
     }
   }
