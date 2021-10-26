@@ -78,7 +78,9 @@ export class AuthService {
       emailVerified: true,
       groups: [],
       requiredActions: [RequiredActionAlias.VERIFY_EMAIL],
-      attributes: {},
+      attributes: {
+        selfReg: true,
+      },
       credentials: [
         {
           type: 'password',
