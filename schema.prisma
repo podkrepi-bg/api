@@ -284,7 +284,7 @@ model Donation {
   targetVaultId      String          @map("target_vault_id") @db.Uuid
   /// Payment provider attributes
   extCustomerId      String          @map("ext_customer_id") @db.VarChar(50)
-  extPaymentIntentId String          @map("ext_payment_intent_id")
+  extPaymentIntentId String          @unique @map("ext_payment_intent_id")
   extPaymentMethodId String          @map("ext_payment_method_id")
   ///
   createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)

@@ -231,7 +231,7 @@ Table Donation {
   amount Int [not null, default: 0]
   targetVaultId String [not null, note: 'Vault where the funds are going']
   extCustomerId String [not null, note: 'Payment provider attributes']
-  extPaymentIntentId String [not null]
+  extPaymentIntentId String [unique, not null]
   extPaymentMethodId String [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime

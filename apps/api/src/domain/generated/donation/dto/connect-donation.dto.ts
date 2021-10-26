@@ -1,3 +1,4 @@
 export class ConnectDonationDto {
-  id: string
+  id?: string
+  extPaymentIntentId?: string
 }
