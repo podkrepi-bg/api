@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common'
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
 import { RequiredActionAlias } from '@keycloak/keycloak-admin-client/lib/defs/requiredActionProviderRepresentation'
@@ -8,7 +13,20 @@ import { RegisterDto } from './dto/register.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { Person } from '.prisma/client'
 
+import KeycloakConnect from 'keycloak-connect'
+import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
+
 type ErrorResponse = { error: string; data: unknown }
+
+/**
+ * Add missing `token` field to `KeycloakConnect.Token`
+ * ¯\_(ツ)_/¯
+ */
+declare module 'keycloak-connect' {
+  interface Token {
+    token: string | undefined
+  }
+}
 
 @Injectable()
 export class AuthService {
@@ -16,30 +34,30 @@ export class AuthService {
     private readonly config: ConfigService,
     private readonly admin: KeycloakAdminClient,
     private readonly prismaService: PrismaService,
+    @Inject(KEYCLOAK_INSTANCE) private keycloak: KeycloakConnect.Keycloak,
   ) {}
 
-  async issueToken(email: string, password: string): Promise<string> {
-    await this.admin.auth({
-      clientId: this.config.get<string>('keycloak.clientId') || '',
-      clientSecret: this.config.get<string>('keycloak.secret') || '',
-      grantType: 'password',
-      username: email,
-      password: password,
-    })
-    return this.admin.accessToken
+  async issueGrant(email: string, password: string): Promise<KeycloakConnect.Grant> {
+    return await this.keycloak.grantManager.obtainDirectly(email, password)
+  }
+
+  async issueToken(email: string, password: string): Promise<string | undefined> {
+    const grant = await this.issueGrant(email, password)
+
+    return grant.access_token?.token
   }
 
   async login(loginDto: LoginDto): Promise<{ jwt: string } | ErrorResponse> {
     try {
       const jwt = await this.issueToken(loginDto.email, loginDto.password)
+      if (!jwt) throw new InternalServerErrorException('CannotIssueTokenError')
       return { jwt }
     } catch (error) {
-      const response = {
-        error: error.message,
-        data: error?.response?.data,
+      console.error(error)
+      if (error.message === '401:Unauthorized') {
+        throw new UnauthorizedException(error.message, error?.response?.data)
       }
-      console.error(response)
-      return response
+      throw error
     }
   }
 
