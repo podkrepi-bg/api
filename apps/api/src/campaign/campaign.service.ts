@@ -6,6 +6,7 @@ import {
   DonationStatus,
   DonationType,
   PaymentProvider,
+  Person,
   Vault,
 } from '.prisma/client'
 import Stripe from 'stripe'
@@ -63,14 +64,18 @@ export class CampaignService {
     return this.prisma.vault.findFirst({ where: { campaignId } })
   }
 
-  async donateToCampaign(
+  async getDonationByIntentId(paymentIntentId: string): Promise<Donation | null> {
+    return this.prisma.donation.findFirst({ where: { extPaymentIntentId: paymentIntentId } })
+  }
+
+  async createDraftDonation(
     campaign: Campaign,
     paymentIntent: Stripe.PaymentIntent,
   ): Promise<Donation> {
     const campaignId = campaign.id
     const { currency } = campaign
-    const { amount, customer } = paymentIntent
-    Logger.log('[ DonateToCampaign ]', { campaignId, customer, amount })
+    const { amount } = paymentIntent
+    Logger.log('[ CreateDraftDonation ]', { campaignId, amount })
 
     /**
      * Create or connect campaign vault
@@ -92,14 +97,52 @@ export class CampaignService {
         targetVault,
         provider: PaymentProvider.stripe,
         type: DonationType.donation,
-        status: DonationStatus.succeeded,
-        extCustomerId: typeof customer === 'string' ? customer : customer?.id ?? 'none',
+        status: DonationStatus.waiting,
+        extCustomerId: this.getCustomerId(paymentIntent),
         extPaymentIntentId: paymentIntent.id,
-        extPaymentMethodId:
-          typeof paymentIntent.payment_method === 'string'
-            ? paymentIntent.payment_method
-            : paymentIntent.payment_method?.id ?? 'none',
+        extPaymentMethodId: this.getPaymentMehtodId(paymentIntent),
       },
+    })
+
+    return donation
+  }
+
+  async donateToCampaign(
+    campaign: Campaign,
+    paymentIntent: Stripe.PaymentIntent,
+  ): Promise<Donation> {
+    const campaignId = campaign.id
+    const { amount, customer } = paymentIntent
+    Logger.log('[ DonateToCampaign ]', { campaignId, customer, amount })
+
+    const vault = await this.getCampaignVault(campaignId)
+
+    /**
+     * Find or create a donation record by payment intent id
+     */
+    let donation: Donation | null = await this.getDonationByIntentId(paymentIntent.id)
+    if (!donation) {
+      donation = await this.createDraftDonation(campaign, paymentIntent)
+    }
+
+    const person = this.extractPersonFromIntent(paymentIntent)
+
+    /**
+     * Update status of donation
+     * Connect the donation to a person (by email)
+     * Person is created if not found
+     */
+    await this.prisma.donation.update({
+      data: {
+        status: DonationStatus.succeeded,
+        person: {
+          connectOrCreate: {
+            create: person,
+            where: { email: person.email },
+          },
+        },
+      },
+      where: { id: donation.id },
     })
 
     /**
@@ -129,5 +172,32 @@ export class CampaignService {
     }
 
     return true
+  }
+
+  private extractPersonFromIntent(
+    paymentIntent: Stripe.PaymentIntent,
+  ): Pick<Person, 'firstName' | 'lastName' | 'email' | 'stripeCustomerId'> {
+    const billingDetails = paymentIntent.charges.data.find(() => true)?.billing_details
+    const names = billingDetails?.name?.split(' ')
+    return {
+      firstName: names?.slice(0, -1).join(' ') ?? '',
+      lastName: names?.slice(-1).join(' ') ?? '',
+      email: billingDetails?.email ?? paymentIntent.receipt_email ?? '',
+      stripeCustomerId: this.getCustomerId(paymentIntent),
+    }
+  }
+
+  private getCustomerId(paymentIntent: Stripe.PaymentIntent): string | 'none' {
+    if (typeof paymentIntent.customer === 'string') {
+      return paymentIntent.customer
+    }
+    return paymentIntent.customer?.id ?? 'none'
+  }
+
+  private getPaymentMehtodId(paymentIntent: Stripe.PaymentIntent): string | 'none' {
+    if (typeof paymentIntent.payment_method === 'string') {
+      return paymentIntent.payment_method
+    }
+    return paymentIntent.payment_method?.id ?? 'none'
   }
 }
