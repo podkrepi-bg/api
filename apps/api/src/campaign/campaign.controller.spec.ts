@@ -1,7 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { PrismaService } from '../prisma/prisma.service'
-import { CampaignController } from './campaign.controller'
+
 import { CampaignService } from './campaign.service'
+import { PrismaService } from '../prisma/prisma.service'
+import { prismaMock } from '../prisma/prisma-client.mock'
+import { CampaignController } from './campaign.controller'
 
 describe('CampaignController', () => {
   let controller: CampaignController
@@ -9,7 +11,13 @@ describe('CampaignController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CampaignController],
-      providers: [CampaignService, PrismaService],
+      providers: [
+        CampaignService,
+        {
+          provide: PrismaService,
+          useValue: prismaMock,
+        },
+      ],
     }).compile()
 
     controller = module.get<CampaignController>(CampaignController)

@@ -22,7 +22,9 @@ Table Person {
   birthday DateTime
   personalNumber String [unique, note: 'Uniform Civil Number (NCN, EGN)
 https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
-  keycloakId String
+  keycloakId String [unique]
+  stripeCustomerId String [unique]
+  Donation Donation [not null]
   expenses Expense [not null]
   documents Document [not null]
   transfers Transfer [not null]
@@ -108,6 +110,14 @@ Table CampaignType {
   campaigns Campaign [not null]
 }
 
+Table CampaignSummary {
+  campaignId String [pk]
+  reachedAmount Int [default: 0]
+  campaign Campaign [not null]
+
+  Note: '@view'
+}
+
 Table Campaign {
   id String [pk]
   state CampaignState [not null, default: 'draft']
@@ -120,7 +130,6 @@ Table Campaign {
   approvedById String
   description String
   targetAmount Int [default: 0]
-  reachedAmount Int [default: 0]
   currency Currency [not null, default: 'BGN']
   startDate DateTime
   endDate DateTime
@@ -134,6 +143,7 @@ Table Campaign {
   incomingTransfers Transfer [not null]
   outgoingTransfers Transfer [not null]
   withdrawals Withdrawal [not null]
+  summary CampaignSummary [not null]
 }
 
 Table InfoRequest {
@@ -217,13 +227,17 @@ Table Donation {
   type DonationType [not null]
   status DonationStatus [not null, default: 'initial']
   provider PaymentProvider [not null, default: 'none']
+  personId String
+  currency Currency [not null, default: 'BGN']
+  amount Int [not null, default: 0]
   targetVaultId String [not null, note: 'Vault where the funds are going']
   extCustomerId String [not null, note: 'Payment provider attributes']
-  extPaymentIntentId String [not null]
+  extPaymentIntentId String [unique, not null]
   extPaymentMethodId String [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   targetVault Vault [not null]
+  person Person
 }
 
 Table RecurringDonation {
@@ -231,6 +245,8 @@ Table RecurringDonation {
   status RecurringDonationStatus [not null]
   vaultId String [not null]
   personId String [not null]
+  currency Currency [not null, default: 'BGN']
+  amount Int [not null, default: 0]
   extSubscriptionId String [not null, note: 'Payment provider Subscription id']
   extCustomerId String
   createdAt DateTime [default: `now()`, not null]
@@ -304,6 +320,8 @@ Table BankAccount {
 Table Expense {
   id String [pk]
   type ExpenseType [not null]
+  currency Currency [not null, default: 'BGN']
+  amount Int [not null, default: 0]
   description String
   vaultId String [not null]
   documentId String
@@ -481,6 +499,8 @@ Ref: Beneficiary.companyId > Company.id
 
 Ref: CampaignType.parentId - CampaignType.id
 
+Ref: CampaignSummary.campaignId > Campaign.id
+
 Ref: Campaign.approvedById > Person.id
 
 Ref: Campaign.beneficiaryId > Beneficiary.id
@@ -496,6 +516,8 @@ Ref: City.countryId > Country.id
 Ref: Vault.campaignId > Campaign.id
 
 Ref: Donation.targetVaultId > Vault.id
+
+Ref: Donation.personId > Person.id [delete: SetNull]
 
 Ref: RecurringDonation.vaultId > Vault.id
 

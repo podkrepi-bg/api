@@ -1,3 +1,4 @@
+import { Donation } from '../../donation/entities/donation.entity'
 import { Expense } from '../../expense/entities/expense.entity'
 import { Document } from '../../document/entities/document.entity'
 import { Transfer } from '../../transfer/entities/transfer.entity'
@@ -25,6 +26,8 @@ export class Person {
   birthday: Date | null
   personalNumber: string | null
   keycloakId: string | null
+  stripeCustomerId: string | null
+  Donation?: Donation[]
   expenses?: Expense[]
   documents?: Document[]
   transfers?: Transfer[]

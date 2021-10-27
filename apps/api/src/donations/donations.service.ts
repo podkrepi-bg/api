@@ -39,6 +39,9 @@ export class DonationsService {
       subscription_data: mode === 'subscription' ? { metadata } : undefined,
       success_url: sessionDto.successUrl ?? `${appUrl}/success`,
       cancel_url: sessionDto.cancelUrl ?? `${appUrl}/canceled`,
+      tax_id_collection: {
+        enabled: true,
+      },
     })
     return { session }
   }

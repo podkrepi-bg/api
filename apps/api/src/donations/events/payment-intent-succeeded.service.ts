@@ -11,24 +11,24 @@ export class PaymentSucceededService {
 
   @StripeWebhookHandler('payment_intent.succeeded')
   async handlePaymentIntentSucceeded(event: Stripe.Event) {
-    const stripeObject: Stripe.PaymentIntent = event.data.object as Stripe.PaymentIntent
+    const paymentIntent: Stripe.PaymentIntent = event.data.object as Stripe.PaymentIntent
     Logger.log(
       '[ handlePaymentIntentSucceeded ]',
-      stripeObject,
-      stripeObject.metadata as DonationMetadata,
+      paymentIntent,
+      paymentIntent.metadata as DonationMetadata,
     )
 
-    const metadata: DonationMetadata = stripeObject.metadata as DonationMetadata
+    const metadata: DonationMetadata = paymentIntent.metadata as DonationMetadata
     if (!metadata.campaignId) {
       throw new BadRequestException('Campaign not attached to payment intent')
     }
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
 
-    if (campaign.currency !== stripeObject.currency.toUpperCase()) {
+    if (campaign.currency !== paymentIntent.currency.toUpperCase()) {
       throw new BadRequestException('Donation in different currency is not allowed')
     }
 
-    await this.campaignService.donateToCampaign(campaign.id, stripeObject.amount)
+    await this.campaignService.donateToCampaign(campaign, paymentIntent)
   }
 }

@@ -5,7 +5,6 @@ export class UpdateCampaignDto {
   coordinatorId?: string
   description?: string
   targetAmount?: number
-  reachedAmount?: number
   startDate?: Date
   endDate?: Date
   deletedAt?: Date

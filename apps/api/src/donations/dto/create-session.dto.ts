@@ -25,12 +25,16 @@ export class CreateSessionDto {
   @ApiProperty()
   @Expose()
   @IsOptional()
-  @IsUrl()
+  @IsUrl({
+    require_tld: process.env.NODE_ENV !== 'development',
+  })
   successUrl: string
 
   @ApiProperty()
   @Expose()
   @IsOptional()
-  @IsUrl()
+  @IsUrl({
+    require_tld: process.env.NODE_ENV !== 'development',
+  })
   cancelUrl: string
 }

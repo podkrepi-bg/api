@@ -10,4 +10,5 @@ export class UpdatePersonDto {
   birthday?: Date
   personalNumber?: string
   keycloakId?: string
+  stripeCustomerId?: string
 }
