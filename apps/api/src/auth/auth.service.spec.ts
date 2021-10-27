@@ -1,7 +1,9 @@
 import { mockDeep } from 'jest-mock-extended'
+import KeycloakConnect, { Grant } from 'keycloak-connect'
 import { ConfigService } from '@nestjs/config'
 import { plainToClass } from 'class-transformer'
 import { Test, TestingModule } from '@nestjs/testing'
+import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
 
 import { LoginDto } from './dto/login.dto'
@@ -9,6 +11,7 @@ import { AuthService } from './auth.service'
 import { RegisterDto } from './dto/register.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { prismaMock } from '../prisma/prisma-client.mock'
+import { UnauthorizedException } from '@nestjs/common'
 
 jest.mock('@keycloak/keycloak-admin-client')
 
@@ -16,6 +19,7 @@ describe('AuthService', () => {
   let service: AuthService
   let config: ConfigService
   let admin: KeycloakAdminClient
+  let keycloak: KeycloakConnect.Keycloak
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -39,12 +43,17 @@ describe('AuthService', () => {
           provide: PrismaService,
           useValue: prismaMock,
         },
+        {
+          provide: KEYCLOAK_INSTANCE,
+          useValue: mockDeep<KeycloakConnect.Keycloak>(),
+        },
       ],
     }).compile()
 
     service = module.get<AuthService>(AuthService)
     config = module.get<ConfigService>(ConfigService)
     admin = module.get<KeycloakAdminClient>(KeycloakAdminClient)
+    keycloak = module.get<KeycloakConnect.Keycloak>(KEYCLOAK_INSTANCE)
   })
 
   it('should be defined', () => {
@@ -56,20 +65,18 @@ describe('AuthService', () => {
     const password = 's3cret'
 
     it('should call auth', async () => {
-      admin.accessToken = 't23456'
       const tokenSpy = jest.spyOn(service, 'issueToken')
-      expect(await service.issueToken(email, password)).toBe('t23456')
-      expect(tokenSpy).toHaveBeenCalledWith(email, password)
-      expect(config.get).toHaveBeenCalled()
-      expect(config.get).toHaveBeenCalledWith('keycloak.clientId')
-      expect(config.get).toHaveBeenCalledWith('keycloak.secret')
-      expect(admin.auth).toHaveBeenCalledWith({
-        clientId: 'realm-a12345',
-        clientSecret: 'a12345',
-        grantType: 'password',
-        username: email,
-        password,
+      const token = mockDeep<Grant>({
+        access_token: { token: 't23456' },
       })
+      const keycloakSpy = jest
+        .spyOn(keycloak.grantManager, 'obtainDirectly')
+        .mockResolvedValue(token)
+
+      expect(await service.issueToken(email, password)).toBe('t23456')
+      expect(keycloakSpy).toHaveBeenCalledWith(email, password)
+      expect(tokenSpy).toHaveBeenCalledWith(email, password)
+      expect(admin.auth).not.toHaveBeenCalled()
     })
   })
 
@@ -78,47 +85,42 @@ describe('AuthService', () => {
     const password = 's3cret'
 
     it('should call issueToken', async () => {
-      admin.accessToken = 't23456'
+      const token = mockDeep<Grant>({
+        access_token: { token: 't23456' },
+      })
+      const keycloakSpy = jest
+        .spyOn(keycloak.grantManager, 'obtainDirectly')
+        .mockResolvedValue(token)
       const loginDto = plainToClass(LoginDto, { email, password })
       const loginSpy = jest.spyOn(service, 'login')
       const issueTokenSpy = jest.spyOn(service, 'issueToken')
 
       expect(await service.login(loginDto)).toBeObject()
       expect(loginSpy).toHaveBeenCalledWith(loginDto)
+      expect(keycloakSpy).toHaveBeenCalledWith(email, password)
       expect(issueTokenSpy).toHaveBeenCalledWith(email, password)
-      expect(admin.auth).toHaveBeenCalledWith({
-        clientId: 'realm-a12345',
-        clientSecret: 'a12345',
-        grantType: 'password',
-        username: email,
-        password,
-      })
+      expect(admin.auth).not.toHaveBeenCalled()
     })
 
     it('should handle bad password on login', async () => {
-      admin.accessToken = 't23456'
+      const keycloakSpy = jest
+        .spyOn(keycloak.grantManager, 'obtainDirectly')
+        .mockRejectedValue(new Error('401:Unauthorized'))
       const loginDto = plainToClass(LoginDto, { email, password })
       const loginSpy = jest.spyOn(service, 'login')
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
-      const issueTokenSpy = jest.spyOn(service, 'issueToken').mockRejectedValue({
-        message: 'Request failed with status code 401',
-        response: {
-          data: {
-            error: 'invalid_grant',
-            error_description: 'Invalid user credentials',
-          },
-        },
-      })
+      const issueTokenSpy = jest.spyOn(service, 'issueToken')
 
-      expect(await service.login(loginDto)).toEqual({
-        error: 'Request failed with status code 401',
-        data: {
-          error: 'invalid_grant',
-          error_description: 'Invalid user credentials',
-        },
-      })
+      try {
+        await service.login(loginDto)
+      } catch (error) {
+        expect(error).toBeInstanceOf(UnauthorizedException)
+        expect(error.message).toBe('401:Unauthorized')
+      }
+
       expect(loginSpy).toHaveBeenCalledWith(loginDto)
       expect(issueTokenSpy).toHaveBeenCalledWith(email, password)
+      expect(keycloakSpy).toHaveBeenCalledWith(email, password)
       expect(consoleSpy).toBeCalled()
       consoleSpy.mockRestore()
     })
@@ -156,6 +158,15 @@ describe('AuthService', () => {
       expect(await service.createUser(registerDto)).toBe(person)
       expect(createUserSpy).toHaveBeenCalledWith(registerDto)
 
+      expect(config.get).toHaveBeenCalled()
+      expect(config.get).toHaveBeenCalledWith('keycloak.clientId')
+      expect(config.get).toHaveBeenCalledWith('keycloak.secret')
+      expect(admin.auth).toHaveBeenCalledWith({
+        clientId: 'realm-a12345',
+        clientSecret: 'a12345',
+        grantType: 'client_credentials',
+      })
+
       // Check keycloak creation
       expect(adminSpy).toHaveBeenCalledWith({
         username: email,
@@ -166,7 +177,7 @@ describe('AuthService', () => {
         emailVerified: true,
         groups: [],
         requiredActions: ['VERIFY_EMAIL'],
-        attributes: {},
+        attributes: { selfReg: true },
         credentials: [
           {
             type: 'password',
