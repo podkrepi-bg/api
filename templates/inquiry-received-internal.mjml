@@ -29,7 +29,7 @@
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
           padding-right="25px">
-          Това е автоматичен e-mail, който известява, че е получено ново запитване от потребител {{firstName}} {{lastName}} <a href="mailto:{{email}}">{{email}}</a>
+          Това е автоматичен e-mail, който известява, че е получено ново запитване от {{firstName}} {{lastName}} <a href="mailto:{{email}}">{{email}}</a>
           <br /><br />
           <i>"{{message}}"</i>
         </mj-text>

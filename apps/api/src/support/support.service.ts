@@ -39,6 +39,7 @@ export class SupportService {
   ): Promise<Pick<InfoRequest, 'id' | 'personId'>> {
     const request = await this.prisma.infoRequest.create({ data: inputDto.toEntity() })
     this.sendInquiryReceivedEmail(inputDto)
+    this.sendInquiryReceivedInternalEmail(inputDto)
 
     return {
       id: request.id,
@@ -55,7 +56,7 @@ export class SupportService {
   }
 
   async sendWelcomeInternalEmail(inputDto: CreateRequestDto) {
-    this.email.sendFromTemplate('welcome-internal', inputDto, { to: [this.internalNotifications] });
+    this.email.sendFromTemplate('welcome-internal', { info: JSON.stringify(inputDto, null, 4) }, { to: [this.internalNotifications] });
   }
 
   async sendInquiryReceivedEmail(inputDto: CreateInquiryDto) {
