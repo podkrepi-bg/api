@@ -135,6 +135,8 @@ export class CampaignService {
     await this.prisma.donation.update({
       data: {
         status: DonationStatus.succeeded,
+        extCustomerId: this.getCustomerId(paymentIntent),
+        extPaymentMethodId: this.getPaymentMehtodId(paymentIntent),
         person: {
           connectOrCreate: {
             create: person,
