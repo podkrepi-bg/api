@@ -1,8 +1,10 @@
+import { Person } from '.prisma/client'
 import { mockDeep } from 'jest-mock-extended'
-import KeycloakConnect, { Grant } from 'keycloak-connect'
 import { ConfigService } from '@nestjs/config'
 import { plainToClass } from 'class-transformer'
 import { Test, TestingModule } from '@nestjs/testing'
+import { UnauthorizedException } from '@nestjs/common'
+import KeycloakConnect, { Grant } from 'keycloak-connect'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
 
@@ -11,7 +13,6 @@ import { AuthService } from './auth.service'
 import { RegisterDto } from './dto/register.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { prismaMock } from '../prisma/prisma-client.mock'
-import { UnauthorizedException } from '@nestjs/common'
 
 jest.mock('@keycloak/keycloak-admin-client')
 
@@ -137,7 +138,7 @@ describe('AuthService', () => {
       const registerDto = plainToClass(RegisterDto, { email, password, firstName, lastName })
       const createUserSpy = jest.spyOn(service, 'createUser')
       const adminSpy = jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
-      const person = {
+      const person: Person = {
         id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
         firstName,
         lastName,
@@ -152,6 +153,7 @@ describe('AuthService', () => {
         address: null,
         birthday: null,
         personalNumber: null,
+        stripeCustomerId: null,
       }
       const prismaSpy = jest.spyOn(prismaMock.person, 'upsert').mockResolvedValue(person)
 
