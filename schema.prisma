@@ -46,7 +46,9 @@ model Person {
   /// Uniform Civil Number (NCN, EGN)
   /// https://en.wikipedia.org/wiki/National_identification_number#Bulgaria
   personalNumber     String?             @unique @map("personal_number")
-  keycloakId         String?             @map("keycloak_id") @db.Uuid
+  keycloakId         String?             @unique @map("keycloak_id") @db.Uuid
+  stripeCustomerId   String?             @unique @map("stripe_customer_id")
+  Donation           Donation[]
   expenses           Expense[]
   documents          Document[]
   transfers          Transfer[]
@@ -59,8 +61,8 @@ model Person {
   coordinators       Coordinator[]
   recurringDonations RecurringDonation[]
 
-  Donation Donation[]
   @@index([keycloakId], map: "keycloak_id_idx")
+  @@index([stripeCustomerId], map: "stripe_customer_id_idx")
   @@map("people")
 }
 

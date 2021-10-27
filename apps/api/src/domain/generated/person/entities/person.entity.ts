@@ -1,3 +1,4 @@
+import { Donation } from '../../donation/entities/donation.entity'
 import { Expense } from '../../expense/entities/expense.entity'
 import { Document } from '../../document/entities/document.entity'
 import { Transfer } from '../../transfer/entities/transfer.entity'
@@ -9,7 +10,6 @@ import { Beneficiary } from '../../beneficiary/entities/beneficiary.entity'
 import { InfoRequest } from '../../infoRequest/entities/infoRequest.entity'
 import { Coordinator } from '../../coordinator/entities/coordinator.entity'
 import { RecurringDonation } from '../../recurringDonation/entities/recurringDonation.entity'
-import { Donation } from '../../donation/entities/donation.entity'
 
 export class Person {
   id: string
@@ -26,6 +26,8 @@ export class Person {
   birthday: Date | null
   personalNumber: string | null
   keycloakId: string | null
+  stripeCustomerId: string | null
+  Donation?: Donation[]
   expenses?: Expense[]
   documents?: Document[]
   transfers?: Transfer[]
@@ -37,5 +39,4 @@ export class Person {
   infoRequests?: InfoRequest[]
   coordinators?: Coordinator[]
   recurringDonations?: RecurringDonation[]
-  Donation?: Donation[]
 }

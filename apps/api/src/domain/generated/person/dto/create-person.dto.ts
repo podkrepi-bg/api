@@ -10,4 +10,5 @@ export class CreatePersonDto {
   birthday?: Date
   personalNumber?: string
   keycloakId?: string
+  stripeCustomerId?: string
 }
