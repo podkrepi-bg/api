@@ -1,7 +1,7 @@
 import { Campaign } from '../../campaign/entities/campaign.entity'
 
 export class CampaignSummary {
-  id: string
-  campaign?: Campaign
+  campaignId: string
   reachedAmount: number | null
+  campaign?: Campaign
 }

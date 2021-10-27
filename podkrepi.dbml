@@ -110,9 +110,9 @@ Table CampaignType {
 }
 
 Table CampaignSummary {
-  id String [pk]
-  campaign Campaign [not null]
+  campaignId String [pk]
   reachedAmount Int [default: 0]
+  campaign Campaign [not null]
 
   Note: '@view'
 }
@@ -498,7 +498,7 @@ Ref: Beneficiary.companyId > Company.id
 
 Ref: CampaignType.parentId - CampaignType.id
 
-Ref: CampaignSummary.id > Campaign.id
+Ref: CampaignSummary.campaignId > Campaign.id
 
 Ref: Campaign.approvedById > Person.id
 

@@ -1,3 +1,3 @@
 export class ConnectCampaignSummaryDto {
-  id: string
+  campaignId: string
 }
