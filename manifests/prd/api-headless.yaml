@@ -32,7 +32,7 @@ spec:
     spec:
       initContainers:
         - name: migrate-database
-          image: ghcr.io/podkrepi-bg/api/migrations:v0.1.2
+          image: ghcr.io/podkrepi-bg/api/migrations:v0.2.0
           env:
             - name: NODE_ENV
               value: production
