@@ -109,3 +109,18 @@ spec:
                 secretKeyRef:
                   name: stripe-headless
                   key: webhookSecret
+            - name: SENDGRID_SENDER_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: stripe-config
+                  key: sender-email
+            - name: SENDGRID_INTERNAL_NOTIFICATIONS_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: stripe-config
+                  key: internal-notifications-email
+            - name: SENDGRID_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: stripe-secret
+                  key: apikey
