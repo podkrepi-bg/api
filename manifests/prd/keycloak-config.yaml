@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: keycloak-headless
+  name: keycloak-config
   namespace: podkrepibg
 data:
   url: https://keycloak.podkrepi.bg/auth

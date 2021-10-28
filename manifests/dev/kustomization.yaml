@@ -5,5 +5,8 @@ namespace: podkrepibg-dev
 
 resources:
  - keycloak-config.yaml
+ - keycloak-secret.local.yaml
  - sendgrid-config.yaml
+ - sendgrid-secret.local.yaml
+ - stripe-secret.local.yaml
  - api-headless.yaml

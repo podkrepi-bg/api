@@ -82,32 +82,32 @@ spec:
             - name: KEYCLOAK_URL
               valueFrom:
                 configMapKeyRef:
-                  name: keycloak-headless
+                  name: keycloak-config
                   key: url
             - name: KEYCLOAK_REALM
               valueFrom:
                 configMapKeyRef:
-                  name: keycloak-headless
+                  name: keycloak-config
                   key: realm
             - name: KEYCLOAK_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
-                  name: keycloak-headless
+                  name: keycloak-config
                   key: client-id
             - name: KEYCLOAK_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: keycloak-headless
+                  name: keycloak-secret
                   key: secret
             - name: STRIPE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: stripe-headless
+                  name: stripe-secret
                   key: apikey
             - name: STRIPE_WEBHOOK_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: stripe-headless
+                  name: stripe-secret
                   key: webhookSecret
             - name: SENDGRID_SENDER_EMAIL
               valueFrom:
