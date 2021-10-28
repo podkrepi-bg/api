@@ -112,15 +112,15 @@ spec:
             - name: SENDGRID_SENDER_EMAIL
               valueFrom:
                 configMapKeyRef:
-                  name: stripe-config
+                  name: sendgrid-config
                   key: sender-email
             - name: SENDGRID_INTERNAL_NOTIFICATIONS_EMAIL
               valueFrom:
                 configMapKeyRef:
-                  name: stripe-config
+                  name: sendgrid-config
                   key: internal-notifications-email
             - name: SENDGRID_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: stripe-secret
+                  name: sendgrid-secret
                   key: apikey
