@@ -4,6 +4,6 @@ kind: Kustomization
 namespace: podkrepibg-dev
 
 resources:
- - api-headless.yaml
  - keycloak-config.yaml
  - sendgrid-config.yaml
+ - api-headless.yaml
