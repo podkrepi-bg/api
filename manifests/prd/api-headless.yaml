@@ -124,3 +124,25 @@ spec:
                 secretKeyRef:
                   name: sendgrid-secret
                   key: apikey
+            - name: SENTRY_DSN
+              valueFrom:
+                configMapKeyRef:
+                  name: sentry-config
+                  key: dsn-api
+            - name: SENTRY_ORG
+              valueFrom:
+                configMapKeyRef:
+                  name: sentry-config
+                  key: org
+            - name: SENTRY_PROJECT
+              valueFrom:
+                configMapKeyRef:
+                  name: sentry-config
+                  key: project-api
+            - name: SENTRY_AUTH_TOKEN
+              value: ''
+            - name: SENTRY_SERVER_ROOT_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: sentry-config
+                  key: server-root-dir

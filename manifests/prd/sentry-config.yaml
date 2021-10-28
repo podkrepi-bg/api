@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sentry-config
+  namespace: podkrepibg
+data:
+  dsn-api: https://58b71cdea21f45c0bcbe5c1b49317973@o540074.ingest.sentry.io/5707518
+  dsn-front: https://e25f62860a394934878c2e21306a6b66@o540074.ingest.sentry.io/5657969
+  org: podkrepibg
+  project-api: rest-api
+  project-front: app
+  server-root-dir: /app

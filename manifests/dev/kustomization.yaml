@@ -9,4 +9,5 @@ resources:
  - sendgrid-config.yaml
  - sendgrid-secret.local.yaml
  - stripe-secret.local.yaml
+ - sentry-config.yaml
  - api-headless.yaml
