@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sendgrid-config
+data:
+  sender-email: info@podkrepi.bg
+  internal-notifications-email: qa@podkrepi.bg
