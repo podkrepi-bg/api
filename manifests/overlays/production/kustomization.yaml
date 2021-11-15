@@ -15,6 +15,6 @@ patches:
 
 images:
 - name: ghcr.io/podkrepi-bg/api
-  newTag: v0.3.1
+  newTag: v0.3.2
 - name: ghcr.io/podkrepi-bg/api/migrations
   newTag: v0.3.0
