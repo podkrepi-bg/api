@@ -91,7 +91,7 @@
       "nx affected:lint --uncommitted --fix --parallel"
     ],
     "*.{ts,tsx,js,json}": [
-      "nx format:write --uncommitted"
+      "nx format:write --uncommitted --exclude:manifests"
     ]
   },
   "resolutions": {
