@@ -4,15 +4,16 @@ kind: Deployment
 metadata:
   name: api-headless
 spec:
+  selector:
+    matchLabels:
+      app: api-headless
   template:
     spec:
       initContainers:
         - name: migrate-database
-          image: ghcr.io/podkrepi-bg/api/migrations:v0.2.0
           imagePullPolicy: IfNotPresent
       containers:
         - name: api-headless
-          image: ghcr.io/podkrepi-bg/api:v0.2.0
           imagePullPolicy: IfNotPresent
           env:
             - name: APP_ENV
