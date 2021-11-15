@@ -7,4 +7,5 @@ resources:
  - keycloak-config.yaml
  - sendgrid-config.yaml
  - sentry-config.yaml
- - api-headless.yaml
+ - service.yaml
+ - deployment.yaml

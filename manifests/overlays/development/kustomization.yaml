@@ -13,7 +13,7 @@ resources:
 
 patches:
   - path: keycloak-config.patch.yaml
-  - path: api-headless.patch.yaml
+  - path: deployment.patch.yaml
 
 images:
   - name: ghcr.io/podkrepi-bg/api/migrations
