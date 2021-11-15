@@ -20,5 +20,5 @@ git pull origin master && \
 git push origin master && \
 echo "Bump version" && \
 yarn version --$VERSION_TYPE --message 'Release version' && \
-git push --tags origin master && \
+# git push --tags origin master && \
 echo "Done!"

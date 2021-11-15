@@ -1,6 +1,6 @@
 {
   "name": "podkrepi-bg-api",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "MIT",
   "repository": "https://github.com/orgs/podkrepi-bg",
   "scripts": {
@@ -18,7 +18,8 @@
     "generate-schema": "yarn prisma generate && yarn format",
     "studio": "yarn prisma studio",
     "release": "./manifests/release.sh",
-    "release:patch": "./manifests/release.sh patch"
+    "release:patch": "./manifests/release.sh patch",
+    "postversion": "./manifests/postrelease.sh v$npm_package_version"
   },
   "dependencies": {
     "@golevelup/nestjs-stripe": "0.2.2",
