@@ -14,7 +14,7 @@ patches:
 - path: deployment.patch.yaml
 
 images:
-- name: ghcr.io/podkrepi-bg/api
-  newTag: v0.3.3
 - name: ghcr.io/podkrepi-bg/api/migrations
+  newTag: v0.3.3
+- name: ghcr.io/podkrepi-bg/api
   newTag: v0.3.3
