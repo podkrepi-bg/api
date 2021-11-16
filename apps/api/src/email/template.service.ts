@@ -1,49 +1,54 @@
-import { Logger } from '@nestjs/common'
-import { Injectable } from '@nestjs/common'
-import { readFile } from 'fs/promises'
+import path from 'path'
 import mjml from 'mjml'
 import Handlebars from 'handlebars'
-import { TemplateData } from './template.interface'
+import { readFile } from 'fs/promises'
+import { Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 
-export interface Template {
-  html: string
-  email: {
-    subject: string
-  }
-}
+import { EmailTemplate, BuiltTemplate, TemplateType, EmailMetadata } from './template.interface'
 
 @Injectable()
 export class TemplateService {
-  async getTemplate(templateData: TemplateData): Promise<Template> {
+  async getTemplate<C>({ name, data }: EmailTemplate<C>): Promise<BuiltTemplate> {
     try {
-      // read the file
-      const file = await readFile(`./templates/${templateData.name}.mjml`, {
-        encoding: 'utf-8',
-      })
       // pass it through mjml to produce html template
-      const result = mjml(file)
+      const result = await this.getEmailTemplate(name)
       // compile the handlebar template
-      const template = Handlebars.compile(result.html)
+      const template = Handlebars.compile<typeof data>(result.html)
       // build the final html
-      const html = template(templateData.data)
+      const html = template(data)
       // extract extra info (e.g. subject)
-      const email = await this.getEmailData(`./templates/${templateData.name}.json`)
-      return {
-        html,
-        email,
-      }
+      const metadata = await this.getEmailData(name)
+      return { html, metadata }
     } catch (err) {
-      Logger.error(`can not get html from template=${templateData.name}`, err)
+      Logger.error(`can not get html from template=${name}`, err)
       throw err
     }
   }
 
-  async getEmailData(path: string) {
+  private async getEmailTemplate(templateName: TemplateType): Promise<ReturnType<typeof mjml>> {
     try {
-      const contents = await readFile(path, { encoding: 'utf-8' })
+      const file = await readFile(
+        path.resolve(__dirname, `./assets/templates/${templateName}.mjml`),
+        { encoding: 'utf-8' },
+      )
+      return mjml(file)
+    } catch (error) {
+      Logger.error(`getEmailTemplate`, error)
+      throw error
+    }
+  }
+
+  private async getEmailData(templateName: string): Promise<EmailMetadata> {
+    try {
+      const contents = await readFile(
+        path.resolve(__dirname, `./assets/templates/${templateName}.json`),
+        { encoding: 'utf-8' },
+      )
       return JSON.parse(contents)
-    } catch {
-      return {}
+    } catch (error) {
+      Logger.error(`getEmailData`, error)
+      throw error
     }
   }
 }

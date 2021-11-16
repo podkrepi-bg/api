@@ -21,7 +21,7 @@ export default () => ({
   sendgrid: {
     apiKey: process.env.SENDGRID_API_KEY,
     sender: process.env.SENDGRID_SENDER_EMAIL,
-    internalNotificationsEmail: process.env.SENDGRID_INTERNAL_NOTIFICATIONS_EMAIL
+    internalNotificationsEmail: process.env.SENDGRID_INTERNAL_EMAIL,
   },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY,

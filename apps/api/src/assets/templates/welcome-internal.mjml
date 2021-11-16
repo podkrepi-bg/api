@@ -16,8 +16,8 @@
           padding-right="25px"
           padding-bottom="30px"
           padding-top="50px">
-          Нов поддръжник на Подкрепи.бг!</mj-text
-        >
+          Нов поддръжник на Подкрепи.бг!
+        </mj-text>
       </mj-column>
     </mj-section>
     <mj-section background-color="#009fe3" padding-bottom="20px" padding-top="20px">
