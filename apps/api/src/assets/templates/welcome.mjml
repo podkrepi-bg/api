@@ -16,8 +16,8 @@
           padding-right="25px"
           padding-bottom="30px"
           padding-top="50px">
-          Добре дошъл в Подкрепи.бг</mj-text
-        >
+          Добре дошъл в Подкрепи.бг
+        </mj-text>
       </mj-column>
     </mj-section>
     <mj-section background-color="#009fe3" padding-bottom="20px" padding-top="20px">
@@ -56,8 +56,8 @@
           padding-left="25px"
           padding-right="25px">
           Поздрави, <br />
-          Екипът на Подкрепи.бг</mj-text
-        >
+          Екипът на Подкрепи.бг
+        </mj-text>
       </mj-column>
     </mj-section>
   </mj-body>

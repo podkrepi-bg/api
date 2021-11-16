@@ -98,7 +98,7 @@ spec:
                 configMapKeyRef:
                   name: sendgrid-config
                   key: sender-email
-            - name: SENDGRID_INTERNAL_NOTIFICATIONS_EMAIL
+            - name: SENDGRID_INTERNAL_EMAIL
               valueFrom:
                 configMapKeyRef:
                   name: sendgrid-config

@@ -18,7 +18,6 @@ export class SupportController {
   @Post('create-request')
   @Public()
   async postSupporter(@Body() createDto: CreateRequestDto) {
-    console.log(createDto)
     return await this.supportService.createSupporter(createDto)
   }
 
@@ -34,7 +33,6 @@ export class SupportController {
   @Post('create-inquiry')
   @Public()
   async postInfoRequest(@Body() createDto: CreateInquiryDto) {
-    console.log(createDto)
     return await this.supportService.createInfoRequest(createDto)
   }
 

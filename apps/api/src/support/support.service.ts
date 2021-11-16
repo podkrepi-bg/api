@@ -1,26 +1,29 @@
 import { Injectable } from '@nestjs/common'
-import { InfoRequest, Supporter } from '.prisma/client'
 import { ConfigService } from '@nestjs/config'
-import { PrismaService } from '../prisma/prisma.service'
-import { CreateRequestDto } from './dto/create-request.dto'
-import { CreateInquiryDto } from './dto/create-inquiry.dto'
+import { InfoRequest, Supporter } from '.prisma/client'
+
+import {
+  InquiryReceivedEmailDto,
+  InquiryReceivedInternalEmailDto,
+  WelcomeEmailDto,
+  WelcomeInternalEmailDto,
+} from '../email/template.interface'
 import { EmailService } from '../email/email.service'
-import { TemplateService } from '../email/template.service'
+import { PrismaService } from '../prisma/prisma.service'
+import { CreateInquiryDto } from './dto/create-inquiry.dto'
+import { CreateRequestDto } from './dto/create-request.dto'
+
 @Injectable()
 export class SupportService {
-  internalNotifications: string
-
   constructor(
     private prisma: PrismaService,
-    private email: EmailService,
-    private template: TemplateService,
+    private emailService: EmailService,
     private config: ConfigService,
-  ) {
-    this.internalNotifications = this.config.get<string>('sendgrid.internalNotificationsEmail') ?? 'info@podkrepi.bg'
-  }
+  ) {}
 
   async createSupporter(inputDto: CreateRequestDto): Promise<Pick<Supporter, 'id' | 'personId'>> {
     const request = await this.prisma.supporter.create({ data: inputDto.toEntity() })
+
     this.sendWelcomeEmail(inputDto)
     this.sendWelcomeInternalEmail(inputDto)
 
@@ -38,6 +41,7 @@ export class SupportService {
     inputDto: CreateInquiryDto,
   ): Promise<Pick<InfoRequest, 'id' | 'personId'>> {
     const request = await this.prisma.infoRequest.create({ data: inputDto.toEntity() })
+
     this.sendInquiryReceivedEmail(inputDto)
     this.sendInquiryReceivedInternalEmail(inputDto)
 
@@ -52,18 +56,28 @@ export class SupportService {
   }
 
   async sendWelcomeEmail(inputDto: CreateRequestDto) {
-    this.email.sendFromTemplate('welcome', inputDto, { to: [inputDto.person.email] });
+    const email = new WelcomeEmailDto(inputDto)
+    this.emailService.sendFromTemplate(email, { to: [inputDto.person.email] })
   }
 
   async sendWelcomeInternalEmail(inputDto: CreateRequestDto) {
-    this.email.sendFromTemplate('welcome-internal', { info: JSON.stringify(inputDto, null, 4) }, { to: [this.internalNotifications] });
+    const email = new WelcomeInternalEmailDto(inputDto)
+    this.emailService.sendFromTemplate(email, { to: [this.getInternalEmail()] })
   }
 
   async sendInquiryReceivedEmail(inputDto: CreateInquiryDto) {
-    this.email.sendFromTemplate('inquiry-received', inputDto, { to: [inputDto.email] });
+    const email = new InquiryReceivedEmailDto(inputDto)
+    this.emailService.sendFromTemplate(email, { to: [inputDto.email] })
   }
 
   async sendInquiryReceivedInternalEmail(inputDto: CreateInquiryDto) {
-    this.email.sendFromTemplate('inquiry-received-internal', inputDto, { to: [this.internalNotifications] });
+    const email = new InquiryReceivedInternalEmailDto(inputDto)
+    this.emailService.sendFromTemplate(email, { to: [this.getInternalEmail()] })
+  }
+
+  getInternalEmail(): string {
+    const internal = this.config.get<string>('sendgrid.internalNotificationsEmail')
+    if (!internal) throw new Error('Internal notification email is not defined')
+    return internal
   }
 }

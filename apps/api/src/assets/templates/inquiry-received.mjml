@@ -29,7 +29,7 @@
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
           padding-right="25px">
-          <span style="color: #feeb35"> Здравейте {{person.firstName}}, </span>
+          <span style="color: #feeb35"> Здравейте {{firstName}}, </span>
           <br /><br />
         </mj-text>
         <mj-text

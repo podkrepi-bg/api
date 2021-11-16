@@ -25,7 +25,6 @@ export class CampaignController {
   @Post('create-campaign')
   @Public()
   async create(@Body() createDto: CreateCampaignDto) {
-    console.log(createDto)
     return await this.campaignService.createCampaign(createDto)
   }
 }

@@ -1,10 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import sgMail from '@sendgrid/mail'
+import { ConfigService } from '@nestjs/config'
+import { Injectable, Logger } from '@nestjs/common'
 
 import { Email, EmailData } from './email.interface'
-import { TemplateName } from './template.interface'
 import { TemplateService } from './template.service'
+import { EmailTemplate } from './template.interface'
 
 @Injectable()
 export class EmailService {
@@ -32,19 +32,19 @@ export class EmailService {
     }
   }
 
-  async sendFromTemplate(templateName: TemplateName, data: unknown, emailInfo: Partial<Email> & { to: EmailData[] }) {
+  async sendFromTemplate<C>(
+    template: EmailTemplate<C>,
+    emailInfo: Partial<Email> & { to: EmailData[] },
+  ) {
     if (!emailInfo.to) {
-      throw new Error('emailInfo.to is required');
+      throw new Error('emailInfo.to is required')
     }
-    const { html, email } = await this.template.getTemplate({
-      name: templateName,
-      data,
-    })
+    const { html, metadata } = await this.template.getTemplate(template)
 
     this.send({
       to: emailInfo.to,
       from: emailInfo.from ?? this.emailSender,
-      subject: email.subject,
+      subject: metadata.subject,
       html,
     })
   }
