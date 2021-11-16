@@ -10,6 +10,7 @@ resources:
 - ../../base
 
 patches:
+- path: sendgrid-config.patch.yaml
 - path: keycloak-config.patch.yaml
 - path: deployment.patch.yaml
 
