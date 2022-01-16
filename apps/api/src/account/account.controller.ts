@@ -41,7 +41,7 @@ export class AccountController {
 
   @Get('me')
   @Public(false)
-  getHello(
+  getMe(
     @AuthenticatedUser()
     user: KeycloakTokenParsed,
   ) {
