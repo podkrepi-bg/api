@@ -36,7 +36,19 @@
 
 # Setup Development Environment (recommended)
 
-To run and develop the module NodeJS 16 is required. If you wish to keep your host clean, it is also possible to develop the module in a Docker container. You can do that by using the [Visual Studio Code](https://code.visualstudio.com/download)'s [Remote Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) and read [how to initialize your dev container](https://code.visualstudio.com/docs/remote/containers).
+To run and develop the module NodeJS 16 is required. In this section 2 ways of configuring a development environment are described.
+
+## Installing the dependencies
+
+The following dependencies are required in order to be able to run the project:
+
+- [NodeJS 16 LTS](https://nodejs.org/en/download/)
+- [yarn](https://classic.yarnpkg.com/lang/en/docs/install)
+- [Docker](https://www.docker.com/get-started) (to easily run a local database instance)
+
+## Development container
+
+If you wish to keep your host clean, it is also possible to develop the module in a Docker container. You can do that by using the [Visual Studio Code](https://code.visualstudio.com/download)'s [Remote Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) and read [how to initialize your dev container](https://code.visualstudio.com/docs/remote/containers).
 
 - Make sure you have the extension installed
 - Open the folder of the module in VS Code
@@ -65,9 +77,12 @@ This is needed first time only. We use [Prisma](https://www.prisma.io/) as Datab
 
 ```shell
 # Create db schema
-yarn prisma migrate dev
+yarn prisma migrate deploy
 
-# Add initial data
+# Generate the prisma clients
+yarn prisma generate
+
+# Seed initial test data
 yarn prisma db seed
 ```
 
@@ -140,6 +155,12 @@ yarn nest generate resource [name]
 ## Building
 
 Run `yarn build-all` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+
+## Formatting
+Make sure you run auto-formatting before you commit your changes.
+```shell
+yarn format
+```
 
 # Database Guidelines
 
