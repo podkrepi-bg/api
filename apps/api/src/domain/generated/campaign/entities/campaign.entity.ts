@@ -25,8 +25,8 @@ export class Campaign {
   updatedAt: Date | null
   deletedAt: Date | null
   approvedBy?: Person | null
-  beneficiaries?: Beneficiary
-  campaignTypes?: CampaignType
+  beneficiary?: Beneficiary
+  campaignType?: CampaignType
   vaults?: Vault[]
   incomingTransfers?: Transfer[]
   outgoingTransfers?: Transfer[]

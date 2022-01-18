@@ -129,8 +129,8 @@ Table Campaign {
   updatedAt DateTime
   deletedAt DateTime
   approvedBy Person
-  beneficiaries Beneficiary [not null]
-  campaignTypes CampaignType [not null]
+  beneficiary Beneficiary [not null]
+  campaignType CampaignType [not null]
   vaults Vault [not null]
   incomingTransfers Transfer [not null]
   outgoingTransfers Transfer [not null]
