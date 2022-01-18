@@ -72,7 +72,7 @@ export class CampaignService {
       WHERE d.status = 'succeeded' and v.campaign_id = ${campaign.id}`
 
     //the query always return 1 record with the value as number or null if no donations where made yet
-    campaign['reachedAmount'] = reachedAmount[0]['reached_amount']
+    campaign["summary"] = [{ "reachedAmount": reachedAmount[0]["reached_amount"]}]
 
     return campaign
   }
