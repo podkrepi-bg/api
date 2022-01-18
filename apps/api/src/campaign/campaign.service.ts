@@ -14,7 +14,6 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
-import { logger } from 'handlebars'
 
 @Injectable()
 export class CampaignService {
@@ -32,10 +31,10 @@ export class CampaignService {
     })
 
     //TODO: remove this when Prisma 
-    for (let campaign of campaigns) {
+    for (const campaign of campaigns) {
       let campaignAmountReached = 0
-      for (let vault of campaign.vaults) {
-        for (let donation of vault.donations) {
+      for (const vault of campaign.vaults) {
+        for (const donation of vault.donations) {
           campaignAmountReached += donation.amount
         }
       }
@@ -65,7 +64,7 @@ export class CampaignService {
       throw new NotFoundException('No campaign record with slug: ' + slug)
     }
 
-    const reachedAmount: Object[] = await this.prisma.$queryRaw`
+    const reachedAmount: Record<string, number> = await this.prisma.$queryRaw`
       SELECT
       SUM(d.amount) as reached_amount
       FROM vaults v
