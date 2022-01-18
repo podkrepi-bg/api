@@ -110,14 +110,6 @@ Table CampaignType {
   campaigns Campaign [not null]
 }
 
-Table CampaignSummary {
-  campaignId String [pk]
-  reachedAmount Int [default: 0]
-  campaign Campaign [not null]
-
-  Note: '@view'
-}
-
 Table Campaign {
   id String [pk]
   state CampaignState [not null, default: 'draft']
@@ -143,7 +135,6 @@ Table Campaign {
   incomingTransfers Transfer [not null]
   outgoingTransfers Transfer [not null]
   withdrawals Withdrawal [not null]
-  summary CampaignSummary [not null]
 }
 
 Table InfoRequest {
@@ -499,8 +490,6 @@ Ref: Beneficiary.companyId > Company.id
 
 Ref: CampaignType.parentId - CampaignType.id
 
-Ref: CampaignSummary.campaignId > Campaign.id
-
 Ref: Campaign.approvedById > Person.id
 
 Ref: Campaign.beneficiaryId > Beneficiary.id
@@ -517,7 +506,7 @@ Ref: Vault.campaignId > Campaign.id
 
 Ref: Donation.targetVaultId > Vault.id
 
-Ref: Donation.personId > Person.id [delete: SetNull]
+Ref: Donation.personId > Person.id [delete: Set Null]
 
 Ref: RecurringDonation.vaultId > Vault.id
 

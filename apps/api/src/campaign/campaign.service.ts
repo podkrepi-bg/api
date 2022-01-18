@@ -14,17 +14,36 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
+import { logger } from 'handlebars'
 
 @Injectable()
 export class CampaignService {
   constructor(private prisma: PrismaService) {}
 
   async listCampaigns(): Promise<Campaign[]> {
-    return this.prisma.campaign.findMany({
+    const campaigns = await this.prisma.campaign.findMany({
       include: {
-        summary: { select: { reachedAmount: true } },
-      },
+        vaults: {
+          select: {
+            donations: { select: { amount: true} }
+          }
+        },
+      }
     })
+
+    //TODO: remove this when Prisma 
+    for (let campaign of campaigns) {
+      let campaignAmountReached = 0
+      for (let vault of campaign.vaults) {
+        for (let donation of vault.donations) {
+          campaignAmountReached += donation.amount
+        }
+      }
+      campaign["summary"] = [{ "reachedAmount": campaignAmountReached}]
+      //TODO: remove the vaults and donnations from returned object
+    }
+
+    return campaigns
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
@@ -38,15 +57,24 @@ export class CampaignService {
 
   async getCampaignBySlug(slug: string): Promise<Campaign> {
     const campaign = await this.prisma.campaign.findFirst({
-      include: {
-        summary: { select: { reachedAmount: true } },
-      },
       where: { slug },
     })
+
     if (campaign === null) {
       Logger.warn('No campaign record with slug: ' + slug)
       throw new NotFoundException('No campaign record with slug: ' + slug)
     }
+
+    const reachedAmount: Object[] = await this.prisma.$queryRaw`
+      SELECT
+      SUM(d.amount) as reached_amount
+      FROM vaults v
+      JOIN donations d on v.id = d.target_vault_id
+      WHERE d.status = 'succeeded' and v.campaign_id = ${campaign.id}`
+
+    //the query always return 1 record with the value as number or null if no donations where made yet
+    campaign['reachedAmount'] = reachedAmount[0]['reached_amount']
+
     return campaign
   }
 

@@ -5,7 +5,6 @@ import { CampaignType } from '../../campaignType/entities/campaignType.entity'
 import { Vault } from '../../vault/entities/vault.entity'
 import { Transfer } from '../../transfer/entities/transfer.entity'
 import { Withdrawal } from '../../withdrawal/entities/withdrawal.entity'
-import { CampaignSummary } from '../../campaignSummary/entities/campaignSummary.entity'
 
 export class Campaign {
   id: string
@@ -32,5 +31,4 @@ export class Campaign {
   incomingTransfers?: Transfer[]
   outgoingTransfers?: Transfer[]
   withdrawals?: Withdrawal[]
-  summary?: CampaignSummary[]
 }
