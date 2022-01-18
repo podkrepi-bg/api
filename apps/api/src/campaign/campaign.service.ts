@@ -30,7 +30,7 @@ export class CampaignService {
       }
     })
 
-    //TODO: remove this when Prisma 
+    //TODO: remove this when Prisma starts supporting nested groupbys
     for (const campaign of campaigns) {
       let campaignAmountReached = 0
       for (const vault of campaign.vaults) {
@@ -39,7 +39,8 @@ export class CampaignService {
         }
       }
       campaign["summary"] = [{ "reachedAmount": campaignAmountReached}]
-      //TODO: remove the vaults and donnations from returned object
+      //now remove the unnecessary records in vault and donations from response
+      campaign.vaults = []
     }
 
     return campaigns
