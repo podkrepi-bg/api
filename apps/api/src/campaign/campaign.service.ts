@@ -65,12 +65,12 @@ export class CampaignService {
             type: true,
             publicData: true,
             person: { select: { id: true, firstName: true, lastName: true } },
-            coordinator: {
-              select: {
-                id: true,
-                person: { select: { id: true, firstName: true, lastName: true } },
-              },
-            },
+          },
+        },
+        coordinator: {
+          select: {
+            id: true,
+            person: { select: { id: true, firstName: true, lastName: true } },
           },
         },
       },
