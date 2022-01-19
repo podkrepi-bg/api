@@ -20,11 +20,30 @@ export class CampaignService {
   constructor(private prisma: PrismaService) {}
 
   async listCampaigns(): Promise<Campaign[]> {
-    return this.prisma.campaign.findMany({
+    const campaigns = await this.prisma.campaign.findMany({
       include: {
-        summary: { select: { reachedAmount: true } },
-      },
+        vaults: {
+          select: {
+            donations: { select: { amount: true} }
+          }
+        },
+      }
     })
+
+    //TODO: remove this when Prisma starts supporting nested groupbys
+    for (const campaign of campaigns) {
+      let campaignAmountReached = 0
+      for (const vault of campaign.vaults) {
+        for (const donation of vault.donations) {
+          campaignAmountReached += donation.amount
+        }
+      }
+      campaign["summary"] = [{ "reachedAmount": campaignAmountReached}]
+      //now remove the unnecessary records in vault and donations from response
+      campaign.vaults = []
+    }
+
+    return campaigns
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
@@ -38,15 +57,24 @@ export class CampaignService {
 
   async getCampaignBySlug(slug: string): Promise<Campaign> {
     const campaign = await this.prisma.campaign.findFirst({
-      include: {
-        summary: { select: { reachedAmount: true } },
-      },
       where: { slug },
     })
+
     if (campaign === null) {
       Logger.warn('No campaign record with slug: ' + slug)
       throw new NotFoundException('No campaign record with slug: ' + slug)
     }
+
+    const reachedAmount: Record<string, number> = await this.prisma.$queryRaw`
+      SELECT
+      SUM(d.amount) as reached_amount
+      FROM vaults v
+      JOIN donations d on v.id = d.target_vault_id
+      WHERE d.status = 'succeeded' and v.campaign_id = ${campaign.id}`
+
+    //the query always return 1 record with the value as number or null if no donations where made yet
+    campaign["summary"] = [{ "reachedAmount": reachedAmount[0]["reached_amount"]}]
+
     return campaign
   }
 

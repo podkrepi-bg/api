@@ -149,15 +149,6 @@ model CampaignType {
   @@map("campaign_types")
 }
 
-/// @view
-model CampaignSummary {
-  campaignId    String   @id @default(dbgenerated("gen_random_uuid()")) @map("campaign_id") @db.Uuid
-  reachedAmount Int?     @default(0) @map("reached_amount") @db.Integer
-  campaign      Campaign @relation(fields: [campaignId], references: [id])
-
-  @@map("campaigns_summary")
-}
-
 model Campaign {
   id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   state             CampaignState     @default(draft)
@@ -183,7 +174,6 @@ model Campaign {
   incomingTransfers Transfer[]        @relation("target_campaign")
   outgoingTransfers Transfer[]        @relation("source_campaign")
   withdrawals       Withdrawal[]
-  summary           CampaignSummary[]
 
   @@map("campaigns")
 }
