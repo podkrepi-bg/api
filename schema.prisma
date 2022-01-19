@@ -91,6 +91,7 @@ model Coordinator {
   updatedAt     DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
   person        Person        @relation(fields: [personId], references: [id])
   beneficiaries Beneficiary[]
+  campaigns     Campaign[]
 
   @@map("coordinators")
 }
@@ -168,8 +169,9 @@ model Campaign {
   updatedAt         DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt         DateTime?         @map("deleted_at") @db.Timestamptz(6)
   approvedBy        Person?           @relation(fields: [approvedById], references: [id])
-  beneficiaries     Beneficiary       @relation(fields: [beneficiaryId], references: [id])
-  campaignTypes     CampaignType      @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  coordinator       Coordinator       @relation(fields: [coordinatorId], references: [id])
+  beneficiary       Beneficiary       @relation(fields: [beneficiaryId], references: [id])
+  campaignType      CampaignType      @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   vaults            Vault[]
   incomingTransfers Transfer[]        @relation("target_campaign")
   outgoingTransfers Transfer[]        @relation("source_campaign")

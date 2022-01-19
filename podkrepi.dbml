@@ -60,6 +60,7 @@ Table Coordinator {
   updatedAt DateTime
   person Person [not null]
   beneficiaries Beneficiary [not null]
+  campaigns Campaign [not null]
 
   Note: 'Coordinator is the person who manages the campaign on behalf of the Beneficiary
 Alias: Organizer'
@@ -129,8 +130,9 @@ Table Campaign {
   updatedAt DateTime
   deletedAt DateTime
   approvedBy Person
-  beneficiaries Beneficiary [not null]
-  campaignTypes CampaignType [not null]
+  coordinator Coordinator [not null]
+  beneficiary Beneficiary [not null]
+  campaignType CampaignType [not null]
   vaults Vault [not null]
   incomingTransfers Transfer [not null]
   outgoingTransfers Transfer [not null]
@@ -491,6 +493,8 @@ Ref: Beneficiary.companyId > Company.id
 Ref: CampaignType.parentId - CampaignType.id
 
 Ref: Campaign.approvedById > Person.id
+
+Ref: Campaign.coordinatorId > Coordinator.id
 
 Ref: Campaign.beneficiaryId > Beneficiary.id
 
