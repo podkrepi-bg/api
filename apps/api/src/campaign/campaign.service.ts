@@ -38,7 +38,7 @@ export class CampaignService {
           campaignAmountReached += donation.amount
         }
       }
-      campaign["summary"] = [{ "reachedAmount": campaignAmountReached}]
+      campaign['summary'] = [{ reachedAmount: campaignAmountReached }]
       //now remove the unnecessary records in vault and donations from response
       campaign.vaults = []
     }
