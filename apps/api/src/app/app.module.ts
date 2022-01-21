@@ -28,6 +28,7 @@ import { KeycloakConfigService } from '../config/keycloak-config.service'
 import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.filter'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
+import { HedgehogModule } from '../hedgehog/hedgehog.module'
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -52,6 +53,7 @@ import { TemplateService } from '../email/template.service'
     SupportModule,
     BeneficiaryModule,
     CityModule,
+    HedgehogModule,
     HealthModule,
   ],
   controllers: [AppController],
