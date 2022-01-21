@@ -4,12 +4,12 @@ import { IsString } from 'class-validator'
 import { CreateHedgehogDto } from './create-hedgehog.dto'
 @Expose()
 export class UpdateHedgehogDto extends PartialType(CreateHedgehogDto) {
-    @ApiProperty()
-    @IsString()
-    @Expose()
-    firstName?: string
-    @ApiProperty()
-    @IsString()
-    @Expose()
-    lastName?: string
+  @ApiProperty()
+  @IsString()
+  @Expose()
+  firstName?: string
+  @ApiProperty()
+  @IsString()
+  @Expose()
+  lastName?: string
 }

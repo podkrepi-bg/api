@@ -10,8 +10,8 @@ export class HedgehogService {
   constructor(private prisma: PrismaService) {}
 
   create(data: Prisma.HedgehogCreateInput) {
-    Logger.debug("Incoming Hedgehog.create:");
-    Logger.debug(data);
+    Logger.debug('Incoming Hedgehog.create:')
+    Logger.debug(data)
 
     return this.prisma.hedgehog.create({
       data,
@@ -23,22 +23,17 @@ export class HedgehogService {
   }
 
   findOne(id: Prisma.HedgehogWhereUniqueInput) {
-    return this.prisma.hedgehog.findUnique( 
-      { where: id }
-    )
+    return this.prisma.hedgehog.findUnique({ where: id })
   }
 
   update(id: Prisma.HedgehogWhereUniqueInput, updateData: Prisma.HedgehogUpdateInput) {
-    
     return this.prisma.hedgehog.update({
-      where: id, data: updateData
-    }
-    );
+      where: id,
+      data: updateData,
+    })
   }
 
   remove(id: Prisma.HedgehogWhereUniqueInput) {
-    return this.prisma.hedgehog.delete( 
-      { where: id }
-    )
+    return this.prisma.hedgehog.delete({ where: id })
   }
 }

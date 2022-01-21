@@ -26,18 +26,18 @@ export class HedgehogController {
   @Get(':id')
   @Public()
   findOne(@Param('id') id: string) {
-    return this.hedgehogService.findOne({id})
+    return this.hedgehogService.findOne({ id })
   }
 
   @Patch(':id')
   @Public()
   update(@Param('id') id: string, @Body() updateHedgehogDto: UpdateHedgehogDto) {
-    return this.hedgehogService.update({id}, updateHedgehogDto)
+    return this.hedgehogService.update({ id }, updateHedgehogDto)
   }
 
   @Delete(':id')
   @Public()
   remove(@Param('id') id: string) {
-    return this.hedgehogService.remove({id})
+    return this.hedgehogService.remove({ id })
   }
 }

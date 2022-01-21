@@ -29,6 +29,7 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { HedgehogModule } from '../hedgehog/hedgehog.module'
+import { TikvaModule } from '../tikva/tikva.module'
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -53,6 +54,7 @@ import { HedgehogModule } from '../hedgehog/hedgehog.module'
     SupportModule,
     BeneficiaryModule,
     CityModule,
+    TikvaModule,
     HedgehogModule,
     HealthModule,
   ],
