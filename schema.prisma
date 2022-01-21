@@ -68,16 +68,18 @@ model Person {
 
 /// Generic person object
 model Tikva {
-  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  firstName          String              @map("first_name") @db.VarChar(100)
-  lastName           String              @map("last_name") @db.VarChar(100)
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstName String @map("first_name") @db.VarChar(100)
+  lastName  String @map("last_name") @db.VarChar(100)
+
+  @@map("tikva")
 }
 
 /// Generic person object
 model Hedgehog {
-  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  firstName          String              @map("first_name") @db.VarChar(100)
-  lastName           String              @map("last_name") @db.VarChar(100)
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstName String @map("first_name") @db.VarChar(100)
+  lastName  String @map("last_name") @db.VarChar(100)
 }
 
 model Company {
@@ -165,30 +167,30 @@ model CampaignType {
 }
 
 model Campaign {
-  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  state             CampaignState     @default(draft)
-  slug              String            @unique @db.VarChar(250)
-  title             String            @db.VarChar(200)
-  essence           String            @db.VarChar(500)
-  coordinatorId     String            @map("coordinator_id") @db.Uuid
-  beneficiaryId     String            @map("beneficiary_id") @db.Uuid
-  campaignTypeId    String            @map("campaign_type_id") @db.Uuid
-  approvedById      String?           @map("approved_by_id") @db.Uuid
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  state             CampaignState @default(draft)
+  slug              String        @unique @db.VarChar(250)
+  title             String        @db.VarChar(200)
+  essence           String        @db.VarChar(500)
+  coordinatorId     String        @map("coordinator_id") @db.Uuid
+  beneficiaryId     String        @map("beneficiary_id") @db.Uuid
+  campaignTypeId    String        @map("campaign_type_id") @db.Uuid
+  approvedById      String?       @map("approved_by_id") @db.Uuid
   description       String?
-  targetAmount      Int?              @default(0) @map("target_amount") @db.Integer
-  currency          Currency          @default(BGN)
-  startDate         DateTime?         @map("start_date") @db.Timestamptz(6)
-  endDate           DateTime?         @map("end_date") @db.Timestamptz(6)
-  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt         DateTime?         @map("deleted_at") @db.Timestamptz(6)
-  approvedBy        Person?           @relation(fields: [approvedById], references: [id])
-  coordinator       Coordinator       @relation(fields: [coordinatorId], references: [id])
-  beneficiary       Beneficiary       @relation(fields: [beneficiaryId], references: [id])
-  campaignType      CampaignType      @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  targetAmount      Int?          @default(0) @map("target_amount") @db.Integer
+  currency          Currency      @default(BGN)
+  startDate         DateTime?     @map("start_date") @db.Timestamptz(6)
+  endDate           DateTime?     @map("end_date") @db.Timestamptz(6)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  approvedBy        Person?       @relation(fields: [approvedById], references: [id])
+  coordinator       Coordinator   @relation(fields: [coordinatorId], references: [id])
+  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+  campaignType      CampaignType  @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   vaults            Vault[]
-  incomingTransfers Transfer[]        @relation("target_campaign")
-  outgoingTransfers Transfer[]        @relation("source_campaign")
+  incomingTransfers Transfer[]    @relation("target_campaign")
+  outgoingTransfers Transfer[]    @relation("source_campaign")
   withdrawals       Withdrawal[]
 
   @@map("campaigns")

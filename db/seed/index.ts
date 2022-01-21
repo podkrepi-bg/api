@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 
+import { tikvaSeed } from './tikva.seed'
 import { citiesSeed } from './cities.seed'
 import { personSeed } from './person.seed'
 import { campaignSeed } from './campaign.seed'
@@ -25,6 +26,7 @@ async function main() {
       await coordinatorSeed(),
       await beneficiarySeed(),
       await campaignSeed(),
+      await tikvaSeed(),
     ])
   }
 }
