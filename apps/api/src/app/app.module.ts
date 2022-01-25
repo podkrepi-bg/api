@@ -1,8 +1,4 @@
-import {
-  JsonBodyMiddleware,
-  RawBodyMiddleware,
-  applyRawBodyOnlyTo,
-} from '@golevelup/nestjs-webhooks'
+import { applyRawBodyOnlyTo } from '@golevelup/nestjs-webhooks'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { SentryInterceptor, SentryModule } from '@ntegral/nestjs-sentry'
@@ -31,9 +27,6 @@ import { TemplateService } from '../email/template.service'
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
-    /* Middlewares */
-    JsonBodyMiddleware,
-    RawBodyMiddleware,
     /* External modules */
     SentryModule.forRootAsync({
       imports: [ConfigModule],
