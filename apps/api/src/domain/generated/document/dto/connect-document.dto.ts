@@ -1,3 +1,5 @@
-export class ConnectDocumentDto {
-  id: string
-}
+
+  export class ConnectDocumentDto {
+    id: string;
+  }
+  

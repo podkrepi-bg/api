@@ -1,4 +1,10 @@
+
+
+
+
+
+
 export class UpdateCityDto {
-  name?: string
-  postalCode?: number
+  name?: string;
+postalCode?: number;
 }
