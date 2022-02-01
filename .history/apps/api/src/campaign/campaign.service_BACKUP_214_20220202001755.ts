@@ -88,7 +88,6 @@ export class CampaignService {
       JOIN donations d on v.id = d.target_vault_id
       WHERE d.status = 'succeeded' and v.campaign_id = ${campaign.id}`
 
-    //the query always returns 1 record with the value as number or null if no donations where made yet
     campaign['summary'] = [{ reachedAmount: reachedAmount[0]['reached_amount'] }]
 
     return campaign
