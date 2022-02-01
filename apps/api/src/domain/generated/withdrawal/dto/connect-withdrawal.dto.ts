@@ -1,3 +1,5 @@
-export class ConnectWithdrawalDto {
-  id: string
-}
+
+  export class ConnectWithdrawalDto {
+    id: string;
+  }
+  

@@ -69,6 +69,7 @@
     "@typescript-eslint/eslint-plugin": "~4.31.2",
     "@typescript-eslint/parser": "~4.31.2",
     "@vegardit/prisma-generator-nestjs-dto": "^1.4.0",
+    "docker-compose": "^0.23.17",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "faker": "^5.5.3",

@@ -40,3 +40,6 @@ Thumbs.db
 
 # Env
 .env*.local
+.history/.env_20220119141622
+.history/.env_20220121114716
+.history/.env_20220121114721

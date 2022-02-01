@@ -157,7 +157,9 @@ yarn nest generate resource [name]
 Run `yarn build-all` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
 
 ## Formatting
+
 Make sure you run auto-formatting before you commit your changes.
+
 ```shell
 yarn format
 ```

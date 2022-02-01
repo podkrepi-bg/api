@@ -1,4 +1,11 @@
+
+
+
+
+
+
 export class UpdateCampaignDto {
+<<<<<<< Updated upstream
   slug?: string
   title?: string
   essence?: string
@@ -7,4 +14,15 @@ export class UpdateCampaignDto {
   startDate?: Date
   endDate?: Date
   deletedAt?: Date
+=======
+  slug?: string;
+title?: string;
+essence?: string;
+coordinatorId?: string;
+description?: string;
+targetAmount?: number;
+startDate?: Date;
+endDate?: Date;
+deletedAt?: Date;
+>>>>>>> Stashed changes
 }
