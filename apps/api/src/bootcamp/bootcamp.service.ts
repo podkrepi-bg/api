@@ -6,7 +6,7 @@ import { Bootcamp } from '@prisma/client'
 
 @Injectable()
 export class BootcampService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async createBootcamp(createBootcampDto: CreateBootcampDto): Promise<Bootcamp> {
     return this.prisma.bootcamp.create({ data: createBootcampDto.toEntity() })
@@ -27,12 +27,12 @@ export class BootcampService {
   }
 
   async updateBootcamp(id: string, updateBootcampDto: UpdateBootcampDto) {
-    try{
+    try {
       return await this.prisma.bootcamp.update({
         where: { id },
-        data: updateBootcampDto
+        data: updateBootcampDto,
       })
-    }catch(err) {
+    } catch (err) {
       const message = 'Update failed!'
       Logger.warn(err)
       throw new NotFoundException(message)
@@ -42,5 +42,4 @@ export class BootcampService {
   async removeBootcamp(bootcampId: string) {
     return await this.prisma.bootcamp.delete({ where: { id: bootcampId } })
   }
-
 }

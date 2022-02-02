@@ -1,2 +1,1 @@
-
-export * from './bootcamp.entity';
+export * from './bootcamp.entity'

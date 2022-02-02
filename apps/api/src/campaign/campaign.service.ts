@@ -76,10 +76,10 @@ export class CampaignService {
   //     },
   //   })
 
-    // if (campaign === null) {
-    //   Logger.warn('No campaign record with slug: ' + slug)
-    //   throw new NotFoundException('No campaign record with slug: ' + slug)
-    // }
+  // if (campaign === null) {
+  //   Logger.warn('No campaign record with slug: ' + slug)
+  //   throw new NotFoundException('No campaign record with slug: ' + slug)
+  // }
 
   //   const reachedAmount: Record<string, number> = await this.prisma.$queryRaw`
   //     SELECT

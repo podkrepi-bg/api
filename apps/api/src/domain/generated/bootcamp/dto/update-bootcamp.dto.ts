@@ -1,10 +1,4 @@
-
-
-
-
-
-
 export class UpdateBootcampDto {
-  firstName?: string;
-lastName?: string;
+  firstName?: string
+  lastName?: string
 }

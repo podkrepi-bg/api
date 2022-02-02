@@ -1,5 +1,3 @@
-
-  export class ConnectBeneficiaryDto {
-    id: string;
-  }
-  
+export class ConnectBeneficiaryDto {
+  id: string
+}

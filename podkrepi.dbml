@@ -12,7 +12,6 @@ Table Person {
   firstName String [not null]
   lastName String [not null]
   email String [unique, not null]
-  emailConfirmed Boolean [default: false]
   phone String
   company String
   createdAt DateTime [default: `now()`, not null]
@@ -20,24 +19,31 @@ Table Person {
   newsletter Boolean [default: false]
   address String
   birthday DateTime
+  emailConfirmed Boolean [default: false]
   personalNumber String [unique, note: 'Uniform Civil Number (NCN, EGN)
 https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   keycloakId String [unique]
   stripeCustomerId String [unique]
+  benefactors Benefactor [not null]
+  beneficiaries Beneficiary [not null]
+  campaigns Campaign [not null]
+  coordinators Coordinator [not null]
+  documents Document [not null]
   Donation Donation [not null]
   expenses Expense [not null]
-  documents Document [not null]
-  transfers Transfer [not null]
-  campaigns Campaign [not null]
-  supporters Supporter [not null]
-  benefactors Benefactor [not null]
-  withdrawals Withdrawal [not null]
-  beneficiaries Beneficiary [not null]
   infoRequests InfoRequest [not null]
-  coordinators Coordinator [not null]
   recurringDonations RecurringDonation [not null]
+  supporters Supporter [not null]
+  transfers Transfer [not null]
+  withdrawals Withdrawal [not null]
 
   Note: 'Generic person object'
+}
+
+Table Bootcamp {
+  id String [pk]
+  firstName String [not null]
+  lastName String [not null]
 }
 
 Table Company {
@@ -81,20 +87,20 @@ Table Beneficiary {
   id String [pk]
   type BeneficiaryType [not null]
   personId String [note: 'Person in need when type is `individual`']
-  companyId String [note: 'Company in need when type is `company`']
   coordinatorId String [not null, note: 'Coordinator for this beneficiary']
   countryCode String [not null]
   cityId String [not null]
-  description String
-  publicData Json
-  privateData Json
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   coordinatorRelation PersonRelation [not null, default: 'none']
+  description String
+  privateData Json
+  publicData Json
+  companyId String [note: 'Company in need when type is `company`']
   city City [not null]
+  company Company
   coordinator Coordinator [not null]
   person Person
-  company Company
   campaigns Campaign [not null]
 
   Note: 'Beneficiary is the person who receives the benefit'
@@ -207,12 +213,12 @@ Table Vault {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   campaign Campaign [not null]
+  donations Donation [not null]
   expenses Expense [not null]
+  recurringDonations RecurringDonation [not null]
   sourceTransfers Transfer [not null]
   targetTransfers Transfer [not null]
-  donations Donation [not null]
   withdraws Withdrawal [not null]
-  recurringDonations RecurringDonation [not null]
 }
 
 Table Donation {
@@ -220,17 +226,17 @@ Table Donation {
   type DonationType [not null]
   status DonationStatus [not null, default: 'initial']
   provider PaymentProvider [not null, default: 'none']
-  personId String
-  currency Currency [not null, default: 'BGN']
-  amount Int [not null, default: 0]
   targetVaultId String [not null, note: 'Vault where the funds are going']
   extCustomerId String [not null, note: 'Payment provider attributes']
   extPaymentIntentId String [unique, not null]
   extPaymentMethodId String [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
-  targetVault Vault [not null]
+  amount Int [not null, default: 0]
+  currency Currency [not null, default: 'BGN']
+  personId String
   person Person
+  targetVault Vault [not null]
 }
 
 Table RecurringDonation {
@@ -238,14 +244,14 @@ Table RecurringDonation {
   status RecurringDonationStatus [not null]
   vaultId String [not null]
   personId String [not null]
-  currency Currency [not null, default: 'BGN']
-  amount Int [not null, default: 0]
   extSubscriptionId String [not null, note: 'Payment provider Subscription id']
   extCustomerId String
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
-  sourceVault Vault [not null]
+  amount Int [not null, default: 0]
+  currency Currency [not null, default: 'BGN']
   person Person [not null]
+  sourceVault Vault [not null]
 
   Note: 'Donate on monthly basis'
 }
@@ -266,10 +272,10 @@ Table Transfer {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   approvedBy Person
-  sourceVault Vault [not null]
   sourceCampaign Campaign [not null]
-  targetVault Vault [not null]
+  sourceVault Vault [not null]
   targetCampaign Campaign [not null]
+  targetVault Vault [not null]
 
   Note: 'Move funds from one vault to another'
 }
@@ -289,9 +295,9 @@ Table Withdrawal {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   approvedBy Person
-  sourceVault Vault [not null]
-  sourceCampaign Campaign [not null]
   bankAccount BankAccount [not null]
+  sourceCampaign Campaign [not null]
+  sourceVault Vault [not null]
 
   Note: 'Remove funds from a vault to given bank account'
 }
@@ -313,15 +319,15 @@ Table BankAccount {
 Table Expense {
   id String [pk]
   type ExpenseType [not null]
-  currency Currency [not null, default: 'BGN']
-  amount Int [not null, default: 0]
   description String
   vaultId String [not null]
   documentId String
   approvedById String
-  vault Vault [not null]
+  amount Int [not null, default: 0]
+  currency Currency [not null, default: 'BGN']
   approvedBy Person
   document Document
+  vault Vault [not null]
 
   Note: 'Pay for something from a given vault'
 }
@@ -346,8 +352,6 @@ Enum BeneficiaryType {
 
 Enum PersonRelation {
   none
-  myself
-  myorg
   parent
   spouse
   child
@@ -362,6 +366,8 @@ Enum PersonRelation {
   manager
   assistant
   colleague
+  myself
+  myorg
 }
 
 Enum CampaignState {
@@ -484,11 +490,11 @@ Ref: Benefactor.personId > Person.id
 
 Ref: Beneficiary.cityId > City.id
 
+Ref: Beneficiary.companyId > Company.id
+
 Ref: Beneficiary.coordinatorId > Coordinator.id
 
 Ref: Beneficiary.personId > Person.id
-
-Ref: Beneficiary.companyId > Company.id
 
 Ref: CampaignType.parentId - CampaignType.id
 
@@ -508,36 +514,36 @@ Ref: City.countryId > Country.id
 
 Ref: Vault.campaignId > Campaign.id
 
+Ref: Donation.personId > Person.id
+
 Ref: Donation.targetVaultId > Vault.id
-
-Ref: Donation.personId > Person.id [delete: Set Null]
-
-Ref: RecurringDonation.vaultId > Vault.id
 
 Ref: RecurringDonation.personId > Person.id
 
-Ref: Transfer.approvedById > Person.id
+Ref: RecurringDonation.vaultId > Vault.id
 
-Ref: Transfer.sourceVaultId > Vault.id
+Ref: Transfer.approvedById > Person.id
 
 Ref: Transfer.sourceCampaignId > Campaign.id
 
-Ref: Transfer.targetVaultId > Vault.id
+Ref: Transfer.sourceVaultId > Vault.id
 
 Ref: Transfer.targetCampaignId > Campaign.id
 
+Ref: Transfer.targetVaultId > Vault.id
+
 Ref: Withdrawal.approvedById > Person.id
-
-Ref: Withdrawal.sourceVaultId > Vault.id
-
-Ref: Withdrawal.sourceCampaignId > Campaign.id
 
 Ref: Withdrawal.bankAccountId > BankAccount.id
 
-Ref: Expense.vaultId > Vault.id
+Ref: Withdrawal.sourceCampaignId > Campaign.id
+
+Ref: Withdrawal.sourceVaultId > Vault.id
 
 Ref: Expense.approvedById > Person.id
 
 Ref: Expense.documentId > Document.id
+
+Ref: Expense.vaultId > Vault.id
 
 Ref: Document.ownerId > Person.id

@@ -1,5 +1,3 @@
-
-  export class ConnectBootcampDto {
-    id: string;
-  }
-  
+export class ConnectBootcampDto {
+  id: string
+}

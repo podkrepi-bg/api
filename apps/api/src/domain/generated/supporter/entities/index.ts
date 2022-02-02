@@ -1,2 +1,1 @@
-
-export * from './supporter.entity';
+export * from './supporter.entity'

@@ -1,5 +1,3 @@
-
-  export class ConnectCoordinatorDto {
-    id: string;
-  }
-  
+export class ConnectCoordinatorDto {
+  id: string
+}
