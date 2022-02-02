@@ -55,44 +55,44 @@ export class CampaignService {
     return campaign
   }
 
-  async getCampaignBySlug(slug: string): Promise<Campaign> {
-    const campaign = await this.prisma.campaign.findFirst({
-      where: { slug },
-      include: {
-        beneficiary: {
-          select: {
-            id: true,
-            type: true,
-            publicData: true,
-            person: { select: { id: true, firstName: true, lastName: true } },
-          },
-        },
-        coordinator: {
-          select: {
-            id: true,
-            person: { select: { id: true, firstName: true, lastName: true } },
-          },
-        },
-      },
-    })
+  // async getCampaignBySlug(slug: string): Promise<Campaign> {
+  //   const campaign = await this.prisma.campaign.findFirst({
+  //     where: { slug },
+  //     include: {
+  //       beneficiary: {
+  //         select: {
+  //           id: true,
+  //           type: true,
+  //           publicData: true,
+  //           person: { select: { id: true, firstName: true, lastName: true } },
+  //         },
+  //       },
+  //       coordinator: {
+  //         select: {
+  //           id: true,
+  //           person: { select: { id: true, firstName: true, lastName: true } },
+  //         },
+  //       },
+  //     },
+  //   })
 
-    if (campaign === null) {
-      Logger.warn('No campaign record with slug: ' + slug)
-      throw new NotFoundException('No campaign record with slug: ' + slug)
-    }
+  // if (campaign === null) {
+  //   Logger.warn('No campaign record with slug: ' + slug)
+  //   throw new NotFoundException('No campaign record with slug: ' + slug)
+  // }
 
-    const reachedAmount: Record<string, number> = await this.prisma.$queryRaw`
-      SELECT
-      SUM(d.amount) as reached_amount
-      FROM vaults v
-      JOIN donations d on v.id = d.target_vault_id
-      WHERE d.status = 'succeeded' and v.campaign_id = ${campaign.id}`
+  //   const reachedAmount: Record<string, number> = await this.prisma.$queryRaw`
+  //     SELECT
+  //     SUM(d.amount) as reached_amount
+  //     FROM vaults v
+  //     JOIN donations d on v.id = d.target_vault_id
+  //     WHERE d.status = 'succeeded' and v.campaign_id = ${campaign.id}`
 
-    //the query always returns 1 record with the value as number or null if no donations where made yet
-    campaign['summary'] = [{ reachedAmount: reachedAmount[0]['reached_amount'] }]
+  //   //the query always returns 1 record with the value as number or null if no donations where made yet
+  //   campaign['summary'] = [{ reachedAmount: reachedAmount[0]['reached_amount'] }]
 
-    return campaign
-  }
+  //   return campaign
+  // }
 
   async listCampaignTypes(): Promise<CampaignType[]> {
     return this.prisma.campaignType.findMany()

@@ -15,12 +15,12 @@ export class CampaignController {
     return this.campaignService.listCampaigns()
   }
 
-  @Get(':slug')
-  @Public()
-  async viewBySlug(@Param('slug') slug: string): Promise<{ campaign: Campaign | null }> {
-    const campaign = await this.campaignService.getCampaignBySlug(slug)
-    return { campaign }
-  }
+  // @Get(':slug')
+  // @Public()
+  // async viewBySlug(@Param('slug') slug: string): Promise<{ campaign: Campaign | null }> {
+  //   const campaign = await this.campaignService.getCampaignBySlug(slug)
+  //   return { campaign }
+  // }
 
   @Post('create-campaign')
   @Public()
