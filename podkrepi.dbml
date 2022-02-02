@@ -46,6 +46,12 @@ Table Cat {
   lastName String [not null]
 }
 
+Table BootcampIntern {
+  id String [pk]
+  firstName String [not null]
+  lastName String [not null]
+}
+
 Table Company {
   id String [pk]
   companyName String [not null]

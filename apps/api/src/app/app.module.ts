@@ -29,6 +29,7 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { CatModule } from '../cat/cat.module'
+import { BootcampInternModule } from '../bootcamp-intern/bootcamp-intern.module'
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -54,6 +55,7 @@ import { CatModule } from '../cat/cat.module'
     BeneficiaryModule,
     CityModule,
     CatModule,
+    BootcampInternModule,
     HealthModule,
   ],
   controllers: [AppController],
