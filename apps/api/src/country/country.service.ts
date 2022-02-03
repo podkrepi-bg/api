@@ -12,15 +12,15 @@ export class CountryService {
     return `This action returns all country`
   }
 
-  findOne(slug: string) {
-    return `This action returns a #${slug} country`
+  findOne(id: number) {
+    return `This action returns a #${id} country`
   }
 
-  update(slug: string, updateCountryDto: UpdateCountryDto) {
-    return `This action updates a #${slug} country`
+  update(id: number, updateCountryDto: UpdateCountryDto) {
+    return `This action updates a #${id} country`
   }
 
-  remove(slug: string) {
-    return `This action removes a #${slug} country`
+  remove(id: number) {
+    return `This action removes a #${id} country`
   }
 }

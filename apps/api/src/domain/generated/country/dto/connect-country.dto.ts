@@ -1,4 +1,4 @@
 export class ConnectCountryDto {
-  slug?: string
+  id?: string
   countryCode?: string
 }

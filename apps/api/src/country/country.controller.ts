@@ -17,18 +17,18 @@ export class CountryController {
     return this.countryService.findAll()
   }
 
-  @Get(':slug')
-  findOne(@Param('slug') slug: string) {
-    return this.countryService.findOne(slug)
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.countryService.findOne(+id)
   }
 
-  @Patch(':slug')
-  update(@Param('slug') slug: string, @Body() updateCountryDto: UpdateCountryDto) {
-    return this.countryService.update(slug, updateCountryDto)
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateCountryDto: UpdateCountryDto) {
+    return this.countryService.update(+id, updateCountryDto)
   }
 
-  @Delete(':slug')
-  remove(@Param('slug') slug: string) {
-    return this.countryService.remove(slug)
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.countryService.remove(+id)
   }
 }
