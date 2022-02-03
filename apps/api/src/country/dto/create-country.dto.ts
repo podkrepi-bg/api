@@ -8,11 +8,6 @@ export class CreateCountryDto {
   @ApiProperty()
   @Expose()
   @IsString()
-  slug: string
-
-  @ApiProperty()
-  @Expose()
-  @IsString()
   name: string
 
   @ApiProperty()
