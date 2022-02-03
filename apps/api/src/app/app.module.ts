@@ -12,6 +12,7 @@ import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/c
 import { AppService } from './app.service'
 import { AuthModule } from '../auth/auth.module'
 import { CityModule } from '../city/city.module'
+import { CountryModule } from '../country/country.module'
 import { AppController } from './app.controller'
 import { CustomAuthGuard } from './custom-auth.guard'
 import configuration from '../config/configuration'
@@ -28,6 +29,7 @@ import { KeycloakConfigService } from '../config/keycloak-config.service'
 import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.filter'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
+
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -52,6 +54,7 @@ import { TemplateService } from '../email/template.service'
     SupportModule,
     BeneficiaryModule,
     CityModule,
+    CountryModule,
     HealthModule,
   ],
   controllers: [AppController],
