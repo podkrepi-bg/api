@@ -90,8 +90,9 @@ model Coordinator {
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
   person        Person        @relation(fields: [personId], references: [id])
-  beneficiaries Beneficiary[]
   campaigns     Campaign[]
+  beneficiaries Beneficiary[]
+  bankAccounts  BankAccount[]
 
   @@map("coordinators")
 }
@@ -151,31 +152,32 @@ model CampaignType {
 }
 
 model Campaign {
-  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  state             CampaignState     @default(draft)
-  slug              String            @unique @db.VarChar(250)
-  title             String            @db.VarChar(200)
-  essence           String            @db.VarChar(500)
-  coordinatorId     String            @map("coordinator_id") @db.Uuid
-  beneficiaryId     String            @map("beneficiary_id") @db.Uuid
-  campaignTypeId    String            @map("campaign_type_id") @db.Uuid
-  approvedById      String?           @map("approved_by_id") @db.Uuid
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  state             CampaignState @default(draft)
+  slug              String        @unique @db.VarChar(250)
+  title             String        @db.VarChar(200)
+  essence           String        @db.VarChar(500)
+  coordinatorId     String        @map("coordinator_id") @db.Uuid
+  beneficiaryId     String        @map("beneficiary_id") @db.Uuid
+  campaignTypeId    String        @map("campaign_type_id") @db.Uuid
+  approvedById      String?       @map("approved_by_id") @db.Uuid
   description       String?
-  targetAmount      Int?              @default(0) @map("target_amount") @db.Integer
-  currency          Currency          @default(BGN)
-  startDate         DateTime?         @map("start_date") @db.Timestamptz(6)
-  endDate           DateTime?         @map("end_date") @db.Timestamptz(6)
-  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt         DateTime?         @map("deleted_at") @db.Timestamptz(6)
-  approvedBy        Person?           @relation(fields: [approvedById], references: [id])
-  coordinator       Coordinator       @relation(fields: [coordinatorId], references: [id])
-  beneficiary       Beneficiary       @relation(fields: [beneficiaryId], references: [id])
-  campaignType      CampaignType      @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  targetAmount      Int?          @default(0) @map("target_amount") @db.Integer
+  currency          Currency      @default(BGN)
+  startDate         DateTime?     @map("start_date") @db.Timestamptz(6)
+  endDate           DateTime?     @map("end_date") @db.Timestamptz(6)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  approvedBy        Person?       @relation(fields: [approvedById], references: [id])
+  coordinator       Coordinator   @relation(fields: [coordinatorId], references: [id])
+  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+  campaignType      CampaignType  @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   vaults            Vault[]
-  incomingTransfers Transfer[]        @relation("target_campaign")
-  outgoingTransfers Transfer[]        @relation("source_campaign")
+  incomingTransfers Transfer[]    @relation("target_campaign")
+  outgoingTransfers Transfer[]    @relation("source_campaign")
   withdrawals       Withdrawal[]
+  bankAccounts      BankAccount[]
 
   @@map("campaigns")
 }
@@ -250,6 +252,7 @@ model Country {
 
 model Vault {
   id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type               VaultType           @default(campaign)
   currency           Currency            @default(BGN)
   amount             Int                 @default(0) @db.Integer
   campaignId         String              @map("campaign_id") @db.Uuid
@@ -300,6 +303,7 @@ model RecurringDonation {
   /// Payment provider Subscription id
   extSubscriptionId String                  @map("ext_subscription_id") @db.VarChar(50)
   extCustomerId     String?                 @map("ext_customer_id") @db.VarChar(50)
+  campaignId        String
   ///
   createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime?               @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -315,6 +319,7 @@ model Transfer {
   status           TransferStatus @default(initial)
   currency         Currency
   amount           Int            @default(0) @db.Integer
+  tax              Int            @default(0) @db.Integer
   reason           String         @db.VarChar(100)
   /// Source vault
   sourceVaultId    String         @map("source_vault_id") @db.Uuid
@@ -364,6 +369,7 @@ model Withdrawal {
 model BankAccount {
   id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   status            BankAccountStatus @default(new)
+  currency          Currency          @default(BGN)
   /// IBAN number
   ibanNumber        String            @db.VarChar(34)
   /// Name of account holder
@@ -375,9 +381,12 @@ model BankAccount {
   /// Bank Identification Code, BIC/SWIFT code
   bankIdCode        String?           @map("bank_id_code") @db.VarChar(50)
   fingerprint       String?           @db.VarChar(100)
+  coordinatorId     String?           @db.Uuid
   createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
   withdraws         Withdrawal[]
+  campaigns         Campaign[]
+  coordinator       Coordinator?      @relation(fields: [coordinatorId], references: [id])
 
   @@map("bank_accounts")
 }
@@ -594,4 +603,10 @@ enum BankAccountStatus {
   errored
 
   @@map("bank_account_status")
+}
+
+enum VaultType {
+  system
+  campaign
+  person
 }
