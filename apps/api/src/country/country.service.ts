@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Country } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCountryDto } from './dto/create-country.dto'
@@ -13,24 +13,17 @@ export class CountryService {
   }
 
   async listCountries(): Promise<Country[]> {
-    return await this.prisma.country.findMany()
+    const countries = await this.prisma.country.findMany({})
+    return countries
   }
 
   async getCountryById(slug: string) {
-    try {
-      const country = await this.prisma.country.findFirst({
-        where: {
-          id: slug,
-        },
-        rejectOnNotFound: true,
-      })
-      return country
-    } catch (err) {
-      const msg = 'No Country record with ID: ' + slug
-
-      Logger.warn(msg)
-      throw new NotFoundException(msg)
-    }
+    const country = await this.prisma.country.findFirst({
+      where: {
+        id: slug,
+      },
+    })
+    return country
   }
 
   update(slug: string, updateCountryDto: UpdateCountryDto) {
