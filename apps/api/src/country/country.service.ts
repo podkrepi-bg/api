@@ -8,8 +8,8 @@ import { UpdateCountryDto } from './dto/update-country.dto'
 export class CountryService {
   constructor(private prisma: PrismaService) {}
 
-  async create(inputDto: CreateCountryDto): Promise<Country> {
-    return await this.prisma.country.create({ data: inputDto })
+  create(createCountryDto: CreateCountryDto) {
+    return 'This action adds a new country'
   }
 
   async listCountries(): Promise<Country[]> {
