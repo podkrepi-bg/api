@@ -13,7 +13,11 @@ export class CountryService {
   }
 
   async listCountries(): Promise<Country[]> {
-    return await this.prisma.country.findMany()
+    return await this.prisma.country.findMany({
+      include: {
+        cities: true,
+      },
+    })
   }
 
   async getCountryById(id: string): Promise<Country> {
@@ -21,6 +25,9 @@ export class CountryService {
       const country = await this.prisma.country.findFirst({
         where: {
           id: id,
+        },
+        include: {
+          cities: true,
         },
         rejectOnNotFound: true,
       })
@@ -37,6 +44,9 @@ export class CountryService {
     try {
       return await this.prisma.country.update({
         where: { id },
+        include: {
+          cities: true,
+        },
         data: updateCountryDto,
       })
     } catch (err) {
