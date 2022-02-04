@@ -16,7 +16,7 @@ export class CountryService {
     return await this.prisma.country.findMany()
   }
 
-  async getCountryById(id: string) {
+  async getCountryById(id: string): Promise<Country> {
     try {
       const country = await this.prisma.country.findFirst({
         where: {
@@ -37,7 +37,16 @@ export class CountryService {
     return `This action updates a #${id} country`
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} country`
+  async removeCountryById(id: string): Promise<Country> {
+    try {
+      return await this.prisma.country.delete({
+        where: { id },
+      })
+    } catch (err) {
+      const msg = 'Delete failed. No country record found with ID: ' + id
+
+      Logger.warn(msg)
+      throw new NotFoundException(msg)
+    }
   }
 }
