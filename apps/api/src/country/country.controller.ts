@@ -8,7 +8,7 @@ import { UpdateCountryDto } from './dto/update-country.dto'
 export class CountryController {
   constructor(private readonly countryService: CountryService) {}
 
-  @Post()
+  @Post('create-country')
   @Public()
   create(@Body() createCountryDto: CreateCountryDto) {
     return this.countryService.create(createCountryDto)

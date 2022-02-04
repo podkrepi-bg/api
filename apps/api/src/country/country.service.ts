@@ -7,14 +7,13 @@ import { UpdateCountryDto } from './dto/update-country.dto'
 @Injectable()
 export class CountryService {
   constructor(private prisma: PrismaService) {}
-  
-  create(createCountryDto: CreateCountryDto) {
-    return 'This action adds a new country'
+
+  async create(inputDto: CreateCountryDto): Promise<Country> {
+    return await this.prisma.country.create({ data: inputDto })
   }
 
   async listCountries(): Promise<Country[]> {
-    const countries = await this.prisma.country.findMany({})
-    return countries
+    return await this.prisma.country.findMany()
   }
 
   async getCountryById(id: string) {
