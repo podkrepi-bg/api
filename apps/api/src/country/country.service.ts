@@ -33,8 +33,18 @@ export class CountryService {
     }
   }
 
-  update(id: number, updateCountryDto: UpdateCountryDto) {
-    return `This action updates a #${id} country`
+  async updateCountryById(id: string, updateCountryDto: UpdateCountryDto) {
+    try {
+      return await this.prisma.country.update({
+        where: { id },
+        data: updateCountryDto,
+      })
+    } catch (err) {
+      const msg = 'Update failed. No country record found with ID: ' + id
+
+      Logger.warn(msg)
+      throw new NotFoundException(msg)
+    }
   }
 
   async removeCountryById(id: string): Promise<Country> {

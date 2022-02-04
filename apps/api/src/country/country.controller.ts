@@ -29,7 +29,7 @@ export class CountryController {
   @Patch(':id')
   @Public()
   update(@Param('id') id: string, @Body() updateCountryDto: UpdateCountryDto) {
-    return this.countryService.update(+id, updateCountryDto)
+    return this.countryService.updateCountryById(id, updateCountryDto)
   }
 
   @Delete(':id')
