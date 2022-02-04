@@ -23,7 +23,7 @@ export class CountryController {
   @Get(':id')
   @Public()
   findOne(@Param('id') id: string) {
-    return this.countryService.findOne(+id)
+    return this.countryService.getCountryById(id)
   }
 
   @Patch(':id')
