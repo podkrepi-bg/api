@@ -22,6 +22,7 @@ export class BankaccountService {
   }
 
   async update(id: string, updateBankaccountDto: UpdateBankaccountDto) {
+    
     const result = await this.prisma.bankAccount.update({
       where: { id: id },
       data: updateBankaccountDto,
@@ -33,4 +34,21 @@ export class BankaccountService {
   async remove(id: string) {
     return await this.prisma.bankAccount.delete({ where: { id: id } })
   }
+
+    //DELETE MANY
+    async removeMany(itemsToDelete: [string]): Promise<string | void> {
+
+      try {
+        await this.prisma.bankAccount.deleteMany({
+          where: {
+            id: {
+              in: itemsToDelete,
+            },
+          },
+        })
+        return 'Deleted Succesfully!'
+      } catch (error) {
+        throw new NotFoundException("Requested car id doesn'n exist!")
+      }
+    }
 }
