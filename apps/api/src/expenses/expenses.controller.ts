@@ -17,8 +17,8 @@ export class ExpensesController {
 
   @Public()
   @Get()
-  findAll() {
-    return this.expensesService.findAll();
+  async findAll() {
+    return await this.expensesService.listExpenses();
   }
 
   @Public()
