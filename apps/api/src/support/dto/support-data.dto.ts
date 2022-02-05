@@ -1,33 +1,39 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator'
-import { ApiProperty } from '@nestjs/swagger'
-import { Expose, Type } from 'class-transformer'
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+import { Expose, Type } from "class-transformer";
 
 @Expose()
 export class RolesDto {
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  benefactor: boolean
+  benefactor: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  partner: boolean
+  partner: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  associationMember: boolean
+  associationMember: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  company: boolean
+  company: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  volunteer: boolean
+  volunteer: boolean;
 }
 
 @Expose()
@@ -35,12 +41,12 @@ export class BenefactorDto {
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  campaignBenefactor: boolean
+  campaignBenefactor: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  platformBenefactor: boolean
+  platformBenefactor: boolean;
 }
 
 @Expose()
@@ -48,69 +54,69 @@ export class PartnerDto {
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  npo: boolean
+  npo: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  bussiness: boolean
+  bussiness: boolean;
 
   @ApiProperty()
   @Expose()
   @IsString()
-  otherText: string
+  otherText: string;
 }
 @Expose()
 export class VolunteerDto {
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  backend: boolean
+  backend: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  frontend: boolean
+  frontend: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  marketing: boolean
+  marketing: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  designer: boolean
+  designer: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  projectManager: boolean
+  projectManager: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  devOps: boolean
+  devOps: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  security: boolean
+  security: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  financesAndAccounts: boolean
+  financesAndAccounts: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  lawyer: boolean
+  lawyer: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  qa: boolean
+  qa: boolean;
 }
 
 @Expose()
@@ -118,7 +124,7 @@ export class AssociationMemberDto {
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  isMember: boolean
+  isMember: boolean;
 }
 
 @Expose()
@@ -126,17 +132,17 @@ export class CompanyDto {
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  sponsor: boolean
+  sponsor: boolean;
 
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  volunteer: boolean
+  volunteer: boolean;
 
   @ApiProperty()
   @Expose()
   @IsString()
-  otherText: string
+  otherText: string;
 }
 
 export class SupportDataDto {
@@ -144,7 +150,7 @@ export class SupportDataDto {
   @Expose()
   @IsString()
   @IsOptional()
-  public readonly comment: string | null
+  public readonly comment: string | null;
 
   @ApiProperty()
   @Expose()
@@ -152,7 +158,7 @@ export class SupportDataDto {
   @Expose()
   @ValidateNested()
   @Type(() => RolesDto)
-  public readonly roles: RolesDto
+  public readonly roles: RolesDto;
 
   @ApiProperty()
   @Expose()
@@ -160,7 +166,7 @@ export class SupportDataDto {
   @Expose()
   @ValidateNested()
   @Type(() => BenefactorDto)
-  public readonly benefactor: BenefactorDto
+  public readonly benefactor: BenefactorDto;
 
   @ApiProperty()
   @Expose()
@@ -168,7 +174,7 @@ export class SupportDataDto {
   @Expose()
   @ValidateNested()
   @Type(() => PartnerDto)
-  public readonly partner: PartnerDto
+  public readonly partner: PartnerDto;
 
   @ApiProperty()
   @Expose()
@@ -176,7 +182,7 @@ export class SupportDataDto {
   @Expose()
   @ValidateNested()
   @Type(() => VolunteerDto)
-  public readonly volunteer: VolunteerDto
+  public readonly volunteer: VolunteerDto;
 
   @ApiProperty()
   @Expose()
@@ -184,7 +190,7 @@ export class SupportDataDto {
   @Expose()
   @ValidateNested()
   @Type(() => AssociationMemberDto)
-  public readonly associationMember: AssociationMemberDto
+  public readonly associationMember: AssociationMemberDto;
 
   @ApiProperty()
   @Expose()
@@ -192,5 +198,5 @@ export class SupportDataDto {
   @Expose()
   @ValidateNested()
   @Type(() => CompanyDto)
-  public readonly company: CompanyDto
+  public readonly company: CompanyDto;
 }
