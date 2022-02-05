@@ -1,4 +1,4 @@
-import { LogLevel } from '@sentry/types'
+import { LogLevel } from "@sentry/types";
 
 /**
  * Be sure to add `process.env` vars in validation schema at ./validation.config.ts
@@ -14,7 +14,7 @@ export default () => ({
     dsn: process.env.SENTRY_DSN,
     environment: process.env.APP_ENV,
     debug: false,
-    enabled: process.env.APP_ENV !== 'development',
+    enabled: process.env.APP_ENV !== "development",
     logLevel: LogLevel.Debug,
     tracesSampleRate: 1.0,
   },
@@ -27,4 +27,4 @@ export default () => ({
     secretKey: process.env.STRIPE_SECRET_KEY,
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
   },
-})
+});

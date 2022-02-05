@@ -1,7 +1,7 @@
-import { Public } from 'nest-keycloak-connect'
-import { Controller, Get } from '@nestjs/common'
+import { Public } from "nest-keycloak-connect";
+import { Controller, Get } from "@nestjs/common";
 
-import { AppService } from './app.service'
+import { AppService } from "./app.service";
 
 @Controller()
 export class AppController {
@@ -10,6 +10,6 @@ export class AppController {
   @Get()
   @Public()
   getData() {
-    return this.appService.getData()
+    return this.appService.getData();
   }
 }
