@@ -2,17 +2,21 @@ import {
 	IsEnum,
 	IsNumber,
 	IsOptional,
+	isString,
 	IsString,
+	IsUUID,
 	MaxLength,
 	MinLength,
 } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose } from 'class-transformer'
-import { Currency, Prisma, ExpenseType, Vault, Person } from '.prisma/client'
+import { Currency, Prisma, ExpenseType, } from '.prisma/client'
+
 @Expose()
 export class CreateExpenseDto {
 	@ApiProperty()
 	@Expose()
+	@IsString()
 	type: ExpenseType
 
 	@ApiProperty()
@@ -31,35 +35,51 @@ export class CreateExpenseDto {
 	@ApiProperty()
 	@Expose()
 	@IsOptional()
+	@IsString()
 	description: string
 
 	@ApiProperty()
 	@Expose()
-	@IsOptional()
+	@IsUUID()
 	vaultId: string
 
 	@ApiProperty()
 	@Expose()
+	@IsUUID()
 	@IsOptional()
-	documentId: string
+	documentId?: string
+
 
 	@ApiProperty()
 	@Expose()
+	@IsUUID()
 	@IsOptional()
-	approvedById: string
+	approvedById?: string
 
-	@ApiProperty()
-	@Expose()
-	@IsOptional()
-	vault: Vault
+	// public toEntity(): Prisma.ExpenseCreateInput {
+	// 	return {
+	// 		type: this.type,
+	// 		currency: this.currency,
+	// 		amount: this.amount,
+	// 		description: this.description,
+	// 		vault: { connect: { id: this.vaultId } },
+	// 		documentId: this.documentId,
+	// 		approvedById: this.approvedById
+	// 	}
+	// }
 
-	@ApiProperty()
-	@Expose()
-	@IsOptional()
-	approvedBy: Person
-
-	@ApiProperty()
-	@Expose()
-	@IsOptional()
-	document: Document
 }
+
+//expense->vault ---> one-
+
+// id?: string
+// type: ExpenseType
+// currency?: Currency
+// amount?: number
+// description?: string | null
+// vault: VaultCreateNestedOneWithoutExpensesInput
+// approvedBy?: PersonCreateNestedOneWithoutExpensesInput
+// document?: DocumentCreateNestedOneWithoutExpensesInput
+
+
+

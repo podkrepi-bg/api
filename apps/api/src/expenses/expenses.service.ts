@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { CreateExpenseDto } from './dto/create-expense.dto';
-import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { PrismaService } from '../prisma/prisma.service'
 import { Expense } from '@prisma/client';
 
@@ -8,8 +7,8 @@ import { Expense } from '@prisma/client';
 export class ExpensesService {
   constructor(private prisma: PrismaService) { }
 
-  async create(createExpenseDto: CreateExpenseDto) {
-    return "created"
+  async createExpense(createExpenseDto: CreateExpenseDto) {
+    return await this.prisma.expense.create({ data: createExpenseDto })
   }
 
   async listExpenses(): Promise<Expense[]> {
@@ -18,10 +17,6 @@ export class ExpensesService {
 
   findOne(id: number) {
     return `This action returns a #${id} expense`;
-  }
-
-  update(id: number, updateExpenseDto: UpdateExpenseDto) {
-    return `This action updates a #${id} expense`;
   }
 
   remove(id: number) {

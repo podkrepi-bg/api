@@ -10,15 +10,15 @@ export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) { }
 
   @Public()
-  @Post()
-  create(@Body() createExpenseDto: CreateExpenseDto) {
-    return this.expensesService.create(createExpenseDto);
+  @Get('list')
+  async findAll() {
+    return await this.expensesService.listExpenses();
   }
 
   @Public()
-  @Get()
-  async findAll() {
-    return await this.expensesService.listExpenses();
+  @Post('create-expense')
+  create(@Body() createExpenseDto: CreateExpenseDto) {
+    return this.expensesService.createExpense(createExpenseDto);
   }
 
   @Public()
