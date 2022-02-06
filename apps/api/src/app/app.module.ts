@@ -54,7 +54,7 @@ import { TemplateService } from '../email/template.service'
     BeneficiaryModule,
     CityModule,
     HealthModule,
-    ExpensesModule
+    ExpensesModule,
   ],
   controllers: [AppController],
   providers: [
