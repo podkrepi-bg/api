@@ -1,12 +1,12 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateCompanyDto } from './dto/create-company.dto';
-import { UpdateCompanyDto } from './dto/update-company.dto';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
+import { PrismaService } from '../prisma/prisma.service'
+import { CreateCompanyDto } from './dto/create-company.dto'
+import { UpdateCompanyDto } from './dto/update-company.dto'
 
 @Injectable()
 export class CompanyService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(createCompanyDto: CreateCompanyDto) {
     const cityId = createCompanyDto.cityId
@@ -71,5 +71,15 @@ export class CompanyService {
         throw new NotFoundException('No company record with ID: ' + id)
       }
     }
+  }
+
+  removeMany(ids: string[]) {
+    return this.prisma.company.deleteMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    })
   }
 }

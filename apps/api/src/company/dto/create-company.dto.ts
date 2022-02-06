@@ -1,6 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger"
-import { Expose } from "class-transformer"
-import { IsString, MaxLength, IsOptional } from "class-validator"
+import { ApiProperty } from '@nestjs/swagger'
+import { Expose } from 'class-transformer'
+import { IsString, MaxLength, IsOptional } from 'class-validator'
 
 @Expose()
 export class CreateCompanyDto {

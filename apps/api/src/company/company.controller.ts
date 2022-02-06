@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { Public } from 'nest-keycloak-connect';
-import { CompanyService } from './company.service';
-import { CreateCompanyDto } from './dto/create-company.dto';
-import { UpdateCompanyDto } from './dto/update-company.dto';
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common'
+import { Public } from 'nest-keycloak-connect'
+import { CompanyService } from './company.service'
+import { CreateCompanyDto } from './dto/create-company.dto'
+import { UpdateCompanyDto } from './dto/update-company.dto'
 
 @Controller('company')
 export class CompanyController {
@@ -36,5 +36,11 @@ export class CompanyController {
   @Public()
   remove(@Param('id') id: string) {
     return this.companyService.remove(id)
+  }
+
+  @Post('/delete-many')
+  @Public()
+  removeMany(@Body() idsToDelete: string[]) {
+    return this.companyService.removeMany(idsToDelete)
   }
 }
