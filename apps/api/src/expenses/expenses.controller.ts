@@ -12,6 +12,7 @@ export class ExpensesController {
   @Public()
   @Get('list')
   async findAll() {
+    //filter to return only those who are not deleted
     return await this.expensesService.listExpenses()
   }
 
@@ -30,6 +31,8 @@ export class ExpensesController {
   @Public()
   @Delete(':id')
   remove(@Param('id') id: string) {
+    // soft delete!
+    // update the status from whatever it is to deleted
     return this.expensesService.remove(+id)
   }
 }
