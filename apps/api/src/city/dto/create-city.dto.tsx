@@ -1,0 +1,29 @@
+import { ApiProperty } from '@nestjs/swagger/dist/decorators'
+import { Expose } from 'class-transformer'
+import { IsNumber, IsString, IsUUID } from 'class-validator'
+import { Prisma } from '.prisma/client'
+
+export class CreateCityDto {
+  @ApiProperty()
+  @Expose()
+  @IsString()
+  name: string
+
+  @ApiProperty()
+  @Expose()
+  @IsNumber()
+  postalCode: number
+
+  @ApiProperty()
+  @Expose()
+  @IsUUID()
+  countryId: string
+
+  public toEntity(): Prisma.CityCreateInput {
+    return {
+      name: this.name,
+      postalCode: this.postalCode,
+      countryCode: { connect: { id: this.countryId } },
+    }
+  }
+}
