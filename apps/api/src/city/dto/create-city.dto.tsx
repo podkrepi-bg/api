@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger/dist/decorators'
 import { Expose } from 'class-transformer'
-import { IsNumber, IsString, IsUUID } from 'class-validator'
+import { IsNumber, IsOptional, IsPositive, IsString, IsUUID, Max } from 'class-validator'
 import { Prisma } from '.prisma/client'
 
 export class CreateCityDto {
@@ -10,8 +10,11 @@ export class CreateCityDto {
   name: string
 
   @ApiProperty()
+  @IsOptional()
   @Expose()
   @IsNumber()
+  @IsPositive()
+  @Max(500000)
   postalCode: number
 
   @ApiProperty()

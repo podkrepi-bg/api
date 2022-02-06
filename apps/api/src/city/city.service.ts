@@ -27,7 +27,7 @@ export class CityService {
 
   async updateCity(id: string, updateCityDto: UpdateCityDto) {
     try {
-      return await this.prisma.bootcamp.update({
+      return await this.prisma.city.update({
         where: { id },
         data: updateCityDto
       })
