@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose } from 'class-transformer'
-import { IsString, MaxLength, IsOptional } from 'class-validator'
+import { IsString, MaxLength, IsOptional, IsUUID } from 'class-validator'
 
 @Expose()
 export class CreateCompanyDto {
@@ -28,6 +28,7 @@ export class CreateCompanyDto {
   countryCode: string
 
   @Expose()
+  @IsUUID()
   @IsString()
   @IsOptional()
   @ApiProperty()
