@@ -48,6 +48,7 @@ export class CreateDocumentDto {
             description: this.description,
             sourceUrl: this.sourceUrl,
             owner: {
+                //hardcoded for now
                 connect: {
                     id: '15661b63-e72f-4c30-8d7d-a75e8d1b69f4'
                 }
