@@ -28,7 +28,7 @@ export class ExpensesService {
 
   async remove(id: string) {
     try {
-      return await this.prisma.expense.update({ where: { id }, data: { deleted: true } })
+      return await this.prisma.expense.delete({ where: { id } })
     } catch (error) {
       throw new NotFoundException('No expense with this id exists.')
     }

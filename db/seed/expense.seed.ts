@@ -42,7 +42,7 @@ export async function expenseSeed() {
         type: ExpenseType.administrative,
         amount: faker.datatype.number({ min: 1, max: 1000 }),
         description: faker.lorem.words(10),
-        status: ExpenseStatus.deleted,
+        status: ExpenseStatus.pending,
         vaultId: vault.id,
       },
       {
