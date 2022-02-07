@@ -7,7 +7,7 @@ import { UpdateExpenseDto } from './dto/update-expense.dto'
 
 @Controller('expenses')
 export class ExpensesController {
-  constructor(private readonly expensesService: ExpensesService) {}
+  constructor(private readonly expensesService: ExpensesService) { }
 
   @Public()
   @Get('list')
@@ -25,7 +25,7 @@ export class ExpensesController {
   @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.expensesService.findOne(+id)
+    return this.expensesService.findOne(id)
   }
 
   @Public()
