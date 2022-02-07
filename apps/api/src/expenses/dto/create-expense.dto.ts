@@ -2,7 +2,6 @@ import {
   IsEnum,
   IsNumber,
   IsOptional,
-  isString,
   IsString,
   IsUUID,
   MaxLength,
@@ -10,7 +9,7 @@ import {
 } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose } from 'class-transformer'
-import { Currency, Prisma, ExpenseType, ExpenseStatus } from '.prisma/client'
+import { Currency, ExpenseType, ExpenseStatus } from '.prisma/client'
 
 @Expose()
 export class CreateExpenseDto {
