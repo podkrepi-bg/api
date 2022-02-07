@@ -10,6 +10,7 @@ export class Expense {
   currency: Currency
   amount: number
   vaultId: string
+  deleted: boolean
   description: string | null
   documentId: string | null
   approvedById: string | null

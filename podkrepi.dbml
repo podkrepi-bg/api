@@ -317,6 +317,7 @@ Table Expense {
   currency Currency [not null, default: 'BGN']
   amount Int [not null, default: 0]
   vaultId String [not null]
+  deleted Boolean [not null, default: false]
   description String
   documentId String
   approvedById String
@@ -390,7 +391,6 @@ Enum ExpenseStatus {
   pending
   approved
   canceled
-  deleted
 }
 
 Enum ExpenseType {
