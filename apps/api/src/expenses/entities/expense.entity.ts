@@ -1,1 +1,1 @@
-export class Expense {}
+export class Expense { }

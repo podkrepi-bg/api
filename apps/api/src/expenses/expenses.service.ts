@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { CreateExpenseDto } from './dto/create-expense.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { Expense } from '@prisma/client'
@@ -31,6 +31,22 @@ export class ExpensesService {
       return await this.prisma.expense.update({ where: { id }, data: { deleted: true } })
     } catch (error) {
       throw new NotFoundException('No expense with this id exists.')
+    }
+  }
+
+  async removeMany(idsToDelete: string[]) {
+    try {
+      return await this.prisma.expense.deleteMany({
+        where: {
+          id: {
+            in: idsToDelete
+          }
+        }
+      })
+    } catch (err) {
+      const msg = 'Delete failed. No Expense found with given ID'
+      Logger.warn(msg)
+      throw new NotFoundException(msg)
     }
   }
 }
