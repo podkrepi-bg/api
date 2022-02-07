@@ -59,18 +59,6 @@ export class CreateExpenseDto {
   @IsUUID()
   @IsOptional()
   approvedById?: string
-
-  // public toEntity(): Prisma.ExpenseCreateInput {
-  // 	return {
-  // 		type: this.type,
-  // 		currency: this.currency,
-  // 		amount: this.amount,
-  // 		description: this.description,
-  // 		vault: { connect: { id: this.vaultId } },
-  // 		documentId: this.documentId,
-  // 		approvedById: this.approvedById
-  // 	}
-  // }
 }
 
 //expense->vault ---> one-

@@ -10,6 +10,7 @@ import { beneficiarySeed } from './beneficiary.seed'
 import { infoRequestSeed } from './infoRequest.seed'
 import { campaignTypesSeed } from './campaign-type.seed'
 import { vaultSeed } from './vault.seed'
+import { expenseSeed } from './expense.seed'
 
 const prisma = new PrismaClient()
 
@@ -27,6 +28,7 @@ async function main() {
       await beneficiarySeed(),
       await campaignSeed(),
       await vaultSeed(),
+      await expenseSeed(),
     ])
   }
 }
