@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger'
 import { AccountHolderType, BankAccountStatus } from '@prisma/client'
 import { Expose } from 'class-transformer'
 import { IsEnum, IsOptional, IsString } from 'class-validator'
-import { Withdrawal } from '../../domain/generated/withdrawal/entities/withdrawal.entity'
 @Expose()
 export class CreateBankaccountDto {
   @ApiProperty({ enum: BankAccountStatus })
@@ -42,7 +41,4 @@ export class CreateBankaccountDto {
   @IsString()
   @IsOptional()
   fingerprint: string | null
-
-  @ApiProperty()
-  withdraws?: Withdrawal[]
 }
