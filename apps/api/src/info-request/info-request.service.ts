@@ -12,11 +12,11 @@ export class InfoRequestService {
   }
 
   findAll() {
-    return this.prisma.infoRequest.findMany();
+    return this.prisma.infoRequest.findMany({ include: { person: true}});
   }
 
   findOne(id: string) {
-    return this.prisma.infoRequest.findUnique({where: {id}});
+    return this.prisma.infoRequest.findUnique({where: {id}, include: {person: true}});
   }
 
   update(id: string, updateInfoRequestDto: UpdateInfoRequestDto) {
