@@ -1,26 +1,29 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateInfoRequestDto } from './dto/create-info-request.dto';
 import { UpdateInfoRequestDto } from './dto/update-info-request.dto';
 
 @Injectable()
 export class InfoRequestService {
+  constructor(public prisma: PrismaService){}
+
   create(createInfoRequestDto: CreateInfoRequestDto) {
-    return 'This action adds a new infoRequest';
+    return this.prisma.infoRequest.create({data: createInfoRequestDto});
   }
 
   findAll() {
-    return `This action returns all infoRequest`;
+    return this.prisma.infoRequest.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} infoRequest`;
+  findOne(id: string) {
+    return this.prisma.infoRequest.findUnique({where: {id}});
   }
 
-  update(id: number, updateInfoRequestDto: UpdateInfoRequestDto) {
-    return `This action updates a #${id} infoRequest`;
+  update(id: string, updateInfoRequestDto: UpdateInfoRequestDto) {
+    return this.prisma.infoRequest.update({ where: { id }, data: { ...updateInfoRequestDto}});
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} infoRequest`;
+  remove(id: string) {
+    return this.prisma.infoRequest.delete({where: {id}});
   }
 }
