@@ -39,7 +39,7 @@ export class DocumentController {
   }
 
   @Public()
-  @Delete()
+  @Post('/delete-many')
   removeMany(@Body() idsToDelete: string[]) {
     return this.documentService.removeMany(idsToDelete);
   }
