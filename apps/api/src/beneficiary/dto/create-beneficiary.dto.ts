@@ -7,18 +7,18 @@ import {
   IsString,
   IsOptional,
   ValidateNested,
-} from 'class-validator'
-import { ApiProperty } from '@nestjs/swagger'
-import { Expose, Type } from 'class-transformer'
-import { BeneficiaryType, PersonRelation, Prisma } from '.prisma/client'
-import { CreatePersonDto } from '@podkrepi-bg/podkrepi-types'
+} from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+import { Expose, Type } from "class-transformer";
+import { BeneficiaryType, PersonRelation, Prisma } from ".prisma/client";
+import { CreatePersonDto } from "@podkrepi-bg/podkrepi-types";
 
 @Expose()
 export class CreateBeneficiaryDto {
   @ApiProperty({ enum: BeneficiaryType })
   @Expose()
   @IsEnum(BeneficiaryType)
-  type: BeneficiaryType
+  type: BeneficiaryType;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -26,7 +26,7 @@ export class CreateBeneficiaryDto {
   @IsObject()
   @ValidateNested()
   @Type(() => CreatePersonDto)
-  public readonly beneficiary: CreatePersonDto
+  public readonly beneficiary: CreatePersonDto;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -34,39 +34,39 @@ export class CreateBeneficiaryDto {
   @IsObject()
   @ValidateNested()
   @Type(() => CreatePersonDto)
-  public readonly coordinator: CreatePersonDto
+  public readonly coordinator: CreatePersonDto;
 
   @ApiProperty({ enum: PersonRelation })
   @Expose()
   @IsEnum(PersonRelation)
-  coordinatorRelation: PersonRelation
+  coordinatorRelation: PersonRelation;
 
   @ApiProperty()
   @Expose()
   @IsISO31661Alpha2()
-  countryCode: string
+  countryCode: string;
 
   @ApiProperty()
   @Expose()
   @IsNotEmpty()
   @IsUUID()
-  cityId: string
+  cityId: string;
 
   @ApiProperty()
   @Expose()
   @IsOptional()
   @IsString()
-  description: string
+  description: string;
 
   @ApiProperty()
   @Expose()
   @IsOptional()
-  privateData: Prisma.JsonValue
+  privateData: Prisma.JsonValue;
 
   @ApiProperty()
   @Expose()
   @IsOptional()
-  publicData: Prisma.JsonValue
+  publicData: Prisma.JsonValue;
 
   public toEntity(): Prisma.BeneficiaryCreateInput {
     return {
@@ -91,7 +91,7 @@ export class CreateBeneficiaryDto {
       coordinatorRelation: this.coordinatorRelation,
       description: this.description,
       city: { connect: { id: this.cityId } },
-      countryCode: 'BG',
-    }
+      countryCode: "BG",
+    };
   }
 }

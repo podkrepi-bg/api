@@ -1,34 +1,34 @@
-import { Public } from 'nest-keycloak-connect'
-import { Body, Controller, Get, Post } from '@nestjs/common'
+import { Public } from "nest-keycloak-connect";
+import { Body, Controller, Get, Post } from "@nestjs/common";
 
-import { DonationsService } from './donations.service'
-import { CreateSessionDto } from './dto/create-session.dto'
+import { DonationsService } from "./donations.service";
+import { CreateSessionDto } from "./dto/create-session.dto";
 
-@Controller('donation')
+@Controller("donation")
 export class DonationsController {
   constructor(private readonly paymentsService: DonationsService) {}
 
-  @Post('create-checkout-session')
+  @Post("create-checkout-session")
   @Public()
   createCheckoutSession(@Body() sessionDto: CreateSessionDto) {
-    return this.paymentsService.createCheckoutSession(sessionDto)
+    return this.paymentsService.createCheckoutSession(sessionDto);
   }
 
-  @Get('prices')
+  @Get("prices")
   @Public()
   findPrices() {
-    return this.paymentsService.listPrices()
+    return this.paymentsService.listPrices();
   }
 
-  @Get('prices/single')
+  @Get("prices/single")
   @Public()
   findSinglePrices() {
-    return this.paymentsService.listPrices('one_time')
+    return this.paymentsService.listPrices("one_time");
   }
 
-  @Get('prices/recurring')
+  @Get("prices/recurring")
   @Public()
   findRecurringPrices() {
-    return this.paymentsService.listPrices('recurring')
+    return this.paymentsService.listPrices("recurring");
   }
 }

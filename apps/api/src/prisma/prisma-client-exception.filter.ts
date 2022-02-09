@@ -1,7 +1,7 @@
-import { ArgumentsHost, Catch, HttpStatus } from '@nestjs/common'
-import { BaseExceptionFilter } from '@nestjs/core'
-import { Prisma } from '@prisma/client'
-import { Response } from 'express'
+import { ArgumentsHost, Catch, HttpStatus } from "@nestjs/common";
+import { BaseExceptionFilter } from "@nestjs/core";
+import { Prisma } from "@prisma/client";
+import { Response } from "express";
 
 /**
  * Source: https://github.com/marcjulian/nestjs-prisma
@@ -14,22 +14,22 @@ import { Response } from 'express'
 @Catch(Prisma.PrismaClientKnownRequestError)
 export class PrismaClientExceptionFilter extends BaseExceptionFilter {
   catch(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
-    const ctx = host.switchToHttp()
-    const response = ctx.getResponse<Response>()
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
 
     switch (exception.code) {
-      case 'P2000':
-        this.catchValueTooLong(exception, response)
-        break
-      case 'P2002':
-        this.catchUniqueConstraint(exception, response)
-        break
-      case 'P2025':
-        this.catchNotFound(exception, response)
-        break
+      case "P2000":
+        this.catchValueTooLong(exception, response);
+        break;
+      case "P2002":
+        this.catchUniqueConstraint(exception, response);
+        break;
+      case "P2025":
+        this.catchNotFound(exception, response);
+        break;
       default:
-        this.unhandledException(exception, host)
-        break
+        this.unhandledException(exception, host);
+        break;
     }
   }
 
@@ -40,12 +40,15 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
    * @param exception P2000
    * @param response 400 Bad Request
    */
-  catchValueTooLong(exception: Prisma.PrismaClientKnownRequestError, response: Response) {
-    const status = HttpStatus.BAD_REQUEST
+  catchValueTooLong(
+    exception: Prisma.PrismaClientKnownRequestError,
+    response: Response
+  ) {
+    const status = HttpStatus.BAD_REQUEST;
     response.status(status).json({
       statusCode: status,
       message: this.cleanUpException(exception),
-    })
+    });
   }
 
   /**
@@ -55,12 +58,15 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
    * @param exception P2002
    * @param response 409 Conflict
    */
-  catchUniqueConstraint(exception: Prisma.PrismaClientKnownRequestError, response: Response) {
-    const status = HttpStatus.CONFLICT
+  catchUniqueConstraint(
+    exception: Prisma.PrismaClientKnownRequestError,
+    response: Response
+  ) {
+    const status = HttpStatus.CONFLICT;
     response.status(status).json({
       statusCode: status,
       message: this.cleanUpException(exception),
-    })
+    });
   }
 
   /**
@@ -70,17 +76,23 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
    * @param exception P2025
    * @param response 404 Not Found
    */
-  catchNotFound(exception: Prisma.PrismaClientKnownRequestError, response: Response) {
-    const status = HttpStatus.NOT_FOUND
+  catchNotFound(
+    exception: Prisma.PrismaClientKnownRequestError,
+    response: Response
+  ) {
+    const status = HttpStatus.NOT_FOUND;
     response.status(status).json({
       statusCode: status,
       message: this.cleanUpException(exception),
-    })
+    });
   }
 
-  unhandledException(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
+  unhandledException(
+    exception: Prisma.PrismaClientKnownRequestError,
+    host: ArgumentsHost
+  ) {
     // default 500 error code
-    super.catch(exception, host)
+    super.catch(exception, host);
   }
 
   /**
@@ -89,6 +101,6 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
    * @returns replace line breaks with empty string
    */
   cleanUpException(exception: Prisma.PrismaClientKnownRequestError): string {
-    return exception.message.replace(/\n/g, '')
+    return exception.message.replace(/\n/g, "");
   }
 }

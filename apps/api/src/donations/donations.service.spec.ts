@@ -1,14 +1,14 @@
-import { ConfigService } from '@nestjs/config'
-import { Test, TestingModule } from '@nestjs/testing'
-import { STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
+import { ConfigService } from "@nestjs/config";
+import { Test, TestingModule } from "@nestjs/testing";
+import { STRIPE_CLIENT_TOKEN } from "@golevelup/nestjs-stripe";
 
-import { DonationsService } from './donations.service'
-import { PrismaService } from '../prisma/prisma.service'
-import { prismaMock } from '../prisma/prisma-client.mock'
-import { CampaignService } from '../campaign/campaign.service'
+import { DonationsService } from "./donations.service";
+import { PrismaService } from "../prisma/prisma.service";
+import { prismaMock } from "../prisma/prisma-client.mock";
+import { CampaignService } from "../campaign/campaign.service";
 
-describe('DonationsService', () => {
-  let service: DonationsService
+describe("DonationsService", () => {
+  let service: DonationsService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -25,12 +25,12 @@ describe('DonationsService', () => {
           useValue: jest.fn(),
         },
       ],
-    }).compile()
+    }).compile();
 
-    service = module.get<DonationsService>(DonationsService)
-  })
+    service = module.get<DonationsService>(DonationsService);
+  });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined()
-  })
-})
+  it("should be defined", () => {
+    expect(service).toBeDefined();
+  });
+});

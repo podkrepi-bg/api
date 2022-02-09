@@ -1,11 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing'
+import { Test, TestingModule } from "@nestjs/testing";
 
-import { CampaignService } from './campaign.service'
-import { PrismaService } from '../prisma/prisma.service'
-import { prismaMock } from '../prisma/prisma-client.mock'
+import { CampaignService } from "./campaign.service";
+import { PrismaService } from "../prisma/prisma.service";
+import { prismaMock } from "../prisma/prisma-client.mock";
 
-describe('CampaignService', () => {
-  let service: CampaignService
+describe("CampaignService", () => {
+  let service: CampaignService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -16,12 +16,12 @@ describe('CampaignService', () => {
           useValue: prismaMock,
         },
       ],
-    }).compile()
+    }).compile();
 
-    service = module.get<CampaignService>(CampaignService)
-  })
+    service = module.get<CampaignService>(CampaignService);
+  });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined()
-  })
-})
+  it("should be defined", () => {
+    expect(service).toBeDefined();
+  });
+});
