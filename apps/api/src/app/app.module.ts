@@ -12,7 +12,6 @@ import {
 
 import { AppService } from "./app.service";
 import { AuthModule } from "../auth/auth.module";
-import { BookModule } from "../book/book.module";
 import { BootcampModule } from "../bootcamp/bootcamp.module";
 import { CityModule } from "../city/city.module";
 import { AppController } from "./app.controller";
@@ -59,7 +58,6 @@ import { CampaignTypesModule } from "../campaign-types/campaign-types.module";
     BeneficiaryModule,
     CityModule,
     HealthModule,
-    BookModule,
     BootcampModule,
     CampaignTypesModule
   ],
