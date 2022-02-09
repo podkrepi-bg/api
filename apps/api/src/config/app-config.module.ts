@@ -1,8 +1,8 @@
-import { Module } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import KeycloakAdminClient from "@keycloak/keycloak-admin-client";
+import { Module } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
 
-import { KeycloakConfigService } from "./keycloak-config.service";
+import { KeycloakConfigService } from './keycloak-config.service'
 
 @Module({
   providers: [
@@ -11,11 +11,11 @@ import { KeycloakConfigService } from "./keycloak-config.service";
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => {
         return new KeycloakConfigService(
-          config.get<string>("keycloak.serverUrl"),
-          config.get<string>("keycloak.realm"),
-          config.get<string>("keycloak.clientId"),
-          config.get<string>("keycloak.secret")
-        );
+          config.get<string>('keycloak.serverUrl'),
+          config.get<string>('keycloak.realm'),
+          config.get<string>('keycloak.clientId'),
+          config.get<string>('keycloak.secret'),
+        )
       },
     },
     {
@@ -23,9 +23,9 @@ import { KeycloakConfigService } from "./keycloak-config.service";
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         return new KeycloakAdminClient({
-          baseUrl: config.get<string>("keycloak.serverUrl"),
-          realmName: config.get<string>("keycloak.realm"),
-        });
+          baseUrl: config.get<string>('keycloak.serverUrl'),
+          realmName: config.get<string>('keycloak.realm'),
+        })
       },
     },
   ],

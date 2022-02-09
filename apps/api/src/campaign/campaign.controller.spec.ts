@@ -1,12 +1,12 @@
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test, TestingModule } from '@nestjs/testing'
 
-import { CampaignService } from "./campaign.service";
-import { PrismaService } from "../prisma/prisma.service";
-import { prismaMock } from "../prisma/prisma-client.mock";
-import { CampaignController } from "./campaign.controller";
+import { CampaignService } from './campaign.service'
+import { PrismaService } from '../prisma/prisma.service'
+import { prismaMock } from '../prisma/prisma-client.mock'
+import { CampaignController } from './campaign.controller'
 
-describe("CampaignController", () => {
-  let controller: CampaignController;
+describe('CampaignController', () => {
+  let controller: CampaignController
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -18,12 +18,12 @@ describe("CampaignController", () => {
           useValue: prismaMock,
         },
       ],
-    }).compile();
+    }).compile()
 
-    controller = module.get<CampaignController>(CampaignController);
-  });
+    controller = module.get<CampaignController>(CampaignController)
+  })
 
-  it("should be defined", () => {
-    expect(controller).toBeDefined();
-  });
-});
+  it('should be defined', () => {
+    expect(controller).toBeDefined()
+  })
+})

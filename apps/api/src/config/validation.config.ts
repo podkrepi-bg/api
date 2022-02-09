@@ -1,17 +1,13 @@
-import Joi from "joi";
-import {
-  BadRequestException,
-  INestApplication,
-  ValidationPipe,
-} from "@nestjs/common";
-import { useContainer } from "class-validator";
+import Joi from 'joi'
+import { BadRequestException, INestApplication, ValidationPipe } from '@nestjs/common'
+import { useContainer } from 'class-validator'
 
-import { AppModule } from "../app/app.module";
+import { AppModule } from '../app/app.module'
 
 const globalValidationPipe = new ValidationPipe({
   transform: true,
   transformOptions: {
-    strategy: "exposeAll",
+    strategy: 'exposeAll',
     excludeExtraneousValues: true,
   },
   stopAtFirstError: false,
@@ -19,22 +15,18 @@ const globalValidationPipe = new ValidationPipe({
   disableErrorMessages: false,
   exceptionFactory: (errors) => new BadRequestException(errors),
   validationError: { target: false, value: false },
-});
+})
 
 export function setupValidation(app: INestApplication): void {
   // https://github.com/typestack/class-validator#using-service-container
-  useContainer(app.select(AppModule), { fallbackOnErrors: true });
+  useContainer(app.select(AppModule), { fallbackOnErrors: true })
 
-  app.useGlobalPipes(globalValidationPipe);
+  app.useGlobalPipes(globalValidationPipe)
 }
 
 export const validationSchema = Joi.object({
-  APP_ENV: Joi.string()
-    .valid("development", "staging", "production")
-    .default("development"),
-  NODE_ENV: Joi.string()
-    .valid("development", "test", "production")
-    .default("development"),
+  APP_ENV: Joi.string().valid('development', 'staging', 'production').default('development'),
+  NODE_ENV: Joi.string().valid('development', 'test', 'production').default('development'),
   APP_URL: Joi.string().uri(),
   PORT: Joi.number().default(5010),
 
@@ -51,11 +43,11 @@ export const validationSchema = Joi.object({
   KEYCLOAK_SECRET: Joi.string().required(),
 
   // SendGrid
-  SENDGRID_API_KEY: Joi.string().allow("").optional(),
+  SENDGRID_API_KEY: Joi.string().allow('').optional(),
   SENDGRID_SENDER_EMAIL: Joi.string().email().required(),
   SENDGRID_INTERNAL_EMAIL: Joi.string().email().required(),
 
   // Stripe
   STRIPE_SECRET_KEY: Joi.string().required(),
   STRIPE_WEBHOOK_SECRET: Joi.string().required(),
-});
+})

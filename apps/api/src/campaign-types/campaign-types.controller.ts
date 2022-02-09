@@ -1,11 +1,6 @@
 import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
 import { Public } from 'nest-keycloak-connect';
 import { CampaignTypesService } from './campaign-types.service';
-<<<<<<< HEAD
-=======
-import { CreateCampaignTypeDto } from './dto/create-campaign-type.dto';
-import { UpdateCampaignTypeDto } from './dto/update-campaign-type.dto';
->>>>>>> 55b15c63347ccf7136c947e73c8a91a7a5c74749
 
 @Controller('campaign-types')
 export class CampaignTypesController {

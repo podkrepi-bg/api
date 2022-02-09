@@ -1,15 +1,15 @@
-import { Controller, Get } from "@nestjs/common";
-import { Public } from "nest-keycloak-connect";
+import { Controller, Get } from '@nestjs/common'
+import { Public } from 'nest-keycloak-connect'
 
-import { CampaignService } from "./campaign.service";
+import { CampaignService } from './campaign.service'
 
-@Controller("campaign-type")
+@Controller('campaign-type')
 export class CampaignTypeController {
   constructor(private readonly campaignService: CampaignService) {}
 
-  @Get("list")
+  @Get('list')
   @Public()
   getData() {
-    return this.campaignService.listCampaignTypes();
+    return this.campaignService.listCampaignTypes()
   }
 }

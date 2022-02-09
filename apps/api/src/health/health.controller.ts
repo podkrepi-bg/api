@@ -1,22 +1,20 @@
-import { Public } from "nest-keycloak-connect";
-import { Controller, Get } from "@nestjs/common";
-import { HealthCheckService, HealthCheck } from "@nestjs/terminus";
+import { Public } from 'nest-keycloak-connect'
+import { Controller, Get } from '@nestjs/common'
+import { HealthCheckService, HealthCheck } from '@nestjs/terminus'
 
-import { PrismaHealthIndicator } from "../prisma/prisma.health";
+import { PrismaHealthIndicator } from '../prisma/prisma.health'
 
-@Controller("health")
+@Controller('health')
 export class HealthController {
   constructor(
     private health: HealthCheckService,
-    private prismaHealthIndicator: PrismaHealthIndicator
+    private prismaHealthIndicator: PrismaHealthIndicator,
   ) {}
 
   @Get()
   @HealthCheck()
   @Public()
   async check() {
-    return await this.health.check([
-      async () => this.prismaHealthIndicator.isHealthy("database"),
-    ]);
+    return await this.health.check([async () => this.prismaHealthIndicator.isHealthy('database')])
   }
 }

@@ -9,56 +9,48 @@ import {
   Max,
   MaxLength,
   MinLength,
-} from "class-validator";
-import { ApiProperty } from "@nestjs/swagger";
-import { Expose, Type } from "class-transformer";
-import { Currency, Prisma } from ".prisma/client";
+} from 'class-validator'
+import { ApiProperty } from '@nestjs/swagger'
+import { Expose, Type } from 'class-transformer'
+import { Currency, Prisma } from '.prisma/client'
 
 @Expose()
 export class CreateCampaignDto {
   @ApiProperty()
   @Expose()
   @IsString()
-  slug: string;
+  slug: string
 
   @ApiProperty()
   @Expose()
   @IsString()
-  title: string;
+  title: string
 
   @ApiProperty()
   @Expose()
   @IsString()
-  essence: string;
+  essence: string
 
   @ApiProperty()
   @Expose()
   @IsUUID()
-  coordinatorId: string;
+  coordinatorId: string
 
   @ApiProperty()
   @Expose()
   @IsUUID()
-  beneficiaryId: string;
+  beneficiaryId: string
 
   @ApiProperty()
   @Expose()
   @IsUUID()
-  campaignTypeId: string;
+  campaignTypeId: string
 
   @ApiProperty()
   @IsOptional()
   @Expose()
   @IsString()
-  description: string;
-
-  @ApiProperty()
-  @IsOptional()
-  @Expose()
-  @IsNumber()
-  @IsPositive()
-  @Max(500000)
-  targetAmount: number;
+  description: string
 
   @ApiProperty()
   @IsOptional()
@@ -66,7 +58,15 @@ export class CreateCampaignDto {
   @IsNumber()
   @IsPositive()
   @Max(500000)
-  reachedAmount: number;
+  targetAmount: number
+
+  @ApiProperty()
+  @IsOptional()
+  @Expose()
+  @IsNumber()
+  @IsPositive()
+  @Max(500000)
+  reachedAmount: number
 
   @ApiProperty()
   @IsOptional()
@@ -75,21 +75,21 @@ export class CreateCampaignDto {
   @MinLength(3)
   @MaxLength(3)
   @IsEnum(Currency)
-  currency: Currency;
+  currency: Currency
 
   @ApiProperty()
   @Expose()
   @IsOptional()
   @IsDate()
   @Type(() => Date)
-  startDate: Date | null;
+  startDate: Date | null
 
   @ApiProperty()
   @Expose()
   @IsOptional()
   @IsDate()
   @Type(() => Date)
-  endDate: Date | null;
+  endDate: Date | null
 
   public toEntity(): Prisma.CampaignCreateInput {
     return {
@@ -99,12 +99,12 @@ export class CreateCampaignDto {
       essence: this.essence,
       currency: this.currency,
       targetAmount: this.targetAmount,
-      coordinatorId: this.coordinatorId,
       startDate: this.startDate,
       endDate: this.endDate,
       vaults: { create: { currency: this.currency } },
-      campaignTypes: { connect: { id: this.campaignTypeId } },
-      beneficiaries: { connect: { id: this.beneficiaryId } },
-    };
+      campaignType: { connect: { id: this.campaignTypeId } },
+      beneficiary: { connect: { id: this.beneficiaryId } },
+      coordinator: { connect: { id: this.coordinatorId } },
+    }
   }
 }

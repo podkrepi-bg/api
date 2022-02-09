@@ -1,49 +1,45 @@
-import { applyRawBodyOnlyTo } from "@golevelup/nestjs-webhooks";
-import { ConfigModule, ConfigService } from "@nestjs/config";
-import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
-import { SentryInterceptor, SentryModule } from "@ntegral/nestjs-sentry";
-import { KeycloakConnectModule, RoleGuard } from "nest-keycloak-connect";
 import {
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from "@nestjs/common";
+  JsonBodyMiddleware,
+  RawBodyMiddleware,
+  applyRawBodyOnlyTo,
+} from '@golevelup/nestjs-webhooks'
+import { ConfigModule, ConfigService } from '@nestjs/config'
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
+import { SentryInterceptor, SentryModule } from '@ntegral/nestjs-sentry'
+import { KeycloakConnectModule, RoleGuard } from 'nest-keycloak-connect'
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common'
 
-import { AppService } from "./app.service";
-import { AuthModule } from "../auth/auth.module";
-import { BootcampModule } from "../bootcamp/bootcamp.module";
-import { CityModule } from "../city/city.module";
-import { AppController } from "./app.controller";
-import { CustomAuthGuard } from "./custom-auth.guard";
-import configuration from "../config/configuration";
-import { PrismaService } from "../prisma/prisma.service";
-import { AccountModule } from "../account/account.module";
-import { HealthModule } from "../health/health.module";
-import { SupportModule } from "../support/support.module";
-import { CampaignModule } from "../campaign/campaign.module";
-import { AppConfigModule } from "../config/app-config.module";
-import { validationSchema } from "../config/validation.config";
-import { DonationsModule } from "../donations/donations.module";
-import { BeneficiaryModule } from "../beneficiary/beneficiary.module";
-import { KeycloakConfigService } from "../config/keycloak-config.service";
-import { PrismaClientExceptionFilter } from "../prisma/prisma-client-exception.filter";
-import { EmailService } from "../email/email.service";
-import { TemplateService } from "../email/template.service";
-import { CampaignTypesModule } from "../campaign-types/campaign-types.module";
-
+import { AppService } from './app.service'
+import { AuthModule } from '../auth/auth.module'
+import { CityModule } from '../city/city.module'
+import { AppController } from './app.controller'
+import { CustomAuthGuard } from './custom-auth.guard'
+import configuration from '../config/configuration'
+import { PrismaService } from '../prisma/prisma.service'
+import { AccountModule } from '../account/account.module'
+import { HealthModule } from '../health/health.module'
+import { SupportModule } from '../support/support.module'
+import { CampaignModule } from '../campaign/campaign.module'
+import { AppConfigModule } from '../config/app-config.module'
+import { validationSchema } from '../config/validation.config'
+import { DonationsModule } from '../donations/donations.module'
+import { BeneficiaryModule } from '../beneficiary/beneficiary.module'
+import { KeycloakConfigService } from '../config/keycloak-config.service'
+import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.filter'
+import { EmailService } from '../email/email.service'
+import { TemplateService } from '../email/template.service'
+import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      validationSchema,
-      isGlobal: true,
-      load: [configuration],
-    }),
+    ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
+    /* Middlewares */
+    JsonBodyMiddleware,
+    RawBodyMiddleware,
     /* External modules */
     SentryModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (config: ConfigService) => config.get("sentry", {}),
+      useFactory: async (config: ConfigService) => config.get('sentry', {}),
     }),
     KeycloakConnectModule.registerAsync({
       useExisting: KeycloakConfigService,
@@ -57,9 +53,8 @@ import { CampaignTypesModule } from "../campaign-types/campaign-types.module";
     SupportModule,
     BeneficiaryModule,
     CityModule,
+    CampaignTypesModule,
     HealthModule,
-    BootcampModule,
-    CampaignTypesModule
   ],
   controllers: [AppController],
   providers: [
@@ -102,7 +97,7 @@ export class AppModule implements NestModule {
      */
     applyRawBodyOnlyTo(consumer, {
       method: RequestMethod.ALL,
-      path: "stripe/webhook",
-    });
+      path: 'stripe/webhook',
+    })
   }
 }

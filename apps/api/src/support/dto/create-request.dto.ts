@@ -1,10 +1,10 @@
-import { Prisma } from ".prisma/client";
-import { ApiProperty } from "@nestjs/swagger";
-import { Expose, Type } from "class-transformer";
-import { CreatePersonDto } from "@podkrepi-bg/podkrepi-types";
-import { IsNotEmpty, IsObject, ValidateNested } from "class-validator";
+import { Prisma } from '.prisma/client'
+import { ApiProperty } from '@nestjs/swagger'
+import { Expose, Type } from 'class-transformer'
+import { CreatePersonDto } from '@podkrepi-bg/podkrepi-types'
+import { IsNotEmpty, IsObject, ValidateNested } from 'class-validator'
 
-import { SupportDataDto } from "./support-data.dto";
+import { SupportDataDto } from './support-data.dto'
 
 @Expose()
 export class CreateRequestDto {
@@ -14,7 +14,7 @@ export class CreateRequestDto {
   @IsObject()
   @ValidateNested()
   @Type(() => CreatePersonDto)
-  public readonly person: CreatePersonDto;
+  public readonly person: CreatePersonDto
 
   @ApiProperty()
   @IsNotEmpty()
@@ -22,21 +22,13 @@ export class CreateRequestDto {
   @IsObject()
   @ValidateNested()
   @Type(() => SupportDataDto)
-  public readonly supportData: SupportDataDto;
+  public readonly supportData: SupportDataDto
 
   public toEntity(): Prisma.SupporterCreateInput {
     const {
       person,
-      supportData: {
-        roles,
-        benefactor,
-        partner,
-        company,
-        volunteer,
-        associationMember,
-        comment,
-      },
-    } = this;
+      supportData: { roles, benefactor, partner, company, volunteer, associationMember, comment },
+    } = this
     return {
       comment,
       person: {
@@ -69,6 +61,6 @@ export class CreateRequestDto {
       companySponsor: company.sponsor,
       companyVolunteer: company.volunteer,
       companyOtherText: company.otherText,
-    };
+    }
   }
 }

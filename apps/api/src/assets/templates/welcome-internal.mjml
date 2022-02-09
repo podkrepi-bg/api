@@ -4,8 +4,7 @@
       background-color="#009FE3"
       vertical-align="top"
       padding-bottom="0px"
-      padding-top="0"
-    >
+      padding-top="0">
       <mj-column vertical-align="top" width="100%">
         <mj-text
           align="left"
@@ -16,17 +15,12 @@
           padding-left="25px"
           padding-right="25px"
           padding-bottom="30px"
-          padding-top="50px"
-        >
+          padding-top="50px">
           Нов поддръжник на Подкрепи.бг!
         </mj-text>
       </mj-column>
     </mj-section>
-    <mj-section
-      background-color="#009fe3"
-      padding-bottom="20px"
-      padding-top="20px"
-    >
+    <mj-section background-color="#009fe3" padding-bottom="20px" padding-top="20px">
       <mj-column vertical-align="middle" width="100%">
         <mj-text
           align="left"
@@ -34,8 +28,7 @@
           font-size="15px"
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
-          padding-right="25px"
-        >
+          padding-right="25px">
           Пълна информация за регистрацията:<br /><br />
         </mj-text>
         <mj-text
@@ -44,8 +37,7 @@
           font-size="15px"
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
-          padding-right="25px"
-        >
+          padding-right="25px">
           <pre id="json">{{info}}</pre>
         </mj-text>
       </mj-column>
