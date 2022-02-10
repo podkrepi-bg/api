@@ -11,15 +11,13 @@ export class ExpensesService {
     return await this.prisma.expense.create({ data: createExpenseDto })
   }
 
-  async listExpenses(): Promise<Expense[]> {
-    return this.prisma.expense.findMany({ where: { deleted: false } })
+  async listExpenses(returnDeleted = false): Promise<Expense[]> {
+    return this.prisma.expense.findMany({ where: { deleted: returnDeleted } })
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, returnDeleted = false) {
     try {
-      const expense = await this.prisma.expense.findFirst({ where: { id, deleted: false } })
-      // handle what happens if it finds the id but the deleted is true , what do we return to the client?
-      // may be a message saying the expense has been deleted ?
+      const expense = await this.prisma.expense.findFirst({ where: { id, deleted: returnDeleted } })
       return expense
     } catch (error) {
       throw new NotFoundException('No expense found with that id.')

@@ -59,14 +59,3 @@ export class CreateExpenseDto {
   @IsOptional()
   approvedById?: string
 }
-
-//expense->vault ---> one-
-
-// id?: string
-// type: ExpenseType
-// currency?: Currency
-// amount?: number
-// description?: string | null
-// vault: VaultCreateNestedOneWithoutExpensesInput
-// approvedBy?: PersonCreateNestedOneWithoutExpensesInput
-// document?: DocumentCreateNestedOneWithoutExpensesInput
