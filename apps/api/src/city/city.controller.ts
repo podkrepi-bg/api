@@ -1,22 +1,22 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
-import { City } from "@prisma/client";
-import { Public } from "nest-keycloak-connect";
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
+import { City } from '@prisma/client'
+import { Public } from 'nest-keycloak-connect'
 
-import { CityService } from "./city.service";
+import { CityService } from './city.service'
 
-@Controller("city")
+@Controller('city')
 export class CityController {
-  constructor(private readonly cityService: CityService) { }
+  constructor(private readonly cityService: CityService) {}
 
-  @Get("list")
+  @Get('list')
   @Public()
   async getData() {
-    return await this.cityService.listCities();
+    return await this.cityService.listCities()
   }
 
   @Get('view/:id')
   @Public()
-  async viewTown(@Param("id") id: string) {
+  async viewTown(@Param('id') id: string) {
     return await this.cityService.viewCity(id)
   }
 
@@ -26,27 +26,27 @@ export class CityController {
     return await this.cityService.createCity(body)
   }
 
-  @Put("edit/:id")
+  @Put('edit/:id')
   @Public()
-  async editTown(@Param("id") id: string, @Body() body: City) {
+  async editTown(@Param('id') id: string, @Body() body: City) {
     return await this.cityService.editCity(id, body)
   }
 
   @Delete('remove/:id')
   @Public()
-  async removeTown(@Param("id") id: string) {
+  async removeTown(@Param('id') id: string) {
     return await this.cityService.removeCity(id)
   }
 
   @Get('/search/name/:key')
   @Public()
-  async searchByName(@Param("key") key: string) {
+  async searchByName(@Param('key') key: string) {
     return await this.cityService.searchByName(key)
   }
 
   @Get('/search/country/:key')
   @Public()
-  async searchByCountry(@Param("key") key: string) {
+  async searchByCountry(@Param('key') key: string) {
     return await this.cityService.searchByCountry(key)
   }
 }

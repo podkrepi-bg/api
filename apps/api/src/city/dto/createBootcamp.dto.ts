@@ -1,5 +1,5 @@
 export class CityCreateDto {
-    name: string;
-    postalCode: number;
-    countryId: string;
+  name: string
+  postalCode: number
+  countryId: string
 }

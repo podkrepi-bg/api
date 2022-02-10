@@ -56,7 +56,7 @@ import { PersonModule } from '../person/person.module'
     CityModule,
     CampaignTypesModule,
     HealthModule,
-    PersonModule
+    PersonModule,
   ],
   controllers: [AppController],
   providers: [

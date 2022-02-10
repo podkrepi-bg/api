@@ -24,6 +24,21 @@ export class PersonService {
   }
 
   async remove(id: string) {
-    return await this.prisma.person.delete({ where: { id } })
+    return await this.prisma.person.delete({
+      where: { id },
+      include: {
+        expenses: true,
+        documents: true,
+        transfers: true,
+        campaigns: true,
+        supporters: true,
+        benefactors: true,
+        beneficiaries: true,
+        withdrawals: true,
+        infoRequests: true,
+        coordinators: true,
+        recurringDonations: true,
+      },
+    })
   }
 }

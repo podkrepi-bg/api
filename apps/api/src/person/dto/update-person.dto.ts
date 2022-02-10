@@ -1,41 +1,14 @@
-import { ApiProperty } from "@nestjs/swagger"
-import { IsBoolean, IsDate, IsString } from "class-validator"
-
 export class UpdatePersonDto {
-  @ApiProperty()
-  @IsString()
-  firstName: string
-  @ApiProperty()
-  @IsString()
-  lastName: string
-  @ApiProperty()
-  @IsString()
-  email: string
-  @ApiProperty()
-  @IsBoolean()
+  firstName?: string
+  lastName?: string
+  email?: string
   emailConfirmed?: boolean
-  @ApiProperty()
-  @IsString()
   phone?: string
-  @ApiProperty()
-  @IsString()
   company?: string
-  @ApiProperty()
-  @IsBoolean()
   newsletter?: boolean
-  @ApiProperty()
-  @IsString()
   address?: string
-  @ApiProperty()
-  @IsDate()
   birthday?: Date
-  @ApiProperty()
-  @IsString()
   personalNumber?: string
-  @ApiProperty()
-  @IsString()
   keycloakId?: string
-  @ApiProperty()
-  @IsString()
   stripeCustomerId?: string
 }

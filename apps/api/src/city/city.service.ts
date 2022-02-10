@@ -1,15 +1,15 @@
-import { City } from "@prisma/client";
-import { Injectable } from "@nestjs/common";
+import { City } from '@prisma/client'
+import { Injectable } from '@nestjs/common'
 
-import { PrismaService } from "../prisma/prisma.service";
-import { CityCreateDto } from "./dto/createBootcamp.dto";
+import { PrismaService } from '../prisma/prisma.service'
+import { CityCreateDto } from './dto/createBootcamp.dto'
 
 @Injectable()
 export class CityService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async listCities(): Promise<City[]> {
-    return this.prisma.city.findMany();
+    return this.prisma.city.findMany()
   }
 
   async createCity(city: CityCreateDto) {
@@ -27,8 +27,10 @@ export class CityService {
   async removeCity(id: string) {
     const beneficiaries = await this.prisma.beneficiary.findMany({ where: { cityId: id } })
     for (let i = 0; i < beneficiaries.length; i++) {
-      const campaigns = await this.prisma.campaign.findMany({ where: { beneficiaryId: beneficiaries[i].id } })
-      campaigns.map(async x => {
+      const campaigns = await this.prisma.campaign.findMany({
+        where: { beneficiaryId: beneficiaries[i].id },
+      })
+      campaigns.map(async (x) => {
         await this.prisma.campaign.delete({ where: { id: x.id } })
       })
       await this.prisma.beneficiary.delete({ where: { id: beneficiaries[i].id } })
@@ -38,11 +40,11 @@ export class CityService {
 
   async searchByName(keyword: string) {
     const data = await this.prisma.city.findMany()
-    return data.filter(x => x.name.toLowerCase().includes(keyword.toLowerCase()))
+    return data.filter((x) => x.name.toLowerCase().includes(keyword.toLowerCase()))
   }
 
   async searchByCountry(keyword: string) {
     const data = await this.prisma.city.findMany({})
-    return data.filter(x => x.countryId.toLowerCase().includes(keyword.toLowerCase()))
+    return data.filter((x) => x.countryId.toLowerCase().includes(keyword.toLowerCase()))
   }
 }

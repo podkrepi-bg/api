@@ -31,40 +31,53 @@ generator nestjsDto {
 
 /// Generic person object
 model Person {
-  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  firstName          String              @map("first_name") @db.VarChar(100)
-  lastName           String              @map("last_name") @db.VarChar(100)
-  email              String              @unique @db.Citext
-  emailConfirmed     Boolean?            @default(false) @map("email_confirmed")
-  phone              String?             @db.VarChar(50)
-  company            String?             @db.VarChar(50)
-  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
-  newsletter         Boolean?            @default(false)
-  address            String?             @db.VarChar(100)
-  birthday           DateTime?           @db.Timestamptz(6)
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstName        String    @map("first_name") @db.VarChar(100)
+  lastName         String    @map("last_name") @db.VarChar(100)
+  email            String    @unique @db.Citext
+  emailConfirmed   Boolean?  @default(false) @map("email_confirmed")
+  phone            String?   @db.VarChar(50)
+  company          String?   @db.VarChar(50)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  newsletter       Boolean?  @default(false)
+  address          String?   @db.VarChar(100)
+  birthday         DateTime? @db.Timestamptz(6)
   /// Uniform Civil Number (NCN, EGN)
   /// https://en.wikipedia.org/wiki/National_identification_number#Bulgaria
-  personalNumber     String?             @unique @map("personal_number")
-  keycloakId         String?             @unique @map("keycloak_id") @db.Uuid
-  stripeCustomerId   String?             @unique @map("stripe_customer_id")
-  Donation           Donation[]
-  expenses           Expense[]
-  documents          Document[]
-  transfers          Transfer[]
-  campaigns          Campaign[]
-  supporters         Supporter[]
-  benefactors        Benefactor[]
-  withdrawals        Withdrawal[]
-  beneficiaries      Beneficiary[]
-  infoRequests       InfoRequest[]
-  coordinators       Coordinator[]
-  recurringDonations RecurringDonation[]
+  personalNumber   String?   @unique @map("personal_number")
+  keycloakId       String?   @unique @map("keycloak_id") @db.Uuid
+  stripeCustomerId String?   @unique @map("stripe_customer_id")
+  // Donation           Donation[]
+  // expenses           Expense[]
+  // documents          Document[]
+  // transfers          Transfer[]
+  // campaigns          Campaign[]
+  // supporters         Supporter[]
+  // benefactors        Benefactor[]
+  // withdrawals        Withdrawal[]
+  // beneficiaries      Beneficiary[]
+  // infoRequests       InfoRequest[]
+  // coordinators       Coordinator[]
+  // recurringDonations RecurringDonation[]
 
   @@index([keycloakId], map: "keycloak_id_idx")
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
   @@map("people")
+  Coordinator       Coordinator[]
+  Benefactor        Benefactor[]
+  Beneficiary       Beneficiary[]
+  Campaign          Campaign[]
+  InfoRequest       InfoRequest[]
+  Supporter         Supporter[]
+  Donation          Donation[]
+  RecurringDonation RecurringDonation[]
+  Transfer          Transfer[]
+  Withdrawal        Withdrawal[]
+  Expense           Expense[]
+  Document          Document[]
 }
+
 //Done
 model Company {
   id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -153,30 +166,30 @@ model CampaignType {
 }
 
 model Campaign {
-  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  state             CampaignState     @default(draft)
-  slug              String            @unique @db.VarChar(250)
-  title             String            @db.VarChar(200)
-  essence           String            @db.VarChar(500)
-  coordinatorId     String            @map("coordinator_id") @db.Uuid
-  beneficiaryId     String            @map("beneficiary_id") @db.Uuid
-  campaignTypeId    String            @map("campaign_type_id") @db.Uuid
-  approvedById      String?           @map("approved_by_id") @db.Uuid
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  state             CampaignState @default(draft)
+  slug              String        @unique @db.VarChar(250)
+  title             String        @db.VarChar(200)
+  essence           String        @db.VarChar(500)
+  coordinatorId     String        @map("coordinator_id") @db.Uuid
+  beneficiaryId     String        @map("beneficiary_id") @db.Uuid
+  campaignTypeId    String        @map("campaign_type_id") @db.Uuid
+  approvedById      String?       @map("approved_by_id") @db.Uuid
   description       String?
-  targetAmount      Int?              @default(0) @map("target_amount") @db.Integer
-  currency          Currency          @default(BGN)
-  startDate         DateTime?         @map("start_date") @db.Timestamptz(6)
-  endDate           DateTime?         @map("end_date") @db.Timestamptz(6)
-  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt         DateTime?         @map("deleted_at") @db.Timestamptz(6)
-  approvedBy        Person?           @relation(fields: [approvedById], references: [id])
-  coordinator       Coordinator       @relation(fields: [coordinatorId], references: [id])
-  beneficiary       Beneficiary       @relation(fields: [beneficiaryId], references: [id])
-  campaignType      CampaignType      @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  targetAmount      Int?          @default(0) @map("target_amount") @db.Integer
+  currency          Currency      @default(BGN)
+  startDate         DateTime?     @map("start_date") @db.Timestamptz(6)
+  endDate           DateTime?     @map("end_date") @db.Timestamptz(6)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  approvedBy        Person?       @relation(fields: [approvedById], references: [id])
+  coordinator       Coordinator   @relation(fields: [coordinatorId], references: [id])
+  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+  campaignType      CampaignType  @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   vaults            Vault[]
-  incomingTransfers Transfer[]        @relation("target_campaign")
-  outgoingTransfers Transfer[]        @relation("source_campaign")
+  incomingTransfers Transfer[]    @relation("target_campaign")
+  outgoingTransfers Transfer[]    @relation("source_campaign")
   withdrawals       Withdrawal[]
 
   @@map("campaigns")
