@@ -11,7 +11,6 @@ export class ExpensesController {
   @Public()
   @Get('list')
   async findAll() {
-    //filter to return only those who are not deleted
     return await this.expensesService.listExpenses()
   }
 
