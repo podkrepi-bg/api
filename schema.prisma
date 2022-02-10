@@ -49,27 +49,15 @@ model Person {
   keycloakId       String?   @unique @map("keycloak_id") @db.Uuid
   stripeCustomerId String?   @unique @map("stripe_customer_id")
 
-  // @@index([keycloakId], map: "keycloak_id_idx")
-  // @@index([stripeCustomerId], map: "stripe_customer_id_idx")
-  // @@map("people")
-  // Coordinator       Coordinator[]
-  // Benefactor        Benefactor[]
-  // Beneficiary       Beneficiary[]
-  // Campaign          Campaign[]
-  // InfoRequest       InfoRequest[]
-  // Supporter         Supporter[]
-  // RecurringDonation RecurringDonation[]
-  // Transfer          Transfer[]
-  // Withdrawal        Withdrawal[]
-  // Expense           Expense[]
-  // Document          Document[]
+  @@index([keycloakId], map: "keycloak_id_idx")
+  @@index([stripeCustomerId], map: "stripe_customer_id_idx")
+  @@map("people")
   Coordinator       Coordinator[]
   Benefactor        Benefactor[]
   Beneficiary       Beneficiary[]
   Campaign          Campaign[]
   InfoRequest       InfoRequest[]
   Supporter         Supporter[]
-  Donation          Donation[]
   RecurringDonation RecurringDonation[]
   Transfer          Transfer[]
   Withdrawal        Withdrawal[]
