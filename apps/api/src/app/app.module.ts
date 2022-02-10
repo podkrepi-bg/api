@@ -28,7 +28,6 @@ import { KeycloakConfigService } from '../config/keycloak-config.service'
 import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.filter'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
-import { CountryModule } from '../country/country.module'
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -54,7 +53,6 @@ import { CountryModule } from '../country/country.module'
     BeneficiaryModule,
     CityModule,
     HealthModule,
-    CountryModule
   ],
   controllers: [AppController],
   providers: [
