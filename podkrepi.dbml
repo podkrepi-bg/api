@@ -55,7 +55,7 @@ https://psc.egov.bg/en/psc-starting-a-business-bulstat']
 
 Table Coordinator {
   id String [pk]
-  personId String [not null]
+  personId String [unique, not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   person Person [not null]

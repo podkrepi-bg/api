@@ -15,7 +15,7 @@ describe('CoordinatorController', () => {
         {
           provide: PrismaService,
           useValue: prismaMock,
-        }
+        },
       ],
     }).compile()
 

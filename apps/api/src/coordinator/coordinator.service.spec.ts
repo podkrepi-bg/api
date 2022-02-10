@@ -9,12 +9,12 @@ describe('CoordinatorService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-          CoordinatorService,
-          {
-            provide: PrismaService,
-            useValue: prismaMock,
-          }
-        ],
+        CoordinatorService,
+        {
+          provide: PrismaService,
+          useValue: prismaMock,
+        },
+      ],
     }).compile()
 
     service = module.get<CoordinatorService>(CoordinatorService)
