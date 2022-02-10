@@ -14,26 +14,23 @@ export class CityController {
     return await this.cityService.listCities()
   }
 
-  @Get('list-one/:id')
+  @Get(':id')
   @Public()
   findOne(@Param('id') id: string) {
     return this.cityService.listCity(id)
   }
 
-  @Post('create-city')
-  @Public()
+  @Post('create')
   async create(@Body() CreateCityDto: CreateCityDto) {
     return await this.cityService.createCity(CreateCityDto)
   }
 
-  @Patch('update-one/:id')
-  @Public()
+  @Patch(':id')
   update(@Param('id') id: string, @Body() updateCityDto: UpdateCityDto) {
     return this.cityService.updateCity(id, updateCityDto)
   }
 
-  @Delete('delete-one/:id')
-  @Public()
+  @Delete(':id')
   remove(@Param('id') id: string) {
     return this.cityService.removeCity(id)
   }

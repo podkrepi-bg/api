@@ -6,7 +6,7 @@ import { CreateCityDto } from './dto/create-city.dto'
 import { UpdateCityDto } from './dto/update-city.dto'
 @Injectable()
 export class CityService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async listCities(): Promise<City[]> {
     return this.prisma.city.findMany()
@@ -29,7 +29,7 @@ export class CityService {
     try {
       return await this.prisma.city.update({
         where: { id },
-        data: updateCityDto
+        data: updateCityDto,
       })
     } catch (err) {
       const message = 'Update failed!'
