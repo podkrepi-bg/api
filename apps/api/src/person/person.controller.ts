@@ -46,7 +46,7 @@ export class PersonController {
     return this.personService.update(id, updatePersonDto)
   }
 
-  @Delete(':id')
+  @Delete('remove/:id')
   @Public()
   async remove(@Param('id') id: string) {
     return this.personService.remove(id)
