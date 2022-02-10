@@ -49,9 +49,6 @@ model Person {
   keycloakId       String?   @unique @map("keycloak_id") @db.Uuid
   stripeCustomerId String?   @unique @map("stripe_customer_id")
 
-  @@index([keycloakId], map: "keycloak_id_idx")
-  @@index([stripeCustomerId], map: "stripe_customer_id_idx")
-  @@map("people")
   Coordinator       Coordinator[]
   Benefactor        Benefactor[]
   Beneficiary       Beneficiary[]
@@ -63,6 +60,11 @@ model Person {
   Withdrawal        Withdrawal[]
   Expense           Expense[]
   Document          Document[]
+  Donation          Donation[]
+
+  @@index([keycloakId], map: "keycloak_id_idx")
+  @@index([stripeCustomerId], map: "stripe_customer_id_idx")
+  @@map("people")
 }
 
 //Done
@@ -90,7 +92,7 @@ model Coordinator {
   personId      String        @map("person_id") @db.Uuid
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
-  person        Person        @relation(fields: [personId], references: [id])
+  person        Person        @relation(fields: [personId], references: [id], onDelete: Cascade)
   beneficiaries Beneficiary[]
   campaigns     Campaign[]
 
@@ -107,7 +109,7 @@ model Benefactor {
   ///
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
-  person        Person    @relation(fields: [personId], references: [id])
+  person        Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
 
   @@map("benefactors")
 }
@@ -130,10 +132,10 @@ model Beneficiary {
   createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
   coordinatorRelation PersonRelation  @default(none) @map("coordinator_relation")
-  city                City            @relation(fields: [cityId], references: [id])
-  coordinator         Coordinator     @relation(fields: [coordinatorId], references: [id])
-  person              Person?         @relation(fields: [personId], references: [id])
-  company             Company?        @relation(fields: [companyId], references: [id])
+  city                City            @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  coordinator         Coordinator     @relation(fields: [coordinatorId], references: [id], onDelete: Cascade)
+  person              Person?         @relation(fields: [personId], references: [id], onDelete: Cascade)
+  company             Company?        @relation(fields: [companyId], references: [id], onDelete: Cascade)
   campaigns           Campaign[]
 
   @@map("beneficiaries")
@@ -170,9 +172,9 @@ model Campaign {
   createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt         DateTime?     @map("deleted_at") @db.Timestamptz(6)
-  approvedBy        Person?       @relation(fields: [approvedById], references: [id])
-  coordinator       Coordinator   @relation(fields: [coordinatorId], references: [id])
-  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+  approvedBy        Person?       @relation(fields: [approvedById], references: [id], onDelete: Cascade)
+  coordinator       Coordinator   @relation(fields: [coordinatorId], references: [id], onDelete: Cascade)
+  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
   campaignType      CampaignType  @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   vaults            Vault[]
   incomingTransfers Transfer[]    @relation("target_campaign")
@@ -190,7 +192,7 @@ model InfoRequest {
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
-  person    Person    @relation(fields: [personId], references: [id])
+  person    Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
 
   @@map("info_requests")
 }
@@ -226,7 +228,7 @@ model Supporter {
   volunteerProjectManager      Boolean   @default(false) @map("volunteer_project_manager")
   volunteerQa                  Boolean   @default(false) @map("volunteer_qa")
   volunteerSecurity            Boolean   @default(false) @map("volunteer_security")
-  person                       Person    @relation(fields: [personId], references: [id])
+  person                       Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
 
   @@map("supporters")
 }
@@ -309,7 +311,7 @@ model RecurringDonation {
   createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime?               @updatedAt @map("updated_at") @db.Timestamptz(6)
   sourceVault       Vault                   @relation(fields: [vaultId], references: [id])
-  person            Person                  @relation(fields: [personId], references: [id])
+  person            Person                  @relation(fields: [personId], references: [id], onDelete: Cascade)
 
   @@map("recurring_donations")
 }
@@ -332,7 +334,7 @@ model Transfer {
   targetDate       DateTime?      @default(now()) @map("target_date")
   createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime?      @updatedAt @map("updated_at") @db.Timestamptz(6)
-  approvedBy       Person?        @relation(fields: [approvedById], references: [id])
+  approvedBy       Person?        @relation(fields: [approvedById], references: [id], onDelete: Cascade)
   sourceVault      Vault          @relation("source_vault", fields: [sourceVaultId], references: [id])
   sourceCampaign   Campaign       @relation("source_campaign", fields: [sourceCampaignId], references: [id])
   targetVault      Vault          @relation("target_vault", fields: [targetVaultId], references: [id])
@@ -358,7 +360,7 @@ model Withdrawal {
   targetDate       DateTime?      @default(now()) @map("target_date")
   createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime?      @updatedAt @map("updated_at") @db.Timestamptz(6)
-  approvedBy       Person?        @relation(fields: [approvedById], references: [id])
+  approvedBy       Person?        @relation(fields: [approvedById], references: [id], onDelete: Cascade)
   sourceVault      Vault          @relation(fields: [sourceVaultId], references: [id])
   sourceCampaign   Campaign       @relation(fields: [sourceCampaignId], references: [id])
   bankAccount      BankAccount    @relation(fields: [bankAccountId], references: [id])
@@ -400,7 +402,7 @@ model Expense {
   documentId   String?     @map("document_id") @db.Uuid
   approvedById String?     @db.Uuid
   vault        Vault       @relation(fields: [vaultId], references: [id])
-  approvedBy   Person?     @relation(fields: [approvedById], references: [id])
+  approvedBy   Person?     @relation(fields: [approvedById], references: [id], onDelete: Cascade)
   document     Document?   @relation(fields: [documentId], references: [id])
 
   @@map("expenses")
@@ -418,7 +420,7 @@ model Document {
   sourceUrl   String       @map("source_url")
   /// Person who uploaded the document
   ownerId     String       @map("owner_id") @db.Uuid
-  owner       Person       @relation(fields: [ownerId], references: [id])
+  owner       Person       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   expenses    Expense[]
 
   @@map("documents")
