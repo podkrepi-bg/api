@@ -12,11 +12,11 @@ export class CoordinatorService {
   }
 
   findAll() {
-    return this.prisma.coordinator.findMany({ include: { person: true, beneficiaries: true, campaigns: true } })
+    return this.prisma.coordinator.findMany({ include: { person: true } })
   }
 
   findOne(id: string) {
-    return this.prisma.coordinator.findUnique({ where: { id }, include: { person: true, beneficiaries: true, campaigns: true } })
+    return this.prisma.coordinator.findUnique({ where: { id }, include: { person: true } })
   }
 
   remove(id: string) {
