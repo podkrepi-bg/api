@@ -1,8 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common'
 import { Public } from 'nest-keycloak-connect'
 import { CoordinatorService } from './coordinator.service'
 import { CreateCoordinatorDto } from './dto/create-coordinator.dto'
-import { UpdateCoordinatorDto } from './dto/update-coordinator.dto'
 
 @Controller('coordinator')
 export class CoordinatorController {
