@@ -29,6 +29,7 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
+import { PersonModule } from '../person/person.module'
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -55,6 +56,7 @@ import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
     CityModule,
     CampaignTypesModule,
     HealthModule,
+    PersonModule
   ],
   controllers: [AppController],
   providers: [

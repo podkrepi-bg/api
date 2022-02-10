@@ -65,7 +65,7 @@ model Person {
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
   @@map("people")
 }
-
+//Done
 model Company {
   id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   companyName     String        @map("company_name") @db.VarChar(100)
@@ -84,6 +84,7 @@ model Company {
 
 /// Coordinator is the person who manages the campaign on behalf of the Beneficiary
 /// Alias: Organizer
+/// Done
 model Coordinator {
   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   personId      String        @map("person_id") @db.Uuid
@@ -97,6 +98,7 @@ model Coordinator {
 }
 
 /// Benefactor is the person who gives money
+/// Done
 model Benefactor {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   personId      String    @map("person_id") @db.Uuid
@@ -180,6 +182,7 @@ model Campaign {
   @@map("campaigns")
 }
 
+//Done
 model InfoRequest {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   personId  String    @map("person_id") @db.Uuid
@@ -228,6 +231,7 @@ model Supporter {
   @@map("supporters")
 }
 
+/// Done
 model City {
   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String        @db.VarChar(100)
@@ -239,6 +243,7 @@ model City {
   @@map("cities")
 }
 
+//Done
 model Country {
   id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String @db.VarChar(100)
@@ -361,6 +366,7 @@ model Withdrawal {
   @@map("withdrawals")
 }
 
+/// Done
 model BankAccount {
   id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   status            BankAccountStatus @default(new)
@@ -383,6 +389,7 @@ model BankAccount {
 }
 
 /// Pay for something from a given vault
+/// Done
 model Expense {
   id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type         ExpenseType
@@ -399,6 +406,7 @@ model Expense {
   @@map("expenses")
 }
 
+//Done
 model Document {
   id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type        DocumentType
