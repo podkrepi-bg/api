@@ -19,10 +19,6 @@ export class CoordinatorService {
     return this.prisma.coordinator.findUnique({ where: { id }, include: { person: true, beneficiaries: true, campaigns: true } })
   }
 
-  update(id: string, updateCoordinatorDto: UpdateCoordinatorDto) {
-    return this.prisma.coordinator.update({ where: { id }, data: { ...updateCoordinatorDto } })
-  }
-
   remove(id: string) {
     return this.prisma.coordinator.delete({ where: { id } })
   }

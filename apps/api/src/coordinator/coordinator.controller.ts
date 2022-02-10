@@ -26,12 +26,6 @@ export class CoordinatorController {
     return this.coordinatorService.findOne(id)
   }
 
-  @Patch(':id')
-  @Public()
-  update(@Param('id') id: string, @Body() updateCoordinatorDto: UpdateCoordinatorDto) {
-    return this.coordinatorService.update(id, updateCoordinatorDto)
-  }
-
   @Delete(':id')
   @Public()
   remove(@Param('id') id: string) {
