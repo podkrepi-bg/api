@@ -9,8 +9,7 @@ describe('InfoRequestService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        InfoRequestService, 
+      providers: [ 
         {
           provide: PrismaService,
           useValue: prismaMock,
