@@ -21,7 +21,6 @@ export class InfoRequestController {
   }
 
   @Get(':id')
-  @Public()
   findOne(@Param('id') id: string) {
     return this.infoRequestService.findOne(id);
   }
