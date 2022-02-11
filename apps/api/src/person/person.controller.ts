@@ -51,4 +51,10 @@ export class PersonController {
   async remove(@Param('id') id: string) {
     return this.personService.remove(id)
   }
+
+  @Post('deletemany')
+  @Public()
+  removeMany(@Body() itemsToDelete: [string]) {
+    return this.personService.removeMany(itemsToDelete)
+  }
 }

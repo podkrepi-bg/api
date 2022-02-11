@@ -28,4 +28,11 @@ export class PersonService {
       where: { id },
     })
   }
+
+  async removeMany(itemsToDelete: [string]): Promise<string | void> {
+    console.log(itemsToDelete)
+    itemsToDelete.forEach(async (id: string) => {
+      await this.remove(id)
+    })
+  }
 }
