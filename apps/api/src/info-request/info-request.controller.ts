@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { InfoRequestService } from './info-request.service';
-import { CreateInfoRequestDto } from './dto/create-info-request.dto';
 import { UpdateInfoRequestDto } from './dto/update-info-request.dto';
 import { Public } from 'nest-keycloak-connect';
+import { CreateInquiryDto } from '../support/dto/create-inquiry.dto';
 
 @Controller('info-request')
 export class InfoRequestController {
@@ -10,7 +10,7 @@ export class InfoRequestController {
 
   @Post()
   @Public()
-  create(@Body() createInfoRequestDto: CreateInfoRequestDto) {
+  create(@Body() createInfoRequestDto: CreateInquiryDto) {
     return this.infoRequestService.create(createInfoRequestDto);
   }
 

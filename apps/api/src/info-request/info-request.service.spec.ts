@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { prismaMock } from '../prisma/prisma-client.mock';
 import { PrismaService } from '../prisma/prisma.service';
+import { SupportService } from '../support/support.service';
 import { InfoRequestService } from './info-request.service';
 
 describe('InfoRequestService', () => {
@@ -13,7 +14,8 @@ describe('InfoRequestService', () => {
         {
           provide: PrismaService,
           useValue: prismaMock,
-        }
+        },
+        SupportService
       ],
     }).compile();
 
