@@ -26,7 +26,6 @@ export class InfoRequestController {
   }
 
   @Patch(':id')
-  @Public()
   update(@Param('id') id: string, @Body() updateInfoRequestDto: UpdateInfoRequestDto) {
     return this.infoRequestService.update(id, updateInfoRequestDto);
   }
