@@ -41,7 +41,7 @@ model Person {
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   newsletter       Boolean?  @default(false)
-  address          String?   @db.VarChar(100)
+  adress          String?   @db.VarChar(100)
   birthday         DateTime? @db.Timestamptz(6)
   /// Uniform Civil Number (NCN, EGN)
   /// https://en.wikipedia.org/wiki/National_identification_number#Bulgaria

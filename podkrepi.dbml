@@ -18,7 +18,7 @@ Table Person {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   newsletter Boolean [default: false]
-  address String
+  adress String
   birthday DateTime
   personalNumber String [unique, note: 'Uniform Civil Number (NCN, EGN)
 https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']

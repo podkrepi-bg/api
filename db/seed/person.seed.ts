@@ -13,7 +13,7 @@ export async function personSeed() {
       email: faker.internet.email(),
       phone: faker.phone.phoneNumber('+359########'),
       company: faker.company.companyName(),
-      address: faker.address.streetName() + ', ' + faker.address.cityName(),
+      adress: faker.address.streetName() + ', ' + faker.address.cityName(),
       newsletter: faker.datatype.boolean(),
     })),
     skipDuplicates: true,

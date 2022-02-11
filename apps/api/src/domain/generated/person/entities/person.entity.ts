@@ -24,7 +24,7 @@ company: string  | null;
 createdAt: Date ;
 updatedAt: Date  | null;
 newsletter: boolean  | null;
-address: string  | null;
+adress: string  | null;
 birthday: Date  | null;
 personalNumber: string  | null;
 keycloakId: string  | null;
