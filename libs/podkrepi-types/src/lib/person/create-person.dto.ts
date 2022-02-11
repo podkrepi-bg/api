@@ -45,7 +45,7 @@ export class CreatePersonDto {
   @Expose()
   @IsOptional()
   @IsString()
-  public readonly address: string | null
+  public readonly adress: string | null
 
   @ApiProperty({ nullable: true, required: false })
   @Expose()
@@ -62,7 +62,7 @@ export class CreatePersonDto {
       phone: this.phone,
       newsletter: this.newsletter,
       company: this.company,
-      address: this.address,
+      adress: this.adress,
       birthday: this.birthday,
     }
   }
