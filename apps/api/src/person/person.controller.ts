@@ -24,7 +24,6 @@ export class PersonController {
   @Post()
   @Public()
   async create(@Body() createPersonDto: Data) {
-    console.log(createPersonDto)
     return this.personService.create(createPersonDto)
   }
 
@@ -43,6 +42,8 @@ export class PersonController {
   @Put(':id')
   @Public()
   async update(@Param('id') id: string, @Body() updatePersonDto: Data) {
+    delete updatePersonDto['legalEntity']
+    delete updatePersonDto['legalEntity']
     return this.personService.update(id, updatePersonDto)
   }
 
