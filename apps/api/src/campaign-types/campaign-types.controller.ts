@@ -9,7 +9,13 @@ export class CampaignTypesController {
   @Post('add')
   @Public()
   async create(
-    @Body() createCampaignTypeDto: { name: string; slug: string; description?: string },
+    @Body()
+    createCampaignTypeDto: {
+      name: string
+      slug: string
+      description?: string
+      parentId?: string
+    },
   ) {
     return await this.campaignTypesService.create(createCampaignTypeDto)
   }
@@ -35,6 +41,7 @@ export class CampaignTypesController {
       name: string
       slug: string
       description?: string
+      parentId?: string
     },
   ) {
     return await this.campaignTypesService.update(id, updateCampaignTypeDto)

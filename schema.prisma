@@ -146,7 +146,7 @@ model CampaignType {
   name        String         @db.VarChar(50)
   slug        String         @unique @db.VarChar(50)
   description String?        @db.VarChar(200)
-  parentId    String?        @map("parent_id") @db.Uuid
+  parentId    String?        @map("parent_id")
   parent      CampaignType?  @relation("ParentCategory", fields: [parentId], references: [id])
   children    CampaignType[] @relation("ParentCategory")
   campaigns   Campaign[]
