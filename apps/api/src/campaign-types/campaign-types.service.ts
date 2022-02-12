@@ -8,7 +8,6 @@ export class CampaignTypesService {
   constructor(private prisma: PrismaService) {}
 
   async create(createCampaignTypeDto: CreateCampaignTypeDto) {
-    console.log(createCampaignTypeDto)
     return await this.prisma.campaignType.create({ data: createCampaignTypeDto })
   }
 

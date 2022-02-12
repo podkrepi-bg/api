@@ -1,27 +1,15 @@
 /*
   Warnings:
 
-  - You are about to drop the column `address` on the `people` table. All the data in the column will be lost.
+  - The `parent_id` column on the `campaign_types` table would be dropped and recreated. This will lead to data loss if there is data in the column.
 
 */
--- DropForeignKey
-ALTER TABLE "beneficiaries" DROP CONSTRAINT "beneficiaries_city_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "beneficiaries" DROP CONSTRAINT "beneficiaries_company_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "beneficiaries" DROP CONSTRAINT "beneficiaries_coordinator_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "campaigns" DROP CONSTRAINT "campaigns_beneficiary_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "campaigns" DROP CONSTRAINT "campaigns_coordinator_id_fkey";
-
 -- AlterTable
-ALTER TABLE "people" DROP COLUMN "address",
-ADD COLUMN     "adress" VARCHAR(100);
+ALTER TABLE "campaign_types" DROP COLUMN "parent_id",
+ADD COLUMN     "parent_id" UUID;
+
+-- DropEnum
+DROP TYPE "ExpenseStatus";
 
 -- AddForeignKey
 ALTER TABLE "coordinators" ADD CONSTRAINT "coordinators_person_id_fkey" FOREIGN KEY ("person_id") REFERENCES "people"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -40,6 +28,9 @@ ALTER TABLE "beneficiaries" ADD CONSTRAINT "beneficiaries_person_id_fkey" FOREIG
 
 -- AddForeignKey
 ALTER TABLE "beneficiaries" ADD CONSTRAINT "beneficiaries_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "campaign_types" ADD CONSTRAINT "campaign_types_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "campaign_types"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "campaigns" ADD CONSTRAINT "campaigns_approved_by_id_fkey" FOREIGN KEY ("approved_by_id") REFERENCES "people"("id") ON DELETE CASCADE ON UPDATE CASCADE;

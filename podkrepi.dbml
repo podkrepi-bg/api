@@ -105,11 +105,9 @@ Table Beneficiary {
 Table CampaignType {
   id String [pk]
   name String [not null]
-  slug String [unique, not null]
+  slug String [not null]
   description String
   parentId String
-  parent CampaignType
-  children CampaignType [not null]
   campaigns Campaign [not null]
 }
 
@@ -496,8 +494,6 @@ Ref: Beneficiary.coordinatorId > Coordinator.id [delete: Cascade]
 Ref: Beneficiary.personId > Person.id [delete: Cascade]
 
 Ref: Beneficiary.companyId > Company.id [delete: Cascade]
-
-Ref: CampaignType.parentId - CampaignType.id
 
 Ref: Campaign.approvedById > Person.id [delete: Cascade]
 

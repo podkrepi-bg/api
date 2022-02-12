@@ -41,7 +41,7 @@ model Person {
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   newsletter       Boolean?  @default(false)
-  adress          String?   @db.VarChar(100)
+  adress           String?   @db.VarChar(100)
   birthday         DateTime? @db.Timestamptz(6)
   /// Uniform Civil Number (NCN, EGN)
   /// https://en.wikipedia.org/wiki/National_identification_number#Bulgaria
@@ -144,11 +144,11 @@ model Beneficiary {
 model CampaignType {
   id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String         @db.VarChar(50)
-  slug        String         @unique @db.VarChar(50)
+  slug        String         @db.VarChar(50)
   description String?        @db.VarChar(200)
   parentId    String?        @map("parent_id")
-  parent      CampaignType?  @relation("ParentCategory", fields: [parentId], references: [id])
-  children    CampaignType[] @relation("ParentCategory")
+  // parent      CampaignType?  @relation("ParentCategory", fields: [parentId], references: [id])
+  // children    CampaignType[] @relation("ParentCategory")
   campaigns   Campaign[]
 
   @@map("campaign_types")
