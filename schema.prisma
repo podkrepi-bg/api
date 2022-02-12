@@ -152,30 +152,30 @@ model CampaignType {
 }
 
 model Campaign {
-  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  state             CampaignState     @default(draft)
-  slug              String            @unique @db.VarChar(250)
-  title             String            @db.VarChar(200)
-  essence           String            @db.VarChar(500)
-  coordinatorId     String            @map("coordinator_id") @db.Uuid
-  beneficiaryId     String            @map("beneficiary_id") @db.Uuid
-  campaignTypeId    String            @map("campaign_type_id") @db.Uuid
-  approvedById      String?           @map("approved_by_id") @db.Uuid
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  state             CampaignState @default(draft)
+  slug              String        @unique @db.VarChar(250)
+  title             String        @db.VarChar(200)
+  essence           String        @db.VarChar(500)
+  coordinatorId     String        @map("coordinator_id") @db.Uuid
+  beneficiaryId     String        @map("beneficiary_id") @db.Uuid
+  campaignTypeId    String        @map("campaign_type_id") @db.Uuid
+  approvedById      String?       @map("approved_by_id") @db.Uuid
   description       String?
-  targetAmount      Int?              @default(0) @map("target_amount") @db.Integer
-  currency          Currency          @default(BGN)
-  startDate         DateTime?         @map("start_date") @db.Timestamptz(6)
-  endDate           DateTime?         @map("end_date") @db.Timestamptz(6)
-  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt         DateTime?         @map("deleted_at") @db.Timestamptz(6)
-  approvedBy        Person?           @relation(fields: [approvedById], references: [id])
-  coordinator       Coordinator       @relation(fields: [coordinatorId], references: [id])
-  beneficiary       Beneficiary       @relation(fields: [beneficiaryId], references: [id])
-  campaignType      CampaignType      @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  targetAmount      Int?          @default(0) @map("target_amount") @db.Integer
+  currency          Currency      @default(BGN)
+  startDate         DateTime?     @map("start_date") @db.Timestamptz(6)
+  endDate           DateTime?     @map("end_date") @db.Timestamptz(6)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  approvedBy        Person?       @relation(fields: [approvedById], references: [id])
+  coordinator       Coordinator   @relation(fields: [coordinatorId], references: [id])
+  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+  campaignType      CampaignType  @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   vaults            Vault[]
-  incomingTransfers Transfer[]        @relation("target_campaign")
-  outgoingTransfers Transfer[]        @relation("source_campaign")
+  incomingTransfers Transfer[]    @relation("target_campaign")
+  outgoingTransfers Transfer[]    @relation("source_campaign")
   withdrawals       Withdrawal[]
 
   @@map("campaigns")
@@ -387,13 +387,15 @@ model BankAccount {
 model Expense {
   id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type         ExpenseType
+  status       ExpenseStatus 
   currency     Currency    @default(BGN)
   amount       Int         @default(0) @db.Integer
-  description  String?
   vaultId      String      @map("vault_id") @db.Uuid
+  deleted      Boolean     @default(false)
+  description  String?
   documentId   String?     @map("document_id") @db.Uuid
   approvedById String?     @db.Uuid
-  vault        Vault       @relation(fields: [vaultId], references: [id])
+  vault        Vault       @relation(fields: [vaultId], references: [id]) 
   approvedBy   Person?     @relation(fields: [approvedById], references: [id])
   document     Document?   @relation(fields: [documentId], references: [id])
 
@@ -470,6 +472,12 @@ enum Currency {
   USD
 
   @@map("currency")
+}
+
+enum ExpenseStatus {
+  pending
+  approved
+  canceled
 }
 
 enum ExpenseType {
