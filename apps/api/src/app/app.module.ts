@@ -55,7 +55,7 @@ import { InfoRequestModule } from '../info-request/info-request.module'
     BeneficiaryModule,
     CityModule,
     HealthModule,
-    InfoRequestModule
+    InfoRequestModule,
     ExpensesModule,
   ],
   controllers: [AppController],
