@@ -1,18 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { PrismaService } from '../prisma/prisma.service'
-import { BankaccountController } from './bankaccount.controller'
-import { BankaccountService } from './bankaccount.service'
+import { BankAccountController } from './bankaccount.controller'
+import { BankAccountService } from './bankaccount.service'
 
 describe('BankaccountController', () => {
-  let controller: BankaccountController
+  let controller: BankAccountController
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [BankaccountController],
-      providers: [PrismaService,BankaccountService],
+      controllers: [BankAccountController],
+      providers: [PrismaService, BankAccountService],
     }).compile()
 
-    controller = module.get<BankaccountController>(BankaccountController)
+    controller = module.get<BankAccountController>(BankAccountController)
   })
 
   it('should be defined', () => {

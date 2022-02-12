@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { AccountHolderType, BankAccountStatus } from '@prisma/client'
 import { Expose } from 'class-transformer'
-import { IsEnum, IsOptional, IsString } from 'class-validator'
+import { IsBIC, IsEnum, IsIBAN, IsOptional, IsString } from 'class-validator'
 @Expose()
 export class CreateBankaccountDto {
   @ApiProperty({ enum: BankAccountStatus })
@@ -12,6 +12,7 @@ export class CreateBankaccountDto {
   @ApiProperty()
   @IsString()
   @Expose()
+  @IsIBAN()
   ibanNumber: string
 
   @ApiProperty()
@@ -34,6 +35,7 @@ export class CreateBankaccountDto {
   @Expose()
   @IsString()
   @IsOptional()
+  @IsBIC()
   bankIdCode: string | null
 
   @ApiProperty()

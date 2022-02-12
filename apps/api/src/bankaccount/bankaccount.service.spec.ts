@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { PrismaService } from '../prisma/prisma.service'
-import { BankaccountService } from './bankaccount.service'
+import { BankAccountService } from './bankaccount.service'
 
 describe('BankaccountService', () => {
-  let service: BankaccountService
+  let service: BankAccountService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [BankaccountService, PrismaService],
+      providers: [BankAccountService, PrismaService],
     }).compile()
 
-    service = module.get<BankaccountService>(BankaccountService)
+    service = module.get<BankAccountService>(BankAccountService)
   })
 
   it('should be defined', () => {

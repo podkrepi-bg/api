@@ -1,13 +1,14 @@
 import { PrismaClient } from '@prisma/client'
+import faker from 'faker'
 const prisma = new PrismaClient()
 
-export async function bankAccountsSeed() {
-  console.log('Cities seed')
+export async function bankAccountSeed() {
+  console.log('Bank Accounts Seed')
 
   const insert = await prisma.bankAccount.createMany({
     data: [
       {
-        accountHolderName: 'Georgi Pavlov',
+        accountHolderName: faker.name.firstName() + ' ' + faker.name.lastName(),
         accountHolderType: 'individual',
         bankIdCode: 'STSABGSF',
         ibanNumber: 'BG18RZBB91550123456789',
@@ -16,7 +17,7 @@ export async function bankAccountsSeed() {
         status: 'validated',
       },
       {
-        accountHolderName: 'Hristo Stoyanov',
+        accountHolderName: faker.name.firstName() + ' ' + faker.name.lastName(),
         accountHolderType: 'company',
         bankIdCode: 'BGUSBGSF',
         ibanNumber: 'BG99RZBB91250123456735',
@@ -25,7 +26,7 @@ export async function bankAccountsSeed() {
         status: 'validated',
       },
       {
-        accountHolderName: 'Iliq Markov',
+        accountHolderName: faker.name.firstName() + ' ' + faker.name.lastName(),
         accountHolderType: 'individual',
         bankIdCode: 'VPAYBGS2',
         ibanNumber: 'BG22RZBB81550123456721',

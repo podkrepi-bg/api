@@ -5,7 +5,7 @@ import { CreateBankaccountDto } from './dto/create-bankaccount.dto'
 import { UpdateBankaccountDto } from './dto/update-bankaccount.dto'
 
 @Injectable()
-export class BankaccountService {
+export class BankAccountService {
   constructor(private prisma: PrismaService) {}
 
   async create(createBankaccountDto: CreateBankaccountDto): Promise<BankAccount> {
@@ -41,16 +41,15 @@ export class BankaccountService {
   }
 
   //DELETE MANY
-  async removeMany(itemsToDelete: [string]): Promise<string | null> {
+  async removeMany(itemsToDelete: [string]): Promise<{ count: number }> {
     try {
-      await this.prisma.bankAccount.deleteMany({
+      return await this.prisma.bankAccount.deleteMany({
         where: {
           id: {
             in: itemsToDelete,
           },
         },
       })
-      return 'Deleted Succesfully!'
     } catch (error) {
       throw new NotFoundException()
     }
