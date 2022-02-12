@@ -20,6 +20,7 @@ import { AccountModule } from '../account/account.module'
 import { HealthModule } from '../health/health.module'
 import { SupportModule } from '../support/support.module'
 import { CampaignModule } from '../campaign/campaign.module'
+import { ExpensesModule } from '../expenses/expenses.module'
 import { AppConfigModule } from '../config/app-config.module'
 import { validationSchema } from '../config/validation.config'
 import { DonationsModule } from '../donations/donations.module'
@@ -55,6 +56,7 @@ import { InfoRequestModule } from '../info-request/info-request.module'
     CityModule,
     HealthModule,
     InfoRequestModule
+    ExpensesModule,
   ],
   controllers: [AppController],
   providers: [

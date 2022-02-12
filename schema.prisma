@@ -386,13 +386,15 @@ model BankAccount {
 model Expense {
   id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type         ExpenseType
+  status       ExpenseStatus 
   currency     Currency    @default(BGN)
   amount       Int         @default(0) @db.Integer
-  description  String?
   vaultId      String      @map("vault_id") @db.Uuid
+  deleted      Boolean     @default(false)
+  description  String?
   documentId   String?     @map("document_id") @db.Uuid
   approvedById String?     @db.Uuid
-  vault        Vault       @relation(fields: [vaultId], references: [id])
+  vault        Vault       @relation(fields: [vaultId], references: [id]) 
   approvedBy   Person?     @relation(fields: [approvedById], references: [id])
   document     Document?   @relation(fields: [documentId], references: [id])
 
@@ -469,6 +471,12 @@ enum Currency {
   USD
 
   @@map("currency")
+}
+
+enum ExpenseStatus {
+  pending
+  approved
+  canceled
 }
 
 enum ExpenseType {
