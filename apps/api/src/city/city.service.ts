@@ -47,4 +47,10 @@ export class CityService {
     const data = await this.prisma.city.findMany({})
     return data.filter((x) => x.countryId.toLowerCase().includes(keyword.toLowerCase()))
   }
+
+  async removeMany(itemsToDelete: [string]): Promise<string | void> {
+    itemsToDelete.forEach(async (id: string) => {
+      await this.removeCity(id)
+    })
+  }
 }

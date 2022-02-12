@@ -49,4 +49,10 @@ export class CityController {
   async searchByCountry(@Param('key') key: string) {
     return await this.cityService.searchByCountry(key)
   }
+
+  @Post('deletemany')
+  @Public()
+  removeMany(@Body() itemsToDelete: [string]) {
+    return this.cityService.removeMany(itemsToDelete)
+  }
 }
