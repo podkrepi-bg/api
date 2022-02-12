@@ -6,7 +6,7 @@ import { UpdateInfoRequestDto } from './dto/update-info-request.dto';
 
 @Injectable()
 export class InfoRequestService {
-  constructor(public prisma: PrismaService, public supportService: SupportService){}
+  constructor(private prisma: PrismaService, private supportService: SupportService){}
 
   create(createInfoRequestDto: CreateInquiryDto) {
     return this.supportService.createInfoRequest(createInfoRequestDto)

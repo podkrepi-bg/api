@@ -15,7 +15,6 @@ export class InfoRequestController {
   }
 
   @Get('list')
-  @Public()
   findAll() {
     return this.infoRequestService.findAll();
   }
