@@ -30,6 +30,8 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { InfoRequestModule } from '../info-request/info-request.module'
+import { BankAccountModule } from '../bankaccount/bankaccount.module'
+
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -56,6 +58,7 @@ import { InfoRequestModule } from '../info-request/info-request.module'
     CityModule,
     HealthModule,
     InfoRequestModule,
+    BankAccountModule,
     ExpensesModule,
   ],
   controllers: [AppController],

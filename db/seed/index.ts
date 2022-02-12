@@ -9,6 +9,7 @@ import { coordinatorSeed } from './coordinator.seed'
 import { beneficiarySeed } from './beneficiary.seed'
 import { infoRequestSeed } from './infoRequest.seed'
 import { campaignTypesSeed } from './campaign-type.seed'
+import { bankAccountSeed } from './bankaccount.seed'
 import { vaultSeed } from './vault.seed'
 import { expenseSeed } from './expense.seed'
 
@@ -27,6 +28,7 @@ async function main() {
       await coordinatorSeed(),
       await beneficiarySeed(),
       await campaignSeed(),
+      await bankAccountSeed(),
       await vaultSeed(),
       await expenseSeed(),
     ])
