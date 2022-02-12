@@ -1,4 +1,7 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { EmailService } from '../email/email.service';
+import { TemplateService } from '../email/template.service';
 import { prismaMock } from '../prisma/prisma-client.mock';
 import { PrismaService } from '../prisma/prisma.service';
 import { SupportService } from '../support/support.service';
@@ -17,7 +20,7 @@ describe('InfoRequestController', () => {
           provide: PrismaService,
           useValue: prismaMock,
         },
-        SupportService
+        SupportService, EmailService, TemplateService, ConfigService
       ],
     }).compile();
 
