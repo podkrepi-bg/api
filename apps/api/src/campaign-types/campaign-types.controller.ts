@@ -57,4 +57,10 @@ export class CampaignTypesController {
   async searchByCategory(@Param('key') keyword: string) {
     return await this.campaignTypesService.searchByCategory(keyword)
   }
+
+  @Post('deletemany')
+  @Public()
+  removeMany(@Body() itemsToDelete: [string]) {
+    return this.campaignTypesService.removeMany(itemsToDelete)
+  }
 }

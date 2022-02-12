@@ -38,4 +38,10 @@ export class CampaignTypesService {
       x.parentId?.toLowerCase().includes(key.toLowerCase()),
     )
   }
+
+  async removeMany(itemsToDelete: [string]): Promise<string | void> {
+    itemsToDelete.forEach(async (id: string) => {
+      await this.remove(id)
+    })
+  }
 }
