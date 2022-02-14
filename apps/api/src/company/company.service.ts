@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
+
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCompanyDto } from './dto/create-company.dto'
 import { UpdateCompanyDto } from './dto/update-company.dto'
@@ -16,7 +17,7 @@ export class CompanyService {
           id: cityId,
         },
       })
-      if (city == null) {
+      if (city === null) {
         Logger.warn('No city record with ID: ' + cityId)
         throw new NotFoundException('No city record with ID: ' + cityId)
       }
@@ -24,7 +25,7 @@ export class CompanyService {
     return this.prisma.company.create({ data: createCompanyDto })
   }
 
-  findAll() {
+  async findAll() {
     return this.prisma.company.findMany()
   }
 
@@ -73,7 +74,7 @@ export class CompanyService {
     }
   }
 
-  removeMany(ids: string[]) {
+  async removeMany(ids: string[]) {
     return this.prisma.company.deleteMany({
       where: {
         id: {
