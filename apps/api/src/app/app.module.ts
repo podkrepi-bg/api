@@ -30,6 +30,7 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { CoordinatorModule } from '../coordinator/coordinator.module'
+import { CompanyModule } from '../company/company.module'
 import { InfoRequestModule } from '../info-request/info-request.module'
 import { BankAccountModule } from '../bankaccount/bankaccount.module'
 
@@ -59,6 +60,7 @@ import { BankAccountModule } from '../bankaccount/bankaccount.module'
     CityModule,
     HealthModule,
     CoordinatorModule,
+    CompanyModule,
     InfoRequestModule,
     BankAccountModule,
     ExpensesModule,
