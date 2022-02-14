@@ -313,10 +313,12 @@ Table BankAccount {
 Table Expense {
   id String [pk]
   type ExpenseType [not null]
+  status ExpenseStatus [not null]
   currency Currency [not null, default: 'BGN']
   amount Int [not null, default: 0]
-  description String
   vaultId String [not null]
+  deleted Boolean [not null, default: false]
+  description String
   documentId String
   approvedById String
   vault Vault [not null]
@@ -383,6 +385,12 @@ Enum Currency {
   BGN
   EUR
   USD
+}
+
+Enum ExpenseStatus {
+  pending
+  approved
+  canceled
 }
 
 Enum ExpenseType {
