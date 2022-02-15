@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { City } from '@prisma/client'
 import { Expose } from 'class-transformer'
-import { IsOptional, IsString } from 'class-validator'
+import { IsISO31661Alpha2, IsOptional, IsString } from 'class-validator'
 
 @Expose()
 export class CreateCountryDto {
@@ -13,6 +13,7 @@ export class CreateCountryDto {
   @ApiProperty()
   @Expose()
   @IsString()
+  @IsISO31661Alpha2()
   countryCode: string
 
   @ApiProperty()
