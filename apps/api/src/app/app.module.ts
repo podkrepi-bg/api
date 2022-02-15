@@ -29,6 +29,7 @@ import { KeycloakConfigService } from '../config/keycloak-config.service'
 import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.filter'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
+import { CountryModule } from '../country/country.module'
 import { CompanyModule } from '../company/company.module'
 import { InfoRequestModule } from '../info-request/info-request.module'
 import { BankAccountModule } from '../bankaccount/bankaccount.module'
@@ -53,6 +54,7 @@ import { BankAccountModule } from '../bankaccount/bankaccount.module'
     AuthModule,
     AccountModule,
     CampaignModule,
+    CountryModule,
     DonationsModule,
     SupportModule,
     BeneficiaryModule,
