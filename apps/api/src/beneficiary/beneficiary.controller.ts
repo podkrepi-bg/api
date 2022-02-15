@@ -14,7 +14,6 @@ export class BeneficiaryController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  // @Public()
   async create(@Body() createDto: CreateBeneficiaryDto) {
     return await this.beneficiaryService.createBeneficiary(createDto)
   }
@@ -24,7 +23,6 @@ export class BeneficiaryController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  // @Public()
   async list() {
     return await this.beneficiaryService.listBeneficiaries()
   }
@@ -34,7 +32,6 @@ export class BeneficiaryController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  // @Public()
   async viewOne(@Param('id') id: string) {
     return await this.beneficiaryService.viewOne(id)
   }
@@ -44,7 +41,6 @@ export class BeneficiaryController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  // @Public()
   async editOne(@Param('id') id: string, @Body() updateDto: CreateBeneficiaryDto) {
     return await this.beneficiaryService.updateOne(id, updateDto)
   }
@@ -54,7 +50,6 @@ export class BeneficiaryController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  // @Public()
   async deleteOne(@Param('id') id: string) {
     return await this.beneficiaryService.removeOne(id)
   }
