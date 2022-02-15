@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Param, Delete, Put, UnauthorizedException } from '@nestjs/common';
-import { AuthenticatedUser, Public } from 'nest-keycloak-connect';
+import { AuthenticatedUser } from 'nest-keycloak-connect';
+
 import { DocumentService } from './document.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { UpdateDocumentDto } from './dto/update-document.dto';

@@ -1,4 +1,3 @@
-
 import { DocumentType, Prisma } from '@prisma/client'
 import { ApiProperty } from '@nestjs/swagger'
 import { IsOptional, IsString } from 'class-validator';
@@ -37,7 +36,6 @@ export class CreateDocumentDto {
     @IsString()
     sourceUrl: string;
 
-
     public toEntity(user): Prisma.DocumentCreateInput {
         return {
             type: this.type,
@@ -57,7 +55,7 @@ export class CreateDocumentDto {
                         email: user.email
                     }
                 }
-            },
+            }
         }
     }
 }

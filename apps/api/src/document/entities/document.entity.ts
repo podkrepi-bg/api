@@ -1,8 +1,7 @@
-
 import { DocumentType } from '@prisma/client'
+
 import { Person } from '../../domain/generated/person/entities/person.entity'
 import { Expense } from '../../domain/generated/expense/entities/expense.entity'
-
 
 export class Document {
     id: string;
