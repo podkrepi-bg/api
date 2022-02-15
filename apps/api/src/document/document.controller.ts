@@ -1,46 +1,78 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
-import { Public } from 'nest-keycloak-connect';
+import { Controller, Get, Post, Body, Param, Delete, Put, UnauthorizedException } from '@nestjs/common';
+import { AuthenticatedUser, Public } from 'nest-keycloak-connect';
 import { DocumentService } from './document.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { UpdateDocumentDto } from './dto/update-document.dto';
+
+import { KeycloakTokenParsed } from '../auth/keycloak'
 
 @Controller('document')
 export class DocumentController {
   constructor(private readonly documentService: DocumentService) { }
 
-  @Public()
   @Post()
-  create(@Body() createDocumentDto: CreateDocumentDto) {
-    return this.documentService.create(createDocumentDto);
+  create(@AuthenticatedUser()
+  user: KeycloakTokenParsed, @Body() createDocumentDto: CreateDocumentDto) {
+
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+
+    return this.documentService.create(createDocumentDto, user);
   }
 
-  @Public()
   @Get()
-  findAll() {
+  findAll(@AuthenticatedUser()
+  user: KeycloakTokenParsed) {
+
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+
     return this.documentService.findAll();
   }
 
-  @Public()
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@AuthenticatedUser()
+  user: KeycloakTokenParsed, @Param('id') id: string) {
+
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+
     return this.documentService.findOne(id);
   }
 
-  @Public()
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateDocumentDto: UpdateDocumentDto) {
+  update(@AuthenticatedUser()
+  user: KeycloakTokenParsed, @Param('id') id: string, @Body() updateDocumentDto: UpdateDocumentDto) {
+
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+
     return this.documentService.update(id, updateDocumentDto);
   }
 
-  @Public()
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@AuthenticatedUser()
+  user: KeycloakTokenParsed, @Param('id') id: string) {
+
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+
     return this.documentService.remove(id);
   }
 
-  @Public()
   @Post('/delete-many')
-  removeMany(@Body() idsToDelete: string[]) {
+  removeMany(@AuthenticatedUser()
+  user: KeycloakTokenParsed, @Body() idsToDelete: string[]) {
+
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+
     return this.documentService.removeMany(idsToDelete);
   }
 }

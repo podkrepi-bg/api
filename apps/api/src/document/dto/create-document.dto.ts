@@ -1,9 +1,8 @@
 
 import { DocumentType, Prisma } from '@prisma/client'
 import { ApiProperty } from '@nestjs/swagger'
-import { IsNotEmpty, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { Expose, Type } from 'class-transformer';
-import { CreatePersonDto } from '../../domain/generated/person/dto';
+import { IsOptional, IsString } from 'class-validator';
+import { Expose } from 'class-transformer';
 
 @Expose()
 export class CreateDocumentDto {
@@ -39,7 +38,7 @@ export class CreateDocumentDto {
     sourceUrl: string;
 
 
-    public toEntity(): Prisma.DocumentCreateInput {
+    public toEntity(user): Prisma.DocumentCreateInput {
         return {
             type: this.type,
             name: this.name,
@@ -48,9 +47,15 @@ export class CreateDocumentDto {
             description: this.description,
             sourceUrl: this.sourceUrl,
             owner: {
-                //hardcoded for now
-                connect: {
-                    id: '15661b63-e72f-4c30-8d7d-a75e8d1b69f4'
+                connectOrCreate: {
+                    where: {
+                        email: user.email
+                    },
+                    create: {
+                        firstName: user.given_name,
+                        lastName: user.family_name,
+                        email: user.email
+                    }
                 }
             },
         }

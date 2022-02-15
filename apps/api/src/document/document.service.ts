@@ -1,17 +1,20 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Document } from '@prisma/client';
+import { KeycloakTokenParsed } from '../auth/keycloak';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { UpdateDocumentDto } from './dto/update-document.dto';
-import { DeleteManyResponse } from './entities/document';
+
+type DeleteManyResponse = {
+  count: number
+}
 
 @Injectable()
 export class DocumentService {
   constructor(private prisma: PrismaService) { }
 
-
-  async create(createDocumentDto: CreateDocumentDto) {
-    return await this.prisma.document.create({ data: createDocumentDto.toEntity() })
+  async create(createDocumentDto: CreateDocumentDto, user: KeycloakTokenParsed) {
+    return await this.prisma.document.create({ data: createDocumentDto.toEntity(user) })
   }
 
   async findAll(): Promise<Document[]> {
