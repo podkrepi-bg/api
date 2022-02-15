@@ -51,7 +51,7 @@ model Person {
 
   Coordinator       Coordinator[]
   Benefactor        Benefactor[]
-  Beneficiary       Beneficiary[]
+  // Beneficiary       Beneficiary[]
   Campaign          Campaign[]
   InfoRequest       InfoRequest[]
   Supporter         Supporter[]
@@ -79,7 +79,7 @@ model Company {
   cityId          String?       @map("city_id") @db.Uuid
   createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
-  beneficiaries   Beneficiary[]
+  // beneficiaries   Beneficiary[]
 
   @@map("companies")
 }
@@ -93,7 +93,7 @@ model Coordinator {
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
   person        Person        @relation(fields: [personId], references: [id], onDelete: Cascade)
-  beneficiaries Beneficiary[]
+  // beneficiaries Beneficiary[]
   campaigns     Campaign[]
 
   @@map("coordinators")
@@ -119,11 +119,11 @@ model Beneficiary {
   id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type                BeneficiaryType
   /// Person in need when type is `individual`
-  personId            String?         @map("person_id") @db.Uuid
+  personId            String?         @map("person_id")
   /// Company in need when type is `company`
-  companyId           String?         @map("company_id") @db.Uuid
+  companyId           String?         @map("company_id")
   /// Coordinator for this beneficiary
-  coordinatorId       String          @map("coordinator_id") @db.Uuid
+  coordinatorId       String          @map("coordinator_id")
   countryCode         String          @map("country_code") @db.Citext
   cityId              String          @map("city_id") @db.Uuid
   description         String?
@@ -131,22 +131,22 @@ model Beneficiary {
   privateData         Json?           @map("private_data")
   createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
-  coordinatorRelation PersonRelation  @default(none) @map("coordinator_relation")
-  city                City            @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  coordinator         Coordinator     @relation(fields: [coordinatorId], references: [id], onDelete: Cascade)
-  person              Person?         @relation(fields: [personId], references: [id], onDelete: Cascade)
-  company             Company?        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  campaigns           Campaign[]
+  // coordinatorRelation PersonRelation  @default(none) @map("coordinator_relation")
+  // city                City            @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  // coordinator         Coordinator     @relation(fields: [coordinatorId], references: [id], onDelete: Cascade)
+  // person              Person?         @relation(fields: [personId], references: [id], onDelete: Cascade)
+  // company             Company?        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  // campaigns           Campaign[]
 
   @@map("beneficiaries")
 }
 
 model CampaignType {
-  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String         @db.VarChar(50)
-  slug        String         @db.VarChar(50)
-  description String?        @db.VarChar(200)
-  parentId    String?        @map("parent_id")
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String     @db.VarChar(50)
+  slug        String     @db.VarChar(50)
+  description String?    @db.VarChar(200)
+  parentId    String?    @map("parent_id")
   // parent      CampaignType?  @relation("ParentCategory", fields: [parentId], references: [id])
   // children    CampaignType[] @relation("ParentCategory")
   campaigns   Campaign[]
@@ -174,7 +174,7 @@ model Campaign {
   deletedAt         DateTime?     @map("deleted_at") @db.Timestamptz(6)
   approvedBy        Person?       @relation(fields: [approvedById], references: [id], onDelete: Cascade)
   coordinator       Coordinator   @relation(fields: [coordinatorId], references: [id], onDelete: Cascade)
-  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+  // beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
   campaignType      CampaignType  @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   vaults            Vault[]
   incomingTransfers Transfer[]    @relation("target_campaign")
@@ -240,7 +240,7 @@ model City {
   postalCode    Int           @unique @map("postal_code")
   countryId     String        @map("country_id") @db.Uuid
   countryCode   Country       @relation(fields: [countryId], references: [id])
-  beneficiaries Beneficiary[]
+  // beneficiaries Beneficiary[]
 
   @@map("cities")
 }

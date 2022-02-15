@@ -26,7 +26,6 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   stripeCustomerId String [unique]
   Coordinator Coordinator [not null]
   Benefactor Benefactor [not null]
-  Beneficiary Beneficiary [not null]
   Campaign Campaign [not null]
   InfoRequest InfoRequest [not null]
   Supporter Supporter [not null]
@@ -50,7 +49,6 @@ https://psc.egov.bg/en/psc-starting-a-business-bulstat']
   cityId String
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
-  beneficiaries Beneficiary [not null]
 }
 
 Table Coordinator {
@@ -59,7 +57,6 @@ Table Coordinator {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   person Person [not null]
-  beneficiaries Beneficiary [not null]
   campaigns Campaign [not null]
 
   Note: 'Coordinator is the person who manages the campaign on behalf of the Beneficiary
@@ -92,12 +89,6 @@ Table Beneficiary {
   privateData Json
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
-  coordinatorRelation PersonRelation [not null, default: 'none']
-  city City [not null]
-  coordinator Coordinator [not null]
-  person Person
-  company Company
-  campaigns Campaign [not null]
 
   Note: 'Beneficiary is the person who receives the benefit'
 }
@@ -131,7 +122,6 @@ Table Campaign {
   deletedAt DateTime
   approvedBy Person
   coordinator Coordinator [not null]
-  beneficiary Beneficiary [not null]
   campaignType CampaignType [not null]
   vaults Vault [not null]
   incomingTransfers Transfer [not null]
@@ -189,7 +179,6 @@ Table City {
   postalCode Int [unique, not null]
   countryId String [not null]
   countryCode Country [not null]
-  beneficiaries Beneficiary [not null]
 
   Note: 'Done'
 }
@@ -487,19 +476,9 @@ Ref: Coordinator.personId > Person.id [delete: Cascade]
 
 Ref: Benefactor.personId > Person.id [delete: Cascade]
 
-Ref: Beneficiary.cityId > City.id [delete: Cascade]
-
-Ref: Beneficiary.coordinatorId > Coordinator.id [delete: Cascade]
-
-Ref: Beneficiary.personId > Person.id [delete: Cascade]
-
-Ref: Beneficiary.companyId > Company.id [delete: Cascade]
-
 Ref: Campaign.approvedById > Person.id [delete: Cascade]
 
 Ref: Campaign.coordinatorId > Coordinator.id [delete: Cascade]
-
-Ref: Campaign.beneficiaryId > Beneficiary.id [delete: Cascade]
 
 Ref: Campaign.campaignTypeId > CampaignType.id [delete: Cascade]
 

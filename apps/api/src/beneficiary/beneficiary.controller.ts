@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Post } from '@nestjs/common'
-import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
+import { RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 import { BeneficiaryService } from './beneficiary.service'
@@ -10,7 +10,11 @@ export class BeneficiaryController {
   constructor(private readonly beneficiaryService: BeneficiaryService) {}
 
   @Post('create-beneficiary')
-  @Public()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  // @Public()
   async create(@Body() createDto: CreateBeneficiaryDto) {
     return await this.beneficiaryService.createBeneficiary(createDto)
   }
@@ -20,7 +24,38 @@ export class BeneficiaryController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
+  // @Public()
   async list() {
     return await this.beneficiaryService.listBeneficiaries()
+  }
+
+  @Get(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  // @Public()
+  async viewOne(@Param('id') id: string) {
+    return await this.beneficiaryService.viewOne(id)
+  }
+
+  @Put(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  // @Public()
+  async editOne(@Param('id') id: string, @Body() updateDto: CreateBeneficiaryDto) {
+    return await this.beneficiaryService.updateOne(id, updateDto)
+  }
+
+  @Delete(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  // @Public()
+  async deleteOne(@Param('id') id: string) {
+    return await this.beneficiaryService.removeOne(id)
   }
 }

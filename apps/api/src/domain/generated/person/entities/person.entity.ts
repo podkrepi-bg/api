@@ -1,7 +1,6 @@
 
 import {Coordinator} from '../../coordinator/entities/coordinator.entity'
 import {Benefactor} from '../../benefactor/entities/benefactor.entity'
-import {Beneficiary} from '../../beneficiary/entities/beneficiary.entity'
 import {Campaign} from '../../campaign/entities/campaign.entity'
 import {InfoRequest} from '../../infoRequest/entities/infoRequest.entity'
 import {Supporter} from '../../supporter/entities/supporter.entity'
@@ -31,7 +30,6 @@ keycloakId: string  | null;
 stripeCustomerId: string  | null;
 Coordinator?: Coordinator[] ;
 Benefactor?: Benefactor[] ;
-Beneficiary?: Beneficiary[] ;
 Campaign?: Campaign[] ;
 InfoRequest?: InfoRequest[] ;
 Supporter?: Supporter[] ;
