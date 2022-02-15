@@ -5,6 +5,7 @@ import { UpdateBenefactorDto } from './dto/update-benefactor.dto';
 import { Benefactor } from '@prisma/client';
 import { BenefactorModule } from './benefactor.module';
 import { PrismaService } from '../prisma/prisma.service'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 @Injectable()
 export class BenefactorService {
@@ -39,33 +40,55 @@ export class BenefactorService {
   //   return `This action returns a #${id} benefactor`;
   // }
 
-  async update(id: string, updateBenefactorDto: UpdateBenefactorDto): Promise<Benefactor> {
-    try {
-      return await this.prisma.benefactor.update({
-        where: {
-          id
-        },
-        data: {
-          // id: updateBenefactorDto.id,
-          extCustomerId: updateBenefactorDto.extCustomerId,
-          createdAt: updateBenefactorDto.createdAt,
-          updatedAt: updateBenefactorDto.updatedAt,
-          // person: updateBenefactorDto.person,
+  // async update(id: string, updateBenefactorDto: UpdateBenefactorDto): Promise<Benefactor> {
+  //   try {
+  //     return await this.prisma.benefactor.update({
+  //       where: {
+  //         id
+  //       },
+  //       data: {
+  //         // id: updateBenefactorDto.id,
+  //         extCustomerId: updateBenefactorDto.extCustomerId,
+  //         createdAt: updateBenefactorDto.createdAt,
+  //         updatedAt: updateBenefactorDto.updatedAt,
+  //         // person: updateBenefactorDto.person,
           
-        }
-      });
-    } catch (err) {
-      const msg = `Update failed. No Document found with ID: ${id}`
+  //       }
+  //     });
+  //   } catch (err) {
+  //     const msg = `Update failed. No Document found with ID: ${id}`
 
-      Logger.warn(msg)
-      throw new NotFoundException(msg)
-    }
-  }
+  //     Logger.warn(msg)
+  //     throw new NotFoundException(msg)
+  //   }
+  // }
 
 
   // update(id: number, updateBenefactorDto: UpdateBenefactorDto) {
   //   return `This action updates a #${id} benefactor`;
   // }
+
+  async update(id: string, updateBenefactorDto: UpdateBenefactorDto) {
+    try {
+      const result = await this.prisma.benefactor.update({
+        where: { id },
+        data:{
+          extCustomerId: updateBenefactorDto.extCustomerId,
+          createdAt: updateBenefactorDto.createdAt,
+          updatedAt: updateBenefactorDto.updatedAt,
+        }
+      });
+      return result;
+    }catch (error){
+      if (error instanceof PrismaClientKnownRequestError) {
+         Logger.warn('No record with id', + id);
+         throw new NotFoundException('No record with id' + id)
+ 
+      }
+      
+    }
+ 
+   }
 
   async remove(id: string): Promise<Benefactor> {
     try {

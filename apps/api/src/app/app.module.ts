@@ -30,6 +30,7 @@ import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { CatModule } from '../cat/cat.module'
 import { BootcampInternModule } from '../bootcamp-intern/bootcamp-intern.module'
+import { BenefactorModule } from '../benefactor/benefactor.module'
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -56,6 +57,7 @@ import { BootcampInternModule } from '../bootcamp-intern/bootcamp-intern.module'
     CityModule,
     CatModule,
     BootcampInternModule,
+    BenefactorModule,
     HealthModule,
   ],
   controllers: [AppController],

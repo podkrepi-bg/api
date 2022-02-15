@@ -48,6 +48,6 @@ export class BootcampInternService {
   }
 
   remove(id: string) {
-    return this.prisma.bootcampIntern.delete({ where: { id }})
+    return this.prisma.bootcampIntern.delete({ where: { id } })
   }
 }

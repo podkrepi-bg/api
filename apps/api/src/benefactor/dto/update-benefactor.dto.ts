@@ -1,5 +1,5 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 import { CreateBenefactorDto } from './create-benefactor.dto';
 import { Person } from "@prisma/client";
 
@@ -11,24 +11,27 @@ export class UpdateBenefactorDto extends PartialType(CreateBenefactorDto) {
     // id: string ;
 
     // @ApiProperty()
-    // @Expose()
     // @IsString()
     // personId: string ;
 
-    @ApiProperty()
-    @IsString()
-    extCustomerId: string  | null;
+    // @ApiProperty()
+    // @IsString()
+    // @IsOptional()
+    // extCustomerId: string  | null;
 
-    @ApiProperty()
-    createdAt: Date ;
+    // @ApiProperty()
+    // @IsOptional()
+    // createdAt: Date ;
    
-    @ApiProperty()
-    @IsString()
-    updatedAt: Date  | null;
+    // @ApiProperty()
+    // @IsString()
+    // @IsOptional()
+    // updatedAt: Date  | null;
     
-    @ApiProperty()
-    @IsString()
-    person?: Person ;
+    // @ApiProperty()
+    // @IsString()
+    // @IsOptional()
+    // person?: Person ;
 
 
     
