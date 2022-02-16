@@ -30,6 +30,7 @@ import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.f
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { DocumentModule } from '../document/document.module'
+import { CountryModule } from '../country/country.module'
 import { CompanyModule } from '../company/company.module'
 import { InfoRequestModule } from '../info-request/info-request.module'
 import { BankAccountModule } from '../bankaccount/bankaccount.module'
@@ -54,6 +55,7 @@ import { BankAccountModule } from '../bankaccount/bankaccount.module'
     AuthModule,
     AccountModule,
     CampaignModule,
+    CountryModule,
     DonationsModule,
     SupportModule,
     BeneficiaryModule,
