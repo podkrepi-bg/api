@@ -5,7 +5,7 @@ import { Expense } from '@prisma/client'
 
 @Injectable()
 export class ExpensesService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async createExpense(createExpenseDto: CreateExpenseDto) {
     return await this.prisma.expense.create({ data: createExpenseDto })
@@ -37,9 +37,9 @@ export class ExpensesService {
       return await this.prisma.expense.deleteMany({
         where: {
           id: {
-            in: idsToDelete
-          }
-        }
+            in: idsToDelete,
+          },
+        },
       })
     } catch (err) {
       const msg = 'Delete failed. No Expense found with given ID'
