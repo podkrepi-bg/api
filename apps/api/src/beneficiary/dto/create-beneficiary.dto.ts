@@ -4,22 +4,22 @@ import { BeneficiaryType, Prisma } from '.prisma/client'
 
 @Expose()
 export class CreateBeneficiaryDto {
-  @ApiProperty({ enum: BeneficiaryType })
+  // @ApiProperty({ enum: BeneficiaryType })
   type: BeneficiaryType
-  @ApiProperty()
+  // @ApiProperty()
   personId?: string
-  @ApiProperty()
+  // @ApiProperty()
   companyId?: string
-  @ApiProperty()
+  // @ApiProperty()
   coordinatorId: string
-  @ApiProperty()
+  // @ApiProperty()
   countryCode: string
-  @ApiProperty()
+  // @ApiProperty()
   cityId: string
-  @ApiProperty()
+  // @ApiProperty()
   description?: string
-  @ApiProperty()
+  // @ApiProperty()
   publicData?: Prisma.InputJsonValue
-  @ApiProperty()
+  // @ApiProperty()
   privateData?: Prisma.InputJsonValue
 }
