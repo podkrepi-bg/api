@@ -9,7 +9,7 @@ export class CityService {
   constructor(private prisma: PrismaService) {}
 
   async listCities(): Promise<City[]> {
-    return this.prisma.city.findMany()
+    return this.prisma.city.findMany({ include: { countryCode: true } })
   }
 
   async listCity(cityId: string): Promise<City> {
