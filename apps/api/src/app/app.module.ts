@@ -20,6 +20,7 @@ import { AccountModule } from '../account/account.module'
 import { HealthModule } from '../health/health.module'
 import { SupportModule } from '../support/support.module'
 import { CampaignModule } from '../campaign/campaign.module'
+import { ExpensesModule } from '../expenses/expenses.module'
 import { AppConfigModule } from '../config/app-config.module'
 import { validationSchema } from '../config/validation.config'
 import { DonationsModule } from '../donations/donations.module'
@@ -28,6 +29,12 @@ import { KeycloakConfigService } from '../config/keycloak-config.service'
 import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.filter'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
+import { DocumentModule } from '../document/document.module'
+import { CountryModule } from '../country/country.module'
+import { CompanyModule } from '../company/company.module'
+import { InfoRequestModule } from '../info-request/info-request.module'
+import { BankAccountModule } from '../bankaccount/bankaccount.module'
+
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -48,11 +55,17 @@ import { TemplateService } from '../email/template.service'
     AuthModule,
     AccountModule,
     CampaignModule,
+    CountryModule,
     DonationsModule,
     SupportModule,
     BeneficiaryModule,
     CityModule,
     HealthModule,
+    DocumentModule,
+    CompanyModule,
+    InfoRequestModule,
+    BankAccountModule,
+    ExpensesModule,
   ],
   controllers: [AppController],
   providers: [
