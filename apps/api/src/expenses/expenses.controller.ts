@@ -6,7 +6,7 @@ import { CreateExpenseDto } from './dto/create-expense.dto'
 
 @Controller('expenses')
 export class ExpensesController {
-  constructor(private readonly expensesService: ExpensesService) { }
+  constructor(private readonly expensesService: ExpensesService) {}
 
   @Public()
   @Get('list')
@@ -35,6 +35,6 @@ export class ExpensesController {
   @Public()
   @Delete()
   removeMany(@Body() idsToDelete: string[]) {
-    return this.expensesService.removeMany(idsToDelete);
+    return this.expensesService.removeMany(idsToDelete)
   }
 }
