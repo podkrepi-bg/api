@@ -4,7 +4,6 @@ import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common'
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   async onModuleInit() {
-
     this.$use(async (params, next) => {
       if (params.model == 'Expense') {
         if (params.action == 'delete') {
