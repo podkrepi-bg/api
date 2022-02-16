@@ -14,19 +14,16 @@ export class CoordinatorController {
   }
 
   @Get('list')
-  @Public()
   findAll() {
     return this.coordinatorService.findAll()
   }
 
   @Get(':id')
-  @Public()
   findOne(@Param('id') id: string) {
     return this.coordinatorService.findOne(id)
   }
 
   @Delete(':id')
-  @Public()
   remove(@Param('id') id: string) {
     return this.coordinatorService.remove(id)
   }
