@@ -65,38 +65,41 @@ model Person {
   @@index([keycloakId], map: "keycloak_id_idx")
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
   @@map("people")
+  Beneficiary Beneficiary[]
 }
 
 //Done
 model Company {
-  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyName     String        @map("company_name") @db.VarChar(100)
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyName     String    @map("company_name") @db.VarChar(100)
   /// BULSTAT Unified Identification Code (UIC)
   /// https://psc.egov.bg/en/psc-starting-a-business-bulstat
-  companyNumber   String        @unique
-  legalPersonName String?       @map("legal_person_name")
-  countryCode     String?       @map("country_code") @db.Citext
-  cityId          String?       @map("city_id") @db.Uuid
-  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  companyNumber   String    @unique
+  legalPersonName String?   @map("legal_person_name")
+  countryCode     String?   @map("country_code") @db.Citext
+  cityId          String?   @map("city_id") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   // beneficiaries   Beneficiary[]
 
   @@map("companies")
+  Beneficiary Beneficiary[]
 }
 
 /// Coordinator is the person who manages the campaign on behalf of the Beneficiary
 /// Alias: Organizer
 /// Done
 model Coordinator {
-  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  personId      String        @map("person_id") @db.Uuid
-  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
-  person        Person        @relation(fields: [personId], references: [id], onDelete: Cascade)
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  personId  String     @map("person_id") @db.Uuid
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime?  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  person    Person     @relation(fields: [personId], references: [id], onDelete: Cascade)
   // beneficiaries Beneficiary[]
-  campaigns     Campaign[]
+  campaigns Campaign[]
 
   @@map("coordinators")
+  Beneficiary Beneficiary[]
 }
 
 /// Benefactor is the person who gives money
@@ -131,12 +134,12 @@ model Beneficiary {
   privateData         Json?           @map("private_data")
   createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
-  // coordinatorRelation PersonRelation  @default(none) @map("coordinator_relation")
-  // city                City            @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  // coordinator         Coordinator     @relation(fields: [coordinatorId], references: [id], onDelete: Cascade)
-  // person              Person?         @relation(fields: [personId], references: [id], onDelete: Cascade)
-  // company             Company?        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  // campaigns           Campaign[]
+  coordinatorRelation PersonRelation  @default(none) @map("coordinator_relation")
+  city                City            @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  coordinator         Coordinator     @relation(fields: [coordinatorId], references: [id], onDelete: Cascade)
+  person              Person?         @relation(fields: [personId], references: [id], onDelete: Cascade)
+  company             Company?        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  campaigns           Campaign[]
 
   @@map("beneficiaries")
 }
@@ -182,6 +185,7 @@ model Campaign {
   withdrawals       Withdrawal[]
 
   @@map("campaigns")
+  Beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id])
 }
 
 //Done
@@ -235,14 +239,15 @@ model Supporter {
 
 /// Done
 model City {
-  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name          String        @db.VarChar(100)
-  postalCode    Int           @unique @map("postal_code")
-  countryId     String        @map("country_id") @db.Uuid
-  countryCode   Country       @relation(fields: [countryId], references: [id])
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String  @db.VarChar(100)
+  postalCode  Int     @unique @map("postal_code")
+  countryId   String  @map("country_id") @db.Uuid
+  countryCode Country @relation(fields: [countryId], references: [id])
   // beneficiaries Beneficiary[]
 
   @@map("cities")
+  Beneficiary Beneficiary[]
 }
 
 //Done
