@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateInquiryDto } from '../support/dto/create-inquiry.dto';
-import { SupportService } from '../support/support.service';
+import { CreateInfoRequestDto } from './dto/create-info-request.dto';
 import { UpdateInfoRequestDto } from './dto/update-info-request.dto';
 
 @Injectable()
 export class InfoRequestService {
-  constructor(private prisma: PrismaService, private supportService: SupportService){}
+  constructor(private prisma: PrismaService){}
 
-  create(createInfoRequestDto: CreateInquiryDto) {
-    return this.supportService.createInfoRequest(createInfoRequestDto)
+  create(createInfoRequestDto: CreateInfoRequestDto, personId: string) {
+    return this.prisma.infoRequest.create({ data: { ...createInfoRequestDto, personId: personId}})
   }
 
   findAll() {

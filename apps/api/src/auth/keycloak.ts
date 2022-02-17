@@ -1,3 +1,5 @@
+import { CreateInfoRequestDto } from "../info-request/dto/create-info-request.dto";
+
 export interface KeycloakTokenParsed extends KeycloakProfile {
   exp?: number
   iat?: number
@@ -13,6 +15,7 @@ export interface KeycloakTokenParsed extends KeycloakProfile {
   realm_access?: KeycloakRoles
   resource_access?: KeycloakResourceAccess
   scope?: string
+  sid: string
 }
 
 interface KeycloakResourceAccess {
