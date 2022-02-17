@@ -33,7 +33,7 @@ export class InfoRequestController {
   }
 
   @Delete(':id')
-  @Public()
+  @Public(false)
   remove(@Param('id') id: string) {
     return this.infoRequestService.remove(id);
   }
