@@ -10,6 +10,7 @@ import {Withdrawal} from '../../withdrawal/entities/withdrawal.entity'
 import {Expense} from '../../expense/entities/expense.entity'
 import {Document} from '../../document/entities/document.entity'
 import {Donation} from '../../donation/entities/donation.entity'
+import {Beneficiary} from '../../beneficiary/entities/beneficiary.entity'
 
 
 export class Person {
@@ -39,4 +40,5 @@ Withdrawal?: Withdrawal[] ;
 Expense?: Expense[] ;
 Document?: Document[] ;
 Donation?: Donation[] ;
+Beneficiary?: Beneficiary[] ;
 }

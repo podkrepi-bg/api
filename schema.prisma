@@ -62,10 +62,10 @@ model Person {
   Document          Document[]
   Donation          Donation[]
 
+  Beneficiary Beneficiary[]
   @@index([keycloakId], map: "keycloak_id_idx")
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
   @@map("people")
-  Beneficiary Beneficiary[]
 }
 
 //Done
@@ -82,8 +82,8 @@ model Company {
   updatedAt       DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   // beneficiaries   Beneficiary[]
 
-  @@map("companies")
   Beneficiary Beneficiary[]
+  @@map("companies")
 }
 
 /// Coordinator is the person who manages the campaign on behalf of the Beneficiary
@@ -98,8 +98,8 @@ model Coordinator {
   // beneficiaries Beneficiary[]
   campaigns Campaign[]
 
-  @@map("coordinators")
   Beneficiary Beneficiary[]
+  @@map("coordinators")
 }
 
 /// Benefactor is the person who gives money
@@ -119,35 +119,34 @@ model Benefactor {
 
 /// Beneficiary is the person who receives the benefit
 model Beneficiary {
-  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type                BeneficiaryType
+  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type                String
   /// Person in need when type is `individual`
-  personId            String?         @map("person_id")
+  personId            String?        @map("person_id")
   /// Company in need when type is `company`
-  companyId           String?         @map("company_id")
+  companyId           String?        @map("company_id")
   /// Coordinator for this beneficiary
-  coordinatorId       String          @map("coordinator_id")
-  countryCode         String          @map("country_code") @db.Citext
-  cityId              String          @map("city_id") @db.Uuid
+  coordinatorId       String         @map("coordinator_id")
+  countryCode         String         @map("country_code")
+  cityId              String         @map("city_id")
   description         String?
-  publicData          Json?           @map("public_data")
-  privateData         Json?           @map("private_data")
-  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
-  coordinatorRelation PersonRelation  @default(none) @map("coordinator_relation")
-  city                City            @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  coordinator         Coordinator     @relation(fields: [coordinatorId], references: [id], onDelete: Cascade)
-  person              Person?         @relation(fields: [personId], references: [id], onDelete: Cascade)
-  company             Company?        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  publicData          Json?          @map("public_data")
+  privateData         Json?          @map("private_data")
+  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime?      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  coordinatorRelation PersonRelation @default(none) @map("coordinator_relation")
+  city                City           @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  coordinator         Coordinator    @relation(fields: [coordinatorId], references: [id], onDelete: Cascade)
+  person              Person?        @relation(fields: [personId], references: [id], onDelete: Cascade)
+  company             Company?       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   campaigns           Campaign[]
-
   @@map("beneficiaries")
 }
 
 model CampaignType {
   id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String     @db.VarChar(50)
-  slug        String     @db.VarChar(50)
+  slug        String     @unique @db.VarChar(50)
   description String?    @db.VarChar(200)
   parentId    String?    @map("parent_id")
   // parent      CampaignType?  @relation("ParentCategory", fields: [parentId], references: [id])
@@ -184,8 +183,8 @@ model Campaign {
   outgoingTransfers Transfer[]    @relation("source_campaign")
   withdrawals       Withdrawal[]
 
-  @@map("campaigns")
   Beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id])
+  @@map("campaigns")
 }
 
 //Done
@@ -246,8 +245,8 @@ model City {
   countryCode Country @relation(fields: [countryId], references: [id])
   // beneficiaries Beneficiary[]
 
-  @@map("cities")
   Beneficiary Beneficiary[]
+  @@map("cities")
 }
 
 //Done

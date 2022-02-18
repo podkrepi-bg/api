@@ -12,7 +12,7 @@ export class BeneficiaryService {
   }
 
   async listBeneficiaries(): Promise<Beneficiary[]> {
-    return this.prisma.beneficiary.findMany()
+    return this.prisma.beneficiary.findMany({})
   }
 
   async viewOne(id: string): Promise<Beneficiary | null> {

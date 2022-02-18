@@ -5,17 +5,19 @@ export async function campaignTypesSeed() {
   console.log('CampaignTypes seed')
 
   const treatment = await prisma.campaignType.upsert({
-    where: { slug: 'treatment-and-rehabilitation' },
+    where: {
+      slug: 'treatment-and-rehabilitation',
+    },
     update: {},
     create: { name: 'Treatment and rehabilitation', slug: 'treatment-and-rehabilitation' },
   })
   const helping = await prisma.campaignType.upsert({
-    where: { slug: 'helping-the-needy' },
+    where: {},
     update: {},
     create: { name: 'Helping the needy', slug: 'helping-the-needy' },
   })
   const society = await prisma.campaignType.upsert({
-    where: { slug: 'better-society' },
+    where: {},
     update: {},
     create: { name: 'Better society', slug: 'better-society' },
   })

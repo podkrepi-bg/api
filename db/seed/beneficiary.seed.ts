@@ -1,4 +1,4 @@
-import { PrismaClient, PersonRelation, BeneficiaryType } from '@prisma/client'
+import { PrismaClient, PersonRelation } from '@prisma/client'
 const prisma = new PrismaClient()
 
 export async function beneficiarySeed() {
@@ -26,7 +26,7 @@ export async function beneficiarySeed() {
 
   const insert = await prisma.beneficiary.createMany({
     data: persons.map((person) => ({
-      type: BeneficiaryType.individual,
+      type: 'randomness',
       personId: person.id,
       countryCode: bg.countryCode,
       cityId: cityFromDb.id,

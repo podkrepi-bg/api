@@ -1,5 +1,6 @@
 
   export class ConnectCampaignTypeDto {
-    id: string;
+    id?: string;
+slug?: string;
   }
   

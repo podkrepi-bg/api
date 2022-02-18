@@ -3,7 +3,19 @@ import { RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 import { BeneficiaryService } from './beneficiary.service'
-import { CreateBeneficiaryDto } from './dto/create-beneficiary.dto'
+
+type CreateBeneficiaryDto = {
+  type: string
+  personId?: string
+  companyId?: string
+  coordinatorId: string
+  countryCode: string
+  cityId: string
+  description?: string
+  publicData?: string
+  privateData?: string
+  campaigns: Record<string, never>
+}
 
 @Controller('beneficiary')
 export class BeneficiaryController {
