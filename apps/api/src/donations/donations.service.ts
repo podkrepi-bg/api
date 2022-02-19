@@ -6,6 +6,11 @@ import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 import { DonationMetadata } from './dontation-metadata.interface'
 import { CampaignService } from '../campaign/campaign.service'
 import { CreateSessionDto } from './dto/create-session.dto'
+import { Donation } from '@prisma/client'
+import { PrismaService } from '../prisma/prisma.service'
+import { CreatePaymentDto } from './dto/create-payment.dto'
+import { UpdatePaymentDto } from './dto/update-payment.dto'
+
 
 @Injectable()
 export class DonationsService {
@@ -13,6 +18,7 @@ export class DonationsService {
     @InjectStripeClient() private stripeClient: Stripe,
     private config: ConfigService,
     private campaignServie: CampaignService,
+    private prisma: PrismaService
   ) {}
 
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
@@ -54,4 +60,25 @@ export class DonationsService {
 
     throw new NotAcceptableException('This campaign cannot accept donations')
   }
+
+  async listDonations(): Promise<Donation[]>{
+    return await this.prisma.donation.findMany();
+  }
+
+  getDonationById(id: string){
+
+  }
+
+  create(createPaymentDto: CreatePaymentDto){
+
+  }
+
+  update(id: string,updatePaymentDto: UpdatePaymentDto){
+
+  }
+
+  remove(ids: string[]){
+
+  }
+
 }
