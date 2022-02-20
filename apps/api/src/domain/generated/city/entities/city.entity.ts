@@ -9,5 +9,5 @@ name: string ;
 postalCode: number ;
 countryId: string ;
 countryCode?: Country ;
-Beneficiary?: Beneficiary[] ;
+beneficiaries?: Beneficiary[] ;
 }

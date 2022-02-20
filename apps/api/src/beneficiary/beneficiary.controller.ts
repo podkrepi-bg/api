@@ -3,19 +3,8 @@ import { RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 import { BeneficiaryService } from './beneficiary.service'
-
-type CreateBeneficiaryDto = {
-  type: string
-  personId?: string
-  companyId?: string
-  coordinatorId: string
-  countryCode: string
-  cityId: string
-  description?: string
-  publicData?: string
-  privateData?: string
-  campaigns: Record<string, never>
-}
+import { CreateBeneficiaryDto } from './dto/create-beneficiary.dto'
+import { UpdateBeneficiaryDto } from './dto/update-beneficiary.dto'
 
 @Controller('beneficiary')
 export class BeneficiaryController {
@@ -44,8 +33,8 @@ export class BeneficiaryController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  async viewOne(@Param('id') id: string) {
-    return await this.beneficiaryService.viewOne(id)
+  async getById(@Param('id') id: string) {
+    return await this.beneficiaryService.viewBeneficiary(id)
   }
 
   @Put(':id')
@@ -53,8 +42,8 @@ export class BeneficiaryController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  async editOne(@Param('id') id: string, @Body() updateDto: CreateBeneficiaryDto) {
-    return await this.beneficiaryService.updateOne(id, updateDto)
+  async editById(@Param('id') id: string, @Body() data: UpdateBeneficiaryDto) {
+    return await this.beneficiaryService.editBeneficiary(id, data)
   }
 
   @Delete(':id')
@@ -62,7 +51,7 @@ export class BeneficiaryController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  async deleteOne(@Param('id') id: string) {
-    return await this.beneficiaryService.removeOne(id)
+  async removeById(@Param('id') id: string) {
+    return await this.beneficiaryService.removeBeneficiary(id)
   }
 }

@@ -12,10 +12,10 @@ export class Vault {
   id: string ;
 currency: Currency ;
 amount: number ;
-campaignId: string ;
+campaignId: string  | null;
 createdAt: Date ;
 updatedAt: Date  | null;
-campaign?: Campaign ;
+campaign?: Campaign  | null;
 expenses?: Expense[] ;
 sourceTransfers?: Transfer[] ;
 targetTransfers?: Transfer[] ;

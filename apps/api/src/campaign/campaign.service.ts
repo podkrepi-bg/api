@@ -59,6 +59,14 @@ export class CampaignService {
     const campaign = await this.prisma.campaign.findFirst({
       where: { slug },
       include: {
+        beneficiary: {
+          select: {
+            id: true,
+            type: true,
+            publicData: true,
+            person: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
         coordinator: {
           select: {
             id: true,

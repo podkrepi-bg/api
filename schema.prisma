@@ -31,79 +31,72 @@ generator nestjsDto {
 
 /// Generic person object
 model Person {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  firstName        String    @map("first_name") @db.VarChar(100)
-  lastName         String    @map("last_name") @db.VarChar(100)
-  email            String    @unique @db.Citext
-  emailConfirmed   Boolean?  @default(false) @map("email_confirmed")
-  phone            String?   @db.VarChar(50)
-  company          String?   @db.VarChar(50)
-  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
-  newsletter       Boolean?  @default(false)
-  adress           String?   @db.VarChar(100)
-  birthday         DateTime? @db.Timestamptz(6)
+  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstName          String              @map("first_name") @db.VarChar(100)
+  lastName           String              @map("last_name") @db.VarChar(100)
+  email              String              @unique @db.Citext
+  emailConfirmed     Boolean?            @default(false) @map("email_confirmed")
+  phone              String?             @db.VarChar(50)
+  company            String?             @db.VarChar(50)
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  newsletter         Boolean?            @default(false)
+  address            String?             @db.VarChar(100)
+  birthday           DateTime?           @db.Timestamptz(6)
   /// Uniform Civil Number (NCN, EGN)
   /// https://en.wikipedia.org/wiki/National_identification_number#Bulgaria
-  personalNumber   String?   @unique @map("personal_number")
-  keycloakId       String?   @unique @map("keycloak_id") @db.Uuid
-  stripeCustomerId String?   @unique @map("stripe_customer_id")
+  personalNumber     String?             @unique @map("personal_number")
+  keycloakId         String?             @unique @map("keycloak_id") @db.Uuid
+  stripeCustomerId   String?             @unique @map("stripe_customer_id")
+  Donation           Donation[]
+  expenses           Expense[]
+  documents          Document[]
+  transfers          Transfer[]
+  campaigns          Campaign[]
+  supporters         Supporter[]
+  benefactors        Benefactor[]
+  withdrawals        Withdrawal[]
+  beneficiaries      Beneficiary[]
+  infoRequests       InfoRequest[]
+  coordinators       Coordinator[]
+  recurringDonations RecurringDonation[]
 
-  Coordinator       Coordinator[]
-  Benefactor        Benefactor[]
-  // Beneficiary       Beneficiary[]
-  Campaign          Campaign[]
-  InfoRequest       InfoRequest[]
-  Supporter         Supporter[]
-  RecurringDonation RecurringDonation[]
-  Transfer          Transfer[]
-  Withdrawal        Withdrawal[]
-  Expense           Expense[]
-  Document          Document[]
-  Donation          Donation[]
-
-  Beneficiary Beneficiary[]
   @@index([keycloakId], map: "keycloak_id_idx")
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
   @@map("people")
 }
 
-//Done
 model Company {
-  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyName     String    @map("company_name") @db.VarChar(100)
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyName     String        @map("company_name") @db.VarChar(100)
   /// BULSTAT Unified Identification Code (UIC)
   /// https://psc.egov.bg/en/psc-starting-a-business-bulstat
-  companyNumber   String    @unique
-  legalPersonName String?   @map("legal_person_name")
-  countryCode     String?   @map("country_code") @db.Citext
-  cityId          String?   @map("city_id") @db.Uuid
-  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
-  // beneficiaries   Beneficiary[]
+  companyNumber   String        @unique
+  legalPersonName String?       @map("legal_person_name")
+  countryCode     String?       @map("country_code") @db.Citext
+  cityId          String?       @map("city_id") @db.Uuid
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  beneficiaries   Beneficiary[]
 
-  Beneficiary Beneficiary[]
   @@map("companies")
 }
 
 /// Coordinator is the person who manages the campaign on behalf of the Beneficiary
 /// Alias: Organizer
-/// Done
 model Coordinator {
-  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  personId  String     @map("person_id") @db.Uuid
-  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime?  @updatedAt @map("updated_at") @db.Timestamptz(6)
-  person    Person     @relation(fields: [personId], references: [id], onDelete: Cascade)
-  // beneficiaries Beneficiary[]
-  campaigns Campaign[]
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  personId      String        @map("person_id") @db.Uuid
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  person        Person        @relation(fields: [personId], references: [id])
+  beneficiaries Beneficiary[]
+  campaigns     Campaign[]
 
-  Beneficiary Beneficiary[]
   @@map("coordinators")
 }
 
 /// Benefactor is the person who gives money
-/// Done
 model Benefactor {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   personId      String    @map("person_id") @db.Uuid
@@ -112,45 +105,46 @@ model Benefactor {
   ///
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
-  person        Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  person        Person    @relation(fields: [personId], references: [id])
 
   @@map("benefactors")
 }
 
 /// Beneficiary is the person who receives the benefit
 model Beneficiary {
-  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type                String
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type                BeneficiaryType
   /// Person in need when type is `individual`
-  personId            String?        @map("person_id")
+  personId            String?         @map("person_id") @db.Uuid
   /// Company in need when type is `company`
-  companyId           String?        @map("company_id")
+  companyId           String?         @map("company_id") @db.Uuid
   /// Coordinator for this beneficiary
-  coordinatorId       String         @map("coordinator_id")
-  countryCode         String         @map("country_code")
-  cityId              String         @map("city_id")
+  coordinatorId       String          @map("coordinator_id") @db.Uuid
+  countryCode         String          @map("country_code") @db.Citext
+  cityId              String          @map("city_id") @db.Uuid
   description         String?
-  publicData          Json?          @map("public_data")
-  privateData         Json?          @map("private_data")
-  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime?      @updatedAt @map("updated_at") @db.Timestamptz(6)
-  coordinatorRelation PersonRelation @default(none) @map("coordinator_relation")
-  city                City           @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  coordinator         Coordinator    @relation(fields: [coordinatorId], references: [id], onDelete: Cascade)
-  person              Person?        @relation(fields: [personId], references: [id], onDelete: Cascade)
-  company             Company?       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  publicData          Json?           @map("public_data")
+  privateData         Json?           @map("private_data")
+  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  coordinatorRelation PersonRelation  @default(none) @map("coordinator_relation")
+  city                City            @relation(fields: [cityId], references: [id])
+  coordinator         Coordinator     @relation(fields: [coordinatorId], references: [id])
+  person              Person?         @relation(fields: [personId], references: [id])
+  company             Company?        @relation(fields: [companyId], references: [id])
   campaigns           Campaign[]
+
   @@map("beneficiaries")
 }
 
 model CampaignType {
-  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String     @db.VarChar(50)
-  slug        String     @unique @db.VarChar(50)
-  description String?    @db.VarChar(200)
-  parentId    String?    @map("parent_id")
-  // parent      CampaignType?  @relation("ParentCategory", fields: [parentId], references: [id])
-  // children    CampaignType[] @relation("ParentCategory")
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String         @db.VarChar(50)
+  slug        String         @unique @db.VarChar(50)
+  description String?        @db.VarChar(200)
+  parentId    String?        @map("parent_id") @db.Uuid
+  parent      CampaignType?  @relation("ParentCategory", fields: [parentId], references: [id])
+  children    CampaignType[] @relation("ParentCategory")
   campaigns   Campaign[]
 
   @@map("campaign_types")
@@ -174,20 +168,18 @@ model Campaign {
   createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt         DateTime?     @map("deleted_at") @db.Timestamptz(6)
-  approvedBy        Person?       @relation(fields: [approvedById], references: [id], onDelete: Cascade)
-  coordinator       Coordinator   @relation(fields: [coordinatorId], references: [id], onDelete: Cascade)
-  // beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+  approvedBy        Person?       @relation(fields: [approvedById], references: [id])
+  coordinator       Coordinator   @relation(fields: [coordinatorId], references: [id])
+  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id])
   campaignType      CampaignType  @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   vaults            Vault[]
   incomingTransfers Transfer[]    @relation("target_campaign")
   outgoingTransfers Transfer[]    @relation("source_campaign")
   withdrawals       Withdrawal[]
 
-  Beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id])
   @@map("campaigns")
 }
 
-//Done
 model InfoRequest {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   personId  String    @map("person_id") @db.Uuid
@@ -195,7 +187,7 @@ model InfoRequest {
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
-  person    Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  person    Person    @relation(fields: [personId], references: [id])
 
   @@map("info_requests")
 }
@@ -231,25 +223,22 @@ model Supporter {
   volunteerProjectManager      Boolean   @default(false) @map("volunteer_project_manager")
   volunteerQa                  Boolean   @default(false) @map("volunteer_qa")
   volunteerSecurity            Boolean   @default(false) @map("volunteer_security")
-  person                       Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  person                       Person    @relation(fields: [personId], references: [id])
 
   @@map("supporters")
 }
 
-/// Done
 model City {
-  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String  @db.VarChar(100)
-  postalCode  Int     @unique @map("postal_code")
-  countryId   String  @map("country_id") @db.Uuid
-  countryCode Country @relation(fields: [countryId], references: [id])
-  // beneficiaries Beneficiary[]
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String        @db.VarChar(100)
+  postalCode    Int           @unique @map("postal_code")
+  countryId     String        @map("country_id") @db.Uuid
+  countryCode   Country       @relation(fields: [countryId], references: [id])
+  beneficiaries Beneficiary[]
 
-  Beneficiary Beneficiary[]
   @@map("cities")
 }
 
-//Done
 model Country {
   id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String @db.VarChar(100)
@@ -315,7 +304,7 @@ model RecurringDonation {
   createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime?               @updatedAt @map("updated_at") @db.Timestamptz(6)
   sourceVault       Vault                   @relation(fields: [vaultId], references: [id])
-  person            Person                  @relation(fields: [personId], references: [id], onDelete: Cascade)
+  person            Person                  @relation(fields: [personId], references: [id])
 
   @@map("recurring_donations")
 }
@@ -338,7 +327,7 @@ model Transfer {
   targetDate       DateTime?      @default(now()) @map("target_date")
   createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime?      @updatedAt @map("updated_at") @db.Timestamptz(6)
-  approvedBy       Person?        @relation(fields: [approvedById], references: [id], onDelete: Cascade)
+  approvedBy       Person?        @relation(fields: [approvedById], references: [id])
   sourceVault      Vault          @relation("source_vault", fields: [sourceVaultId], references: [id])
   sourceCampaign   Campaign       @relation("source_campaign", fields: [sourceCampaignId], references: [id])
   targetVault      Vault          @relation("target_vault", fields: [targetVaultId], references: [id])
@@ -364,7 +353,7 @@ model Withdrawal {
   targetDate       DateTime?      @default(now()) @map("target_date")
   createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime?      @updatedAt @map("updated_at") @db.Timestamptz(6)
-  approvedBy       Person?        @relation(fields: [approvedById], references: [id], onDelete: Cascade)
+  approvedBy       Person?        @relation(fields: [approvedById], references: [id])
   sourceVault      Vault          @relation(fields: [sourceVaultId], references: [id])
   sourceCampaign   Campaign       @relation(fields: [sourceCampaignId], references: [id])
   bankAccount      BankAccount    @relation(fields: [bankAccountId], references: [id])
@@ -372,7 +361,6 @@ model Withdrawal {
   @@map("withdrawals")
 }
 
-/// Done
 model BankAccount {
   id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   status            BankAccountStatus @default(new)
@@ -395,24 +383,24 @@ model BankAccount {
 }
 
 /// Pay for something from a given vault
-/// Done
 model Expense {
   id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type         ExpenseType
+  status       ExpenseStatus 
   currency     Currency    @default(BGN)
   amount       Int         @default(0) @db.Integer
-  description  String?
   vaultId      String      @map("vault_id") @db.Uuid
+  deleted      Boolean     @default(false)
+  description  String?
   documentId   String?     @map("document_id") @db.Uuid
   approvedById String?     @db.Uuid
-  vault        Vault       @relation(fields: [vaultId], references: [id])
-  approvedBy   Person?     @relation(fields: [approvedById], references: [id], onDelete: Cascade)
+  vault        Vault       @relation(fields: [vaultId], references: [id]) 
+  approvedBy   Person?     @relation(fields: [approvedById], references: [id])
   document     Document?   @relation(fields: [documentId], references: [id])
 
   @@map("expenses")
 }
 
-//Done
 model Document {
   id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type        DocumentType
@@ -424,7 +412,7 @@ model Document {
   sourceUrl   String       @map("source_url")
   /// Person who uploaded the document
   ownerId     String       @map("owner_id") @db.Uuid
-  owner       Person       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner       Person       @relation(fields: [ownerId], references: [id])
   expenses    Expense[]
 
   @@map("documents")
@@ -483,6 +471,12 @@ enum Currency {
   USD
 
   @@map("currency")
+}
+
+enum ExpenseStatus {
+  pending
+  approved
+  canceled
 }
 
 enum ExpenseType {

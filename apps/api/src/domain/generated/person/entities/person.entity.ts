@@ -1,16 +1,16 @@
 
-import {Coordinator} from '../../coordinator/entities/coordinator.entity'
-import {Benefactor} from '../../benefactor/entities/benefactor.entity'
-import {Campaign} from '../../campaign/entities/campaign.entity'
-import {InfoRequest} from '../../infoRequest/entities/infoRequest.entity'
-import {Supporter} from '../../supporter/entities/supporter.entity'
-import {RecurringDonation} from '../../recurringDonation/entities/recurringDonation.entity'
-import {Transfer} from '../../transfer/entities/transfer.entity'
-import {Withdrawal} from '../../withdrawal/entities/withdrawal.entity'
+import {Donation} from '../../donation/entities/donation.entity'
 import {Expense} from '../../expense/entities/expense.entity'
 import {Document} from '../../document/entities/document.entity'
-import {Donation} from '../../donation/entities/donation.entity'
+import {Transfer} from '../../transfer/entities/transfer.entity'
+import {Campaign} from '../../campaign/entities/campaign.entity'
+import {Supporter} from '../../supporter/entities/supporter.entity'
+import {Benefactor} from '../../benefactor/entities/benefactor.entity'
+import {Withdrawal} from '../../withdrawal/entities/withdrawal.entity'
 import {Beneficiary} from '../../beneficiary/entities/beneficiary.entity'
+import {InfoRequest} from '../../infoRequest/entities/infoRequest.entity'
+import {Coordinator} from '../../coordinator/entities/coordinator.entity'
+import {RecurringDonation} from '../../recurringDonation/entities/recurringDonation.entity'
 
 
 export class Person {
@@ -24,21 +24,21 @@ company: string  | null;
 createdAt: Date ;
 updatedAt: Date  | null;
 newsletter: boolean  | null;
-adress: string  | null;
+address: string  | null;
 birthday: Date  | null;
 personalNumber: string  | null;
 keycloakId: string  | null;
 stripeCustomerId: string  | null;
-Coordinator?: Coordinator[] ;
-Benefactor?: Benefactor[] ;
-Campaign?: Campaign[] ;
-InfoRequest?: InfoRequest[] ;
-Supporter?: Supporter[] ;
-RecurringDonation?: RecurringDonation[] ;
-Transfer?: Transfer[] ;
-Withdrawal?: Withdrawal[] ;
-Expense?: Expense[] ;
-Document?: Document[] ;
 Donation?: Donation[] ;
-Beneficiary?: Beneficiary[] ;
+expenses?: Expense[] ;
+documents?: Document[] ;
+transfers?: Transfer[] ;
+campaigns?: Campaign[] ;
+supporters?: Supporter[] ;
+benefactors?: Benefactor[] ;
+withdrawals?: Withdrawal[] ;
+beneficiaries?: Beneficiary[] ;
+infoRequests?: InfoRequest[] ;
+coordinators?: Coordinator[] ;
+recurringDonations?: RecurringDonation[] ;
 }

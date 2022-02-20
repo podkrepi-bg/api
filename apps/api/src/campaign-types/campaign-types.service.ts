@@ -26,22 +26,4 @@ export class CampaignTypesService {
   async remove(id: string) {
     return await this.prisma.campaignType.delete({ where: { id } })
   }
-
-  async searchByName(key: string) {
-    return (await this.prisma.campaignType.findMany()).filter((x) =>
-      x.name.toLowerCase().includes(key.toLowerCase()),
-    )
-  }
-
-  async searchByCategory(key: string) {
-    return (await this.prisma.campaignType.findMany()).filter((x) =>
-      x.parentId?.toLowerCase().includes(key.toLowerCase()),
-    )
-  }
-
-  async removeMany(itemsToDelete: [string]): Promise<string | void> {
-    itemsToDelete.forEach(async (id: string) => {
-      await this.remove(id)
-    })
-  }
 }

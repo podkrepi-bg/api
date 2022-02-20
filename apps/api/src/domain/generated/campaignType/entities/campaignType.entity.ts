@@ -8,5 +8,7 @@ name: string ;
 slug: string ;
 description: string  | null;
 parentId: string  | null;
+parent?: CampaignType  | null;
+children?: CampaignType[] ;
 campaigns?: Campaign[] ;
 }

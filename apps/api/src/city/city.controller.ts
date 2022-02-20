@@ -1,9 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
-import { City } from '@prisma/client'
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
 import { Public } from 'nest-keycloak-connect'
 
 import { CityService } from './city.service'
-
+import { CreateCityDto } from './dto/create-city.dto'
+import { UpdateCityDto } from './dto/update-city.dto'
 @Controller('city')
 export class CityController {
   constructor(private readonly cityService: CityService) {}
@@ -14,45 +14,24 @@ export class CityController {
     return await this.cityService.listCities()
   }
 
-  @Get('view/:id')
+  @Get(':id')
   @Public()
-  async viewTown(@Param('id') id: string) {
-    return await this.cityService.viewCity(id)
+  findOne(@Param('id') id: string) {
+    return this.cityService.listCity(id)
   }
 
   @Post('create')
-  @Public()
-  async createTown(@Body() body: City) {
-    return await this.cityService.createCity(body)
+  async create(@Body() CreateCityDto: CreateCityDto) {
+    return await this.cityService.createCity(CreateCityDto)
   }
 
-  @Put('edit/:id')
-  @Public()
-  async editTown(@Param('id') id: string, @Body() body: City) {
-    return await this.cityService.editCity(id, body)
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateCityDto: UpdateCityDto) {
+    return this.cityService.updateCity(id, updateCityDto)
   }
 
-  @Delete('remove/:id')
-  @Public()
-  async removeTown(@Param('id') id: string) {
-    return await this.cityService.removeCity(id)
-  }
-
-  @Get('/search/name/:key')
-  @Public()
-  async searchByName(@Param('key') key: string) {
-    return await this.cityService.searchByName(key)
-  }
-
-  @Get('/search/country/:key')
-  @Public()
-  async searchByCountry(@Param('key') key: string) {
-    return await this.cityService.searchByCountry(key)
-  }
-
-  @Post('deletemany')
-  @Public()
-  removeMany(@Body() itemsToDelete: [string]) {
-    return this.cityService.removeMany(itemsToDelete)
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.cityService.removeCity(id)
   }
 }

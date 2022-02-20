@@ -11,5 +11,5 @@ countryCode: string  | null;
 cityId: string  | null;
 createdAt: Date ;
 updatedAt: Date  | null;
-Beneficiary?: Beneficiary[] ;
+beneficiaries?: Beneficiary[] ;
 }

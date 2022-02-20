@@ -2,11 +2,11 @@
 import {CampaignState,Currency} from '@prisma/client'
 import {Person} from '../../person/entities/person.entity'
 import {Coordinator} from '../../coordinator/entities/coordinator.entity'
+import {Beneficiary} from '../../beneficiary/entities/beneficiary.entity'
 import {CampaignType} from '../../campaignType/entities/campaignType.entity'
 import {Vault} from '../../vault/entities/vault.entity'
 import {Transfer} from '../../transfer/entities/transfer.entity'
 import {Withdrawal} from '../../withdrawal/entities/withdrawal.entity'
-import {Beneficiary} from '../../beneficiary/entities/beneficiary.entity'
 
 
 export class Campaign {
@@ -29,10 +29,10 @@ updatedAt: Date  | null;
 deletedAt: Date  | null;
 approvedBy?: Person  | null;
 coordinator?: Coordinator ;
+beneficiary?: Beneficiary ;
 campaignType?: CampaignType ;
 vaults?: Vault[] ;
 incomingTransfers?: Transfer[] ;
 outgoingTransfers?: Transfer[] ;
 withdrawals?: Withdrawal[] ;
-Beneficiary?: Beneficiary ;
 }

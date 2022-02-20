@@ -20,18 +20,10 @@ export class PersonService {
   }
 
   async update(id: string, updatePersonDto: UpdatePersonDto) {
-    return await this.prisma.person.update({ data: updatePersonDto, where: { id } })
+    return await this.prisma.person.update({ where: { id }, data: updatePersonDto })
   }
 
   async remove(id: string) {
-    return await this.prisma.person.delete({
-      where: { id },
-    })
-  }
-
-  async removeMany(itemsToDelete: [string]): Promise<string | void> {
-    itemsToDelete.forEach(async (id: string) => {
-      await this.remove(id)
-    })
+    return await this.prisma.person.delete({ where: { id } })
   }
 }

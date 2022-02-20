@@ -1,21 +1,8 @@
-import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common'
-import { Public } from 'nest-keycloak-connect'
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common'
 import { PersonService } from './person.service'
-
-type Data = {
-  firstName: string
-  lastName: string
-  email: string
-  emailConfirmed?: boolean
-  phone?: string
-  company?: string
-  newsletter?: boolean
-  adress?: string
-  birthday?: Date
-  personalNumber?: string
-  keycloakId?: string
-  stripeCustomerId?: string
-}
+import { CreatePersonDto } from './dto/create-person.dto'
+import { UpdatePersonDto } from './dto/update-person.dto'
+import { Public } from 'nest-keycloak-connect'
 
 @Controller('person')
 export class PersonController {
@@ -23,39 +10,31 @@ export class PersonController {
 
   @Post()
   @Public()
-  async create(@Body() createPersonDto: Data) {
-    return this.personService.create(createPersonDto)
+  async create(@Body() createPersonDto: CreatePersonDto) {
+    return await this.personService.create(createPersonDto)
   }
 
   @Get()
   @Public()
   async findAll() {
-    return this.personService.findAll()
+    return await this.personService.findAll()
   }
 
   @Get(':id')
   @Public()
   async findOne(@Param('id') id: string) {
-    return this.personService.findOne(id)
+    return await this.personService.findOne(id)
   }
 
-  @Put(':id')
+  @Patch(':id')
   @Public()
-  async update(@Param('id') id: string, @Body() updatePersonDto: Data) {
-    delete updatePersonDto['legalEntity']
-    delete updatePersonDto['legalEntity']
+  async update(@Param('id') id: string, @Body() updatePersonDto: UpdatePersonDto) {
     return this.personService.update(id, updatePersonDto)
   }
 
   @Delete(':id')
   @Public()
   async remove(@Param('id') id: string) {
-    return this.personService.remove(id)
-  }
-
-  @Post('deletemany')
-  @Public()
-  removeMany(@Body() itemsToDelete: [string]) {
-    return this.personService.removeMany(itemsToDelete)
+    return await this.personService.remove(id)
   }
 }

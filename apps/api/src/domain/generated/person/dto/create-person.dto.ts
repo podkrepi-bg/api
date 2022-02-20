@@ -12,7 +12,7 @@ emailConfirmed?: boolean;
 phone?: string;
 company?: string;
 newsletter?: boolean;
-adress?: string;
+address?: string;
 birthday?: Date;
 personalNumber?: string;
 keycloakId?: string;

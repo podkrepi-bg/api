@@ -1,5 +1,5 @@
 
-import {Prisma,PersonRelation} from '@prisma/client'
+import {Prisma,BeneficiaryType,PersonRelation} from '@prisma/client'
 import {City} from '../../city/entities/city.entity'
 import {Coordinator} from '../../coordinator/entities/coordinator.entity'
 import {Person} from '../../person/entities/person.entity'
@@ -9,7 +9,7 @@ import {Campaign} from '../../campaign/entities/campaign.entity'
 
 export class Beneficiary {
   id: string ;
-type: string ;
+type: BeneficiaryType ;
 personId: string  | null;
 companyId: string  | null;
 coordinatorId: string ;
