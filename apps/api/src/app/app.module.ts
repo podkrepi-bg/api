@@ -29,6 +29,7 @@ import { KeycloakConfigService } from '../config/keycloak-config.service'
 import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.filter'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
+import { CoordinatorModule } from '../coordinator/coordinator.module'
 import { DocumentModule } from '../document/document.module'
 import { CountryModule } from '../country/country.module'
 import { CompanyModule } from '../company/company.module'
@@ -61,6 +62,7 @@ import { BankAccountModule } from '../bankaccount/bankaccount.module'
     BeneficiaryModule,
     CityModule,
     HealthModule,
+    CoordinatorModule,
     DocumentModule,
     CompanyModule,
     InfoRequestModule,
