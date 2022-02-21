@@ -93,6 +93,7 @@ model Coordinator {
   beneficiaries Beneficiary[]
   campaigns     Campaign[]
 
+  @@unique([personId])
   @@map("coordinators")
 }
 
