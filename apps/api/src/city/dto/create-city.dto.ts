@@ -20,10 +20,8 @@ export class CreateCityDto {
   @ApiProperty()
   @IsOptional()
   @Expose()
-  @IsNumber()
-  @IsPositive()
-  @IsPostalCode()
-  postalCode: number
+  @IsPostalCode('BG')
+  postalCode: string
 
   @ApiProperty()
   @Expose()
