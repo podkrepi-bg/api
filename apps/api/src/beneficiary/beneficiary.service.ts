@@ -37,21 +37,21 @@ export class BeneficiaryService {
   async removeBeneficiary(id: string): Promise<Beneficiary | null> {
     const beneficiary = await this.prisma.beneficiary.findFirst({
       where: { id },
-      include: { person: true, coordinator: true, city: true, campaigns: true, company: true },
+      include: { campaigns: true },
     })
     beneficiary?.campaigns.map(async (x) => {
       const vaults = await this.prisma.vault.findMany()
       const vaultsToDelete = vaults.filter((v) => v.campaignId === x.id)
-      await this.prisma.campaign.delete({ where: { id: x.id } })
       vaultsToDelete.map(async (v) => {
         const expensesToRemove = await this.prisma.expense.findMany({ where: { vaultId: v.id } })
-        expensesToRemove.map(async (e) => {
+        expensesToRemove?.map(async (e) => {
           e.deleted = true
           // await this.prisma.expense.update({ where: { id: e.id }, data: e })
-          await this.prisma.expense.delete({ where: { id: e.id } })
+          await this.prisma.expense.delete({ where: { id: e.id } }).catch(() => {})
         })
-        await this.prisma.vault.delete({ where: { id: v.id } })
+        await this.prisma.vault.delete({ where: { id: v.id } }).catch(() => {})
       })
+      await this.prisma.campaign.delete({ where: { id: x.id } }).catch(() => {})
     })
     const result = await this.prisma.beneficiary.delete({
       where: { id },
