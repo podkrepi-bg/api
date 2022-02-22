@@ -1,5 +1,5 @@
 import Stripe from 'stripe'
-import { Injectable, NotAcceptableException } from '@nestjs/common'
+import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 
@@ -65,12 +65,24 @@ export class DonationsService {
     return await this.prisma.donation.findMany();
   }
 
-  getDonationById(id: string){
-
+  async getDonationById(id: string): Promise<Donation>{
+    try{
+        const donation = await this.prisma.donation.findFirst({
+            where: {
+                id: id
+            },
+            rejectOnNotFound: true,
+        })
+        return donation
+    } catch (err){
+        const msg = 'No Donation record with ID: ' + id
+        Logger.warn(msg)
+        throw new NotFoundException(msg)
+    }
   }
 
-  create(createPaymentDto: CreatePaymentDto){
-
+  async create(inputDto: CreatePaymentDto): Promise<Donation>{
+    return await this.prisma.donation.create({data: inputDto})
   }
 
   update(id: string,updatePaymentDto: UpdatePaymentDto){
