@@ -10,7 +10,7 @@ type DeleteManyResponse = {
 
 @Injectable()
 export class VaultService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async create(createVaultDto: CreateVaultDto) {
     return await this.prisma.vault.create({ data: createVaultDto.toEntity() })
@@ -43,9 +43,7 @@ export class VaultService {
           id,
         },
         data: {
-          currency: updateVaultDto.currency,
-          amount: updateVaultDto.amount,
-          campaignId: updateVaultDto.campaignId,
+          name: updateVaultDto.name
         },
       })
     } catch (err) {

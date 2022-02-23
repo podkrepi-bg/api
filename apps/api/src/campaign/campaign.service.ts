@@ -17,7 +17,7 @@ import { CreateCampaignDto } from './dto/create-campaign.dto'
 
 @Injectable()
 export class CampaignService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async listCampaigns(): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({
@@ -127,9 +127,9 @@ export class CampaignService {
     const vault = await this.getCampaignVault(campaignId)
     const targetVault = vault
       ? // Connect the existing vault to this donation
-        { connect: { id: vault.id } }
+      { connect: { id: vault.id } }
       : // Create new vault for the campaign
-        { create: { campaignId, currency, amount } }
+      { create: { campaignId, currency, amount, name: 'example-vault-name' } }
 
     /**
      * Create donation object
