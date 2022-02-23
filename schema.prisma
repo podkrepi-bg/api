@@ -251,6 +251,7 @@ model Country {
 
 model Vault {
   id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String              @db.VarChar(100)
   currency           Currency            @default(BGN)
   amount             Int                 @default(0) @db.Integer
   campaignId         String              @map("campaign_id") @db.Uuid
@@ -385,19 +386,19 @@ model BankAccount {
 
 /// Pay for something from a given vault
 model Expense {
-  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type         ExpenseType
-  status       ExpenseStatus 
-  currency     Currency    @default(BGN)
-  amount       Int         @default(0) @db.Integer
-  vaultId      String      @map("vault_id") @db.Uuid
-  deleted      Boolean     @default(false)
+  status       ExpenseStatus
+  currency     Currency      @default(BGN)
+  amount       Int           @default(0) @db.Integer
+  vaultId      String        @map("vault_id") @db.Uuid
+  deleted      Boolean       @default(false)
   description  String?
-  documentId   String?     @map("document_id") @db.Uuid
-  approvedById String?     @db.Uuid
-  vault        Vault       @relation(fields: [vaultId], references: [id]) 
-  approvedBy   Person?     @relation(fields: [approvedById], references: [id])
-  document     Document?   @relation(fields: [documentId], references: [id])
+  documentId   String?       @map("document_id") @db.Uuid
+  approvedById String?       @db.Uuid
+  vault        Vault         @relation(fields: [vaultId], references: [id])
+  approvedBy   Person?       @relation(fields: [approvedById], references: [id])
+  document     Document?     @relation(fields: [documentId], references: [id])
 
   @@map("expenses")
 }

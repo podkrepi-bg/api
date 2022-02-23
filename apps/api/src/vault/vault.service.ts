@@ -1,26 +1,89 @@
-import { Injectable } from '@nestjs/common';
-import { CreateVaultDto } from './dto/create-vault.dto';
-import { UpdateVaultDto } from './dto/update-vault.dto';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Vault } from '@prisma/client'
+import { PrismaService } from '../prisma/prisma.service'
+import { CreateVaultDto } from './dto/create-vault.dto'
+import { UpdateVaultDto } from './dto/update-vault.dto'
+
+type DeleteManyResponse = {
+  count: number
+}
 
 @Injectable()
 export class VaultService {
-  create(createVaultDto: CreateVaultDto) {
-    return 'This action adds a new vault';
+  constructor(private prisma: PrismaService) {}
+
+  async create(createVaultDto: CreateVaultDto) {
+    return await this.prisma.vault.create({ data: createVaultDto.toEntity() })
   }
 
-  findAll() {
-    return `This action returns all vault`;
+  async findAll(): Promise<Vault[]> {
+    return await this.prisma.vault.findMany()
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} vault`;
+  async findOne(id: string): Promise<Vault> {
+    try {
+      return await this.prisma.vault.findFirst({
+        where: {
+          id,
+        },
+        rejectOnNotFound: true,
+      })
+    } catch (err) {
+      const msg = `No Vault found with ID: ${id}`
+
+      Logger.warn(msg)
+      throw new NotFoundException(msg)
+    }
   }
 
-  update(id: number, updateVaultDto: UpdateVaultDto) {
-    return `This action updates a #${id} vault`;
+  async update(id: string, updateVaultDto: UpdateVaultDto): Promise<Vault> {
+    try {
+      return await this.prisma.vault.update({
+        where: {
+          id,
+        },
+        data: {
+          currency: updateVaultDto.currency,
+          amount: updateVaultDto.amount,
+          campaignId: updateVaultDto.campaignId,
+        },
+      })
+    } catch (err) {
+      const msg = `Update failed. No Vault found with ID: ${id}`
+
+      Logger.warn(msg)
+      throw new NotFoundException(msg)
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} vault`;
+  async remove(id: string): Promise<Vault> {
+    try {
+      return await this.prisma.vault.delete({
+        where: {
+          id,
+        },
+      })
+    } catch (err) {
+      const msg = `Delete failed. No Vault found with ID: ${id}`
+
+      Logger.warn(msg)
+      throw new NotFoundException(msg)
+    }
+  }
+  async removeMany(idsToDelete: string[]): Promise<DeleteManyResponse> {
+    try {
+      return await this.prisma.vault.deleteMany({
+        where: {
+          id: {
+            in: idsToDelete,
+          },
+        },
+      })
+    } catch (err) {
+      const msg = `Delete failed. No Vault found with given ID`
+
+      Logger.warn(msg)
+      throw new NotFoundException(msg)
+    }
   }
 }

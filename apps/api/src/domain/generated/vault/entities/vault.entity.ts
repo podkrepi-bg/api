@@ -8,6 +8,7 @@ import { RecurringDonation } from '../../recurringDonation/entities/recurringDon
 
 export class Vault {
   id: string
+  name: string
   currency: Currency
   amount: number
   campaignId: string

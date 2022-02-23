@@ -201,6 +201,7 @@ Table Country {
 
 Table Vault {
   id String [pk]
+  name String [not null]
   currency Currency [not null, default: 'BGN']
   amount Int [not null, default: 0]
   campaignId String [not null]
