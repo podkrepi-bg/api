@@ -1,12 +1,13 @@
 import { Beneficiary } from '.prisma/client'
 import { Injectable, NotFoundException } from '@nestjs/common'
+import { ExpensesService } from '../expenses/expenses.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateBeneficiaryDto } from './dto/create-beneficiary.dto'
 import { UpdateBeneficiaryDto } from './dto/update-beneficiary.dto'
 
 @Injectable()
 export class BeneficiaryService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private expenses: ExpensesService) {}
 
   async createBeneficiary(inputDto: CreateBeneficiaryDto): Promise<Beneficiary> {
     return this.prisma.beneficiary.create({ data: inputDto.toEntity() })
@@ -40,19 +41,17 @@ export class BeneficiaryService {
       include: { campaigns: true },
     })
     beneficiary?.campaigns.map(async (x) => {
-      const vaults = await this.prisma.vault.findMany()
-      const vaultsToDelete = vaults.filter((v) => v.campaignId === x.id)
-      vaultsToDelete.map(async (v) => {
-        const expensesToRemove = await this.prisma.expense.findMany({ where: { vaultId: v.id } })
-        expensesToRemove?.map(async (e) => {
-          e.deleted = true
-          // await this.prisma.expense.update({ where: { id: e.id }, data: e })
-          await this.prisma.expense.delete({ where: { id: e.id } }).catch(() => {})
-        })
+      const vaults = await this.prisma.vault.findMany({ where: { campaignId: x.id } })
+      vaults.map(async (v) => {
+        const expensesToRemove = (
+          await this.prisma.expense.findMany({ where: { vaultId: v.id } })
+        ).map((x) => x.id)
+        await this.expenses.removeMany(expensesToRemove)
         await this.prisma.vault.delete({ where: { id: v.id } }).catch(() => {})
       })
       await this.prisma.campaign.delete({ where: { id: x.id } }).catch(() => {})
     })
+
     const result = await this.prisma.beneficiary.delete({
       where: { id },
     })
