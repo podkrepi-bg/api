@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { Vault } from '@prisma/client'
+
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateVaultDto } from './dto/create-vault.dto'
 import { UpdateVaultDto } from './dto/update-vault.dto'

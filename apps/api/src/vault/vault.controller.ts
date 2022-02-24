@@ -1,8 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UnauthorizedException } from '@nestjs/common'
+import { AuthenticatedUser } from 'nest-keycloak-connect'
+
 import { VaultService } from './vault.service'
 import { CreateVaultDto } from './dto/create-vault.dto'
 import { UpdateVaultDto } from './dto/update-vault.dto'
-import { AuthenticatedUser, Public } from 'nest-keycloak-connect'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 
 @Controller('vault')

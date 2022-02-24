@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
 import {
-  Campaign,
   Currency,
   Donation,
   Expense,
