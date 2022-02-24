@@ -1,15 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger'
 import {
   Currency,
-  Donation,
-  Expense,
   Prisma,
-  RecurringDonation,
-  Transfer,
-  Withdrawal,
 } from '@prisma/client'
 import { Expose } from 'class-transformer'
-import { IsOptional, IsString, IsUUID } from 'class-validator'
+import { IsString, IsUUID } from 'class-validator'
 
 @Expose()
 export class CreateVaultDto {
@@ -27,36 +22,6 @@ export class CreateVaultDto {
   @IsString()
   @IsUUID()
   campaignId: string
-
-  @Expose()
-  @ApiProperty()
-  @IsOptional()
-  expenses?: Expense[]
-
-  @Expose()
-  @ApiProperty()
-  @IsOptional()
-  sourceTransfers?: Transfer[]
-
-  @Expose()
-  @ApiProperty()
-  @IsOptional()
-  targetTransfers?: Transfer[]
-
-  @Expose()
-  @ApiProperty()
-  @IsOptional()
-  donations?: Donation[]
-
-  @Expose()
-  @ApiProperty()
-  @IsOptional()
-  withdraws?: Withdrawal[]
-
-  @Expose()
-  @ApiProperty()
-  @IsOptional()
-  recurringDonations?: RecurringDonation[]
 
   public toEntity(): Prisma.VaultCreateInput {
     return {

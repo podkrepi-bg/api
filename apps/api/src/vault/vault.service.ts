@@ -63,10 +63,10 @@ export class VaultService {
         },
       })
     } catch (err) {
-      const msg = `Delete failed. No Vault found with ID: ${id}`
-
+      const msg = `Error while deleting Vault with id: ${id}! Exception was: ${err.message}`
       Logger.warn(msg)
-      throw new NotFoundException(msg)
+
+      throw err;
     }
   }
   async removeMany(idsToDelete: string[]): Promise<DeleteManyResponse> {
@@ -79,10 +79,10 @@ export class VaultService {
         },
       })
     } catch (err) {
-      const msg = `Delete failed. No Vault found with given ID`
-
+      const msg = `Error while deleting Vaults! Exception was: ${err.message}`
       Logger.warn(msg)
-      throw new NotFoundException(msg)
+
+      throw err;
     }
   }
 }
