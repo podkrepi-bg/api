@@ -9,7 +9,6 @@ import { KeycloakTokenParsed } from '../auth/keycloak'
 export class VaultController {
   constructor(private readonly vaultService: VaultService) { }
 
-  @Public()
   @Post()
   create(@AuthenticatedUser() user: KeycloakTokenParsed,
     @Body() createVaultDto: CreateVaultDto) {
@@ -20,7 +19,6 @@ export class VaultController {
     return this.vaultService.create(createVaultDto)
   }
 
-  @Public()
   @Get()
   findAll(@AuthenticatedUser() user: KeycloakTokenParsed) {
     if (!user) {
@@ -30,7 +28,6 @@ export class VaultController {
     return this.vaultService.findAll()
   }
 
-  @Public()
   @Get(':id')
   findOne(@AuthenticatedUser() user: KeycloakTokenParsed,
     @Param('id') id: string) {
@@ -41,7 +38,6 @@ export class VaultController {
     return this.vaultService.findOne(id)
   }
 
-  @Public()
   @Patch(':id')
   update(@AuthenticatedUser() user: KeycloakTokenParsed,
     @Param('id') id: string, @Body() updateVaultDto: UpdateVaultDto) {
@@ -52,7 +48,6 @@ export class VaultController {
     return this.vaultService.update(id, updateVaultDto)
   }
 
-  @Public()
   @Delete(':id')
   remove(@AuthenticatedUser() user: KeycloakTokenParsed,
     @Param('id') id: string) {
