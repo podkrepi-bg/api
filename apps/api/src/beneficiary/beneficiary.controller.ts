@@ -45,4 +45,13 @@ export class BeneficiaryController {
   async editById(@Param('id') id: string, @Body() data: UpdateBeneficiaryDto) {
     return await this.beneficiaryService.editBeneficiary(id, data)
   }
+
+  @Delete(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async deleteById(@Param('id') id: string) {
+    return await this.beneficiaryService.removeBeneficiary(id)
+  }
 }
