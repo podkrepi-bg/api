@@ -251,6 +251,7 @@ model Country {
 
 model Vault {
   id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String              @db.VarChar(100)
   currency           Currency            @default(BGN)
   amount             Int                 @default(0) @db.Integer
   campaignId         String              @map("campaign_id") @db.Uuid
