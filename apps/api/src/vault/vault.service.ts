@@ -30,10 +30,10 @@ export class VaultService {
         rejectOnNotFound: true,
       })
     } catch (err) {
-      const msg = `No Vault found with ID: ${id}`
+      const msg = `No Vault found with ID: ${id} Exception was: ${err.message}`
 
       Logger.warn(msg)
-      throw new NotFoundException(msg)
+      throw err
     }
   }
 
@@ -48,10 +48,10 @@ export class VaultService {
         },
       })
     } catch (err) {
-      const msg = `Update failed. No Vault found with ID: ${id}`
+      const msg = `Error while updating Vault with id: ${id}! Exception was: ${err.message}`
 
       Logger.warn(msg)
-      throw new NotFoundException(msg)
+      throw err
     }
   }
 
