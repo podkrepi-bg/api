@@ -137,7 +137,7 @@ ALTER TABLE "beneficiaries" ADD CONSTRAINT "beneficiaries_personId_fkey" FOREIGN
 ALTER TABLE "beneficiaries" ADD CONSTRAINT "beneficiaries_coordinatorId_fkey" FOREIGN KEY ("coordinatorId") REFERENCES "coordinators"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "campaigns" ADD CONSTRAINT "campaigns_beneficiary_id_fkey" FOREIGN KEY ("beneficiary_id") REFERENCES "beneficiaries"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "campaigns" ADD CONSTRAINT "campaigns_beneficiary_id_fkey" FOREIGN KEY ("beneficiary_id") REFERENCES "beneficiaries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "campaigns" ADD CONSTRAINT "campaigns_campaign_type_id_fkey" FOREIGN KEY ("campaign_type_id") REFERENCES "campaign_types"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
