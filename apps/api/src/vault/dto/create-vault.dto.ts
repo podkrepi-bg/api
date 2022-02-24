@@ -10,7 +10,7 @@ import {
   Withdrawal,
 } from '@prisma/client'
 import { Expose } from 'class-transformer'
-import { IsDate, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator'
+import { IsOptional, IsString, IsUUID } from 'class-validator'
 
 @Expose()
 export class CreateVaultDto {
@@ -22,11 +22,6 @@ export class CreateVaultDto {
   @IsString()
   @ApiProperty()
   name: string
-
-  @Expose()
-  @IsNumber()
-  @ApiProperty()
-  amount: number
 
   @Expose()
   @ApiProperty()
@@ -68,7 +63,7 @@ export class CreateVaultDto {
     return {
       currency: this.currency,
       name: this.name,
-      amount: this.amount,
+      amount: 0,
       createdAt: new Date(),
       updatedAt: null,
       campaign: {

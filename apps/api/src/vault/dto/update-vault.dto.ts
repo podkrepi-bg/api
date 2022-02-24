@@ -1,4 +1,10 @@
-import { PartialType } from '@nestjs/swagger'
-import { CreateVaultDto } from './create-vault.dto'
+import { ApiProperty } from "@nestjs/swagger";
+import { Expose } from "class-transformer";
+import { IsString } from "class-validator";
 
-export class UpdateVaultDto extends PartialType(CreateVaultDto) {}
+export class UpdateVaultDto {
+    @Expose()
+    @IsString()
+    @ApiProperty()
+    name?: string
+}
