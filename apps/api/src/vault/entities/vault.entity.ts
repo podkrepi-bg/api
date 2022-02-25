@@ -1,4 +1,12 @@
-import { Campaign, Currency, Donation, Expense, RecurringDonation, Transfer, Withdrawal } from '@prisma/client'
+import {
+  Campaign,
+  Currency,
+  Donation,
+  Expense,
+  RecurringDonation,
+  Transfer,
+  Withdrawal,
+} from '@prisma/client'
 
 export class Vault {
   id: string

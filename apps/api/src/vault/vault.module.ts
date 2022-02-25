@@ -9,4 +9,4 @@ import { CampaignService } from '../campaign/campaign.service'
   controllers: [VaultController],
   providers: [VaultService, CampaignService, PrismaService],
 })
-export class VaultModule { }
+export class VaultModule {}

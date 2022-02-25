@@ -1,9 +1,3 @@
-
-
-
-
-
-
 export class CreateVaultDto {
-  name: string;
+  name: string
 }

@@ -1,13 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger/dist/decorators'
 import { Expose } from 'class-transformer'
-import {
-  IsNumber,
-  IsOptional,
-  IsPositive,
-  IsPostalCode,
-  IsString,
-  IsUUID,
-} from 'class-validator'
+import { IsNumber, IsOptional, IsPositive, IsPostalCode, IsString, IsUUID } from 'class-validator'
 import { Prisma } from '.prisma/client'
 
 export class CreateCityDto {
