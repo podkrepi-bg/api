@@ -7,7 +7,6 @@ import {
   IsPostalCode,
   IsString,
   IsUUID,
-  Max,
 } from 'class-validator'
 import { Prisma } from '.prisma/client'
 
