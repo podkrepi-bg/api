@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
-import { RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 import { BeneficiaryService } from './beneficiary.service'
@@ -20,10 +20,11 @@ export class BeneficiaryController {
   }
 
   @Get('list')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
+  // @Roles({
+  //   roles: [RealmViewSupporters.role, ViewSupporters.role],
+  //   mode: RoleMatchingMode.ANY,
+  // })
+  @Public()
   async list() {
     return await this.beneficiaryService.listBeneficiaries()
   }

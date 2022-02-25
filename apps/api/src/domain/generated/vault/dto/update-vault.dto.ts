@@ -1,3 +1,9 @@
+
+
+
+
+
+
 export class UpdateVaultDto {
-  name?: string
+  name?: string;
 }
