@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UnauthorizedException } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { AuthenticatedUser } from 'nest-keycloak-connect'
 
 import { VaultService } from './vault.service'
@@ -9,16 +18,20 @@ import { KeycloakTokenParsed } from '../auth/keycloak'
 
 @Controller('vault')
 export class VaultController {
-  constructor(private readonly vaultService: VaultService,
-    private readonly campaignService: CampaignService) { }
+  constructor(
+    private readonly vaultService: VaultService,
+    private readonly campaignService: CampaignService,
+  ) {}
 
   @Post()
-  async create(@AuthenticatedUser() user: KeycloakTokenParsed,
-    @Body() createVaultDto: CreateVaultDto) {
-    const campaign = await this.campaignService.getCampaignById(createVaultDto.campaignId);
+  async create(
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+    @Body() createVaultDto: CreateVaultDto,
+  ) {
+    const campaign = await this.campaignService.getCampaignById(createVaultDto.campaignId)
 
     if (user?.sub !== campaign.coordinatorId) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException()
     }
 
     return this.vaultService.create(createVaultDto)
@@ -34,8 +47,7 @@ export class VaultController {
   }
 
   @Get(':id')
-  findOne(@AuthenticatedUser() user: KeycloakTokenParsed,
-    @Param('id') id: string) {
+  findOne(@AuthenticatedUser() user: KeycloakTokenParsed, @Param('id') id: string) {
     if (!user) {
       throw new UnauthorizedException()
     }
@@ -44,26 +56,28 @@ export class VaultController {
   }
 
   @Patch(':id')
-  async update(@AuthenticatedUser() user: KeycloakTokenParsed,
-    @Param('id') id: string, @Body() updateVaultDto: UpdateVaultDto) {
+  async update(
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+    @Param('id') id: string,
+    @Body() updateVaultDto: UpdateVaultDto,
+  ) {
     const vault = await this.vaultService.findOne(id)
     const campaign = await this.campaignService.getCampaignById(vault.campaignId)
 
     if (user?.sub !== campaign.coordinatorId) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException()
     }
 
     return this.vaultService.update(id, updateVaultDto)
   }
 
   @Delete(':id')
-  async remove(@AuthenticatedUser() user: KeycloakTokenParsed,
-    @Param('id') id: string) {
+  async remove(@AuthenticatedUser() user: KeycloakTokenParsed, @Param('id') id: string) {
     const vault = await this.vaultService.findOne(id)
     const campaign = await this.campaignService.getCampaignById(vault.campaignId)
 
     if (user?.sub !== campaign.coordinatorId) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException()
     }
 
     return this.vaultService.remove(id)
@@ -80,11 +94,11 @@ export class VaultController {
       const campaign = await this.campaignService.getCampaignById(vault.campaignId)
 
       if (user?.sub !== campaign.coordinatorId) {
-        throw new UnauthorizedException();
+        throw new UnauthorizedException()
       }
     }
 
-    idsToDelete.forEach(checkAuth);
+    idsToDelete.forEach(checkAuth)
 
     return this.vaultService.removeMany(idsToDelete)
   }

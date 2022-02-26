@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { Vault } from '@prisma/client'
 
 import { PrismaService } from '../prisma/prisma.service'
@@ -11,7 +11,7 @@ type DeleteManyResponse = {
 
 @Injectable()
 export class VaultService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async create(createVaultDto: CreateVaultDto) {
     return await this.prisma.vault.create({ data: createVaultDto.toEntity() })
@@ -44,7 +44,7 @@ export class VaultService {
           id,
         },
         data: {
-          name: updateVaultDto.name
+          name: updateVaultDto.name,
         },
       })
     } catch (err) {
@@ -66,7 +66,7 @@ export class VaultService {
       const msg = `Error while deleting Vault with id: ${id}! Exception was: ${err.message}`
       Logger.warn(msg)
 
-      throw err;
+      throw err
     }
   }
   async removeMany(idsToDelete: string[]): Promise<DeleteManyResponse> {
@@ -82,7 +82,7 @@ export class VaultService {
       const msg = `Error while deleting Vaults! Exception was: ${err.message}`
       Logger.warn(msg)
 
-      throw err;
+      throw err
     }
   }
 }

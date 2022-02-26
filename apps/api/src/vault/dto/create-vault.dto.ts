@@ -1,8 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import {
-  Currency,
-  Prisma,
-} from '@prisma/client'
+import { Currency, Prisma } from '@prisma/client'
 import { Expose } from 'class-transformer'
 import { IsString, IsUUID } from 'class-validator'
 
