@@ -4,7 +4,7 @@ import { Beneficiary } from '../../beneficiary/entities/beneficiary.entity'
 export class City {
   id: string
   name: string
-  postalCode: number
+  postalCode: string
   countryId: string
   countryCode?: Country
   beneficiaries?: Beneficiary[]

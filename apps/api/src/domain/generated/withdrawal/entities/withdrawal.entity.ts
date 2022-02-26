@@ -1,8 +1,8 @@
 import { WithdrawStatus, Currency } from '@prisma/client'
 import { Person } from '../../person/entities/person.entity'
-import { Vault } from '../../vault/entities/vault.entity'
-import { Campaign } from '../../campaign/entities/campaign.entity'
 import { BankAccount } from '../../bankAccount/entities/bankAccount.entity'
+import { Campaign } from '../../campaign/entities/campaign.entity'
+import { Vault } from '../../vault/entities/vault.entity'
 
 export class Withdrawal {
   id: string
@@ -19,7 +19,7 @@ export class Withdrawal {
   createdAt: Date
   updatedAt: Date | null
   approvedBy?: Person | null
-  sourceVault?: Vault
-  sourceCampaign?: Campaign
   bankAccount?: BankAccount
+  sourceCampaign?: Campaign
+  sourceVault?: Vault
 }
