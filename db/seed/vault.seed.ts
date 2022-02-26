@@ -14,51 +14,19 @@ export async function vaultSeed() {
   const insert = await prisma.vault.createMany({
     data: [
       {
+        name: faker.finance.accountName(),
         currency: Currency.BGN,
         amount: faker.datatype.number({ min: 1, max: 1000 }),
         campaignId: campaign.id,
       },
       {
+        name: faker.finance.accountName(),
         currency: Currency.BGN,
         amount: faker.datatype.number({ min: 1, max: 1000 }),
         campaignId: campaign.id,
       },
       {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
+        name: faker.finance.accountName(),
         currency: Currency.BGN,
         amount: faker.datatype.number({ min: 1, max: 1000 }),
         campaignId: campaign.id,
