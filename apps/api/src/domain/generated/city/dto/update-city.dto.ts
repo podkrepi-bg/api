@@ -1,4 +1,4 @@
 export class UpdateCityDto {
   name?: string
-  postalCode?: number
+  postalCode?: string
 }

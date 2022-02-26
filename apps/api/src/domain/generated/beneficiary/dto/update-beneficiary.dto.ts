@@ -6,6 +6,6 @@ export class UpdateBeneficiaryDto {
   type?: BeneficiaryType
   countryCode?: string
   description?: string
-  publicData?: Prisma.InputJsonValue
   privateData?: Prisma.InputJsonValue
+  publicData?: Prisma.InputJsonValue
 }
