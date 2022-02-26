@@ -1,6 +1,4 @@
-
-  export class ConnectCityDto {
-    id?: string;
-postalCode?: number;
-  }
-  
+export class ConnectCityDto {
+  id?: string
+  postalCode?: number
+}

@@ -1,11 +1,5 @@
-
-
-
-
-
-
 export class CreateCampaignTypeDto {
-  name: string;
-slug: string;
-description?: string;
+  name: string
+  slug: string
+  description?: string
 }
