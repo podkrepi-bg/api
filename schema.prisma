@@ -93,6 +93,7 @@ model Coordinator {
   beneficiaries Beneficiary[]
   campaigns     Campaign[]
 
+  @@unique([personId])
   @@map("coordinators")
 }
 
@@ -250,6 +251,7 @@ model Country {
 
 model Vault {
   id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String              @db.VarChar(100)
   currency           Currency            @default(BGN)
   amount             Int                 @default(0)
   campaignId         String              @map("campaign_id") @db.Uuid
@@ -386,17 +388,17 @@ model BankAccount {
 model Expense {
   id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type         ExpenseType
-  description  String?
+  status       ExpenseStatus
+  currency     Currency      @default(BGN)
+  amount       Int           @default(0)
   vaultId      String        @map("vault_id") @db.Uuid
+  deleted      Boolean       @default(false)
+  description  String?
   documentId   String?       @map("document_id") @db.Uuid
   approvedById String?       @db.Uuid
-  amount       Int           @default(0)
-  currency     Currency      @default(BGN)
-  status       ExpenseStatus
-  deleted      Boolean       @default(false)
+  vault        Vault         @relation(fields: [vaultId], references: [id])
   approvedBy   Person?       @relation(fields: [approvedById], references: [id])
   document     Document?     @relation(fields: [documentId], references: [id])
-  vault        Vault         @relation(fields: [vaultId], references: [id])
 
   @@map("expenses")
 }

@@ -6,6 +6,7 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator'
+
 import { Prisma } from '.prisma/client'
 
 export class CreateCityDto {

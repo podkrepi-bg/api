@@ -4,7 +4,7 @@ import { Expose } from 'class-transformer'
 import { BeneficiaryType, PersonRelation, Prisma } from '.prisma/client'
 
 @Expose()
-export class CreateBeneficiaryDto {
+export class UpdateBeneficiaryDto {
   @ApiProperty({ enum: BeneficiaryType })
   @Expose()
   @IsEnum(BeneficiaryType)
