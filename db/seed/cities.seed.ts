@@ -13,9 +13,9 @@ export async function citiesSeed() {
 
   const insert = await prisma.city.createMany({
     data: [
-      { name: 'Sofia', postalCode: 1000, countryId: bg.id },
-      { name: 'Plovdiv', postalCode: 4000, countryId: bg.id },
-      { name: 'Varna', postalCode: 9000, countryId: bg.id },
+      { name: 'Sofia', postalCode: '1000', countryId: bg.id },
+      { name: 'Plovdiv', postalCode: '4000', countryId: bg.id },
+      { name: 'Varna', postalCode: '9000', countryId: bg.id },
     ],
     skipDuplicates: true,
   })

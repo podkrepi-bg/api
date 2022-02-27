@@ -1,3 +1,1 @@
-export class CreateVaultDto {
-  name: string
-}
+export class CreateVaultDto {}
