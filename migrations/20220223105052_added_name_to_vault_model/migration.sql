@@ -5,10 +5,7 @@
 
 */
 -- AlterTable
-ALTER TABLE "vaults" ADD COLUMN     "name" VARCHAR(100) NOT NULL;
+ALTER TABLE "vaults" ADD COLUMN     "name" VARCHAR(100) NOT NULL DEFAULT E'';
 
 -- AlterTable
 ALTER TABLE "cities" ALTER COLUMN "postal_code" SET DATA TYPE TEXT;
-
--- AlterTable
-ALTER TABLE "vaults" ALTER COLUMN "name" SET DEFAULT E'';
