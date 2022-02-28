@@ -55,4 +55,13 @@ export class BeneficiaryController {
   async deleteById(@Param('id') id: string) {
     return await this.beneficiaryService.removeBeneficiary(id)
   }
+
+  @Post('delete-many')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async deleteMany(@Body() data: string[]) {
+    return await this.beneficiaryService.removeManyBeneficiaries(data)
+  }
 }

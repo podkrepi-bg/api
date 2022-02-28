@@ -41,4 +41,10 @@ export class BeneficiaryService {
     if (!result) throw new NotFoundException('sorry id not found')
     return result
   }
+
+  async removeManyBeneficiaries(ids: string[]) {
+    return ids.map(async (x) => {
+      return await this.removeBeneficiary(x)
+    })
+  }
 }

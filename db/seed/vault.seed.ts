@@ -12,58 +12,14 @@ export async function vaultSeed() {
   }
 
   const insert = await prisma.vault.createMany({
-    data: [
-      {
+    data: [...Array(20).keys()].map(() => {
+      return {
         currency: Currency.BGN,
         amount: faker.datatype.number({ min: 1, max: 1000 }),
         campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-      {
-        currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
-        campaignId: campaign.id,
-      },
-    ],
+        name: faker.hacker.noun(),
+      }
+    }),
     skipDuplicates: true,
   })
 
