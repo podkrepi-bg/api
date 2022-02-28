@@ -1,4 +1,5 @@
-import { BeneficiaryType, PersonRelation, PrismaClient } from '.prisma/client/index'
+import { BeneficiaryType, PersonRelation, PrismaClient } from '@prisma/client'
+
 const prisma = new PrismaClient()
 
 export async function beneficiarySeed() {

@@ -1,3 +1,1 @@
-export class UpdateVaultDto {
-  name?: string
-}
+export class UpdateVaultDto {}

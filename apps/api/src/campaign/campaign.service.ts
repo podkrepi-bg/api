@@ -129,7 +129,7 @@ export class CampaignService {
       ? // Connect the existing vault to this donation
         { connect: { id: vault.id } }
       : // Create new vault for the campaign
-        { create: { campaignId, currency, amount, name: 'Това е примерно име' } }
+        { create: { campaignId, currency, amount, name: campaign.title } }
 
     /**
      * Create donation object
