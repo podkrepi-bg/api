@@ -43,8 +43,6 @@ export class BeneficiaryService {
   }
 
   async removeManyBeneficiaries(ids: string[]) {
-    return ids.map(async (x) => {
-      return await this.removeBeneficiary(x)
-    })
+    return await this.prisma.beneficiary.deleteMany({ in: ids })
   }
 }
