@@ -5,7 +5,7 @@ import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types
 import { BeneficiaryService } from './beneficiary.service'
 import { CreateBeneficiaryDto } from './dto/create-beneficiary.dto'
 import { UpdateBeneficiaryDto } from './dto/update-beneficiary.dto'
-import { DeleteManyBeneficiaryDto } from './dto/delete-beneficiary.dto'
+import { DeleteManyBeneficiaryDto } from './dto/delete-many-beneficiary.dto'
 
 @Controller('beneficiary')
 export class BeneficiaryController {
