@@ -6,21 +6,21 @@ import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 export class CreateBootcampSimeonDto {
   @Expose()
   @ApiProperty()
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   firstName: string;
 
   @Expose()
   @ApiProperty()
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   lastName: string;
 
   @Expose()
   @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
   @IsEmail()
+  @IsString()
+  @IsNotEmpty()
   email: string;
 
   @Expose()
