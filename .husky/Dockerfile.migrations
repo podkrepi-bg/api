@@ -1,0 +1,12 @@
+FROM node:16-alpine3.14 as base
+WORKDIR /app
+
+# The @prisma/client package defines its own postinstall hook that's being
+# executed whenever the package is being installed. This hook invokes the
+# prisma generate command which in turn generates the Prisma Client code
+# into the default location `node_modules/.prisma/client`
+RUN yarn add prisma
+COPY schema.prisma .
+COPY migrations migrations/
+
+CMD yarn prisma migrate deploy
