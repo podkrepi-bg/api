@@ -7,7 +7,7 @@ import { UpdateBootcampSimeonDto } from './dto/update-bootcamp-simeon.dto';
 export class BootcampSimeonController {
   constructor(private readonly bootcampSimeonService: BootcampSimeonService) {}
 
-  @Post()
+  @Post('create')
   create(@Body() createBootcampSimeonDto: CreateBootcampSimeonDto) {
     return this.bootcampSimeonService.create(createBootcampSimeonDto);
   }
