@@ -1,7 +1,9 @@
-import { Module } from "@nestjs/common";
+import { Module } from '@nestjs/common';
+import { BootcampSimeonService } from './bootcamp-simeon.service';
+import { BootcampSimeonController } from './bootcamp-simeon.controller';
 
 @Module({
-  controllers: [],
-  providers: []
+  controllers: [BootcampSimeonController],
+  providers: [BootcampSimeonService]
 })
 export class BootcampSimeonModule {}
