@@ -5,7 +5,6 @@ import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types
 import { BeneficiaryService } from './beneficiary.service'
 import { CreateBeneficiaryDto } from './dto/create-beneficiary.dto'
 import { UpdateBeneficiaryDto } from './dto/update-beneficiary.dto'
-import { DeleteManyBeneficiaryDto } from './dto/delete-many-beneficiary.dto'
 
 @Controller('beneficiary')
 export class BeneficiaryController {
@@ -61,7 +60,7 @@ export class BeneficiaryController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  async deleteMany(@Body() data: DeleteManyBeneficiaryDto) {
+  async deleteMany(@Body() data: string[]) {
     return await this.beneficiaryService.removeManyBeneficiaries(data)
   }
 }
