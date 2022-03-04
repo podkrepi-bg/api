@@ -1,7 +1,7 @@
 import { TransferStatus, Currency } from '@prisma/client'
 import { Person } from '../../person/entities/person.entity'
-import { Vault } from '../../vault/entities/vault.entity'
 import { Campaign } from '../../campaign/entities/campaign.entity'
+import { Vault } from '../../vault/entities/vault.entity'
 
 export class Transfer {
   id: string
@@ -19,8 +19,8 @@ export class Transfer {
   createdAt: Date
   updatedAt: Date | null
   approvedBy?: Person | null
-  sourceVault?: Vault
   sourceCampaign?: Campaign
-  targetVault?: Vault
+  sourceVault?: Vault
   targetCampaign?: Campaign
+  targetVault?: Vault
 }

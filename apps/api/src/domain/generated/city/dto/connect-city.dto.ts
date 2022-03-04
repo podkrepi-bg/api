@@ -1,4 +1,4 @@
 export class ConnectCityDto {
   id?: string
-  postalCode?: number
+  postalCode?: string
 }

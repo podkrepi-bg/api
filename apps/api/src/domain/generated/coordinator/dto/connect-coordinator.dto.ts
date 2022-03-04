@@ -1,3 +1,4 @@
 export class ConnectCoordinatorDto {
-  id: string
+  id?: string
+  personId?: string
 }

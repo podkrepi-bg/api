@@ -20,6 +20,7 @@ import { AccountModule } from '../account/account.module'
 import { HealthModule } from '../health/health.module'
 import { SupportModule } from '../support/support.module'
 import { CampaignModule } from '../campaign/campaign.module'
+import { ExpensesModule } from '../expenses/expenses.module'
 import { AppConfigModule } from '../config/app-config.module'
 import { validationSchema } from '../config/validation.config'
 import { DonationsModule } from '../donations/donations.module'
@@ -28,9 +29,16 @@ import { KeycloakConfigService } from '../config/keycloak-config.service'
 import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.filter'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
-import { CatModule } from '../cat/cat.module'
-import { BootcampInternModule } from '../bootcamp-intern/bootcamp-intern.module'
 import { BenefactorModule } from '../benefactor/benefactor.module'
+import { CoordinatorModule } from '../coordinator/coordinator.module'
+import { DocumentModule } from '../document/document.module'
+import { CountryModule } from '../country/country.module'
+import { CompanyModule } from '../company/company.module'
+import { InfoRequestModule } from '../info-request/info-request.module'
+import { BankAccountModule } from '../bankaccount/bankaccount.module'
+import { PersonModule } from '../person/person.module'
+import { VaultModule } from '../vault/vault.module'
+
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -51,14 +59,21 @@ import { BenefactorModule } from '../benefactor/benefactor.module'
     AuthModule,
     AccountModule,
     CampaignModule,
+    CountryModule,
     DonationsModule,
     SupportModule,
     BeneficiaryModule,
     CityModule,
-    CatModule,
-    BootcampInternModule,
     BenefactorModule,
     HealthModule,
+    CoordinatorModule,
+    DocumentModule,
+    CompanyModule,
+    InfoRequestModule,
+    BankAccountModule,
+    ExpensesModule,
+    PersonModule,
+    VaultModule,
   ],
   controllers: [AppController],
   providers: [
