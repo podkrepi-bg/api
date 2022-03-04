@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Currency, DonationStatus, DonationType, PaymentProvider, Person, Vault } from '@prisma/client'
+import { Currency, DonationStatus, DonationType, PaymentProvider, Person, Prisma, Vault } from '@prisma/client'
 import { Expose } from 'class-transformer'
+import { IsNumber, IsOptional, IsString } from 'class-validator'
 
 @Expose()
 export class CreatePaymentDto {
@@ -20,29 +21,61 @@ export class CreatePaymentDto {
     @ApiProperty({ enum: Currency})
     currency: Currency
 
-    @ApiProperty()
     @Expose()
-    
+    @ApiProperty()
+    @IsNumber()
     amount: number
 
-    @ApiProperty()
     @Expose()
+    @ApiProperty()
+    @IsString()
     extCustomerId: string
 
-    @ApiProperty()
     @Expose()
+    @ApiProperty()
+    @IsString()
     extPaymentIntentId: string
 
-    @ApiProperty()
     @Expose()
+    @ApiProperty()
+    @IsString()
     extPaymentMethodId: string
 
-    @ApiProperty()
-    @Expose()
-    targetVault: Vault
-
-    @ApiProperty()
-    @Expose()
-    person: Person
+    public toEntity(user, vault): Prisma.DonationCreateInput {
+        return {
+          type: this.type,
+          status: this.status,
+          provider: this.provider,
+          currency: this.currency,
+          amount: this.amount,
+          extCustomerId: this.extCustomerId,
+          extPaymentIntentId: this.extPaymentIntentId,
+          extPaymentMethodId: this.extPaymentMethodId,
+          targetVault: {
+            connectOrCreate: {
+                where: {
+                  id: vault.id,
+                },
+                create: {
+                    currency: vault.currency,
+                    amount: vault.amount,
+                    campaign: vault.campaign
+                  },
+              },
+          },
+          person: {
+            connectOrCreate: {
+              where: {
+                email: user.email,
+              },
+              create: {
+                firstName: user.given_name,
+                lastName: user.family_name,
+                email: user.email,
+              },
+            },
+          },
+        }
+      }
 
 }

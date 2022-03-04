@@ -49,15 +49,16 @@ export class DonationsController {
   }
 
   @Post('create-payment')
+  @Public()
   create(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
+    // @AuthenticatedUser()
+    // user: KeycloakTokenParsed,
     @Body()
     createPaymentDto: CreatePaymentDto,
   ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
+    // if (!user) {
+    //   throw new UnauthorizedException()
+    // }
 
     return this.paymentsService.create(createPaymentDto)
   }
