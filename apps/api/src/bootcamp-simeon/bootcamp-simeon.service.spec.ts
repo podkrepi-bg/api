@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { BootcampSimeonService } from './bootcamp-simeon.service';
+import { Test, TestingModule } from '@nestjs/testing'
+import { BootcampSimeonService } from './bootcamp-simeon.service'
 
 describe('BootcampSimeonService', () => {
-  let service: BootcampSimeonService;
+  let service: BootcampSimeonService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [BootcampSimeonService],
-    }).compile();
+    }).compile()
 
-    service = module.get<BootcampSimeonService>(BootcampSimeonService);
-  });
+    service = module.get<BootcampSimeonService>(BootcampSimeonService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+})

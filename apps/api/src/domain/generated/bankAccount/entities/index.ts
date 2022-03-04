@@ -1,2 +1,1 @@
-
-export * from './bankAccount.entity';
+export * from './bankAccount.entity'

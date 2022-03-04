@@ -1,6 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger'
+import { Expose } from 'class-transformer'
+import { IsEmail, IsNotEmpty, IsOptional, IsPhoneNumber, IsString } from 'class-validator'
 
 @Expose()
 export class CreateBootcampSimeonDto {
@@ -8,23 +8,24 @@ export class CreateBootcampSimeonDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  firstName: string;
+  firstName: string
 
   @Expose()
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  lastName: string;
+  lastName: string
 
   @Expose()
   @ApiProperty()
   @IsEmail()
   @IsString()
   @IsNotEmpty()
-  email: string;
+  email: string
 
   @Expose()
   @ApiProperty()
+  @IsPhoneNumber('BG')
   @IsOptional()
-  phoneNumber: number;
+  phoneNumber: number
 }

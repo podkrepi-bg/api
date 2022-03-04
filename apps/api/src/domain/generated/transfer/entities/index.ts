@@ -1,2 +1,1 @@
-
-export * from './transfer.entity';
+export * from './transfer.entity'

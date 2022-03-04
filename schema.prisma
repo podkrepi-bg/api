@@ -24,6 +24,14 @@ generator nestjsDto {
   outputToNestJsResourceStructure = "true"
 }
 
+model BootcampSimeon {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firsName      String      @map("first-name") @db.VarChar(50)
+  lastName      String      @map("last-name") @db.VarChar(50)
+  email         String      @unique @db.Citext
+  phoneNumber   String?     @map("phone") @db.VarChar(50)
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")

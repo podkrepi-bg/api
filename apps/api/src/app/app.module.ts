@@ -73,7 +73,7 @@ import { BootcampSimeonModule } from '../bootcamp-simeon/bootcamp-simeon.module'
     ExpensesModule,
     PersonModule,
     VaultModule,
-    BootcampSimeonModule
+    BootcampSimeonModule,
   ],
   controllers: [AppController],
   providers: [
