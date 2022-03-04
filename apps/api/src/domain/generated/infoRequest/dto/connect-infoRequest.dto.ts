@@ -1,5 +1,3 @@
-
-  export class ConnectInfoRequestDto {
-    id: string;
-  }
-  
+export class ConnectInfoRequestDto {
+  id: string
+}

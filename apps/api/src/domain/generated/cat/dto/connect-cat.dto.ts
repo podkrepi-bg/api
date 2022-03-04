@@ -1,5 +1,3 @@
-
-  export class ConnectCatDto {
-    id: string;
-  }
-  
+export class ConnectCatDto {
+  id: string
+}

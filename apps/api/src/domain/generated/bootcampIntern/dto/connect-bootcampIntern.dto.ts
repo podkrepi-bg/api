@@ -1,5 +1,3 @@
-
-  export class ConnectBootcampInternDto {
-    id: string;
-  }
-  
+export class ConnectBootcampInternDto {
+  id: string
+}

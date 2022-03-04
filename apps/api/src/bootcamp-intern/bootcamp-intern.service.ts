@@ -14,37 +14,31 @@ export class BootcampInternService {
     return this.prisma.bootcampIntern.create({ data: createBootcampInternDto })
   }
 
-  
-
   async findAll(): Promise<BootcampIntern[]> {
     return this.prisma.bootcampIntern.findMany()
   }
 
-  async findOne(id: string): Promise<BootcampInternModule | null > {
+  async findOne(id: string): Promise<BootcampInternModule | null> {
     return this.prisma.bootcampIntern.findFirst({
       where: {
-        id
-      }
+        id,
+      },
     })
   }
-  
 
- async update(id: string, updateBootcampInternDto: UpdateBootcampInternDto) {
-   try {
-     const result = await this.prisma.bootcampIntern.update({
-       where: { id },
-       data: updateBootcampInternDto
-     });
-     return result;
-   }catch (error){
-     if (error instanceof PrismaClientKnownRequestError) {
-        Logger.warn('No record with id', + id);
+  async update(id: string, updateBootcampInternDto: UpdateBootcampInternDto) {
+    try {
+      const result = await this.prisma.bootcampIntern.update({
+        where: { id },
+        data: updateBootcampInternDto,
+      })
+      return result
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        Logger.warn('No record with id', +id)
         throw new NotFoundException('No record with id' + id)
-
-     }
-     
-   }
-
+      }
+    }
   }
 
   remove(id: string) {

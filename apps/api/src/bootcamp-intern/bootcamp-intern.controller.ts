@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  NotFoundException,
+} from '@nestjs/common'
 import { Public } from 'nest-keycloak-connect'
 import { BootcampInternService } from './bootcamp-intern.service'
 import { CreateBootcampInternDto } from './dto/create-bootcamp-intern.dto'
@@ -22,13 +31,12 @@ export class BootcampInternController {
 
   @Get(':id')
   @Public()
- async findOne(@Param('id') id: string) {
-   const result = await this.bootcampInternService.findOne(id)
-    if(result === null){
-      throw new NotFoundException({ error: 'not found'});
-     
+  async findOne(@Param('id') id: string) {
+    const result = await this.bootcampInternService.findOne(id)
+    if (result === null) {
+      throw new NotFoundException({ error: 'not found' })
     }
-    return result;
+    return result
   }
 
   @Public()

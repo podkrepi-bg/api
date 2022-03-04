@@ -1,2 +1,1 @@
-
-export * from './bootcampIntern.entity';
+export * from './bootcampIntern.entity'
