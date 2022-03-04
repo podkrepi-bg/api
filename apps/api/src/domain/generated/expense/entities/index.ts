@@ -1,2 +1,1 @@
-
-export * from './expense.entity';
+export * from './expense.entity'

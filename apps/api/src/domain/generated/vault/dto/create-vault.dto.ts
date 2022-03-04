@@ -1,9 +1,1 @@
-
-
-
-
-
-
-export class CreateVaultDto {
-  
-}
+export class CreateVaultDto {}
