@@ -1,20 +1,21 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { CampaignTypesController } from './campaign-types.controller';
-import { CampaignTypesService } from './campaign-types.service';
+import { Test, TestingModule } from '@nestjs/testing'
+import { PrismaService } from '../prisma/prisma.service'
+import { CampaignTypesController } from './campaign-types.controller'
+import { CampaignTypesService } from './campaign-types.service'
 
 describe('CampaignTypesController', () => {
-  let controller: CampaignTypesController;
+  let controller: CampaignTypesController
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CampaignTypesController],
-      providers: [CampaignTypesService],
-    }).compile();
+      providers: [CampaignTypesService, PrismaService],
+    }).compile()
 
-    controller = module.get<CampaignTypesController>(CampaignTypesController);
-  });
+    controller = module.get<CampaignTypesController>(CampaignTypesController)
+  })
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
+    expect(controller).toBeDefined()
+  })
+})

@@ -35,8 +35,8 @@ import { CountryModule } from '../country/country.module'
 import { CompanyModule } from '../company/company.module'
 import { InfoRequestModule } from '../info-request/info-request.module'
 import { BankAccountModule } from '../bankaccount/bankaccount.module'
-import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
 import { PersonModule } from '../person/person.module'
+import { VaultModule } from '../vault/vault.module'
 
 @Module({
   imports: [
@@ -70,8 +70,8 @@ import { PersonModule } from '../person/person.module'
     InfoRequestModule,
     BankAccountModule,
     ExpensesModule,
-    CampaignTypesModule,
     PersonModule,
+    VaultModule,
   ],
   controllers: [AppController],
   providers: [

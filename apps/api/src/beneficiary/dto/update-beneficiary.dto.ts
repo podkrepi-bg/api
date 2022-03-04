@@ -1,17 +1,7 @@
-import {
-  IsEnum,
-  IsISO31661Alpha2,
-  IsNotEmpty,
-  IsObject,
-  IsUUID,
-  IsString,
-  IsOptional,
-  ValidateNested,
-} from 'class-validator'
+import { IsEnum, IsISO31661Alpha2, IsNotEmpty, IsUUID, IsString, IsOptional } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
-import { Expose, Type } from 'class-transformer'
+import { Expose } from 'class-transformer'
 import { BeneficiaryType, PersonRelation, Prisma } from '.prisma/client'
-import { CreatePersonDto } from '@podkrepi-bg/podkrepi-types'
 
 @Expose()
 export class UpdateBeneficiaryDto {
@@ -23,18 +13,14 @@ export class UpdateBeneficiaryDto {
   @ApiProperty()
   @IsNotEmpty()
   @Expose()
-  @IsObject()
-  @ValidateNested()
-  @Type(() => CreatePersonDto)
-  public readonly beneficiary: CreatePersonDto
+  @IsUUID()
+  public readonly personId: string
 
   @ApiProperty()
   @IsNotEmpty()
   @Expose()
-  @IsObject()
-  @ValidateNested()
-  @Type(() => CreatePersonDto)
-  public readonly coordinator: CreatePersonDto
+  @IsUUID()
+  public readonly coordinatorId: string
 
   @ApiProperty({ enum: PersonRelation })
   @Expose()
@@ -50,7 +36,7 @@ export class UpdateBeneficiaryDto {
   @Expose()
   @IsNotEmpty()
   @IsUUID()
-  cityId: string | undefined
+  cityId: string
 
   @ApiProperty()
   @Expose()
@@ -61,37 +47,10 @@ export class UpdateBeneficiaryDto {
   @ApiProperty()
   @Expose()
   @IsOptional()
-  privateData: Prisma.JsonValue
+  privateData: Prisma.InputJsonValue
 
   @ApiProperty()
   @Expose()
   @IsOptional()
-  publicData: Prisma.JsonValue
-
-  public toEntity(): Prisma.BeneficiaryCreateInput {
-    return {
-      type: this.type,
-      person: {
-        connectOrCreate: {
-          create: this.beneficiary.toEntity(),
-          where: { email: this.beneficiary.email },
-        },
-      },
-      coordinator: {
-        // Here we might also implement creation by coordinator ID
-        create: {
-          person: {
-            connectOrCreate: {
-              create: this.coordinator.toEntity(),
-              where: { email: this.coordinator.email },
-            },
-          },
-        },
-      },
-      coordinatorRelation: this.coordinatorRelation,
-      description: this.description,
-      city: { connect: { id: this.cityId } },
-      countryCode: 'BG',
-    }
-  }
+  publicData: Prisma.InputJsonValue
 }

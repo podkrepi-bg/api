@@ -9,7 +9,7 @@ export class BeneficiaryService {
   constructor(private prisma: PrismaService) {}
 
   async createBeneficiary(inputDto: CreateBeneficiaryDto): Promise<Beneficiary> {
-    return this.prisma.beneficiary.create({ data: inputDto.toEntity() })
+    return this.prisma.beneficiary.create({ data: inputDto })
   }
 
   async listBeneficiaries(): Promise<Beneficiary[]> {
@@ -27,37 +27,22 @@ export class BeneficiaryService {
     updateBeneficiaryDto: UpdateBeneficiaryDto,
   ): Promise<Beneficiary | null> {
     const result = await this.prisma.beneficiary.update({
-      where: { id: id },
+      where: { id },
       data: updateBeneficiaryDto,
     })
     if (!result) throw new NotFoundException('sorry id not found')
     return result
   }
 
-  async removeBeneficiary(id: string): Promise<Beneficiary | void> {
-    const beneficiary = await this.prisma.beneficiary.findFirst({
+  async removeBeneficiary(id: string) {
+    const result = await this.prisma.beneficiary.delete({
       where: { id },
-      include: { campaigns: true },
     })
-    beneficiary?.campaigns.map(async (x) => {
-      const vaults = await this.prisma.vault.findMany()
-      const vaultsToDelete = vaults.filter((v) => v.campaignId === x.id)
-      vaultsToDelete.map(async (v) => {
-        const expensesToRemove = await this.prisma.expense.findMany({ where: { vaultId: v.id } })
-        expensesToRemove?.map(async (e) => {
-          await this.prisma.expense.delete({ where: { id: e.id } }).catch(() => {})
-        })
-        await this.prisma.vault.delete({ where: { id: v.id } }).catch(() => {})
-      })
-      await this.prisma.campaign.delete({ where: { id: x.id } }).catch(() => {})
-    })
+    if (!result) throw new NotFoundException('sorry id not found')
+    return result
+  }
 
-    return await this.prisma.beneficiary
-      .delete({
-        where: { id },
-      })
-      .catch(() => {})
+  async removeManyBeneficiaries(data: string[]) {
+    return await this.prisma.beneficiary.deleteMany({ where: { id: { in: data } } })
   }
 }
-
-// 2 4 8 16 32 64 128 256
