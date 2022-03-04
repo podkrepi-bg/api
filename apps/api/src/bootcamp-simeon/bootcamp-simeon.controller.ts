@@ -31,19 +31,43 @@ export class BootcampSimeonController {
 
   @Public()
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.bootcampSimeonService.findOne(id)
+  async findOne(@Param('id') id: string) {
+    try {
+      const obj = await this.bootcampSimeonService.findOne(id)
+      if(!obj) {
+        throw new NotFoundException('Not found')
+      }
+      return obj
+    } catch (error) {
+      throw new NotFoundException('Not found')
+    }
   }
 
   @Public()
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBootcampSimeonDto: UpdateBootcampSimeonDto) {
-    return this.bootcampSimeonService.update(id, updateBootcampSimeonDto)
+  async update(@Param('id') id: string, @Body() updateBootcampSimeonDto: UpdateBootcampSimeonDto) {
+    try {
+      const objToUpdate = await this.bootcampSimeonService.update(id, updateBootcampSimeonDto)
+      if (!objToUpdate) {
+        throw new NotFoundException('Not found')
+      }
+      return objToUpdate
+    } catch (error) {
+      throw new NotFoundException('Not found')
+    }
   }
 
   @Public()
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.bootcampSimeonService.remove(id)
+  async remove(@Param('id') id: string) {
+    try {
+      const response = await this.bootcampSimeonService.remove(id)
+      if (!response) {
+        throw new NotFoundException('Unsuccessful deletion - record not found')
+      }
+      return 'Successful deletion'
+    } catch (error) {
+      throw new NotFoundException('Unsuccessful deletion - record not found')
+    }
   }
 }
