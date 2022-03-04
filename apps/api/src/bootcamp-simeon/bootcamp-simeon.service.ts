@@ -15,12 +15,15 @@ export class BootcampSimeonService {
     return this.prisma.bootcampSimeon.findMany()
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} bootcampSimeon`
+  findOne(id: string) {
+    return this.prisma.bootcampSimeon.findFirst({where: {id}})
   }
 
-  update(id: number, updateBootcampSimeonDto: UpdateBootcampSimeonDto) {
-    return `This action updates a #${id} bootcampSimeon`
+  update(id: string, updateBootcampSimeonDto: UpdateBootcampSimeonDto) {
+    return this.prisma.bootcampSimeon.update({
+      where: { id },
+      data: { ...updateBootcampSimeonDto }
+    })
   }
 
   remove(id: number) {

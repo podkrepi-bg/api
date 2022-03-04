@@ -32,13 +32,13 @@ export class BootcampSimeonController {
   @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.bootcampSimeonService.findOne(+id)
+    return this.bootcampSimeonService.findOne(id)
   }
 
   @Public()
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBootcampSimeonDto: UpdateBootcampSimeonDto) {
-    return this.bootcampSimeonService.update(+id, updateBootcampSimeonDto)
+    return this.bootcampSimeonService.update(id, updateBootcampSimeonDto)
   }
 
   @Public()
