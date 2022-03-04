@@ -27,5 +27,5 @@ export class CreateBootcampSimeonDto {
   @ApiProperty()
   @IsPhoneNumber('BG')
   @IsOptional()
-  phoneNumber: number
+  phoneNumber: string
 }

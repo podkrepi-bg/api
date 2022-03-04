@@ -8,17 +8,17 @@ import {
   Delete,
   NotFoundException,
 } from '@nestjs/common'
-import { Public } from 'nest-keycloak-connect'
 import { BootcampSimeonService } from './bootcamp-simeon.service'
 import { CreateBootcampSimeonDto } from './dto/create-bootcamp-simeon.dto'
 import { UpdateBootcampSimeonDto } from './dto/update-bootcamp-simeon.dto'
+import { Public } from 'nest-keycloak-connect'
 
 @Controller('bootcamp-simeon')
 export class BootcampSimeonController {
   constructor(private readonly bootcampSimeonService: BootcampSimeonService) {}
 
-  @Public()
   @Post('create')
+  @Public()
   create(@Body() createBootcampSimeonDto: CreateBootcampSimeonDto) {
     return this.bootcampSimeonService.create(createBootcampSimeonDto)
   }

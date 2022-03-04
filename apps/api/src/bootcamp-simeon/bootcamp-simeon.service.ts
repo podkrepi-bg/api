@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
 import { CreateBootcampSimeonDto } from './dto/create-bootcamp-simeon.dto'
 import { UpdateBootcampSimeonDto } from './dto/update-bootcamp-simeon.dto'
+import { PrismaService } from '../prisma/prisma.service'
 
 @Injectable()
 export class BootcampSimeonService {
   constructor(private readonly prisma: PrismaService) {}
 
   create(createBootcampSimeonDto: CreateBootcampSimeonDto) {
-    return 'This action adds a new bootcampSimeon'
+    return this.prisma.bootcampSimeon.create({ data: createBootcampSimeonDto })
   }
 
   findAll() {
-    return `This action returns all bootcampSimeon`
+    return this.prisma.bootcampSimeon.findMany()
   }
 
   findOne(id: number) {
