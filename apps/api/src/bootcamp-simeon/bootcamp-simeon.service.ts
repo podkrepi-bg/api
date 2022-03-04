@@ -26,7 +26,7 @@ export class BootcampSimeonService {
     })
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} bootcampSimeon`
+  remove(id: string) {
+    return this.prisma.bootcampSimeon.delete({where: {id}})
   }
 }

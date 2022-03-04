@@ -44,6 +44,6 @@ export class BootcampSimeonController {
   @Public()
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.bootcampSimeonService.remove(+id)
+    return this.bootcampSimeonService.remove(id)
   }
 }
