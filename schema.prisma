@@ -66,6 +66,20 @@ model Person {
   @@map("people")
 }
 
+model Bootcamp {
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  status  String
+  title  String
+  email   String
+  message String
+  date  DateTime
+  firstName String?
+  lastName String?
+  @@map("bootcamp")
+}
+
 model Company {
   id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   companyName     String        @map("company_name") @db.VarChar(100)
