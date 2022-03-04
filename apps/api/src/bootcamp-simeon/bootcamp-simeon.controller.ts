@@ -34,7 +34,7 @@ export class BootcampSimeonController {
   async findOne(@Param('id') id: string) {
     try {
       const obj = await this.bootcampSimeonService.findOne(id)
-      if(!obj) {
+      if (!obj) {
         throw new NotFoundException('Not found')
       }
       return obj

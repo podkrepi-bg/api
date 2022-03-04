@@ -16,17 +16,17 @@ export class BootcampSimeonService {
   }
 
   findOne(id: string) {
-    return this.prisma.bootcampSimeon.findFirst({where: {id}})
+    return this.prisma.bootcampSimeon.findFirst({ where: { id } })
   }
 
   update(id: string, updateBootcampSimeonDto: UpdateBootcampSimeonDto) {
     return this.prisma.bootcampSimeon.update({
       where: { id },
-      data: { ...updateBootcampSimeonDto }
+      data: { ...updateBootcampSimeonDto },
     })
   }
 
   remove(id: string) {
-    return this.prisma.bootcampSimeon.delete({where: {id}})
+    return this.prisma.bootcampSimeon.delete({ where: { id } })
   }
 }
