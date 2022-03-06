@@ -35,7 +35,8 @@ import { CountryModule } from '../country/country.module'
 import { CompanyModule } from '../company/company.module'
 import { InfoRequestModule } from '../info-request/info-request.module'
 import { BankAccountModule } from '../bankaccount/bankaccount.module'
-import { WithdrawalModule } from '../withdrawal/withdrawal.module'
+import { PersonModule } from '../person/person.module'
+import { VaultModule } from '../vault/vault.module'
 
 @Module({
   imports: [
@@ -69,7 +70,8 @@ import { WithdrawalModule } from '../withdrawal/withdrawal.module'
     InfoRequestModule,
     BankAccountModule,
     ExpensesModule,
-    WithdrawalModule,
+    PersonModule,
+    VaultModule,
   ],
   controllers: [AppController],
   providers: [

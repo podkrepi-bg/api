@@ -40,19 +40,19 @@ describe('CityController', () => {
           countryId: expect.any(String),
           id: expect.any(String),
           name: 'Sofia',
-          postalCode: 1000,
+          postalCode: '1000',
         },
         {
           countryId: expect.any(String),
           id: expect.any(String),
           name: 'Plovdiv',
-          postalCode: 4000,
+          postalCode: '4000',
         },
         {
           countryId: expect.any(String),
           id: expect.any(String),
           name: 'Varna',
-          postalCode: 9000,
+          postalCode: '9000',
         },
       ]
 
