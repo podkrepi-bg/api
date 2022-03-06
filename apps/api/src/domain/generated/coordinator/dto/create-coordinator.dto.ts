@@ -1,1 +1,9 @@
-export class CreateCoordinatorDto {}
+
+
+
+
+
+
+export class CreateCoordinatorDto {
+  
+}

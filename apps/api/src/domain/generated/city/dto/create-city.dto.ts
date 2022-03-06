@@ -1,4 +1,10 @@
+
+
+
+
+
+
 export class CreateCityDto {
-  name: string
-  postalCode: number
+  name: string;
+postalCode: number;
 }
