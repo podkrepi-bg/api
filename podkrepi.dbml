@@ -137,6 +137,14 @@ Table Campaign {
   incomingTransfers Transfer [not null]
   vaults Vault [not null]
   withdrawals Withdrawal [not null]
+  campaignFiles CampaignFile [not null]
+}
+
+Table CampaignFile {
+  id String [pk]
+  filename String [not null]
+  campaignId String [not null]
+  campaign Campaign [not null]
 }
 
 Table InfoRequest {
@@ -508,6 +516,8 @@ Ref: Campaign.beneficiaryId > Beneficiary.id
 Ref: Campaign.campaignTypeId > CampaignType.id [delete: Cascade]
 
 Ref: Campaign.coordinatorId > Coordinator.id
+
+Ref: CampaignFile.campaignId > Campaign.id
 
 Ref: InfoRequest.personId > Person.id
 

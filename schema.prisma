@@ -177,8 +177,18 @@ model Campaign {
   incomingTransfers Transfer[]    @relation("target_campaign")
   vaults            Vault[]
   withdrawals       Withdrawal[]
+  campaignFiles     CampaignFile[]
 
   @@map("campaigns")
+}
+
+model CampaignFile {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename   String   @db.VarChar(200)
+  campaignId String   @map("campaign_id") @db.Uuid
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+
+  @@map("campaign_files")
 }
 
 model InfoRequest {
