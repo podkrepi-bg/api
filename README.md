@@ -247,6 +247,10 @@ yarn prisma migrate reset
 | `TARGET_ENV`              | Docker multi-stage target                 | development                                                                 |
 | `TARGET_APP`              | Run specific application from the image.  | api                                                                         |
 | `DATABASE_URL`            | Database connection string.               | postgres://postgres:postgrespass@localhost:5432/postgres?schema=api         |
+| `S3_ENDPOINT`             | Endpoint for S3 interface.                | <https://cdn-dev.podkrepi.bg>                                               |
+| `S3_BUCKET`               | The S3 bucket to be used for storing files| campaign-files                                                              |
+| `S3_ACCESS_KEY`           | The S3 access key.                        | \*\*\*\*\*\*                                                                |
+| `S3_SECRET_ACCESS_KEY`    | The S3 secret access key.                 | \*\*\*\*\*\*                                                                |
 | `KEYCLOAK_URL`            | Keycloak authentication url               | <https://keycloak.podkrepi.bg/auth>                                         |
 | `KEYCLOAK_REALM`          | Keycloak Realm name                       | webapp                                                                      |
 | `KEYCLOAK_CLIENT_ID`      | Keycloak Client name                      | jwt-headless                                                                |
