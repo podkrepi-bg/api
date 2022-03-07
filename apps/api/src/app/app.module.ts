@@ -37,6 +37,7 @@ import { InfoRequestModule } from '../info-request/info-request.module'
 import { BankAccountModule } from '../bankaccount/bankaccount.module'
 import { PersonModule } from '../person/person.module'
 import { VaultModule } from '../vault/vault.module'
+import { WithdrawalModule } from '../withdrawal/withdrawal.module'
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { VaultModule } from '../vault/vault.module'
     ExpensesModule,
     PersonModule,
     VaultModule,
+    WithdrawalModule
   ],
   controllers: [AppController],
   providers: [

@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Withdrawal } from '@prisma/client';
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { Withdrawal } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
-import { CreateWithdrawalDto } from './dto/create-withdrawal.dto';
-import { UpdateWithdrawalDto } from './dto/update-withdrawal.dto';
+import { CreateWithdrawalDto } from './dto/create-withdrawal.dto'
+import { UpdateWithdrawalDto } from './dto/update-withdrawal.dto'
 
 @Injectable()
 export class WithdrawalService {
@@ -13,7 +13,7 @@ export class WithdrawalService {
   }
 
   async findAll(): Promise<Withdrawal[]> {
-    return await this.prisma.withdrawal.findMany()
+    return await this.prisma.withdrawal.findMany({ include: { bankAccount: true, approvedBy: true, sourceCampaign: true } })
   }
 
   async findOne(id: string): Promise<Withdrawal | null> {
@@ -22,10 +22,7 @@ export class WithdrawalService {
     return result
   }
 
-  async update(
-    id: string,
-    updateWithdrawalDto: UpdateWithdrawalDto,
-  ): Promise<Withdrawal | null> {
+  async update(id: string, updateWithdrawalDto: UpdateWithdrawalDto): Promise<Withdrawal | null> {
     const result = await this.prisma.withdrawal.update({
       where: { id: id },
       data: updateWithdrawalDto,
@@ -54,5 +51,4 @@ export class WithdrawalService {
       throw new NotFoundException()
     }
   }
-
 }

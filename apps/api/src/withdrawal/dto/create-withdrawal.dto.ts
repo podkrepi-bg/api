@@ -1,7 +1,7 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Currency, Prisma, WithdrawStatus } from "@prisma/client";
-import { Expose } from "class-transformer";
-import { IsEnum, IsNumber, IsString, IsUUID } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger'
+import { Currency, Prisma, WithdrawStatus } from '@prisma/client'
+import { Expose } from 'class-transformer'
+import { IsEnum, IsNumber, IsString, IsUUID } from 'class-validator'
 export class CreateWithdrawalDto {
   @ApiProperty({ enum: WithdrawStatus })
   @Expose()
@@ -48,7 +48,6 @@ export class CreateWithdrawalDto {
   @Expose()
   approvedById: string
 
-
   public toEntity(): Prisma.WithdrawalCreateInput {
     return {
       status: this.status,
@@ -62,7 +61,7 @@ export class CreateWithdrawalDto {
       approvedBy: { connect: { id: this.approvedById } },
       bankAccount: { connect: { id: this.bankAccountId } },
       sourceCampaign: { connect: { id: this.sourceCampaignId } },
-      sourceVault:{ connect: { id: this.sourceVaultId } },
+      sourceVault: { connect: { id: this.sourceVaultId } },
     }
   }
 }
