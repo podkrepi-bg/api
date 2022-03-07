@@ -1,27 +1,47 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { CreateCampaignFileDto } from './dto/create-campaign-file.dto'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { S3Service } from '../s3/s3.service'
+import { CreateCampaignFileDto } from './dto/create-campaign-file.dto'
+import { Readable } from 'stream'
 
 @Injectable()
 export class CampaignFileService {
   constructor(private prisma: PrismaService, private s3: S3Service) {}
 
-  async create(createCampaignFileDto: CreateCampaignFileDto) {
-    return 'This action adds a new campaignFile'
+  async create(
+    campaignId: string,
+    filename: string,
+    mimetype: string,
+    buf: Buffer,
+  ): Promise<string> {
+    const campaign = await this.prisma.campaign.findFirst({ where: { id: campaignId } })
+    if (campaign === null) {
+      Logger.warn('No campaign record with ID: ' + campaignId)
+      throw new NotFoundException('No campaign record with ID: ' + campaignId)
+    }
+
+    const file: CreateCampaignFileDto = {
+      filename: filename,
+      campaignId: campaign.id,
+    }
+    const dbFile = await this.prisma.campaignFile.create({ data: file })
+
+    // Use the DB primary key as the S3 key. This will make sure if is always unique.
+    await this.s3.uploadObject(dbFile.id, mimetype, buf)
+    return dbFile.id
   }
 
-  async findAll(campaignId: string) {
-    const data = await this.s3.getObject('camphoto_824023566.jpeg')
-    Logger.log(data)
-    return `This action returns all campaignFile`
+  async findOne(id: string): Promise<{ filename: string; stream: Readable }> {
+    const file = await this.prisma.campaignFile.findFirst({ where: { id: id } })
+    if (!file) {
+      Logger.warn('No campaign file record with ID: ' + id)
+      throw new NotFoundException('No campaign file record with ID: ' + id)
+    }
+    return { filename: file.filename, stream: await this.s3.streamFile(id) }
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} campaignFile`
-  }
-
-  remove(id: string) {
-    return `This action removes a #${id} campaignFile`
+  async remove(id: string) {
+    await this.s3.deleteObject(id)
+    return await this.prisma.campaignFile.delete({ where: { id } })
   }
 }

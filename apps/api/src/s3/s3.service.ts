@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { S3, Endpoint } from 'aws-sdk'
-import { Body } from 'aws-sdk/clients/s3'
 import { config } from 'aws-sdk'
+import { Readable } from 'stream'
 
 @Injectable()
 export class S3Service {
@@ -19,30 +19,38 @@ export class S3Service {
       throw new Error('S3 bucket not set in config.')
     }
     this.bucketName = process.env.S3_BUCKET
-    console.log(process.env.S3_BUCKET)
 
     if (!process.env.S3_ENDPOINT) {
       throw new Error('S3 endpoint not set in config.')
     }
-
-    console.log(process.env.S3_ENDPOINT)
-
     this.s3 = new S3({ endpoint: new Endpoint(process.env.S3_ENDPOINT) })
-    this.s3
-      .listObjects({ Bucket: this.bucketName })
-      .promise()
-      .then((x) => {
-        if (!x.Contents) return
-        for (let e of x.Contents) {
-          console.log(e)
-        }
-      })
   }
 
-  async getObject(key: string): Promise<Body | undefined> {
+  async uploadObject(key: string, mimetype: string, stream: Buffer): Promise<string> {
     return await this.s3
-      .getObject({ Bucket: this.bucketName, Key: key })
+      .upload({
+        Bucket: this.bucketName,
+        Body: stream,
+        Key: key,
+        ContentType: mimetype,
+      })
       .promise()
-      .then((x) => x.Body)
+      .then((x) => x.Key)
+  }
+
+  async deleteObject(key: string): Promise<boolean | undefined> {
+    return await this.s3
+      .deleteObject({ Bucket: this.bucketName, Key: key })
+      .promise()
+      .then((x) => x.DeleteMarker)
+  }
+
+  async streamFile(key: string): Promise<Readable> {
+    return await this.s3
+      .getObject({
+        Bucket: this.bucketName,
+        Key: key,
+      })
+      .createReadStream()
   }
 }

@@ -1,34 +1,54 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Response,
+  Param,
+  Delete,
+  StreamableFile,
+} from '@nestjs/common'
 import { CampaignFileService } from './campaign-file.service'
-import { CreateCampaignFileDto } from './dto/create-campaign-file.dto'
 import { Public } from 'nest-keycloak-connect'
-import { Logger, LogLevel, VersioningType } from '@nestjs/common'
+import { Logger, UseInterceptors, UploadedFiles } from '@nestjs/common'
+import { FilesInterceptor } from '@nestjs/platform-express'
+import { Multer } from 'multer'
 
 @Controller('campaign-file')
 export class CampaignFileController {
   constructor(private readonly campaignFileService: CampaignFileService) {}
 
-  @Post()
+  @Post(':campaign_id')
   @Public()
-  create(@Body() createCampaignFileDto: CreateCampaignFileDto) {
-    console.log('hmm')
-    Logger.log('hmm')
-    return this.campaignFileService.create(createCampaignFileDto)
-  }
-
-  @Get(':campaign_id')
-  @Public()
-  findAll(@Param('campaign_id') campaignId: string) {
-    Logger.log('hmm')
-    return this.campaignFileService.findAll(campaignId)
+  @UseInterceptors(FilesInterceptor('file'))
+  async create(
+    @Param('campaign_id') campaignId: string,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    return await Promise.all(
+      files.map((x) =>
+        this.campaignFileService.create(campaignId, x.originalname, x.mimetype, x.buffer),
+      ),
+    )
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.campaignFileService.findOne(id)
+  @Public()
+  async findOne(
+    @Param('id') id: string,
+    @Response({ passthrough: true }) res,
+  ): Promise<StreamableFile> {
+    const file = await this.campaignFileService.findOne(id)
+    res.set({
+      'Content-Type': 'application/json',
+      'Content-Disposition': 'attachment; filename="' + file.filename + '"',
+    })
+
+    return new StreamableFile(file.stream)
   }
 
   @Delete(':id')
+  @Public()
   remove(@Param('id') id: string) {
     return this.campaignFileService.remove(id)
   }
