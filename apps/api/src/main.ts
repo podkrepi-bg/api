@@ -33,9 +33,6 @@ async function bootstrap() {
   setupValidation(app)
   setupShutdownHooks(app)
 
-  Logger.debug(process.env.S3_ACCESS_KEY)
-  Logger.debug(process.env.S3_SECRET_ACCESS_KEY)
-
   const port = process.env.PORT || 3310
   await app.listen(port, () => {
     Logger.debug(`Listening at http://localhost:${port}/${globalPrefix}`, 'bootstrap')
