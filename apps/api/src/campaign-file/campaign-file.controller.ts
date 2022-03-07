@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Response,
   Param,
   Delete,
@@ -10,7 +9,7 @@ import {
 } from '@nestjs/common'
 import { CampaignFileService } from './campaign-file.service'
 import { Public } from 'nest-keycloak-connect'
-import { Logger, UseInterceptors, UploadedFiles } from '@nestjs/common'
+import { UseInterceptors, UploadedFiles } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { Multer } from 'multer'
 
