@@ -3,7 +3,6 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateBeneficiaryDto } from './dto/create-beneficiary.dto'
 import { UpdateBeneficiaryDto } from './dto/update-beneficiary.dto'
-import { DeleteManyBeneficiaryDto } from './dto/delete-many-beneficiary.dto'
 
 @Injectable()
 export class BeneficiaryService {
@@ -43,7 +42,7 @@ export class BeneficiaryService {
     return result
   }
 
-  async removeManyBeneficiaries(data: DeleteManyBeneficiaryDto) {
+  async removeManyBeneficiaries(data: { ids: string[] }) {
     return await this.prisma.beneficiary.deleteMany({ where: { id: { in: data.ids } } })
   }
 }

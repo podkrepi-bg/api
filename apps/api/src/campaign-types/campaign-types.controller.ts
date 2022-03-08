@@ -53,4 +53,13 @@ export class CampaignTypesController {
   async remove(@Param('id') id: string) {
     return await this.campaignTypesService.remove(id)
   }
+
+  @Post('delete-many')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async removeMany(@Body() ids: { ids: string[] }) {
+    return await this.campaignTypesService.removeManyCampaignTypes(ids)
+  }
 }
