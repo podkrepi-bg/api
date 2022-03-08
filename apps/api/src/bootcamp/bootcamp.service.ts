@@ -34,6 +34,8 @@ export class BootcampService {
           email: updateBootcampDto.email,
           message: updateBootcampDto.message,
           date: updateBootcampDto.date,
+          firstName: updateBootcampDto.firstName,
+          lastName: updateBootcampDto.lastName,
         },
       })
       return updatedTask
