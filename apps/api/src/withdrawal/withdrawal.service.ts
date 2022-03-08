@@ -13,11 +13,14 @@ export class WithdrawalService {
   }
 
   async findAll(): Promise<Withdrawal[]> {
-    return await this.prisma.withdrawal.findMany({ include: { bankAccount: true, approvedBy: true, sourceCampaign: true } })
+    return await this.prisma.withdrawal.findMany({ include:
+       { bankAccount: true, approvedBy: true, sourceCampaign: true, sourceVault: true } })
   }
 
   async findOne(id: string): Promise<Withdrawal | null> {
-    const result = await this.prisma.withdrawal.findUnique({ where: { id } })
+    const result = await this.prisma.withdrawal.findUnique({
+      where: { id },
+      include: { bankAccount: true, approvedBy: true, sourceCampaign: true, sourceVault: true} })
     if (!result) throw new NotFoundException('Not found')
     return result
   }

@@ -1,3 +1,5 @@
-export class ConnectSupporterDto {
-  id: string
-}
+
+  export class ConnectSupporterDto {
+    id: string;
+  }
+  

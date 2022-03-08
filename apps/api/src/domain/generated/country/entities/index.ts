@@ -1,1 +1,2 @@
-export * from './country.entity'
+
+export * from './country.entity';
