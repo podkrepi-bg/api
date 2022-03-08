@@ -38,7 +38,7 @@ import { BankAccountModule } from '../bankaccount/bankaccount.module'
 import { PersonModule } from '../person/person.module'
 import { VaultModule } from '../vault/vault.module'
 import { WithdrawalModule } from '../withdrawal/withdrawal.module'
-
+import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -74,6 +74,7 @@ import { WithdrawalModule } from '../withdrawal/withdrawal.module'
     PersonModule,
     VaultModule,
     WithdrawalModule,
+    CampaignTypesModule,
   ],
   controllers: [AppController],
   providers: [
