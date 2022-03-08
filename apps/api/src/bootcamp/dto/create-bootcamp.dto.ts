@@ -28,4 +28,12 @@ export class CreateBootcampDto {
   @IsDateString()
   @IsNotEmpty()
   date: string
+  @ApiProperty()
+  @Expose()
+  @IsString()
+  firstName: string
+  @ApiProperty()
+  @Expose()
+  @IsString()
+  lastName: string
 }
