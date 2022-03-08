@@ -73,7 +73,7 @@ import { WithdrawalModule } from '../withdrawal/withdrawal.module'
     ExpensesModule,
     PersonModule,
     VaultModule,
-    WithdrawalModule
+    WithdrawalModule,
   ],
   controllers: [AppController],
   providers: [
