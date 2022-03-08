@@ -38,6 +38,7 @@ import { BankAccountModule } from '../bankaccount/bankaccount.module'
 import { PersonModule } from '../person/person.module'
 import { VaultModule } from '../vault/vault.module'
 import { CampaignFileModule } from '../campaign-file/campaign-file.module'
+import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { CampaignFileModule } from '../campaign-file/campaign-file.module'
     ExpensesModule,
     PersonModule,
     VaultModule,
+    CampaignTypesModule,
   ],
   controllers: [AppController],
   providers: [
