@@ -43,7 +43,7 @@ export class WithdrawalService {
   }
 
   //DELETE MANY
-  async removeMany(itemsToDelete: [string]): Promise<{ count: number }> {
+  async removeMany(itemsToDelete: string[]): Promise<{ count: number }> {
     try {
       return await this.prisma.withdrawal.deleteMany({
         where: {

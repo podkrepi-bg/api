@@ -9,7 +9,6 @@ export class WithdrawalController {
   constructor(private readonly withdrawalService: WithdrawalService) {}
 
   @Post()
-  @Public()
   create(@Body() createWithdrawalDto: CreateWithdrawalDto) {
     return this.withdrawalService.create(createWithdrawalDto)
   }
@@ -27,20 +26,17 @@ export class WithdrawalController {
   }
 
   @Patch(':id')
-  @Public()
   update(@Param('id') id: string, @Body() updateWithdrawalDto: UpdateWithdrawalDto) {
     return this.withdrawalService.update(id, updateWithdrawalDto)
   }
 
   @Delete(':id')
-  @Public()
   remove(@Param('id') id: string) {
     return this.withdrawalService.remove(id)
   }
 
   @Post('deletemany')
-  @Public()
-  removeMany(@Body() itemsToDelete: [string]) {
+  removeMany(@Body() itemsToDelete: string[]) {
     return this.withdrawalService.removeMany(itemsToDelete)
   }
 }
