@@ -63,6 +63,8 @@ spec:
                 secretKeyRef:
                   name: db-api
                   key: url
+            - name: S3_BUCKET
+              value: campaign-files
             - name: KEYCLOAK_URL
               valueFrom:
                 configMapKeyRef:
