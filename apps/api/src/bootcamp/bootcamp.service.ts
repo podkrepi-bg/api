@@ -17,9 +17,15 @@ export class BootcampService {
   }
 
   async findOne(id: string): Promise<Bootcamp | null> {
-    return await this.prisma.bootcamp.findFirst({
-      where: { id: id },
-    })
+    try {
+      const find = await this.prisma.bootcamp.findFirst({
+        where: { id: id },
+        rejectOnNotFound: true,
+      })
+      return find
+    } catch (error) {
+      throw new NotFoundException(error.message)
+    }
   }
 
   async update(id: string, updateBootcampDto: UpdateBootcampDto): Promise<Bootcamp | void> {
@@ -28,19 +34,11 @@ export class BootcampService {
         where: {
           id: id,
         },
-        data: {
-          status: updateBootcampDto.status,
-          title: updateBootcampDto.title,
-          email: updateBootcampDto.email,
-          message: updateBootcampDto.message,
-          date: updateBootcampDto.date,
-          firstName: updateBootcampDto.firstName,
-          lastName: updateBootcampDto.lastName,
-        },
+        data: { ...updateBootcampDto },
       })
       return updatedTask
     } catch (error) {
-      throw new NotFoundException('Requested task id does not exist!')
+      throw new NotFoundException(error.message)
     }
   }
 
@@ -49,12 +47,16 @@ export class BootcampService {
       const deletedTask = await this.prisma.bootcamp.delete({ where: { id: id } })
       return `${deletedTask.title} Deleted Succesfully!`
     } catch (error) {
-      throw new NotFoundException('Requested task id does not exist!')
+      throw new NotFoundException(error.message)
     }
   }
 
   async removeMany(tasksToDelete: [string]): Promise<string | void> {
     try {
+      const ids = await this.prisma.bootcamp.findMany({ where: { id: { in: tasksToDelete } } })
+      if (!ids.length) {
+        throw new NotFoundException('Requested task ids does not exist!')
+      }
       await this.prisma.bootcamp.deleteMany({
         where: {
           id: {
@@ -62,9 +64,9 @@ export class BootcampService {
           },
         },
       })
-      return 'Deleted Succesfully!'
+      return `Deleted Succesfully ${ids.length} from ${tasksToDelete.length} tasks!`
     } catch (error) {
-      throw new NotFoundException('Requested task id does not exist!')
+      throw new NotFoundException(error.message)
     }
   }
 }
