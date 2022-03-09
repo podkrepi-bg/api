@@ -3,7 +3,7 @@ import { Expose } from 'class-transformer'
 import { IsArray } from 'class-validator'
 
 @Expose()
-export class DeleteManyBeneficiaryDto {
+export class DeleteManyCampaignTypesDto {
   @ApiProperty({ type: [String] })
   @IsArray()
   @Expose()
