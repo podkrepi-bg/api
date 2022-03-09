@@ -3,15 +3,21 @@ import { PrismaService } from '../prisma/prisma.service'
 import { S3Service } from '../s3/s3.service'
 import { CreateCampaignFileDto } from './dto/create-campaign-file.dto'
 import { Readable } from 'stream'
+import { PersonService } from '../person/person.service'
+import { Person } from '@prisma/client'
 
 @Injectable()
 export class CampaignFileService {
-  constructor(private prisma: PrismaService, private s3: S3Service) {}
+  constructor(
+    private prisma: PrismaService,
+    private s3: S3Service,
+  ) {}
 
   async create(
     campaignId: string,
     filename: string,
     mimetype: string,
+    uploadedBy: Person,
     buf: Buffer,
   ): Promise<string> {
     const campaign = await this.prisma.campaign.findFirst({ where: { id: campaignId } })
@@ -23,11 +29,12 @@ export class CampaignFileService {
     const file: CreateCampaignFileDto = {
       filename: filename,
       campaignId: campaign.id,
+      uploadedById: uploadedBy.id,
     }
     const dbFile = await this.prisma.campaignFile.create({ data: file })
 
     // Use the DB primary key as the S3 key. This will make sure if is always unique.
-    await this.s3.uploadObject(dbFile.id, mimetype, buf)
+    await this.s3.uploadObject(dbFile, mimetype, buf)
     return dbFile.id
   }
 
