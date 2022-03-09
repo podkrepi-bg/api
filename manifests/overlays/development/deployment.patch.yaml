@@ -18,3 +18,18 @@ spec:
           env:
             - name: APP_ENV
               value: staging
+            - name: S3_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: rook-ceph-object-user-object-store-dev-object-store-dev-admin
+                  key: Endpoint
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rook-ceph-object-user-object-store-dev-object-store-dev-admin
+                  key: AccessKey
+            - name: S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rook-ceph-object-user-object-store-dev-object-store-dev-admin
+                  key: SecretKey
