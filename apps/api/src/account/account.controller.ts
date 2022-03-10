@@ -3,6 +3,7 @@ import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
+import { DonationsService } from '../donations/donations.service'
 
 import { AccountService } from './account.service'
 
@@ -32,7 +33,7 @@ export class AccountController {
   ) {
     console.log(user)
     return { message: 'Authenticated only!', ...user }
-  }
+  } 
 
   @Get('admin')
   @Roles({
@@ -41,5 +42,10 @@ export class AccountController {
   })
   adminRole() {
     return { status: 'OK' }
+  }
+
+  @Get('donations')
+  async userDonations(@AuthenticatedUser() user: KeycloakTokenParsed) {
+    return { donations: await this.accountService.getDonationsByUser(user.sub as string) }
   }
 }
