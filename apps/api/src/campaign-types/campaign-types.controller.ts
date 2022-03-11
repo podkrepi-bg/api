@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-import { RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { CampaignTypesService } from './campaign-types.service'
 import { CreateCampaignTypeDto } from './dto/create-campaign-type.dto'
 import { DeleteManyCampaignTypesDto } from './dto/delete-many-campaign-types.dto'
@@ -20,10 +20,7 @@ export class CampaignTypesController {
   }
 
   @Get()
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
+  @Public()
   async findAll() {
     return await this.campaignTypesService.findAll()
   }
