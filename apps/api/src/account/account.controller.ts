@@ -46,6 +46,6 @@ export class AccountController {
 
   @Get('donations')
   async userDonations(@AuthenticatedUser() user: KeycloakTokenParsed) {
-    return { donations: await this.accountService.getDonationsByUser(user.sub as string) }
+    return await this.accountService.getDonationsByUser(user.sub as string)
   }
 }
