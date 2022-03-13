@@ -60,6 +60,7 @@ model Person {
   supporters         Supporter[]
   transfers          Transfer[]
   withdrawals        Withdrawal[]
+  campaignFiles      CampaignFile[]
 
   @@index([keycloakId], map: "keycloak_id_idx")
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
@@ -177,8 +178,20 @@ model Campaign {
   incomingTransfers Transfer[]    @relation("target_campaign")
   vaults            Vault[]
   withdrawals       Withdrawal[]
+  campaignFiles     CampaignFile[]
 
   @@map("campaigns")
+}
+
+model CampaignFile {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename      String   @db.VarChar(200)
+  campaignId    String   @map("campaign_id") @db.Uuid
+  campaign      Campaign @relation(fields: [campaignId], references: [id])
+  uploadedById  String   @map("uploaded_by_id") @db.Uuid
+  uploadedBy    Person   @relation(fields: [uploadedById], references: [id])
+
+  @@map("campaign_files")
 }
 
 model InfoRequest {

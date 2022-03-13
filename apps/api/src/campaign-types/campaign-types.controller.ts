@@ -1,8 +1,9 @@
 import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-import { RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { CampaignTypesService } from './campaign-types.service'
 import { CreateCampaignTypeDto } from './dto/create-campaign-type.dto'
+import { DeleteManyCampaignTypesDto } from './dto/delete-many-campaign-types.dto'
 import { UpdateCampaignTypeDto } from './dto/update-campaign-type.dto'
 
 @Controller('campaign-types')
@@ -19,10 +20,7 @@ export class CampaignTypesController {
   }
 
   @Get()
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
+  @Public()
   async findAll() {
     return await this.campaignTypesService.findAll()
   }
@@ -52,5 +50,14 @@ export class CampaignTypesController {
   })
   async remove(@Param('id') id: string) {
     return await this.campaignTypesService.remove(id)
+  }
+
+  @Post('delete-many')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async deleteMany(@Body() data: DeleteManyCampaignTypesDto) {
+    return await this.campaignTypesService.removeMany(data)
   }
 }
