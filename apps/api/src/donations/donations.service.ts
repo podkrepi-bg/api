@@ -10,20 +10,12 @@ import { Currency, Donation } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
+import { KeycloakTokenParsed } from '../auth/keycloak'
 
-type User = {
-    given_name: string,
-    family_name: string,
-    email: String
-}
-
-type Vault = {
-    id: string,
-    currency: Currency,
-    amount: number,
-    campaign: Object
-
-}
+type DeleteManyResponse = {
+    count: number
+  }
+  
 
 @Injectable()
 export class DonationsService {
@@ -94,27 +86,44 @@ export class DonationsService {
         }
     }
 
-    async create(inputDto: CreatePaymentDto): Promise<Donation> {
-        let user: User = {
-            given_name: "ok",
-            family_name: "ok",
-            email: "Nels57@yahoo.com",
-        }
-        let vault: Vault = {
-            id: "073f8871-d14d-4cec-ad8b-1400896ff6ef",
-            currency: "BGN",
-            amount: 0,
-            campaign: {}
-        }
-        return await this.prisma.donation.create({ data: inputDto.toEntity(user, vault) })
+    async create(inputDto: CreatePaymentDto, user: KeycloakTokenParsed): Promise<Donation> {
+        return await this.prisma.donation.create({ data: inputDto.toEntity(user) })
     }
 
-    update(id: string, updatePaymentDto: UpdatePaymentDto) {
+    async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Donation> {
+        try{
+            return await this.prisma.donation.update({
+                where: {
+                    id,
+                },
+                data: {
+                    status: updatePaymentDto.status
+                }
+            })
 
+        } catch (err) {
+            const msg = `Update failed. No Donation found with ID: ${id}`
+
+            Logger.warn(msg)
+            throw new NotFoundException(msg)
+        }
     }
 
-    remove(ids: string[]) {
-
+    async remove(ids: string[]): Promise<DeleteManyResponse> {
+        try {
+            return await this.prisma.donation.deleteMany({
+                where: {
+                    id: {
+                        in: ids,
+                    }
+                }
+            })
+          } catch (err) {
+            const msg = `Delete failed. No Donation found with given ID`
+      
+            Logger.warn(msg)
+            throw new NotFoundException(msg)
+          }
     }
 
 }

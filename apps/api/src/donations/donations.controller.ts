@@ -49,18 +49,18 @@ export class DonationsController {
   }
 
   @Post('create-payment')
-  @Public()
   create(
-    // @AuthenticatedUser()
-    // user: KeycloakTokenParsed,
+    @AuthenticatedUser()
+    user: KeycloakTokenParsed,
     @Body()
     createPaymentDto: CreatePaymentDto,
+    
   ) {
-    // if (!user) {
-    //   throw new UnauthorizedException()
-    // }
+    if (!user) {
+      throw new UnauthorizedException()
+    }
 
-    return this.paymentsService.create(createPaymentDto)
+    return this.paymentsService.create(createPaymentDto, user)
   }
 
   @Patch(':id')
@@ -79,7 +79,7 @@ export class DonationsController {
     return this.paymentsService.update(id, updatePaymentDto)
   }
 
-  @Delete(':id')
+  @Post('delete')
   remove(
     @AuthenticatedUser()
     user: KeycloakTokenParsed,
