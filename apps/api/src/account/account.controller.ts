@@ -9,7 +9,7 @@ import { AccountService } from './account.service'
 
 @Controller('account')
 export class AccountController {
-  constructor(private readonly accountService: AccountService) {}
+  constructor() {}
 
   @Get('me')
   @Public(false)
@@ -42,10 +42,5 @@ export class AccountController {
   })
   adminRole() {
     return { status: 'OK' }
-  }
-
-  @Get('donations')
-  async userDonations(@AuthenticatedUser() user: KeycloakTokenParsed) {
-    return await this.accountService.getDonationsByUser(user.sub as string)
   }
 }

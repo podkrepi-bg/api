@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { prismaMock } from '../prisma/prisma-client.mock'
 import { DonationsController } from './donations.controller'
 import { CampaignService } from '../campaign/campaign.service'
+import { AccountService } from '../account/account.service'
 
 describe('DonationsController', () => {
   let controller: DonationsController
@@ -26,6 +27,7 @@ describe('DonationsController', () => {
           provide: STRIPE_CLIENT_TOKEN,
           useValue: jest.fn(),
         },
+        AccountService
       ],
     }).compile()
 
