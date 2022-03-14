@@ -1,16 +1,20 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common'
-import { Public } from 'nest-keycloak-connect'
 import { BenefactorService } from './benefactor.service'
 import { CreateBenefactorDto } from './dto/create-benefactor.dto'
 import { UpdateBenefactorDto } from './dto/update-benefactor.dto'
 import { PrismaService } from '../prisma/prisma.service'
+import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 @Controller('benefactor')
 export class BenefactorController {
   constructor(private readonly benefactorService: BenefactorService) {}
 
-  @Public()
   @Post()
+  @Roles({
+    roles: [RealmViewSupporters.role,],
+    mode: RoleMatchingMode.ANY,
+  })
   create(@Body() createBenefactorDto: CreateBenefactorDto) {
     return this.benefactorService.create(createBenefactorDto)
   }

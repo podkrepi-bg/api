@@ -1,5 +1,4 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { Document } from '@prisma/client'
 import { CreateBenefactorDto } from './dto/create-benefactor.dto'
 import { UpdateBenefactorDto } from './dto/update-benefactor.dto'
 import { Benefactor } from '@prisma/client'
@@ -12,7 +11,7 @@ export class BenefactorService {
   constructor(private prisma: PrismaService) {}
 
   async create(createBenefactorDto: CreateBenefactorDto) {
-    return await this.prisma.benefactor.create({ data: createBenefactorDto.toEntity() })
+    return await this.prisma.benefactor.create({ data: createBenefactorDto })
   }
 
   async findAll(): Promise<Benefactor[]> {
@@ -35,45 +34,12 @@ export class BenefactorService {
     }
   }
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} benefactor`;
-  // }
-
-  // async update(id: string, updateBenefactorDto: UpdateBenefactorDto): Promise<Benefactor> {
-  //   try {
-  //     return await this.prisma.benefactor.update({
-  //       where: {
-  //         id
-  //       },
-  //       data: {
-  //         // id: updateBenefactorDto.id,
-  //         extCustomerId: updateBenefactorDto.extCustomerId,
-  //         createdAt: updateBenefactorDto.createdAt,
-  //         updatedAt: updateBenefactorDto.updatedAt,
-  //         // person: updateBenefactorDto.person,
-
-  //       }
-  //     });
-  //   } catch (err) {
-  //     const msg = `Update failed. No Document found with ID: ${id}`
-
-  //     Logger.warn(msg)
-  //     throw new NotFoundException(msg)
-  //   }
-  // }
-
-  // update(id: number, updateBenefactorDto: UpdateBenefactorDto) {
-  //   return `This action updates a #${id} benefactor`;
-  // }
-
   async update(id: string, updateBenefactorDto: UpdateBenefactorDto) {
     try {
       const result = await this.prisma.benefactor.update({
         where: { id },
         data: {
           extCustomerId: updateBenefactorDto.extCustomerId,
-          // createdAt: updateBenefactorDto.createdAt,
-          // updatedAt: updateBenefactorDto.updatedAt,
         },
       })
       return result
