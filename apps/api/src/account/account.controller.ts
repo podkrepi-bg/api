@@ -3,9 +3,6 @@ import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
-import { DonationsService } from '../donations/donations.service'
-
-import { AccountService } from './account.service'
 
 @Controller('account')
 export class AccountController {
