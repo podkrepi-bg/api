@@ -3,10 +3,11 @@ import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
+import { AccountService } from './account.service'
 
 @Controller('account')
 export class AccountController {
-  constructor() {}
+  constructor(private readonly accountService: AccountService) {}
 
   @Get('me')
   @Public(false)
