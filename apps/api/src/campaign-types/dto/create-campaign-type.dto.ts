@@ -6,15 +6,20 @@ import { IsOptional, IsString, IsUUID } from 'class-validator'
 export class CreateCampaignTypeDto {
   @ApiProperty()
   @IsString()
+  @Expose()
   name: string
   @ApiProperty()
+  @IsString()
+  @Expose()
   slug: string
   @ApiProperty()
   @IsString()
   @IsOptional()
+  @Expose()
   description?: string
   @ApiProperty()
   @IsUUID()
   @IsOptional()
+  @Expose()
   parentId?: string
 }
