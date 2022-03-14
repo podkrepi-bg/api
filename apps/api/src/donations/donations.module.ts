@@ -10,7 +10,6 @@ import { PaymentCreatedService } from './events/payment-created.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { CampaignModule } from '../campaign/campaign.module'
 import { PrismaService } from '../prisma/prisma.service'
-import { AccountService } from '../account/account.service'
 
 @Module({
   imports: [
@@ -39,7 +38,6 @@ import { AccountService } from '../account/account.service'
     PaymentSucceededService,
     CampaignService,
     PrismaService,
-    AccountService
   ],
 })
 export class DonationsModule {}
