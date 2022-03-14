@@ -1,4 +1,5 @@
-import { AuthenticatedUser, Public } from 'nest-keycloak-connect'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
+import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { Body, Controller, Get, Param, Patch, Post, UnauthorizedException } from '@nestjs/common'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
@@ -67,6 +68,10 @@ export class DonationsController {
   }
 
   @Patch(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   update(
     @AuthenticatedUser()
     user: KeycloakTokenParsed,
@@ -83,6 +88,10 @@ export class DonationsController {
   }
 
   @Post('delete')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   remove(
     @AuthenticatedUser()
     user: KeycloakTokenParsed,
