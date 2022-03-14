@@ -1,51 +1,55 @@
 import { AuthenticatedUser, Public } from 'nest-keycloak-connect'
-import { Body, Controller, Delete, Get, Param, Patch, Post, UnauthorizedException } from '@nestjs/common'
+import { Body, Controller, Get, Param, Patch, Post, UnauthorizedException } from '@nestjs/common'
 
+import { KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
-import { KeycloakTokenParsed } from '../auth/keycloak'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
-
 
 @Controller('donation')
 export class DonationsController {
-  constructor(private readonly paymentsService: DonationsService) {}
+  constructor(private readonly donationsService: DonationsService) {}
 
   @Post('create-checkout-session')
   @Public()
   createCheckoutSession(@Body() sessionDto: CreateSessionDto) {
-    return this.paymentsService.createCheckoutSession(sessionDto)
+    return this.donationsService.createCheckoutSession(sessionDto)
   }
 
   @Get('prices')
   @Public()
   findPrices() {
-    return this.paymentsService.listPrices()
+    return this.donationsService.listPrices()
   }
 
   @Get('prices/single')
   @Public()
   findSinglePrices() {
-    return this.paymentsService.listPrices('one_time')
+    return this.donationsService.listPrices('one_time')
   }
 
   @Get('prices/recurring')
   @Public()
   findRecurringPrices() {
-    return this.paymentsService.listPrices('recurring')
+    return this.donationsService.listPrices('recurring')
+  }
+
+  @Get('user-donations')
+  async userDonations(@AuthenticatedUser() user: KeycloakTokenParsed) {
+    return await this.donationsService.getDonationsByUser(user.sub as string)
   }
 
   @Get('list')
   @Public()
   findAll() {
-    return this.paymentsService.listDonations()
+    return this.donationsService.listDonations()
   }
 
   @Get(':id')
   @Public()
   findOne(@Param('id') id: string) {
-    return this.paymentsService.getDonationById(id)
+    return this.donationsService.getDonationById(id)
   }
 
   @Post('create-payment')
@@ -54,13 +58,12 @@ export class DonationsController {
     user: KeycloakTokenParsed,
     @Body()
     createPaymentDto: CreatePaymentDto,
-    
   ) {
     if (!user) {
       throw new UnauthorizedException()
     }
 
-    return this.paymentsService.create(createPaymentDto, user)
+    return this.donationsService.create(createPaymentDto, user)
   }
 
   @Patch(':id')
@@ -69,28 +72,27 @@ export class DonationsController {
     user: KeycloakTokenParsed,
     @Param('id')
     id: string,
-    @Body() 
+    @Body()
     updatePaymentDto: UpdatePaymentDto,
   ) {
     if (!user) {
       throw new UnauthorizedException()
     }
 
-    return this.paymentsService.update(id, updatePaymentDto)
+    return this.donationsService.update(id, updatePaymentDto)
   }
 
   @Post('delete')
   remove(
     @AuthenticatedUser()
     user: KeycloakTokenParsed,
-    @Body() 
+    @Body()
     idsToDelete: string[],
   ) {
     if (!user) {
       throw new UnauthorizedException()
     }
 
-    return this.paymentsService.remove(idsToDelete)
+    return this.donationsService.remove(idsToDelete)
   }
-
 }
