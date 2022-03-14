@@ -4,11 +4,10 @@ import { Body, Controller, Get, Post } from '@nestjs/common'
 import { DonationsService } from './donations.service'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { KeycloakTokenParsed } from '../auth/keycloak'
-import { AccountService } from '../account/account.service'
 
 @Controller('donation')
 export class DonationsController {
-  constructor(private readonly paymentsService: DonationsService, private readonly accountService: AccountService) {}
+  constructor(private readonly paymentsService: DonationsService) {}
 
   @Post('create-checkout-session')
   @Public()
