@@ -31,7 +31,7 @@ export class AccountController {
   ) {
     console.log(user)
     return { message: 'Authenticated only!', ...user }
-  } 
+  }
 
   @Get('admin')
   @Roles({
