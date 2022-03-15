@@ -17,7 +17,7 @@ describe('BootcampController', () => {
         ...dto,
       }
     }),
-    findAll: jest.fn(() => mockData),
+    findAll: jest.fn().mockReturnValueOnce(mockData),
     update: jest.fn((id, dto) => ({
       id,
       ...dto,
@@ -72,9 +72,11 @@ describe('BootcampController', () => {
   })
   it('should return all tsks', () => {
     const result = controller.findAll()
-    expect(result).toBe.length
+    expect(result).toHaveLength(3)
+    expect(result).toEqual(mockData)
+    expect(mockBootcampService.findAll).toHaveBeenCalled()
   })
-  it('should udate a task', () => {
+  it('should update a task', () => {
     const dto = {
       status: 'todo',
       title: 'Opravi si zadachata',
@@ -109,6 +111,7 @@ describe('BootcampController', () => {
   it('should delete one task', () => {
     const result = controller.remove('1ccfac85-1cbd-445d-9619-78cbd6567a44')
     expect(result).toHaveLength(2)
+    expect(mockBootcampService.findOne).toHaveBeenCalledWith('1ccfac85-1cbd-445d-9619-78cbd6567a44')
   })
   it('should delete many tasks', () => {
     const toDell = ['1ccfac85-1cbd-445d-9619-78cbd6567a44', '9a373a79-1a8b-48c1-a93a-64174065c625']
@@ -128,5 +131,6 @@ describe('BootcampController', () => {
       },
     ]
     expect(result).toEqual(expected)
+    expect(mockBootcampService.removeMany).toHaveBeenCalledWith(toDell)
   })
 })
