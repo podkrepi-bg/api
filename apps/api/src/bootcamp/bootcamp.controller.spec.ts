@@ -69,6 +69,7 @@ describe('BootcampController', () => {
       lastName: 'Stoychev',
     }
     expect(result).toEqual(expected)
+    expect(mockBootcampService.create).toHaveBeenCalled()
   })
   it('should return all tsks', () => {
     const result = controller.findAll()
@@ -90,7 +91,7 @@ describe('BootcampController', () => {
       id: '1',
       ...dto,
     })
-    expect(mockBootcampService.update).toHaveBeenCalled()
+    expect(mockBootcampService.update).toHaveBeenCalledWith('1', dto)
   })
   it('should return one task', () => {
     const result = controller.findOne('1ccfac85-1cbd-445d-9619-78cbd6567a44')
