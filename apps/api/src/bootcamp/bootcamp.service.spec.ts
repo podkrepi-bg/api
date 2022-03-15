@@ -22,6 +22,10 @@ describe('BootcampService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined()
   })
+  it('should return all tasks', async () => {
+    prisma.bootcamp.findMany = jest.fn().mockReturnValueOnce(mockData)
+    expect(await service.findAll()).toHaveLength(3)
+  })
 
   describe('Find one', () => {
     it('should get the first task', async () => {
@@ -44,7 +48,7 @@ describe('BootcampService', () => {
     })
     it('should throw error when id not found', async () => {
       expect(async () => {
-        await service.findOne('238facc8-b02c-4958-9805-1df7f05b7e8a')
+        await service.findOne('238facc8-b02c-4958-9805-1df7f05b7e8a').catch((e) => e)
       }).rejects.toThrow()
     })
   })
@@ -56,7 +60,7 @@ describe('BootcampService', () => {
     })
     it('should throw error when id not found', async () => {
       expect(async () => {
-        await service.remove('238facc8-b02c-4958-9805-1df7f05b7e8a')
+        await service.remove('238facc8-b02c-4958-9805-1df7f05b7e8a').catch((e) => e)
       }).rejects.toThrow()
     })
   })
@@ -74,7 +78,7 @@ describe('BootcampService', () => {
       ]
 
       expect(async () => {
-        await service.removeMany(idsToDell as [string])
+        await service.removeMany(idsToDell as [string]).catch((e) => e)
       }).rejects.toThrow('Requested task ids does not exist!')
     })
     it('should remove selected ids', async () => {
@@ -92,6 +96,95 @@ describe('BootcampService', () => {
       expect(await service.removeMany(idsToDell as [string])).toEqual(
         'Deleted Succesfully 3 from 7 tasks!',
       )
+    })
+  })
+  describe('Update', () => {
+    it('should udate task', async () => {
+      prisma.bootcamp.update = jest.fn().mockReturnValueOnce(mockData[0])
+      const data = {
+        id: '1ccfac85-1cbd-445d-9619-78cbd6567a44',
+        createdAt: '2022-03-14T09:42:39.259Z',
+        updatedAt: '2022-03-14T09:42:39.260Z',
+        status: 'todo',
+        title: 'gdgf',
+        email: 'borislav_stoychev@abv.bg',
+        message: 'gdfg',
+        date: '2022-03-25T00:00:00.000Z',
+        firstName: '',
+        lastName: '',
+      }
+      const result = await service.update('1ccfac85-1cbd-445d-9619-78cbd6567a44', data)
+      expect(result).toEqual(data)
+    })
+    it('sholud throw error when id not found', async () => {
+      const data = {
+        id: '238facc8-b02c-4958-9805-1df7f05b7e8a',
+        createdAt: '2022-03-14T09:42:39.259Z',
+        updatedAt: '2022-03-14T09:42:39.260Z',
+        status: 'todo',
+        title: 'gdgf',
+        email: 'borislav_stoychev@abv.bg',
+        message: 'gdfg',
+        date: '2022-03-25T00:00:00.000Z',
+        firstName: '',
+        lastName: '',
+      }
+      expect(async () => {
+        await service.update('238facc8-b02c-4958-9805-1df7f05b7e8a', data).catch((e) => e)
+      }).rejects.toThrow()
+    })
+  })
+  describe('Create', () => {
+    it('should create task', async () => {
+      prisma.bootcamp.create = jest.fn().mockReturnValueOnce(mockData[0])
+      const data = {
+        id: '1ccfac85-1cbd-445d-9619-78cbd6567a44',
+        createdAt: '2022-03-14T09:42:39.259Z',
+        updatedAt: '2022-03-14T09:42:39.260Z',
+        status: 'todo',
+        title: 'gdgf',
+        email: 'borislav_stoychev@abv.bg',
+        message: 'gdfg',
+        date: '2022-03-25T00:00:00.000Z',
+        firstName: '',
+        lastName: '',
+      }
+      const result = await service.create(data)
+      expect(result).toEqual(data)
+    })
+    it('should throw error required empty field', () => {
+      const data = {
+        id: '238facc8-b02c-4958-9805-1df7f05b7e8a',
+        createdAt: '2022-03-14T09:42:39.259Z',
+        updatedAt: '2022-03-14T09:42:39.260Z',
+        status: '',
+        title: 'gdgf',
+        email: 'borislav_stoychev@abv.bg',
+        message: '',
+        date: '2022-03-25T00:00:00.000Z',
+        firstName: '',
+        lastName: '',
+      }
+      expect(async () => {
+        await service.create(data).catch((e) => e)
+      }).rejects.toThrow()
+    })
+    it('should throw error email is not correct', () => {
+      const data = {
+        id: '238facc8-b02c-4958-9805-1df7f05b7e8a',
+        createdAt: '2022-03-14T09:42:39.259Z',
+        updatedAt: '2022-03-14T09:42:39.260Z',
+        status: 'todo',
+        title: 'gdgf',
+        email: 'borislav_stoychev',
+        message: 'gdfg',
+        date: '2022-03-25T00:00:00.000Z',
+        firstName: '',
+        lastName: '',
+      }
+      expect(async () => {
+        await service.create(data).catch((e) => e)
+      }).rejects.toThrow()
     })
   })
 })
