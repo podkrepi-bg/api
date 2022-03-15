@@ -1,34 +1,107 @@
-import { Public } from 'nest-keycloak-connect'
-import { Body, Controller, Get, Post } from '@nestjs/common'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
+import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { Body, Controller, Get, Param, Patch, Post, UnauthorizedException } from '@nestjs/common'
 
+import { KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
 import { CreateSessionDto } from './dto/create-session.dto'
+import { CreatePaymentDto } from './dto/create-payment.dto'
+import { UpdatePaymentDto } from './dto/update-payment.dto'
 
 @Controller('donation')
 export class DonationsController {
-  constructor(private readonly paymentsService: DonationsService) {}
+  constructor(private readonly donationsService: DonationsService) {}
 
   @Post('create-checkout-session')
   @Public()
   createCheckoutSession(@Body() sessionDto: CreateSessionDto) {
-    return this.paymentsService.createCheckoutSession(sessionDto)
+    return this.donationsService.createCheckoutSession(sessionDto)
   }
 
   @Get('prices')
   @Public()
   findPrices() {
-    return this.paymentsService.listPrices()
+    return this.donationsService.listPrices()
   }
 
   @Get('prices/single')
   @Public()
   findSinglePrices() {
-    return this.paymentsService.listPrices('one_time')
+    return this.donationsService.listPrices('one_time')
   }
 
   @Get('prices/recurring')
   @Public()
   findRecurringPrices() {
-    return this.paymentsService.listPrices('recurring')
+    return this.donationsService.listPrices('recurring')
+  }
+
+  @Get('user-donations')
+  async userDonations(@AuthenticatedUser() user: KeycloakTokenParsed) {
+    return await this.donationsService.getDonationsByUser(user.sub as string)
+  }
+
+  @Get('list')
+  @Public()
+  findAll() {
+    return this.donationsService.listDonations()
+  }
+
+  @Get(':id')
+  @Public()
+  findOne(@Param('id') id: string) {
+    return this.donationsService.getDonationById(id)
+  }
+
+  @Post('create-payment')
+  create(
+    @AuthenticatedUser()
+    user: KeycloakTokenParsed,
+    @Body()
+    createPaymentDto: CreatePaymentDto,
+  ) {
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+
+    return this.donationsService.create(createPaymentDto, user)
+  }
+
+  @Patch(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  update(
+    @AuthenticatedUser()
+    user: KeycloakTokenParsed,
+    @Param('id')
+    id: string,
+    @Body()
+    updatePaymentDto: UpdatePaymentDto,
+  ) {
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+
+    return this.donationsService.update(id, updatePaymentDto)
+  }
+
+  @Post('delete')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  remove(
+    @AuthenticatedUser()
+    user: KeycloakTokenParsed,
+    @Body()
+    idsToDelete: string[],
+  ) {
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+
+    return this.donationsService.remove(idsToDelete)
   }
 }

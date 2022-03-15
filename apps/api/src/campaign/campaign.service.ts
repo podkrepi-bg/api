@@ -73,6 +73,7 @@ export class CampaignService {
             person: { select: { id: true, firstName: true, lastName: true } },
           },
         },
+        campaignFiles: true,
       },
     })
 

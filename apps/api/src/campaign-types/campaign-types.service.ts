@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCampaignTypeDto } from './dto/create-campaign-type.dto'
+import { DeleteManyCampaignTypesDto } from './dto/delete-many-campaign-types.dto'
 import { UpdateCampaignTypeDto } from './dto/update-campaign-type.dto'
 
 @Injectable()
@@ -25,5 +26,9 @@ export class CampaignTypesService {
 
   async remove(id: string) {
     return await this.prisma.campaignType.delete({ where: { id } })
+  }
+
+  async removeMany(data: DeleteManyCampaignTypesDto) {
+    return await this.prisma.campaignType.deleteMany({ where: { id: { in: data.ids } } })
   }
 }
