@@ -8,7 +8,6 @@ import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { SentryInterceptor, SentryModule } from '@ntegral/nestjs-sentry'
 import { KeycloakConnectModule, RoleGuard } from 'nest-keycloak-connect'
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common'
-
 import { AppService } from './app.service'
 import { AuthModule } from '../auth/auth.module'
 import { CityModule } from '../city/city.module'
@@ -37,14 +36,11 @@ import { InfoRequestModule } from '../info-request/info-request.module'
 import { BankAccountModule } from '../bankaccount/bankaccount.module'
 import { PersonModule } from '../person/person.module'
 import { VaultModule } from '../vault/vault.module'
-<<<<<<< HEAD
 import { BootcampModule } from '../bootcamp/bootcamp.module'
-
-=======
 import { CampaignFileModule } from '../campaign-file/campaign-file.module'
 import { WithdrawalModule } from '../withdrawal/withdrawal.module'
 import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
->>>>>>> origin/master
+
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -80,12 +76,11 @@ import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
     ExpensesModule,
     PersonModule,
     VaultModule,
-<<<<<<< HEAD
     BootcampModule,
-=======
     WithdrawalModule,
     CampaignTypesModule,
->>>>>>> origin/master
+    WithdrawalModule,
+    CampaignTypesModule,
   ],
   controllers: [AppController],
   providers: [
