@@ -37,8 +37,14 @@ import { InfoRequestModule } from '../info-request/info-request.module'
 import { BankAccountModule } from '../bankaccount/bankaccount.module'
 import { PersonModule } from '../person/person.module'
 import { VaultModule } from '../vault/vault.module'
+<<<<<<< HEAD
 import { BootcampModule } from '../bootcamp/bootcamp.module'
 
+=======
+import { CampaignFileModule } from '../campaign-file/campaign-file.module'
+import { WithdrawalModule } from '../withdrawal/withdrawal.module'
+import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
+>>>>>>> origin/master
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -59,6 +65,7 @@ import { BootcampModule } from '../bootcamp/bootcamp.module'
     AuthModule,
     AccountModule,
     CampaignModule,
+    CampaignFileModule,
     CountryModule,
     DonationsModule,
     SupportModule,
@@ -73,7 +80,12 @@ import { BootcampModule } from '../bootcamp/bootcamp.module'
     ExpensesModule,
     PersonModule,
     VaultModule,
+<<<<<<< HEAD
     BootcampModule,
+=======
+    WithdrawalModule,
+    CampaignTypesModule,
+>>>>>>> origin/master
   ],
   controllers: [AppController],
   providers: [

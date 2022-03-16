@@ -6,6 +6,7 @@ import { Coordinator } from '../../coordinator/entities/coordinator.entity'
 import { Transfer } from '../../transfer/entities/transfer.entity'
 import { Vault } from '../../vault/entities/vault.entity'
 import { Withdrawal } from '../../withdrawal/entities/withdrawal.entity'
+import { CampaignFile } from '../../campaignFile/entities/campaignFile.entity'
 
 export class Campaign {
   id: string
@@ -33,4 +34,5 @@ export class Campaign {
   incomingTransfers?: Transfer[]
   vaults?: Vault[]
   withdrawals?: Withdrawal[]
+  campaignFiles?: CampaignFile[]
 }
