@@ -3,15 +3,12 @@ import { PrismaService } from '../prisma/prisma.service'
 import { S3Service } from '../s3/s3.service'
 import { CreateCampaignFileDto } from './dto/create-campaign-file.dto'
 import { Readable } from 'stream'
-import { PersonService } from '../person/person.service'
+// import { PersonService } from '../person/person.service'
 import { Person } from '@prisma/client'
 
 @Injectable()
 export class CampaignFileService {
-  constructor(
-    private prisma: PrismaService,
-    private s3: S3Service,
-  ) {}
+  constructor(private prisma: PrismaService, private s3: S3Service) {}
 
   async create(
     campaignId: string,
