@@ -210,6 +210,12 @@ Table Country {
   cities City [not null]
 }
 
+Table CampaignDocumentRole {
+  id String [pk]
+  name String [not null]
+  description String [not null]
+}
+
 Table Vault {
   id String [pk]
   name String [not null, default: '']

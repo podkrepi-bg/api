@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { CampaignDocumentRoleService } from './campaign-document-role.service';
-import { CreateCampaignDocumentRoleDto } from './dto/create-campaign-document-role.dto';
-import { UpdateCampaignDocumentRoleDto } from './dto/update-campaign-document-role.dto';
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common'
+import { Public } from 'nest-keycloak-connect'
+import { CampaignDocumentRoleService } from './campaign-document-role.service'
+import { CreateCampaignDocumentRoleDto } from './dto/create-campaign-document-role.dto'
+import { UpdateCampaignDocumentRoleDto } from './dto/update-campaign-document-role.dto'
 
 @Controller('campaign-document-role')
 export class CampaignDocumentRoleController {
@@ -9,26 +10,35 @@ export class CampaignDocumentRoleController {
 
   @Post()
   create(@Body() createCampaignDocumentRoleDto: CreateCampaignDocumentRoleDto) {
-    return this.campaignDocumentRoleService.create(createCampaignDocumentRoleDto);
+    return this.campaignDocumentRoleService.create(createCampaignDocumentRoleDto)
   }
 
   @Get()
+  @Public()
   findAll() {
-    return this.campaignDocumentRoleService.findAll();
+    return this.campaignDocumentRoleService.findAll()
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.campaignDocumentRoleService.findOne(+id);
+    return this.campaignDocumentRoleService.findOne(id)
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCampaignDocumentRoleDto: UpdateCampaignDocumentRoleDto) {
-    return this.campaignDocumentRoleService.update(+id, updateCampaignDocumentRoleDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateCampaignDocumentRoleDto: UpdateCampaignDocumentRoleDto,
+  ) {
+    return this.campaignDocumentRoleService.update(id, updateCampaignDocumentRoleDto)
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.campaignDocumentRoleService.remove(+id);
+    return this.campaignDocumentRoleService.remove(id)
+  }
+
+  @Post('delete-many')
+  removeMany(@Body() tasksToDelete: [string]) {
+    return this.campaignDocumentRoleService.removeMany(tasksToDelete)
   }
 }

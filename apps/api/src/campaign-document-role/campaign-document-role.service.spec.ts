@@ -1,18 +1,19 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { CampaignDocumentRoleService } from './campaign-document-role.service';
+import { Test, TestingModule } from '@nestjs/testing'
+import { PrismaService } from '../prisma/prisma.service'
+import { CampaignDocumentRoleService } from './campaign-document-role.service'
 
 describe('CampaignDocumentRoleService', () => {
-  let service: CampaignDocumentRoleService;
+  let service: CampaignDocumentRoleService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CampaignDocumentRoleService],
-    }).compile();
+      providers: [CampaignDocumentRoleService, PrismaService],
+    }).compile()
 
-    service = module.get<CampaignDocumentRoleService>(CampaignDocumentRoleService);
-  });
+    service = module.get<CampaignDocumentRoleService>(CampaignDocumentRoleService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+})

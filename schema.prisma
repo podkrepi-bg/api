@@ -262,6 +262,13 @@ model Country {
   @@map("countries")
 }
 
+model CampaignDocumentRole {
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name  String
+  description  String
+  @@map("bootcamp")
+}
+
 model Vault {
   id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name               String              @default("") @db.VarChar(100)
