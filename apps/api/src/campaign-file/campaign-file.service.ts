@@ -12,6 +12,7 @@ export class CampaignFileService {
 
   async create(
     campaignId: string,
+    role: string,
     filename: string,
     mimetype: string,
     uploadedBy: Person,
@@ -27,6 +28,8 @@ export class CampaignFileService {
       filename: filename,
       campaignId: campaign.id,
       uploadedById: uploadedBy.id,
+      type: mimetype,
+      role,
     }
     const dbFile = await this.prisma.campaignFile.create({ data: file })
 

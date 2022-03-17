@@ -37,7 +37,14 @@ export class CampaignFileController {
     }
     return await Promise.all(
       files.map((x) =>
-        this.campaignFileService.create(campaignId, x.originalname, x.mimetype, person, x.buffer),
+        this.campaignFileService.create(
+          campaignId,
+          'background',
+          x.originalname,
+          x.mimetype,
+          person,
+          x.buffer,
+        ),
       ),
     )
   }
