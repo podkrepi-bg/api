@@ -3,7 +3,6 @@ import { PrismaService } from '../prisma/prisma.service'
 import { S3Service } from '../s3/s3.service'
 import { CreateCampaignFileDto } from './dto/create-campaign-file.dto'
 import { Readable } from 'stream'
-// import { PersonService } from '../person/person.service'
 import { Person } from '@prisma/client'
 
 @Injectable()
