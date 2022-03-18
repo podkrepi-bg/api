@@ -184,14 +184,14 @@ model Campaign {
 }
 
 model CampaignFile {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  filename     String   @db.VarChar(200)
-  role         String   @db.VarChar(200)
-  type         String   @db.VarChar(200)
-  campaignId   String   @map("campaign_id") @db.Uuid
-  campaign     Campaign @relation(fields: [campaignId], references: [id])
-  uploadedById String   @map("uploaded_by_id") @db.Uuid
-  uploadedBy   Person   @relation(fields: [uploadedById], references: [id])
+  id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename     String           @db.VarChar(200)
+  role         CampaignFileRole
+  type         String           @db.VarChar(200)
+  campaignId   String           @map("campaign_id") @db.Uuid
+  campaign     Campaign         @relation(fields: [campaignId], references: [id])
+  uploadedById String           @map("uploaded_by_id") @db.Uuid
+  uploadedBy   Person           @relation(fields: [uploadedById], references: [id])
 
 
   @@map("campaign_files")
@@ -620,4 +620,21 @@ enum BankAccountStatus {
   errored
 
   @@map("bank_account_status")
+}
+
+enum CampaignFileRole {
+  background
+  coordinator
+  campaignPhoto
+  invoice
+  document
+
+  @@map("role")
+}
+
+enum CampaignFileType {
+  png
+  jpeg
+  pdf
+  docx
 }
