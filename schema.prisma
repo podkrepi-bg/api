@@ -264,6 +264,8 @@ model Country {
 
 model CampaignDocumentRole {
   id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
   name  String
   description  String
   @@map("bootcamp")

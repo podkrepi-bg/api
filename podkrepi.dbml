@@ -212,6 +212,8 @@ Table Country {
 
 Table CampaignDocumentRole {
   id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
   name String [not null]
   description String [not null]
 }
