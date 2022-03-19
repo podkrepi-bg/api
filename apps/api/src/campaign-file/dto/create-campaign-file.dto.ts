@@ -1,4 +1,4 @@
-import { CampaignFileRole } from "@prisma/client"
+import { CampaignFileRole } from '@prisma/client'
 
 export class CreateCampaignFileDto {
   filename: string

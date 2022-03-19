@@ -5,6 +5,6 @@
     "firsttris.vscode-jest-runner",
     "dbaeumer.vscode-eslint",
     "editorconfig.editorconfig",
-    "prisma.prisma",
+    "prisma.prisma"
   ]
 }

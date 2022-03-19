@@ -1,10 +1,4 @@
-
-
-
-
-
-
 export class UpdateInfoRequestDto {
-  message?: string;
-deletedAt?: Date;
+  message?: string
+  deletedAt?: Date
 }

@@ -1,2 +1,1 @@
-
-export * from './recurringDonation.entity';
+export * from './recurringDonation.entity'
