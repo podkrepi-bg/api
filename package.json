@@ -80,7 +80,6 @@
     "jest-extended": "^1.2.0",
     "jest-mock-extended": "^2.0.4",
     "lint-staged": "11.1.2",
-    "nx": "12.9.0",
     "prettier": "2.4.1",
     "prisma": "^3.10.0",
     "prisma-dbml-generator": "^0.8.0",

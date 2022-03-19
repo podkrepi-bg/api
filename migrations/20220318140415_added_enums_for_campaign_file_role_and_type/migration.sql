@@ -14,6 +14,3 @@ CREATE TYPE "CampaignFileType" AS ENUM ('png', 'jpeg', 'pdf', 'docx');
 -- AlterTable
 ALTER TABLE "campaign_files" DROP COLUMN "role",
 ADD COLUMN     "role" "role" NOT NULL;
-
--- CreateIndex
-CREATE UNIQUE INDEX "coordinators_person_id_key" ON "coordinators"("person_id");
