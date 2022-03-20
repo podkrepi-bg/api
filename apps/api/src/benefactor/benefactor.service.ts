@@ -1,10 +1,10 @@
+import { Benefactor } from '@prisma/client'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+
+import { PrismaService } from '../prisma/prisma.service'
 import { CreateBenefactorDto } from './dto/create-benefactor.dto'
 import { UpdateBenefactorDto } from './dto/update-benefactor.dto'
-import { Benefactor } from '@prisma/client'
-import { BenefactorModule } from './benefactor.module'
-import { PrismaService } from '../prisma/prisma.service'
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
 
 @Injectable()
 export class BenefactorService {
@@ -21,9 +21,7 @@ export class BenefactorService {
   async findOne(id: string): Promise<Benefactor> {
     try {
       return await this.prisma.benefactor.findFirst({
-        where: {
-          id,
-        },
+        where: { id },
         rejectOnNotFound: true,
       })
     } catch (err) {
@@ -34,13 +32,11 @@ export class BenefactorService {
     }
   }
 
-  async update(id: string, updateBenefactorDto: UpdateBenefactorDto) {
+  async update(id: string, { extCustomerId }: UpdateBenefactorDto) {
     try {
       const result = await this.prisma.benefactor.update({
         where: { id },
-        data: {
-          extCustomerId: updateBenefactorDto.extCustomerId,
-        },
+        data: { extCustomerId },
       })
       return result
     } catch (error) {
@@ -53,11 +49,7 @@ export class BenefactorService {
 
   async remove(id: string): Promise<Benefactor> {
     try {
-      return await this.prisma.benefactor.delete({
-        where: {
-          id,
-        },
-      })
+      return await this.prisma.benefactor.delete({ where: { id } })
     } catch (err) {
       const msg = `Delete failed. No Benefactor found with ID: ${id}`
 
