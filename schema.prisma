@@ -187,7 +187,7 @@ model CampaignFile {
   id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   filename     String           @db.VarChar(200)
   role         CampaignFileRole
-  type         String           @db.VarChar(200)
+  type         CampaignFileType
   campaignId   String           @map("campaign_id") @db.Uuid
   campaign     Campaign         @relation(fields: [campaignId], references: [id])
   uploadedById String           @map("uploaded_by_id") @db.Uuid
