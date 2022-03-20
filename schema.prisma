@@ -637,6 +637,4 @@ enum CampaignFileType {
   jpeg
   pdf
   docx
-
-  @@map("campaign_file_type")
 }

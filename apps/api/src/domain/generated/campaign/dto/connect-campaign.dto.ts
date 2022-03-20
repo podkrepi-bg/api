@@ -1,4 +1,6 @@
-export class ConnectCampaignDto {
-  id?: string
-  slug?: string
-}
+
+  export class ConnectCampaignDto {
+    id?: string;
+slug?: string;
+  }
+  

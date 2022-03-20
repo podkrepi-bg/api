@@ -1,3 +1,5 @@
-export class ConnectTransferDto {
-  id: string
-}
+
+  export class ConnectTransferDto {
+    id: string;
+  }
+  
