@@ -14,7 +14,9 @@ import { Public, AuthenticatedUser } from 'nest-keycloak-connect'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { Multer } from 'multer'
+import mimeDb from 'mime-types'
 import { PersonService } from '../person/person.service'
+import { CampaignFileType } from '@prisma/client'
 
 @Controller('campaign-file')
 export class CampaignFileController {
@@ -36,16 +38,19 @@ export class CampaignFileController {
       throw new NotFoundException('No person record with keycloak ID: ' + user.sub)
     }
     return await Promise.all(
-      files.map((x) =>
-        this.campaignFileService.create(
-          campaignId,
-          'background',
-          x.originalname,
-          x.mimetype,
-          person,
-          x.buffer,
-        ),
-      ),
+      files.map((x) => {
+        const fileExt = mimeDb.extension(x.mimetype) || ''
+        if (Object.values(CampaignFileType).includes(fileExt)) {
+          return this.campaignFileService.create(
+            'background',
+            campaignId,
+            fileExt,
+            x.originalname,
+            person,
+            x.buffer,
+          )
+        }
+      }),
     )
   }
 

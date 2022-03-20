@@ -1,0 +1,83 @@
+version: '3.7'
+services:
+  api:
+    image: podkrepi-api
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: ${TARGET_ENV?}
+    container_name: ${COMPOSE_PROJECT_NAME?}-api
+    restart: always
+    environment:
+      PORT: ${API_PORT?}
+      TARGET_APP: api
+      DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
+    volumes:
+      # Local:Container mounting points
+      - ./:/app
+    ports:
+      - '${API_PORT?}:${API_PORT?}'
+    networks:
+      backend-net:
+        aliases:
+          - api.podkrepi.localhost
+
+  ## Postgres Development ##
+  migrate-db:
+    image: podkrepi-api
+    container_name: ${COMPOSE_PROJECT_NAME?}-migrate-db
+    restart: 'no'
+    environment:
+      DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
+    command: 'yarn migrate'
+    networks:
+      backend-net:
+        aliases:
+          - api.podkrepi.localhost
+
+  ## Postgres Development ##
+  ##########################
+  pg-db:
+    build:
+      context: ./db
+      dockerfile: ./Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME?}-pg-db
+    restart: always
+
+    volumes:
+      - pg-db-data:/bitnami/postgresql
+
+    ports:
+      - 5432:5432
+
+    environment:
+      ## https://github.com/bitnami/bitnami-docker-postgresql/blob/master/README.md
+      PGPASSWORD: ${DB_PASS?}
+      POSTGRESQL_USERNAME: ${DB_USER?}
+      POSTGRESQL_PASSWORD: ${DB_PASS?}
+      POSTGRESQL_DATABASE: ${DB_NAME?}
+
+    networks:
+      - backend-net
+
+  # Flyway is deprecated, Prisma migrations are taking place
+  # flyway:
+  #   build:
+  #     context: ./db
+  #     dockerfile: ./flyway/Dockerfile
+  #   container_name: ${COMPOSE_PROJECT_NAME?}-flyway
+  #   hostname: flyway
+  #   # https://flywaydb.org/documentation/configuration/configfile#reference
+  #   # jdbc:postgresql://<host>:<port>/<database>?<key1>=<value1>&<key2>=<value2>...
+  #   command: migrate
+  #   entrypoint: flyway -url=jdbc:postgresql://${DB_HOST?}:${DB_PORT?}/${DB_NAME?} -schemas=app,campaign,account -user=${DB_USER?} -password=${DB_PASS?} -connectRetries=60
+  #   depends_on:
+  #     - pg-db
+  #   networks:
+  #     - backend-net
+
+volumes:
+  pg-db-data:
+
+networks:
+  backend-net:
