@@ -41,18 +41,6 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   Note: 'Generic person object'
 }
 
-Table Cat {
-  id String [pk]
-  firstName String [not null]
-  lastName String [not null]
-}
-
-Table BootcampIntern {
-  id String [pk]
-  firstName String [not null]
-  lastName String [not null]
-}
-
 Table Company {
   id String [pk]
   companyName String [not null]

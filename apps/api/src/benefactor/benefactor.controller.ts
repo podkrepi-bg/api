@@ -12,7 +12,7 @@ export class BenefactorController {
 
   @Post()
   @Roles({
-    roles: [RealmViewSupporters.role,],
+    roles: [RealmViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
   create(@Body() createBenefactorDto: CreateBenefactorDto) {
