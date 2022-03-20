@@ -186,11 +186,11 @@ model Campaign {
 model CampaignFile {
   id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   filename     String           @db.VarChar(200)
-  role         CampaignFileRole
-  type         CampaignFileType
+  mimetype     String?          @db.VarChar(50)
   campaignId   String           @map("campaign_id") @db.Uuid
-  campaign     Campaign         @relation(fields: [campaignId], references: [id])
   uploadedById String           @map("uploaded_by_id") @db.Uuid
+  role         CampaignFileRole
+  campaign     Campaign         @relation(fields: [campaignId], references: [id])
   uploadedBy   Person           @relation(fields: [uploadedById], references: [id])
 
 
@@ -630,11 +630,4 @@ enum CampaignFileRole {
   document
 
   @@map("campaign_file_role")
-}
-
-enum CampaignFileType {
-  png
-  jpeg
-  pdf
-  docx
 }

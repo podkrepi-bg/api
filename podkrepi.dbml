@@ -144,11 +144,11 @@ Table Campaign {
 Table CampaignFile {
   id String [pk]
   filename String [not null]
-  role CampaignFileRole [not null]
-  type CampaignFileType [not null]
+  mimetype String
   campaignId String [not null]
-  campaign Campaign [not null]
   uploadedById String [not null]
+  role CampaignFileRole [not null]
+  campaign Campaign [not null]
   uploadedBy Person [not null]
 }
 
@@ -506,13 +506,6 @@ Enum CampaignFileRole {
   campaignPhoto
   invoice
   document
-}
-
-Enum CampaignFileType {
-  png
-  jpeg
-  pdf
-  docx
 }
 
 Ref: Coordinator.personId > Person.id

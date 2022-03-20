@@ -16,7 +16,7 @@ import { FilesInterceptor } from '@nestjs/platform-express'
 import { Multer } from 'multer'
 import mimeDb from 'mime-types'
 import { PersonService } from '../person/person.service'
-import { CampaignFileType } from '@prisma/client'
+import { CampaignFileRole } from '@prisma/client'
 
 @Controller('campaign-file')
 export class CampaignFileController {
@@ -38,18 +38,15 @@ export class CampaignFileController {
       throw new NotFoundException('No person record with keycloak ID: ' + user.sub)
     }
     return await Promise.all(
-      files.map((x) => {
-        const fileExt = mimeDb.extension(x.mimetype) || ''
-        if (Object.values(CampaignFileType).includes(fileExt)) {
-          return this.campaignFileService.create(
-            'background',
-            campaignId,
-            fileExt,
-            x.originalname,
-            person,
-            x.buffer,
-          )
-        }
+      files.map((file) => {
+        return this.campaignFileService.create(
+          CampaignFileRole.background,
+          campaignId,
+          file.mimetype,
+          file.originalname,
+          person,
+          file.buffer,
+        )
       }),
     )
   }
