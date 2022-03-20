@@ -629,7 +629,7 @@ enum CampaignFileRole {
   invoice
   document
 
-  @@map("role")
+  @@map("campaign_file_role")
 }
 
 enum CampaignFileType {
