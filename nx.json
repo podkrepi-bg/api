@@ -26,12 +26,8 @@
       }
     ]
   },
-  "projects": {
-    "api": {
-      "tags": []
-    },
-    "podkrepi-types": {
-      "tags": []
-    }
-  }
+  "cli": {
+    "defaultCollection": "@nrwl/nest"
+  },
+  "defaultProject": "api"
 }

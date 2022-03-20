@@ -3,20 +3,17 @@ import { PrismaService } from '../prisma/prisma.service'
 import { S3Service } from '../s3/s3.service'
 import { CreateCampaignFileDto } from './dto/create-campaign-file.dto'
 import { Readable } from 'stream'
-import { PersonService } from '../person/person.service'
-import { Person } from '@prisma/client'
+import { CampaignFileRole, Person } from '@prisma/client'
 
 @Injectable()
 export class CampaignFileService {
-  constructor(
-    private prisma: PrismaService,
-    private s3: S3Service,
-  ) {}
+  constructor(private prisma: PrismaService, private s3: S3Service) {}
 
   async create(
+    role: CampaignFileRole,
     campaignId: string,
-    filename: string,
     mimetype: string,
+    filename: string,
     uploadedBy: Person,
     buf: Buffer,
   ): Promise<string> {
@@ -27,7 +24,9 @@ export class CampaignFileService {
     }
 
     const file: CreateCampaignFileDto = {
-      filename: filename,
+      filename,
+      mimetype,
+      role,
       campaignId: campaign.id,
       uploadedById: uploadedBy.id,
     }

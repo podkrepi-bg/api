@@ -1,3 +1,4 @@
+import 'multer'
 import {
   Controller,
   Get,
@@ -13,8 +14,8 @@ import { CampaignFileService } from './campaign-file.service'
 import { Public, AuthenticatedUser } from 'nest-keycloak-connect'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
-import { Multer } from 'multer'
 import { PersonService } from '../person/person.service'
+import { CampaignFileRole } from '@prisma/client'
 
 @Controller('campaign-file')
 export class CampaignFileController {
@@ -36,9 +37,16 @@ export class CampaignFileController {
       throw new NotFoundException('No person record with keycloak ID: ' + user.sub)
     }
     return await Promise.all(
-      files.map((x) =>
-        this.campaignFileService.create(campaignId, x.originalname, x.mimetype, person, x.buffer),
-      ),
+      files.map((file) => {
+        return this.campaignFileService.create(
+          CampaignFileRole.background,
+          campaignId,
+          file.mimetype,
+          file.originalname,
+          person,
+          file.buffer,
+        )
+      }),
     )
   }
 

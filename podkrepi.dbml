@@ -156,9 +156,11 @@ Table Campaign {
 Table CampaignFile {
   id String [pk]
   filename String [not null]
+  mimetype String
   campaignId String [not null]
-  campaign Campaign [not null]
   uploadedById String [not null]
+  role CampaignFileRole [not null]
+  campaign Campaign [not null]
   uploadedBy Person [not null]
 }
 
@@ -508,6 +510,14 @@ Enum BankAccountStatus {
   verified
   verification_failed
   errored
+}
+
+Enum CampaignFileRole {
+  background
+  coordinator
+  campaignPhoto
+  invoice
+  document
 }
 
 Ref: Coordinator.personId > Person.id
