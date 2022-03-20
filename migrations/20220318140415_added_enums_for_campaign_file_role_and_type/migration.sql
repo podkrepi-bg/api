@@ -6,11 +6,11 @@
 
 */
 -- CreateEnum
-CREATE TYPE "role" AS ENUM ('background', 'coordinator', 'campaignPhoto', 'invoice', 'document');
+CREATE TYPE "campaign_file_role" AS ENUM ('background', 'coordinator', 'campaignPhoto', 'invoice', 'document');
 
 -- CreateEnum
 CREATE TYPE "CampaignFileType" AS ENUM ('png', 'jpeg', 'pdf', 'docx');
 
 -- AlterTable
 ALTER TABLE "campaign_files" DROP COLUMN "role",
-ADD COLUMN     "role" "role" NOT NULL;
+ADD COLUMN     "role" "campaign_file_role" NOT NULL;
