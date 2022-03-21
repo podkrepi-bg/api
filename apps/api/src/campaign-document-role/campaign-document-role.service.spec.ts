@@ -28,17 +28,9 @@ const mockData = [
   },
 ]
 
-type data = {
-  id: string
-  createdAt: Date
-  updatedAt: Date
-  name: string
-  description: string
-}
-
 describe('CampaignDocumentRoleService', () => {
   let service: CampaignDocumentRoleService
-  let prismaService = prismaMock
+  const prismaService = prismaMock
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
