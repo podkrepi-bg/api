@@ -62,7 +62,7 @@ export class CampaignDocumentRoleService {
         where: { id: { in: documentToDelete } },
       })
       if (!ids.length) {
-        throw new NotFoundException('Requested socument`s ids does not exist!')
+        throw new NotFoundException('Requested document`s ids does not exist!')
       }
       await this.prisma.campaignDocumentRole.deleteMany({
         where: {
