@@ -44,6 +44,7 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   supporters Supporter [not null]
   transfers Transfer [not null]
   withdrawals Withdrawal [not null]
+  campaignFiles CampaignFile [not null]
 
   Note: 'Generic person object'
 }
@@ -145,6 +146,18 @@ Table Campaign {
   incomingTransfers Transfer [not null]
   vaults Vault [not null]
   withdrawals Withdrawal [not null]
+  campaignFiles CampaignFile [not null]
+}
+
+Table CampaignFile {
+  id String [pk]
+  filename String [not null]
+  mimetype String
+  campaignId String [not null]
+  uploadedById String [not null]
+  role CampaignFileRole [not null]
+  campaign Campaign [not null]
+  uploadedBy Person [not null]
 }
 
 Table InfoRequest {
@@ -495,6 +508,14 @@ Enum BankAccountStatus {
   errored
 }
 
+Enum CampaignFileRole {
+  background
+  coordinator
+  campaignPhoto
+  invoice
+  document
+}
+
 Ref: Coordinator.personId > Person.id
 
 Ref: Benefactor.personId > Person.id
@@ -516,6 +537,10 @@ Ref: Campaign.beneficiaryId > Beneficiary.id
 Ref: Campaign.campaignTypeId > CampaignType.id [delete: Cascade]
 
 Ref: Campaign.coordinatorId > Coordinator.id
+
+Ref: CampaignFile.campaignId > Campaign.id
+
+Ref: CampaignFile.uploadedById > Person.id
 
 Ref: InfoRequest.personId > Person.id
 

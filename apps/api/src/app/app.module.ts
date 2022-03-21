@@ -29,6 +29,7 @@ import { KeycloakConfigService } from '../config/keycloak-config.service'
 import { PrismaClientExceptionFilter } from '../prisma/prisma-client-exception.filter'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
+import { BenefactorModule } from '../benefactor/benefactor.module'
 import { CoordinatorModule } from '../coordinator/coordinator.module'
 import { DocumentModule } from '../document/document.module'
 import { CountryModule } from '../country/country.module'
@@ -37,6 +38,9 @@ import { InfoRequestModule } from '../info-request/info-request.module'
 import { BankAccountModule } from '../bankaccount/bankaccount.module'
 import { PersonModule } from '../person/person.module'
 import { VaultModule } from '../vault/vault.module'
+import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
+import { WithdrawalModule } from '../withdrawal/withdrawal.module'
+import { CampaignFileModule } from '../campaign-file/campaign-file.module'
 import { BootcampSimeonModule } from '../bootcamp-simeon/bootcamp-simeon.module'
 
 @Module({
@@ -59,11 +63,13 @@ import { BootcampSimeonModule } from '../bootcamp-simeon/bootcamp-simeon.module'
     AuthModule,
     AccountModule,
     CampaignModule,
+    CampaignFileModule,
     CountryModule,
     DonationsModule,
     SupportModule,
     BeneficiaryModule,
     CityModule,
+    BenefactorModule,
     HealthModule,
     CoordinatorModule,
     DocumentModule,
@@ -73,7 +79,6 @@ import { BootcampSimeonModule } from '../bootcamp-simeon/bootcamp-simeon.module'
     ExpensesModule,
     PersonModule,
     VaultModule,
-    BootcampSimeonModule,
   ],
   controllers: [AppController],
   providers: [

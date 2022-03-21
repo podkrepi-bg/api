@@ -19,6 +19,10 @@ export class PersonService {
     return await this.prisma.person.findFirst({ where: { id } })
   }
 
+  async findOneByKeycloakId(keycloakId: string) {
+    return await this.prisma.person.findFirst({ where: { keycloakId } })
+  }
+
   async update(id: string, updatePersonDto: UpdatePersonDto) {
     return await this.prisma.person.update({ where: { id }, data: updatePersonDto })
   }
