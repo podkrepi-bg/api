@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
-import { RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 import { BeneficiaryService } from './beneficiary.service'
@@ -9,7 +9,7 @@ import { DeleteManyBeneficiaryDto } from './dto/delete-many-beneficiary.dto'
 
 @Controller('beneficiary')
 export class BeneficiaryController {
-  constructor(private readonly beneficiaryService: BeneficiaryService) {}
+  constructor(private readonly beneficiaryService: BeneficiaryService) { }
 
   @Post('create-beneficiary')
   @Roles({
@@ -21,19 +21,13 @@ export class BeneficiaryController {
   }
 
   @Get('list')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
+  @Public()
   async list() {
     return await this.beneficiaryService.listBeneficiaries()
   }
 
   @Get(':id')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
+  @Public()
   async getById(@Param('id') id: string) {
     return await this.beneficiaryService.viewBeneficiary(id)
   }

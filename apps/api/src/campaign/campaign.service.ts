@@ -14,6 +14,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
+import { UpdateCampaignDto } from './dto/update-campaign.dto'
 
 @Injectable()
 export class CampaignService {
@@ -48,7 +49,7 @@ export class CampaignService {
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
     const campaign = await this.prisma.campaign.findFirst({ where: { id: campaignId } })
-    if (campaign === null) {
+    if (!campaign) {
       Logger.warn('No campaign record with ID: ' + campaignId)
       throw new NotFoundException('No campaign record with ID: ' + campaignId)
     }
@@ -246,5 +247,33 @@ export class CampaignService {
       return paymentIntent.payment_method
     }
     return paymentIntent.payment_method?.id ?? 'none'
+  }
+
+  async update(id: string, updateCampaignDto: UpdateCampaignDto): Promise<Campaign | null> {
+    const result = await this.prisma.campaign.update({
+      where: { id: id },
+      data: updateCampaignDto,
+    })
+    if (!result) throw new NotFoundException('Not found')
+    return result
+  }
+
+  async removeCampaign(campaignId: string) {
+    return await this.prisma.campaign.delete({ where: { id: campaignId } })
+  }
+
+  //DELETE MANY
+  async removeMany(itemsToDelete: string[]): Promise<{ count: number }> {
+    try {
+      return await this.prisma.campaign.deleteMany({
+        where: {
+          id: {
+            in: itemsToDelete,
+          },
+        },
+      })
+    } catch (error) {
+      throw new NotFoundException()
+    }
   }
 }
