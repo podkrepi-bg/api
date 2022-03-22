@@ -160,7 +160,7 @@ describe('CampaignDocumentRoleService', () => {
       name: '',
       description: 'gdgf',
     }
-    it('should create task', async () => {
+    it('should create document', async () => {
       const create = jest.spyOn(service, 'create')
       await service.create(data)
       expect(create).toHaveBeenCalledWith(data)
