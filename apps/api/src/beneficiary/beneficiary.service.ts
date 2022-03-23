@@ -18,9 +18,14 @@ export class BeneficiaryService {
   }
 
   async viewBeneficiary(id: string): Promise<Beneficiary | null | undefined> {
-    return this.prisma.beneficiary.findFirst({ where: { id }, include: { person: true } }).catch(() => {
-      throw new NotFoundException(`Could not find beneficiary`)
-    })
+    return this.prisma.beneficiary
+      .findFirst({
+        where: { id },
+        include: { person: true },
+      })
+      .catch(() => {
+        throw new NotFoundException(`Could not find beneficiary`)
+      })
   }
 
   async editBeneficiary(

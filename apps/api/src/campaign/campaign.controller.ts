@@ -1,5 +1,6 @@
 import { Campaign } from '.prisma/client'
-import { Public } from 'nest-keycloak-connect'
+import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
 
 import { CampaignService } from './campaign.service'
@@ -12,7 +13,7 @@ export class CampaignController {
 
   @Get('list')
   @Public()
-  getData() {
+  async getData() {
     return this.campaignService.listCampaigns()
   }
 
@@ -23,34 +24,45 @@ export class CampaignController {
     return { campaign }
   }
 
-
-  @Get('byId/:id')
-  @Public()
-  findOne(@Param('id') id: string) {
-    return this.campaignService.getCampaignById(id)
-  }
-
   @Post('create-campaign')
   @Public()
   async create(@Body() createDto: CreateCampaignDto) {
     return await this.campaignService.createCampaign(createDto)
   }
 
+  @Get('byId/:id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async findOne(@Param('id') id: string) {
+    return this.campaignService.getCampaignById(id)
+  }
+
   @Patch(':id')
-  @Public()
-  update(@Param('id') id: string, @Body() updateCampaignDto: UpdateCampaignDto) {
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async update(@Param('id') id: string, @Body() updateCampaignDto: UpdateCampaignDto) {
     return this.campaignService.update(id, updateCampaignDto)
   }
 
   @Delete(':id')
-  @Public()
-  remove(@Param('id') id: string) {
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async remove(@Param('id') id: string) {
     return this.campaignService.removeCampaign(id)
   }
 
   @Post('deletemany')
-  @Public()
-  removeMany(@Body() itemsToDelete: string[]) {
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async removeMany(@Body() itemsToDelete: string[]) {
     return this.campaignService.removeMany(itemsToDelete)
   }
 }
