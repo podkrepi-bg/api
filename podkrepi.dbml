@@ -144,7 +144,7 @@ Table Campaign {
 Table CampaignFile {
   id String [pk]
   filename String [not null]
-  mimetype String
+  mimetype String [not null]
   campaignId String [not null]
   uploadedById String [not null]
   role CampaignFileRole [not null]
