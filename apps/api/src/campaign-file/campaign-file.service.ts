@@ -37,13 +37,19 @@ export class CampaignFileService {
     return dbFile.id
   }
 
-  async findOne(id: string): Promise<{ filename: string; stream: Readable }> {
+  async findOne(
+    id: string,
+  ): Promise<{ filename: string; stream: Readable; mimetype: string | null }> {
     const file = await this.prisma.campaignFile.findFirst({ where: { id: id } })
     if (!file) {
       Logger.warn('No campaign file record with ID: ' + id)
       throw new NotFoundException('No campaign file record with ID: ' + id)
     }
-    return { filename: file.filename, stream: await this.s3.streamFile(id) }
+    return {
+      filename: file.filename,
+      stream: await this.s3.streamFile(id),
+      mimetype: file.mimetype,
+    }
   }
 
   async remove(id: string) {

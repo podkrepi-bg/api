@@ -58,7 +58,7 @@ export class CampaignFileController {
   ): Promise<StreamableFile> {
     const file = await this.campaignFileService.findOne(id)
     res.set({
-      'Content-Type': 'application/json',
+      'Content-Type': file.mimetype,
       'Content-Disposition': 'attachment; filename="' + file.filename + '"',
     })
 
