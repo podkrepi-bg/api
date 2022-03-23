@@ -21,9 +21,13 @@ jobs:
         with:
           node-version: '16'
           cache: 'yarn'
+      - name: Run database
+        run: docker-compose up -d pg-db
       - run: yarn
       - name: Generate Prisma DB client
         run: yarn prisma generate
+      - name: Migrate database
+        run: yarn prisma migrate deploy
       - name: NX Test API # https://github.com/marketplace/actions/nrwl-nx
         uses: MansaGroup/nrwl-nx-action@v2
         with:
