@@ -79,7 +79,7 @@ describe('CampaignDocumentRoleService', () => {
     })
   })
   describe('Remove many', () => {
-    let id = ''
+    const id = ''
     const data = {
       name: 'todo',
       description: 'Bootcamp1',
