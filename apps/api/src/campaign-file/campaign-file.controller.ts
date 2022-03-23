@@ -60,6 +60,7 @@ export class CampaignFileController {
     const file = await this.campaignFileService.findOne(id)
     const fileExt = file.filename.split('.')[1]
     const mimetype = mimeDb[fileExt]
+
     res.set({
       'Content-Type': mimetype,
       'Content-Disposition': 'attachment; filename="' + file.filename + '"',
