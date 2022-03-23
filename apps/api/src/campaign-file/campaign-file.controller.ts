@@ -14,6 +14,7 @@ import { CampaignFileService } from './campaign-file.service'
 import { Public, AuthenticatedUser } from 'nest-keycloak-connect'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
+import * as mimeDb from 'mime-db'
 import { PersonService } from '../person/person.service'
 import { CampaignFileRole } from '@prisma/client'
 
@@ -57,8 +58,11 @@ export class CampaignFileController {
     @Response({ passthrough: true }) res,
   ): Promise<StreamableFile> {
     const file = await this.campaignFileService.findOne(id)
+    const fileExt = file.filename.split('.')[1]
+    const mimetype = mimeDb[fileExt]
+    console.log(fileExt, mimetype)
     res.set({
-      'Content-Type': 'application/json',
+      'Content-Type': mimetype,
       'Content-Disposition': 'attachment; filename="' + file.filename + '"',
     })
 
