@@ -186,7 +186,7 @@ model Campaign {
 model CampaignFile {
   id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   filename     String           @db.VarChar(200)
-  mimetype     String?          @db.VarChar(50)
+  mimetype     String           @db.VarChar(50)
   campaignId   String           @map("campaign_id") @db.Uuid
   uploadedById String           @map("uploaded_by_id") @db.Uuid
   role         CampaignFileRole
