@@ -271,7 +271,7 @@ model CampaignDocumentRole {
   updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
   name  String
   description  String
-  @@map("bootcamp")
+  @@map("campaign-document-role")
 }
 
 model Vault {
