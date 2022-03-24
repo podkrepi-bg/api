@@ -9,6 +9,7 @@ import {
   StreamableFile,
   NotFoundException,
   Logger,
+  Body,
 } from '@nestjs/common'
 import { CampaignFileService } from './campaign-file.service'
 import { Public, AuthenticatedUser } from 'nest-keycloak-connect'
@@ -28,9 +29,11 @@ export class CampaignFileController {
   @UseInterceptors(FilesInterceptor('file'))
   async create(
     @Param('campaign_id') campaignId: string,
+    @Body() body: { filesRole: string },
     @UploadedFiles() files: Express.Multer.File[],
     @AuthenticatedUser() user,
   ) {
+    const filesRole = JSON.parse(body.filesRole)
     const person = await this.personService.findOneByKeycloakId(user.sub)
     if (!person) {
       Logger.warn('No person record with keycloak ID: ' + user.sub)
@@ -39,7 +42,7 @@ export class CampaignFileController {
     return await Promise.all(
       files.map((file) => {
         return this.campaignFileService.create(
-          CampaignFileRole.background,
+          filesRole.find((f) => f.file === file.originalname).role,
           campaignId,
           file.mimetype,
           file.originalname,
