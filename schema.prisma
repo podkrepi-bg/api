@@ -141,7 +141,7 @@ model Beneficiary {
 
 model CampaignType {
   id          String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  category    CampaignTypeCategory
+  category    CampaignTypeCategory @default(others)
   name        String               @db.VarChar(50)
   slug        String               @unique @db.VarChar(50)
   description String?              @db.VarChar(200)
