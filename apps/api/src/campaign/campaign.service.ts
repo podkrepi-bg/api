@@ -33,6 +33,7 @@ export class CampaignService {
             donations: { select: { amount: true } },
           },
         },
+        campaignFiles: true,
       },
     })
 

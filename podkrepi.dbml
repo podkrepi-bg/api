@@ -521,6 +521,8 @@ Enum CampaignFileRole {
   campaignPhoto
   invoice
   document
+  profilePhoto
+  campaignListPhoto
 }
 
 Ref: Coordinator.personId > Person.id
