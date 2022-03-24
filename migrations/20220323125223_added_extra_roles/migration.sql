@@ -6,5 +6,5 @@
 -- the enum.
 
 
-ALTER TYPE "campaign_file_role" ADD VALUE 'anyCampaignPicture';
+ALTER TYPE "campaign_file_role" ADD VALUE 'profilePhoto';
 ALTER TYPE "campaign_file_role" ADD VALUE 'campaignListPhoto';
