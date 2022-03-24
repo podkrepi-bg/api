@@ -506,7 +506,7 @@ Enum CampaignFileRole {
   campaignPhoto
   invoice
   document
-  anyCampaignPicture
+  profilePhoto
   campaignListPhoto
 }
 
