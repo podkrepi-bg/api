@@ -1,9 +1,11 @@
 import { Campaign } from '.prisma/client'
-import { Public } from 'nest-keycloak-connect'
-import { Body, Controller, Get, Param, Post } from '@nestjs/common'
+import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
 
 import { CampaignService } from './campaign.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
+import { UpdateCampaignDto } from '../campaign/dto/update-campaign.dto'
 
 @Controller('campaign')
 export class CampaignController {
@@ -11,7 +13,7 @@ export class CampaignController {
 
   @Get('list')
   @Public()
-  getData() {
+  async getData() {
     return this.campaignService.listCampaigns()
   }
 
@@ -26,5 +28,41 @@ export class CampaignController {
   @Public()
   async create(@Body() createDto: CreateCampaignDto) {
     return await this.campaignService.createCampaign(createDto)
+  }
+
+  @Get('byId/:id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async findOne(@Param('id') id: string) {
+    return this.campaignService.getCampaignById(id)
+  }
+
+  @Patch(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async update(@Param('id') id: string, @Body() updateCampaignDto: UpdateCampaignDto) {
+    return this.campaignService.update(id, updateCampaignDto)
+  }
+
+  @Delete(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async remove(@Param('id') id: string) {
+    return this.campaignService.removeCampaign(id)
+  }
+
+  @Post('deletemany')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async removeMany(@Body() itemsToDelete: string[]) {
+    return this.campaignService.removeMany(itemsToDelete)
   }
 }

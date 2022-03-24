@@ -27,7 +27,7 @@ export async function campaignSeed() {
     throw new Error('No beneficiary')
   }
 
-  const campaignTypeFromDb = await prisma.campaignType.findFirst()
+  const campaignTypeFromDb = await prisma.campaignType.findMany()
   console.log(campaignTypeFromDb)
 
   if (!campaignTypeFromDb) {
@@ -37,6 +37,7 @@ export async function campaignSeed() {
   const insert = await prisma.campaign.createMany({
     data: [...Array(20).keys()].map(() => {
       const title = faker.lorem.sentence()
+      const randomType = campaignTypeFromDb[Math.floor(Math.random() * campaignTypeFromDb.length)]
       return {
         state: CampaignState.active,
         slug: faker.helpers.slugify(title).replace('.', '').toLowerCase(),
@@ -44,7 +45,7 @@ export async function campaignSeed() {
         essence: faker.company.catchPhrase(),
         coordinatorId: coordinatorFromDb.id,
         beneficiaryId: beneficiaryFromDb.id,
-        campaignTypeId: campaignTypeFromDb.id,
+        campaignTypeId: randomType.id,
         description: faker.lorem.paragraphs(4),
         targetAmount: parseInt(faker.finance.amount(2000, 200000)),
         currency: Currency.BGN,

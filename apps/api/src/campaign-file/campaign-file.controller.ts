@@ -10,12 +10,13 @@ import {
   NotFoundException,
   Logger,
 } from '@nestjs/common'
-import { CampaignFileService } from './campaign-file.service'
-import { Public, AuthenticatedUser } from 'nest-keycloak-connect'
-import { UseInterceptors, UploadedFiles } from '@nestjs/common'
-import { FilesInterceptor } from '@nestjs/platform-express'
-import { PersonService } from '../person/person.service'
 import { CampaignFileRole } from '@prisma/client'
+import { FilesInterceptor } from '@nestjs/platform-express'
+import { UseInterceptors, UploadedFiles } from '@nestjs/common'
+import { Public, AuthenticatedUser } from 'nest-keycloak-connect'
+
+import { PersonService } from '../person/person.service'
+import { CampaignFileService } from './campaign-file.service'
 
 @Controller('campaign-file')
 export class CampaignFileController {

@@ -140,13 +140,14 @@ model Beneficiary {
 }
 
 model CampaignType {
-  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String         @db.VarChar(50)
-  slug        String         @unique @db.VarChar(50)
-  description String?        @db.VarChar(200)
-  parentId    String?        @map("parent_id") @db.Uuid
-  parent      CampaignType?  @relation("ParentCategory", fields: [parentId], references: [id])
-  children    CampaignType[] @relation("ParentCategory")
+  id          String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  category    CampaignTypeCategory @default(others)
+  name        String               @db.VarChar(50)
+  slug        String               @unique @db.VarChar(50)
+  description String?              @db.VarChar(200)
+  parentId    String?              @map("parent_id") @db.Uuid
+  parent      CampaignType?        @relation("ParentCategory", fields: [parentId], references: [id])
+  children    CampaignType[]       @relation("ParentCategory")
   campaigns   Campaign[]
 
   @@map("campaign_types")
@@ -186,7 +187,7 @@ model Campaign {
 model CampaignFile {
   id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   filename     String           @db.VarChar(200)
-  mimetype     String?          @db.VarChar(50)
+  mimetype     String           @db.VarChar(50)
   campaignId   String           @map("campaign_id") @db.Uuid
   uploadedById String           @map("uploaded_by_id") @db.Uuid
   role         CampaignFileRole
@@ -620,6 +621,22 @@ enum BankAccountStatus {
   errored
 
   @@map("bank_account_status")
+}
+
+enum CampaignTypeCategory {
+  medical
+  charity
+  disasters
+  education
+  events
+  environment
+  sport
+  art
+  nature
+  animals
+  others
+
+  @@map("campaign_type_category")
 }
 
 enum CampaignFileRole {
