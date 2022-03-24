@@ -16,7 +16,6 @@ import { Public, AuthenticatedUser } from 'nest-keycloak-connect'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { PersonService } from '../person/person.service'
-import { CampaignFileRole } from '@prisma/client'
 
 @Controller('campaign-file')
 export class CampaignFileController {
