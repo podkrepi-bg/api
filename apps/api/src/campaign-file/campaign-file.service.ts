@@ -1,9 +1,10 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
-import { S3Service } from '../s3/s3.service'
-import { CreateCampaignFileDto } from './dto/create-campaign-file.dto'
 import { Readable } from 'stream'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { CampaignFile, CampaignFileRole, Person } from '@prisma/client'
+
+import { S3Service } from '../s3/s3.service'
+import { PrismaService } from '../prisma/prisma.service'
+import { CreateCampaignFileDto } from './dto/create-campaign-file.dto'
 
 @Injectable()
 export class CampaignFileService {
@@ -37,13 +38,21 @@ export class CampaignFileService {
     return dbFile.id
   }
 
-  async findOne(id: string): Promise<{ file: CampaignFile; stream: Readable }> {
+  async findOne(id: string): Promise<{
+    filename: CampaignFile['filename']
+    mimetype: CampaignFile['mimetype']
+    stream: Readable
+  }> {
     const file = await this.prisma.campaignFile.findFirst({ where: { id: id } })
     if (!file) {
       Logger.warn('No campaign file record with ID: ' + id)
       throw new NotFoundException('No campaign file record with ID: ' + id)
     }
-    return { file: file, stream: await this.s3.streamFile(id) }
+    return {
+      filename: file.filename,
+      mimetype: file.mimetype,
+      stream: await this.s3.streamFile(id),
+    }
   }
 
   async remove(id: string) {
