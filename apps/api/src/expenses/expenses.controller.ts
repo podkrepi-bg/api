@@ -25,9 +25,17 @@ export class ExpensesController {
     return await this.expensesService.listExpenses()
   }
 
-  @Public()
   @Post('create-expense')
-  create(@Body() createExpenseDto: CreateExpenseDto) {
+  create(
+    @AuthenticatedUser()
+    user: KeycloakTokenParsed,
+    @Body()
+    createExpenseDto: CreateExpenseDto,
+  ) {
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+
     return this.expensesService.createExpense(createExpenseDto)
   }
 
@@ -52,15 +60,31 @@ export class ExpensesController {
     return this.expensesService.update(id, data)
   }
 
-  @Public()
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(
+    @AuthenticatedUser()
+    user: KeycloakTokenParsed,
+    @Param('id')
+    id: string,
+  ) {
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+
     return this.expensesService.remove(id)
   }
 
-  @Public()
   @Delete()
-  removeMany(@Body() idsToDelete: string[]) {
+  removeMany(
+    @AuthenticatedUser()
+    user: KeycloakTokenParsed,
+    @Body()
+    idsToDelete: string[],
+  ) {
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+
     return this.expensesService.removeMany(idsToDelete)
   }
 }
