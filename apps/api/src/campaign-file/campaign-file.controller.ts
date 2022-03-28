@@ -11,16 +11,11 @@ import {
   Logger,
   Body,
 } from '@nestjs/common'
-import { CampaignFileRole } from '@prisma/client'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'
 import { Public, AuthenticatedUser } from 'nest-keycloak-connect'
-
 import { PersonService } from '../person/person.service'
-import { CreateCampaignFileDto } from './dto/create-campaign-file.dto'
 import { FilesRoleDto } from './dto/files-role.dto'
-import { CampaignFileRole } from '@prisma/client'
-
 import { CampaignFileService } from './campaign-file.service'
 
 @Controller('campaign-file')
