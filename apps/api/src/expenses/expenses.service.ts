@@ -41,7 +41,7 @@ export class ExpensesService {
         data,
       })
     } catch (err) {
-      const msg = 'Update failed. No expense record found with ID: ' + id
+      const msg = 'Update failed. No Expense found with given ID: ' + id
 
       Logger.warn(msg)
       throw new NotFoundException(msg)
