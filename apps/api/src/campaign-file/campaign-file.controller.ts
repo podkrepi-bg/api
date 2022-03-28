@@ -16,6 +16,9 @@ import { Public, AuthenticatedUser } from 'nest-keycloak-connect'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { PersonService } from '../person/person.service'
+import { CreateCampaignFileDto } from './dto/create-campaign-file.dto'
+import { FilesRoleDto } from './dto/files-role.dto'
+import { CampaignFileRole } from '@prisma/client'
 
 @Controller('campaign-file')
 export class CampaignFileController {
@@ -28,16 +31,16 @@ export class CampaignFileController {
   @UseInterceptors(FilesInterceptor('file'))
   async create(
     @Param('campaign_id') campaignId: string,
-    @Body() body: { filesRole: string },
+    @Body() body: FilesRoleDto,
     @UploadedFiles() files: Express.Multer.File[],
     @AuthenticatedUser() user,
   ) {
-    const filesRole = JSON.parse(body.filesRole)
     const person = await this.personService.findOneByKeycloakId(user.sub)
     if (!person) {
       Logger.warn('No person record with keycloak ID: ' + user.sub)
       throw new NotFoundException('No person record with keycloak ID: ' + user.sub)
     }
+    const filesRole = JSON.parse(body.filesRole)
     return await Promise.all(
       files.map((file) => {
         return this.campaignFileService.create(
