@@ -1,1 +1,2 @@
-export * from './coordinator.entity'
+
+export * from './coordinator.entity';

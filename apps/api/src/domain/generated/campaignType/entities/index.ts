@@ -1,1 +1,2 @@
-export * from './campaignType.entity'
+
+export * from './campaignType.entity';
