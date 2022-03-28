@@ -1,15 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
-import {
-  Currency,
-  DonationStatus,
-  DonationType,
-  PaymentProvider,
-  Person,
-  Prisma,
-  Vault,
-} from '@prisma/client'
+import { Currency, DonationStatus, DonationType, PaymentProvider, Prisma } from '@prisma/client'
 import { Expose } from 'class-transformer'
-import { IsNumber, IsOptional, IsString, IsUUID } from 'class-validator'
+import { IsNumber, IsString, IsUUID } from 'class-validator'
 
 @Expose()
 export class CreatePaymentDto {

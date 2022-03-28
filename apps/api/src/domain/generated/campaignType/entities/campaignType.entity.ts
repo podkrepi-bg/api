@@ -1,7 +1,9 @@
+import { CampaignTypeCategory } from '@prisma/client'
 import { Campaign } from '../../campaign/entities/campaign.entity'
 
 export class CampaignType {
   id: string
+  category: CampaignTypeCategory
   name: string
   slug: string
   description: string | null

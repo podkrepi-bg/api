@@ -103,6 +103,7 @@ Table Beneficiary {
 
 Table CampaignType {
   id String [pk]
+  category CampaignTypeCategory [not null, default: 'others']
   name String [not null]
   slug String [unique, not null]
   description String
@@ -500,12 +501,28 @@ Enum BankAccountStatus {
   errored
 }
 
+Enum CampaignTypeCategory {
+  medical
+  charity
+  disasters
+  education
+  events
+  environment
+  sport
+  art
+  nature
+  animals
+  others
+}
+
 Enum CampaignFileRole {
   background
   coordinator
   campaignPhoto
   invoice
   document
+  profilePhoto
+  campaignListPhoto
 }
 
 Ref: Coordinator.personId > Person.id
