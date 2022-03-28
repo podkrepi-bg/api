@@ -1,7 +1,9 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { CreateExpenseDto } from './dto/create-expense.dto'
-import { PrismaService } from '../prisma/prisma.service'
 import { Expense } from '@prisma/client'
+
+import { PrismaService } from '../prisma/prisma.service'
+import { CreateExpenseDto } from './dto/create-expense.dto'
+import { UpdateExpenseDto } from './dto/update-expense.dto'
 
 @Injectable()
 export class ExpensesService {
@@ -29,6 +31,20 @@ export class ExpensesService {
       return await this.prisma.expense.delete({ where: { id } })
     } catch (error) {
       throw new NotFoundException('No expense with this id exists.')
+    }
+  }
+
+  async update(id: string, data: UpdateExpenseDto) {
+    try {
+      return await this.prisma.expense.update({
+        where: { id },
+        data,
+      })
+    } catch (err) {
+      const msg = 'Update failed. No expense record found with ID: ' + id
+
+      Logger.warn(msg)
+      throw new NotFoundException(msg)
     }
   }
 
