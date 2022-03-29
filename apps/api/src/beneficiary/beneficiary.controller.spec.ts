@@ -162,16 +162,17 @@ describe('BeneficiaryController', () => {
         publicData: {},
         companyId: null,
       }
+      const index = expected.findIndex((x) => x.id == itemToUpdate.id)
 
       const mockItem = jest.fn<PrismaPromise<Beneficiary>, []>().mockImplementation(() => {
-        expected[1] = itemToUpdate
+        expected[index] = itemToUpdate
         return itemToUpdate as unknown as PrismaPromise<Beneficiary>
       })
 
       const mockImplementation = jest.spyOn(controller, 'editById').mockImplementation(mockItem)
 
       expect(await controller.editById('random-id', itemToUpdate)).toEqual(itemToUpdate)
-      expect(expected[1]).toEqual(itemToUpdate)
+      expect(expected[index]).toEqual(itemToUpdate)
       expect(mockImplementation).toBeCalled()
     })
   })
