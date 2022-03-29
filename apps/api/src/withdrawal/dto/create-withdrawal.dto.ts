@@ -47,18 +47,4 @@ export class CreateWithdrawalDto {
   @IsUUID()
   @Expose()
   approvedById: string
-
-  public toEntity(): Prisma.WithdrawalCreateInput {
-    return {
-      status: this.status,
-      currency: this.currency,
-      amount: this.amount,
-      reason: this.reason,
-      documentId: this.documentId,
-      approvedBy: { connect: { id: this.approvedById } },
-      bankAccount: { connect: { id: this.bankAccountId } },
-      sourceCampaign: { connect: { id: this.sourceCampaignId } },
-      sourceVault: { connect: { id: this.sourceVaultId } },
-    }
-  }
 }
