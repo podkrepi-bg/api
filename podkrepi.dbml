@@ -7,6 +7,13 @@ Project "Podkrepi.bg" {
   Note: ''
 }
 
+Table Bootcamp {
+  id String [pk]
+  firstName String [not null]
+  lastName String [not null]
+  city String [not null]
+}
+
 Table Person {
   id String [pk]
   firstName String [not null]
