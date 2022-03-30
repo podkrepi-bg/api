@@ -11,8 +11,7 @@ import {
 import { RecurringDonationService } from './recurring-donation.service'
 import { CreateRecurringDonationDto } from './dto/create-recurring-donation.dto'
 import { UpdateRecurringDonationDto } from './dto/update-recurring-donation.dto'
-import { AuthenticatedUser, Public } from 'nest-keycloak-connect'
-import { KeycloakTokenParsed } from '../auth/keycloak'
+import {  Public } from 'nest-keycloak-connect'
 
 @Controller('recurring-donation')
 export class RecurringDonationController {
@@ -20,17 +19,8 @@ export class RecurringDonationController {
 
   @Post()
   @Public()
-  create(
-    // @AuthenticatedUser()
-    // user: KeycloakTokenParsed,
-
-    @Body() createRecurringDonationDto: CreateRecurringDonationDto,
-  ) {
-    // if (!user) {
-    //   throw new UnauthorizedException()
-    // }
-
-    return this.recurringDonationService.create(createRecurringDonationDto)
+  create( @Body() createRecurringDonationDto: CreateRecurringDonationDto,) {
+     return this.recurringDonationService.create(createRecurringDonationDto)
   }
 
   @Get()
