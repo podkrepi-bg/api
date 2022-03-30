@@ -20,12 +20,4 @@ export class CreateCityDto {
   @Expose()
   @IsUUID()
   countryId: string
-
-  public toEntity(): Prisma.CityCreateInput {
-    return {
-      name: this.name,
-      postalCode: this.postalCode,
-      countryCode: { connect: { id: this.countryId } },
-    }
-  }
 }
