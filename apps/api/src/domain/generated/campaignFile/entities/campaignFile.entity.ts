@@ -7,9 +7,9 @@ import {Person} from '../../person/entities/person.entity'
 export class CampaignFile {
   id: string ;
 filename: string ;
-mimetype: string ;
 campaignId: string ;
 uploadedById: string ;
+mimetype: string ;
 role: CampaignFileRole ;
 campaign?: Campaign ;
 uploadedBy?: Person ;

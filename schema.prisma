@@ -7,26 +7,38 @@ generator dbml {
   provider            = "prisma-dbml-generator"
   output              = "."
   projectDatabaseType = "PostgreSQL"
-  projectName         = "Podkrepi.bg"
   outputName          = "podkrepi.dbml"
+  projectName         = "Podkrepi.bg"
 }
 
 generator nestjsDto {
   provider                        = "prisma-generator-nestjs-dto"
   output                          = "apps/api/src/domain/generated"
   createDtoPrefix                 = "Create"
-  entityPrefix                    = ""
-  updateDtoPrefix                 = "Update"
-  dtoSuffix                       = "Dto"
-  entitySuffix                    = ""
   reExport                        = "true"
+  entitySuffix                    = ""
   exportRelationModifierClasses   = "true"
   outputToNestJsResourceStructure = "true"
+  updateDtoPrefix                 = "Update"
+  entityPrefix                    = ""
+  dtoSuffix                       = "Dto"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+/// 
+model Bootcamp {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstName String  @map("first_name") @db.VarChar(100)
+  lastName  String  @map("last_name") @db.VarChar(100)
+  email     String  @unique @db.Citext
+  phone     String? @db.VarChar(50)
+  company   String? @db.VarChar(50)
+
+  @@map("bootcamp")
 }
 
 /// Generic person object
@@ -50,8 +62,9 @@ model Person {
   stripeCustomerId   String?             @unique @map("stripe_customer_id")
   benefactors        Benefactor[]
   beneficiaries      Beneficiary[]
+  campaignFiles      CampaignFile[]
   campaigns          Campaign[]
-  coordinators       Coordinator[]
+  coordinators       Coordinator?
   documents          Document[]
   Donation           Donation[]
   expenses           Expense[]
@@ -60,7 +73,6 @@ model Person {
   supporters         Supporter[]
   transfers          Transfer[]
   withdrawals        Withdrawal[]
-  campaignFiles      CampaignFile[]
 
   @@index([keycloakId], map: "keycloak_id_idx")
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
@@ -87,14 +99,13 @@ model Company {
 /// Alias: Organizer
 model Coordinator {
   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  personId      String        @map("person_id") @db.Uuid
+  personId      String        @unique @map("person_id") @db.Uuid
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
   person        Person        @relation(fields: [personId], references: [id])
   beneficiaries Beneficiary[]
   campaigns     Campaign[]
 
-  @@unique([personId])
   @@map("coordinators")
 }
 
@@ -104,7 +115,7 @@ model Benefactor {
   personId      String    @map("person_id") @db.Uuid
   /// Payment provider customer id
   extCustomerId String?   @unique @map("ext_customer_id") @db.VarChar(50)
-  ///
+  /// 
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   person        Person    @relation(fields: [personId], references: [id])
@@ -141,11 +152,11 @@ model Beneficiary {
 
 model CampaignType {
   id          String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  category    CampaignTypeCategory @default(others)
   name        String               @db.VarChar(50)
   slug        String               @unique @db.VarChar(50)
   description String?              @db.VarChar(200)
   parentId    String?              @map("parent_id") @db.Uuid
+  category    CampaignTypeCategory @default(others)
   parent      CampaignType?        @relation("ParentCategory", fields: [parentId], references: [id])
   children    CampaignType[]       @relation("ParentCategory")
   campaigns   Campaign[]
@@ -175,11 +186,11 @@ model Campaign {
   beneficiary       Beneficiary    @relation(fields: [beneficiaryId], references: [id])
   campaignType      CampaignType   @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   coordinator       Coordinator    @relation(fields: [coordinatorId], references: [id])
+  campaignFiles     CampaignFile[]
   outgoingTransfers Transfer[]     @relation("source_campaign")
   incomingTransfers Transfer[]     @relation("target_campaign")
   vaults            Vault[]
   withdrawals       Withdrawal[]
-  campaignFiles     CampaignFile[]
 
   @@map("campaigns")
 }
@@ -187,13 +198,12 @@ model Campaign {
 model CampaignFile {
   id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   filename     String           @db.VarChar(200)
-  mimetype     String           @db.VarChar(50)
   campaignId   String           @map("campaign_id") @db.Uuid
   uploadedById String           @map("uploaded_by_id") @db.Uuid
+  mimetype     String           @db.VarChar(50)
   role         CampaignFileRole
   campaign     Campaign         @relation(fields: [campaignId], references: [id])
   uploadedBy   Person           @relation(fields: [uploadedById], references: [id])
-
 
   @@map("campaign_files")
 }
@@ -268,12 +278,12 @@ model Country {
 
 model Vault {
   id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name               String              @default("") @db.VarChar(100)
   currency           Currency            @default(BGN)
   amount             Int                 @default(0)
   campaignId         String              @map("campaign_id") @db.Uuid
   createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  name               String              @default("") @db.VarChar(100)
   campaign           Campaign            @relation(fields: [campaignId], references: [id])
   donations          Donation[]
   expenses           Expense[]
@@ -296,7 +306,7 @@ model Donation {
   extCustomerId      String          @map("ext_customer_id") @db.VarChar(50)
   extPaymentIntentId String          @unique @map("ext_payment_intent_id")
   extPaymentMethodId String          @map("ext_payment_method_id")
-  ///
+  /// 
   createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
   amount             Int             @default(0)
@@ -317,7 +327,7 @@ model RecurringDonation {
   /// Payment provider Subscription id
   extSubscriptionId String                  @map("ext_subscription_id") @db.VarChar(50)
   extCustomerId     String?                 @map("ext_customer_id") @db.VarChar(50)
-  ///
+  /// 
   createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime?               @updatedAt @map("updated_at") @db.Timestamptz(6)
   amount            Int                     @default(0)
@@ -405,17 +415,17 @@ model BankAccount {
 model Expense {
   id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type         ExpenseType
-  status       ExpenseStatus
-  currency     Currency      @default(BGN)
-  amount       Int           @default(0)
-  vaultId      String        @map("vault_id") @db.Uuid
-  deleted      Boolean       @default(false)
   description  String?
+  vaultId      String        @map("vault_id") @db.Uuid
   documentId   String?       @map("document_id") @db.Uuid
   approvedById String?       @db.Uuid
-  vault        Vault         @relation(fields: [vaultId], references: [id])
+  amount       Int           @default(0)
+  currency     Currency      @default(BGN)
+  status       ExpenseStatus
+  deleted      Boolean       @default(false)
   approvedBy   Person?       @relation(fields: [approvedById], references: [id])
   document     Document?     @relation(fields: [documentId], references: [id])
+  vault        Vault         @relation(fields: [vaultId], references: [id])
 
   @@map("expenses")
 }

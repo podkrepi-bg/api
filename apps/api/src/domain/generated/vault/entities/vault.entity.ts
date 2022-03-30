@@ -10,12 +10,12 @@ import {Withdrawal} from '../../withdrawal/entities/withdrawal.entity'
 
 export class Vault {
   id: string ;
-name: string ;
 currency: Currency ;
 amount: number ;
 campaignId: string ;
 createdAt: Date ;
 updatedAt: Date  | null;
+name: string ;
 campaign?: Campaign ;
 donations?: Donation[] ;
 expenses?: Expense[] ;

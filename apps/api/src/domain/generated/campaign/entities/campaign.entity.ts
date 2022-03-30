@@ -4,10 +4,10 @@ import {Person} from '../../person/entities/person.entity'
 import {Beneficiary} from '../../beneficiary/entities/beneficiary.entity'
 import {CampaignType} from '../../campaignType/entities/campaignType.entity'
 import {Coordinator} from '../../coordinator/entities/coordinator.entity'
+import {CampaignFile} from '../../campaignFile/entities/campaignFile.entity'
 import {Transfer} from '../../transfer/entities/transfer.entity'
 import {Vault} from '../../vault/entities/vault.entity'
 import {Withdrawal} from '../../withdrawal/entities/withdrawal.entity'
-import {CampaignFile} from '../../campaignFile/entities/campaignFile.entity'
 
 
 export class Campaign {
@@ -32,9 +32,9 @@ approvedBy?: Person  | null;
 beneficiary?: Beneficiary ;
 campaignType?: CampaignType ;
 coordinator?: Coordinator ;
+campaignFiles?: CampaignFile[] ;
 outgoingTransfers?: Transfer[] ;
 incomingTransfers?: Transfer[] ;
 vaults?: Vault[] ;
 withdrawals?: Withdrawal[] ;
-campaignFiles?: CampaignFile[] ;
 }

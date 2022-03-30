@@ -1,6 +1,7 @@
 
 import {Benefactor} from '../../benefactor/entities/benefactor.entity'
 import {Beneficiary} from '../../beneficiary/entities/beneficiary.entity'
+import {CampaignFile} from '../../campaignFile/entities/campaignFile.entity'
 import {Campaign} from '../../campaign/entities/campaign.entity'
 import {Coordinator} from '../../coordinator/entities/coordinator.entity'
 import {Document} from '../../document/entities/document.entity'
@@ -11,7 +12,6 @@ import {RecurringDonation} from '../../recurringDonation/entities/recurringDonat
 import {Supporter} from '../../supporter/entities/supporter.entity'
 import {Transfer} from '../../transfer/entities/transfer.entity'
 import {Withdrawal} from '../../withdrawal/entities/withdrawal.entity'
-import {CampaignFile} from '../../campaignFile/entities/campaignFile.entity'
 
 
 export class Person {
@@ -32,8 +32,9 @@ keycloakId: string  | null;
 stripeCustomerId: string  | null;
 benefactors?: Benefactor[] ;
 beneficiaries?: Beneficiary[] ;
+campaignFiles?: CampaignFile[] ;
 campaigns?: Campaign[] ;
-coordinators?: Coordinator[] ;
+coordinators?: Coordinator  | null;
 documents?: Document[] ;
 Donation?: Donation[] ;
 expenses?: Expense[] ;
@@ -42,5 +43,4 @@ recurringDonations?: RecurringDonation[] ;
 supporters?: Supporter[] ;
 transfers?: Transfer[] ;
 withdrawals?: Withdrawal[] ;
-campaignFiles?: CampaignFile[] ;
 }
