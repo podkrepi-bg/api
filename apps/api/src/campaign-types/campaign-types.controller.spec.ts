@@ -1,64 +1,71 @@
 import { Test, TestingModule } from '@nestjs/testing'
+import { CampaignTypeCategory } from '@prisma/client'
 
-import { CampaignType, CampaignTypeCategory, PrismaPromise, Prisma } from '@prisma/client'
-import { prismaMock } from '../prisma/prisma-client.mock'
 import { PrismaService } from '../prisma/prisma.service'
 import { CampaignTypesController } from './campaign-types.controller'
 import { CampaignTypesService } from './campaign-types.service'
 
+const mockData = [
+  {
+    id: '0846e9cb-0668-448b-96de-1f35dfa9a1d4',
+    name: 'Rehabilitation',
+    slug: 'rehabilitation',
+    description: null,
+    parentId: 'ff7e63c8-ca12-4e34-8880-350a56eb1ba0',
+    category: 'medical',
+  },
+  {
+    id: '32f16697-db01-4ae4-8269-b0d7616f9820',
+    name: 'Better society',
+    slug: 'better-society',
+    description: null,
+    parentId: null,
+    category: 'others',
+  },
+  {
+    id: '343b81b6-0c28-4664-939a-123eef437aa6',
+    name: 'Disasters',
+    slug: 'disasters',
+    description: null,
+    parentId: '32f16697-db01-4ae4-8269-b0d7616f9820',
+    category: 'disasters',
+  },
+]
+
 describe('CampaignTypesController', () => {
   let controller: CampaignTypesController
-  let expected: CampaignType[]
-  let expectedOne: CampaignType
 
-  beforeEach(() => {
-    expected = [
-      {
-        id: expect.any(String),
-        name: expect.any(String),
-        parentId: null,
-        category: expect.any(String),
-        slug: expect.any(String),
-        description: null,
-      },
-      {
-        id: 'random-id',
-        name: expect.any(String),
-        parentId: null,
-        category: expect.any(String),
-        slug: expect.any(String),
-        description: null,
-      },
-      {
-        id: 'random-id-2',
-        name: expect.any(String),
-        parentId: null,
-        category: expect.any(String),
-        slug: expect.any(String),
-        description: null,
-      },
-    ]
-    expectedOne = {
-      id: 'random-id',
-      name: expect.any(String),
-      parentId: null,
-      category: expect.any(String),
-      slug: expect.any(String),
-      description: null,
-    }
-  })
+  const mockCampaignTypeservice = {
+    create: jest.fn((dto) => {
+      return {
+        id: Date.now(),
+        ...dto,
+      }
+    }),
+    findAll: jest.fn().mockReturnValueOnce(mockData),
+    update: jest.fn((id, dto) => ({
+      id,
+      ...dto,
+    })),
+    findOne: jest.fn((id) => {
+      return mockData.find((res) => res.id === id)
+    }),
+    remove: jest.fn((id) => {
+      return mockData.filter((task) => task.id !== id)
+    }),
+    removeMany: jest.fn(({ ids }) => {
+      return mockData.filter((task) => !ids.includes(task.id))
+    }),
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CampaignTypesController],
-      providers: [
-        CampaignTypesService,
-        {
-          provide: PrismaService,
-          useValue: prismaMock,
-        },
-      ],
-    }).compile()
+      providers: [CampaignTypesService, PrismaService],
+    })
+      .overrideProvider(CampaignTypesService)
+      .useValue(mockCampaignTypeservice)
+      .compile()
 
     controller = module.get<CampaignTypesController>(CampaignTypesController)
   })
@@ -69,112 +76,84 @@ describe('CampaignTypesController', () => {
 
   describe('getData', () => {
     it('should list all campaign types in db', async () => {
-      const mockList = jest.fn<PrismaPromise<CampaignType[]>, []>().mockResolvedValue(expected)
-
-      const mockImplementation = jest.spyOn(controller, 'findAll').mockImplementation(mockList)
-
-      expect(await controller.findAll()).toEqual(expected)
-      expect(await controller.findAll()).toHaveLength(3)
-      expect(mockImplementation).toBeCalled()
+      const result = await controller.findAll()
+      expect(result).toHaveLength(3)
+      expect(result).toEqual(mockData)
+      expect(mockCampaignTypeservice.findAll).toHaveBeenCalled()
     })
     it('should get one campaign type', async () => {
-      const mockItem = jest.fn<PrismaPromise<CampaignType>, []>().mockResolvedValue(expectedOne)
-
-      const mockImplementation = jest.spyOn(controller, 'findOne').mockImplementation(mockItem)
-      expect(await controller.findOne('random-id')).toEqual(expectedOne)
-      expect(mockImplementation).toBeCalled()
+      const result = await controller.findOne('0846e9cb-0668-448b-96de-1f35dfa9a1d4')
+      const expected = mockData[0]
+      expect(result).toEqual(expected)
+      expect(mockCampaignTypeservice.findOne).toHaveBeenCalledWith(
+        '0846e9cb-0668-448b-96de-1f35dfa9a1d4',
+      )
     })
   })
 
   describe('create and update data', () => {
     it('it should create campaign type', async () => {
-      const itemToPush = {
-        id: 'random-id',
-        name: 'campaign type',
-        parentId: 'random-id',
+      const result = await controller.create({
+        name: 'test',
+        category: 'medical',
         slug: 'test',
-        category: CampaignTypeCategory.others,
-        description: 'no-description',
+      })
+      const expected = {
+        id: expect.any(Number),
+        name: 'test',
+        category: 'medical',
+        slug: 'test',
       }
 
-      const mockItem = jest.fn<PrismaPromise<CampaignType>, []>().mockImplementation(() => {
-        expected.push(itemToPush)
-        return itemToPush as unknown as PrismaPromise<CampaignType>
-      })
-
-      const mockImplementation = jest.spyOn(controller, 'create').mockImplementation(mockItem)
-
-      expect(await controller.create(itemToPush)).toEqual(itemToPush)
-      expect(expected).toHaveLength(4)
-      expect(mockImplementation).toBeCalled()
+      expect(result).toEqual(expected)
+      expect(mockCampaignTypeservice.create).toHaveBeenCalled()
     })
-    it('it should update campaign type', async () => {
-      const itemToUpdate = {
-        id: 'random-id',
-        name: 'campaign type',
-        parentId: 'random-id',
-        slug: 'test',
-        category: CampaignTypeCategory.others,
-        description: 'no-description',
-      }
-      const index = expected.findIndex((x) => x.id == itemToUpdate.id)
 
-      const mockItem = jest.fn<PrismaPromise<CampaignType>, []>().mockImplementation(() => {
-        expected[index] = itemToUpdate
-        return itemToUpdate as unknown as PrismaPromise<CampaignType>
+    it('it should update campaign type', async () => {
+      const dto = {
+        name: 'Testing',
+        slug: 'testing',
+        category: CampaignTypeCategory.medical,
+      }
+      expect(await controller.update('0846e9cb-0668-448b-96de-1f35dfa9a1d4', dto)).toEqual({
+        id: '0846e9cb-0668-448b-96de-1f35dfa9a1d4',
+        ...dto,
       })
 
-      const mockImplementation = jest.spyOn(controller, 'update').mockImplementation(mockItem)
-
-      expect(await controller.update('random-id', itemToUpdate)).toEqual(itemToUpdate)
-      expect(expected[index]).toEqual(itemToUpdate)
-      expect(mockImplementation).toBeCalled()
+      expect(mockCampaignTypeservice.update).toHaveBeenCalledWith(
+        '0846e9cb-0668-448b-96de-1f35dfa9a1d4',
+        dto,
+      )
     })
   })
 
   describe('removeData', () => {
     it('should remove one item', async () => {
-      const itemToDelete = {
-        id: 'random-id',
-        name: 'campaign type',
-        parentId: 'random-id',
-        slug: 'test',
-        category: CampaignTypeCategory.others,
-        description: 'no-description',
-      }
+      const result = await controller.remove('0846e9cb-0668-448b-96de-1f35dfa9a1d4')
 
-      const mockFn = jest.fn<PrismaPromise<CampaignType>, []>().mockImplementation(() => {
-        expected.splice(expected.indexOf(itemToDelete), 1)
-        return itemToDelete as unknown as PrismaPromise<CampaignType>
-      })
-
-      const mockImplementation = jest.spyOn(controller, 'remove').mockImplementation(mockFn)
-
-      expect(await controller.remove('random-id')).toEqual(itemToDelete)
-      expect(expected).toHaveLength(2)
-      expect(mockImplementation).toBeCalled()
+      expect(result).toHaveLength(2)
+      expect(mockCampaignTypeservice.remove).toBeCalledWith('0846e9cb-0668-448b-96de-1f35dfa9a1d4')
     })
+
     it('should remove many items', async () => {
-      const idsToDelete = ['random-id', 'random-id-2']
-      const deletedItems: CampaignType[] = []
-      const mockFn = jest.fn<PrismaPromise<Prisma.BatchPayload>, []>().mockImplementation(() => {
-        idsToDelete.map((id) => {
-          const itemIndex = expected.findIndex((x) => x.id == id)
-          deletedItems.push(expected[itemIndex])
-          expected.splice(itemIndex, 1)
-        })
-        return deletedItems.length as unknown as PrismaPromise<Prisma.BatchPayload>
-      })
+      const idsToDelete = [
+        '0846e9cb-0668-448b-96de-1f35dfa9a1d4',
+        '32f16697-db01-4ae4-8269-b0d7616f9820',
+      ]
+      const result = await controller.deleteMany({ ids: idsToDelete as [string] })
+      const expected = [
+        {
+          id: '343b81b6-0c28-4664-939a-123eef437aa6',
+          name: 'Disasters',
+          slug: 'disasters',
+          description: null,
+          parentId: '32f16697-db01-4ae4-8269-b0d7616f9820',
+          category: 'disasters',
+        },
+      ]
 
-      const mockImplementation = jest
-        .spyOn(prismaMock.campaignType, 'deleteMany')
-        .mockImplementation(mockFn)
-
-      expect(
-        await prismaMock.campaignType.deleteMany({ where: { id: { in: idsToDelete } } }),
-      ).toEqual(2)
-      expect(expected).toHaveLength(1)
-      expect(mockImplementation).toBeCalled()
+      expect(result).toEqual(expected)
+      expect(mockCampaignTypeservice.removeMany).toHaveBeenCalledWith({ ids: idsToDelete })
     })
   })
 })
