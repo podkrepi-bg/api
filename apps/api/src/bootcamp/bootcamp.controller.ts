@@ -16,8 +16,8 @@ export class BootcampController {
 
   @Get()
   @Public()
-  findAll() {
-    return this.bootcampService.findAll()
+  async findAll() {
+    return await this.bootcampService.findAll()
   }
 
   @Get(':id')

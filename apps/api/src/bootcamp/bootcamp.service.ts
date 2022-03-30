@@ -11,8 +11,8 @@ export class BootcampService {
     return await this.prisma.bootcamp.create({ data: createBootcampDto })
   }
 
-  findAll() {
-    return `This action returns all bootcamp`
+  async findAll() {
+    return await this.prisma.bootcamp.findMany()
   }
 
   findOne(id: string) {
