@@ -28,13 +28,13 @@ export class BootcampController {
 
   @Patch(':id')
   @Public()
-  update(@Param('id') id: string, @Body() updateBootcampDto: UpdateBootcampDto) {
-    return this.bootcampService.update(id, updateBootcampDto)
+  async update(@Param('id') id: string, @Body() updateBootcampDto: UpdateBootcampDto) {
+    return await this.bootcampService.update(id, updateBootcampDto)
   }
 
   @Delete(':id')
   @Public()
-  remove(@Param('id') id: string) {
-    return this.bootcampService.remove(id)
+  async remove(@Param('id') id: string) {
+    return await this.bootcampService.remove(id)
   }
 }

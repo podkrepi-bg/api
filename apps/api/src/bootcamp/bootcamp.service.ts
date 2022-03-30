@@ -19,11 +19,11 @@ export class BootcampService {
     return await this.prisma.bootcamp.findFirst({ where: { id } })
   }
 
-  update(id: string, updateBootcampDto: UpdateBootcampDto) {
-    return `This action updates a #${id} bootcamp`
+  async update(id: string, updateBootcampDto: UpdateBootcampDto) {
+    return await this.prisma.bootcamp.update({ where: { id }, data: updateBootcampDto })
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} bootcamp`
+  async remove(id: string) {
+    return await this.prisma.bootcamp.delete({ where: { id } })
   }
 }
