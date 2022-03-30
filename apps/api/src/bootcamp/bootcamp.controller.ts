@@ -22,8 +22,8 @@ export class BootcampController {
 
   @Get(':id')
   @Public()
-  findOne(@Param('id') id: string) {
-    return this.bootcampService.findOne(id)
+  async findOne(@Param('id') id: string) {
+    return await this.bootcampService.findOne(id)
   }
 
   @Patch(':id')

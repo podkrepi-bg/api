@@ -15,8 +15,8 @@ export class BootcampService {
     return await this.prisma.bootcamp.findMany()
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} bootcamp`
+  async findOne(id: string) {
+    return await this.prisma.bootcamp.findFirst({ where: { id } })
   }
 
   update(id: string, updateBootcampDto: UpdateBootcampDto) {
