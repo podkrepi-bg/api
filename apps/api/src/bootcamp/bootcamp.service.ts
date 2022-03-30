@@ -12,15 +12,15 @@ export class BootcampService {
     return `This action returns all bootcamp`
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} bootcamp`
   }
 
-  update(id: number, updateBootcampDto: UpdateBootcampDto) {
+  update(id: string, updateBootcampDto: UpdateBootcampDto) {
     return `This action updates a #${id} bootcamp`
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} bootcamp`
   }
 }

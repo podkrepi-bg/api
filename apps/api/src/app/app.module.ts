@@ -41,6 +41,7 @@ import { VaultModule } from '../vault/vault.module'
 import { CampaignFileModule } from '../campaign-file/campaign-file.module'
 import { WithdrawalModule } from '../withdrawal/withdrawal.module'
 import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
+import { BootcampModule } from '../bootcamp/bootcamp.module'
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -79,6 +80,7 @@ import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
     VaultModule,
     WithdrawalModule,
     CampaignTypesModule,
+    BootcampModule,
   ],
   controllers: [AppController],
   providers: [
