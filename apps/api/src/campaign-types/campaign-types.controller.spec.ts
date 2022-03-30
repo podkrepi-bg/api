@@ -35,7 +35,7 @@ const mockData = [
 describe('CampaignTypesController', () => {
   let controller: CampaignTypesController
 
-  const mockCampaignTypeservice = {
+  const mockCampaignTypeService = {
     create: jest.fn((dto) => {
       return {
         id: Date.now(),
@@ -64,7 +64,7 @@ describe('CampaignTypesController', () => {
       providers: [CampaignTypesService, PrismaService],
     })
       .overrideProvider(CampaignTypesService)
-      .useValue(mockCampaignTypeservice)
+      .useValue(mockCampaignTypeService)
       .compile()
 
     controller = module.get<CampaignTypesController>(CampaignTypesController)
@@ -79,13 +79,13 @@ describe('CampaignTypesController', () => {
       const result = await controller.findAll()
       expect(result).toHaveLength(3)
       expect(result).toEqual(mockData)
-      expect(mockCampaignTypeservice.findAll).toHaveBeenCalled()
+      expect(mockCampaignTypeService.findAll).toHaveBeenCalled()
     })
     it('should get one campaign type', async () => {
       const result = await controller.findOne('0846e9cb-0668-448b-96de-1f35dfa9a1d4')
       const expected = mockData[0]
       expect(result).toEqual(expected)
-      expect(mockCampaignTypeservice.findOne).toHaveBeenCalledWith(
+      expect(mockCampaignTypeService.findOne).toHaveBeenCalledWith(
         '0846e9cb-0668-448b-96de-1f35dfa9a1d4',
       )
     })
@@ -106,7 +106,7 @@ describe('CampaignTypesController', () => {
       }
 
       expect(result).toEqual(expected)
-      expect(mockCampaignTypeservice.create).toHaveBeenCalled()
+      expect(mockCampaignTypeService.create).toHaveBeenCalled()
     })
 
     it('it should update campaign type', async () => {
@@ -120,7 +120,7 @@ describe('CampaignTypesController', () => {
         ...dto,
       })
 
-      expect(mockCampaignTypeservice.update).toHaveBeenCalledWith(
+      expect(mockCampaignTypeService.update).toHaveBeenCalledWith(
         '0846e9cb-0668-448b-96de-1f35dfa9a1d4',
         dto,
       )
@@ -132,7 +132,7 @@ describe('CampaignTypesController', () => {
       const result = await controller.remove('0846e9cb-0668-448b-96de-1f35dfa9a1d4')
 
       expect(result).toHaveLength(2)
-      expect(mockCampaignTypeservice.remove).toBeCalledWith('0846e9cb-0668-448b-96de-1f35dfa9a1d4')
+      expect(mockCampaignTypeService.remove).toBeCalledWith('0846e9cb-0668-448b-96de-1f35dfa9a1d4')
     })
 
     it('should remove many items', async () => {
@@ -153,7 +153,7 @@ describe('CampaignTypesController', () => {
       ]
 
       expect(result).toEqual(expected)
-      expect(mockCampaignTypeservice.removeMany).toHaveBeenCalledWith({ ids: idsToDelete })
+      expect(mockCampaignTypeService.removeMany).toHaveBeenCalledWith({ ids: idsToDelete })
     })
   })
 })
