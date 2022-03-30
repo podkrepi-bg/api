@@ -1,26 +1,47 @@
-import { Injectable } from '@nestjs/common';
-import { CreateRecurringDonationDto } from './dto/create-recurring-donation.dto';
-import { UpdateRecurringDonationDto } from './dto/update-recurring-donation.dto';
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { RecurringDonation } from '@prisma/client'
+import { KeycloakTokenParsed } from '../auth/keycloak'
+import { PrismaService } from '../prisma/prisma.service'
+import { CreateRecurringDonationDto } from './dto/create-recurring-donation.dto'
+import { UpdateRecurringDonationDto } from './dto/update-recurring-donation.dto'
 
 @Injectable()
 export class RecurringDonationService {
-  create(createRecurringDonationDto: CreateRecurringDonationDto) {
-    return 'This action adds a new recurringDonation';
+  constructor(private prisma: PrismaService) {}
+
+  async create(CreateRecurringDonationDto: CreateRecurringDonationDto): Promise<RecurringDonation> {
+    return await this.prisma.recurringDonation.create({
+      data: CreateRecurringDonationDto.toEntity(),
+    })
   }
 
-  findAll() {
-    return `This action returns all recurringDonation`;
+  async findAll(): Promise<RecurringDonation[]> {
+    return await this.prisma.recurringDonation.findMany()
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} recurringDonation`;
+  async findOne(id: string): Promise<RecurringDonation | null> {
+    const result = await this.prisma.recurringDonation.findUnique({
+      where: { id },
+    })
+    if (!result) throw new NotFoundException('Not found')
+    return result
   }
 
-  update(id: number, updateRecurringDonationDto: UpdateRecurringDonationDto) {
-    return `This action updates a #${id} recurringDonation`;
+  async update(
+    id: string,
+    updateRecurringDonationDto: UpdateRecurringDonationDto,
+  ): Promise<RecurringDonation | null> {
+    const result = await this.prisma.recurringDonation.update({
+      where: { id: id },
+      data: updateRecurringDonationDto,
+    })
+    if (!result) throw new NotFoundException('Not found')
+    return result
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} recurringDonation`;
+  async remove(id: string): Promise<RecurringDonation | null> {
+    const result = await this.prisma.recurringDonation.delete({ where: { id: id } })
+    if (!result) throw new NotFoundException('Not found')
+    return result
   }
 }
