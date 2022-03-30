@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { RecurringDonation } from '@prisma/client'
-import { KeycloakTokenParsed } from '../auth/keycloak'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateRecurringDonationDto } from './dto/create-recurring-donation.dto'
 import { UpdateRecurringDonationDto } from './dto/update-recurring-donation.dto'
@@ -33,7 +32,14 @@ export class RecurringDonationService {
   ): Promise<RecurringDonation | null> {
     const result = await this.prisma.recurringDonation.update({
       where: { id: id },
-      data: updateRecurringDonationDto,
+      data: { 
+        personId: updateRecurringDonationDto.personId,
+        status: updateRecurringDonationDto.status,
+        extSubscriptionId: updateRecurringDonationDto.extSubscriptionId,
+        extCustomerId: updateRecurringDonationDto.extCustomerId,
+        amount: updateRecurringDonationDto.amount,
+        currency: updateRecurringDonationDto.currency,
+       },
     })
     if (!result) throw new NotFoundException('Not found')
     return result
@@ -44,4 +50,21 @@ export class RecurringDonationService {
     if (!result) throw new NotFoundException('Not found')
     return result
   }
+
+  async removeMany(itemsToDelete: string[]): Promise<{ count: number }> {
+    try {
+      return await this.prisma.recurringDonation.deleteMany({
+        where: {
+          id: {
+            in: itemsToDelete,
+          },
+        },
+      })
+    } catch (error) {
+      throw new NotFoundException()
+    }
+  }
+
+
 }
+
