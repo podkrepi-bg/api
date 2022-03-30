@@ -1,93 +1,90 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { PrismaPromise, Withdrawal, WithdrawStatus, Currency, Prisma } from '@prisma/client'
-import { prismaMock } from '../prisma/prisma-client.mock'
+import { WithdrawStatus, Currency } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { WithdrawalController } from './withdrawal.controller'
 import { WithdrawalService } from './withdrawal.service'
 
+const mockData = [
+  {
+    id: '00000000-0000-0000-0000-000000000001',
+    status: WithdrawStatus.initial,
+    currency: Currency.BGN,
+    amount: 150,
+    reason: 'noreason',
+    sourceVaultId: '00000000-0000-0000-0000-000000000016',
+    sourceCampaignId: '00000000-0000-0000-0000-000000000015',
+    bankAccountId: '00000000-0000-0000-0000-000000000014',
+    documentId: '00000000-0000-0000-0000-000000000013',
+    approvedById: '00000000-0000-0000-0000-000000000012',
+    targetDate: null,
+    createdAt: null,
+    updatedAt: null,
+  },
+  {
+    id: '00000000-0000-0000-0000-000000000002',
+    status: WithdrawStatus.initial,
+    currency: Currency.EUR,
+    amount: 250,
+    reason: 'no-reason',
+    sourceVaultId: '00000000-0000-0000-0000-000000000016',
+    sourceCampaignId: '00000000-0000-0000-0000-000000000015',
+    bankAccountId: '00000000-0000-0000-0000-000000000014',
+    documentId: '00000000-0000-0000-0000-000000000013',
+    approvedById: '00000000-0000-0000-0000-000000000012',
+    targetDate: null,
+    createdAt: null,
+    updatedAt: null,
+  },
+  {
+    id: '00000000-0000-0000-0000-000000000003',
+    status: WithdrawStatus.initial,
+    currency: Currency.USD,
+    amount: 350,
+    reason: 'reason',
+    sourceVaultId: '00000000-0000-0000-0000-000000000016',
+    sourceCampaignId: '00000000-0000-0000-0000-000000000015',
+    bankAccountId: '00000000-0000-0000-0000-000000000014',
+    documentId: '00000000-0000-0000-0000-000000000013',
+    approvedById: '00000000-0000-0000-0000-000000000012',
+    targetDate: null,
+    createdAt: null,
+    updatedAt: null,
+  },
+]
 describe('WithdrawalController', () => {
   let controller: WithdrawalController
-  let prismaService: PrismaService
-  let expected: Withdrawal[]
-  let expectedOne: Withdrawal
 
-  beforeEach(() => {
-    prismaService = prismaMock
-    expected = [
-      {
-        id: '00000000-0000-0000-0000-000000000001',
-        status: expect.toBeOneOf(Object.values(WithdrawStatus)),
-        currency: expect.toBeOneOf(Object.values(Currency)),
-        amount: expect.any(Number),
-        reason: expect.any(String),
-        sourceVaultId: expect.any(String),
-        sourceCampaignId: expect.any(String),
-        bankAccountId: expect.any(String),
-        documentId: expect.any(String),
-        approvedById: expect.any(String),
-        targetDate: expect.any(Date),
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
-      },
-      {
-        id: '00000000-0000-0000-0000-000000000002',
-        status: expect.toBeOneOf(Object.values(WithdrawStatus)),
-        currency: expect.toBeOneOf(Object.values(Currency)),
-        amount: expect.any(Number),
-        reason: expect.any(String),
-        sourceVaultId: expect.any(String),
-        sourceCampaignId: expect.any(String),
-        bankAccountId: expect.any(String),
-        documentId: expect.any(String),
-        approvedById: expect.any(String),
-        targetDate: expect.any(Date),
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
-      },
-      {
-        id: '00000000-0000-0000-0000-000000000003',
-        status: expect.toBeOneOf(Object.values(WithdrawStatus)),
-        currency: expect.toBeOneOf(Object.values(Currency)),
-        amount: expect.any(Number),
-        reason: expect.any(String),
-        sourceVaultId: expect.any(String),
-        sourceCampaignId: expect.any(String),
-        bankAccountId: expect.any(String),
-        documentId: expect.any(String),
-        approvedById: expect.any(String),
-        targetDate: expect.any(Date),
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
-      },
-    ]
-    expectedOne = {
-      id: '00000000-0000-0000-0000-000000000001',
-      status: expect.toBeOneOf(Object.values(WithdrawStatus)),
-      currency: expect.toBeOneOf(Object.values(Currency)),
-      amount: expect.any(Number),
-      reason: expect.any(String),
-      sourceVaultId: expect.any(String),
-      sourceCampaignId: expect.any(String),
-      bankAccountId: expect.any(String),
-      documentId: expect.any(String),
-      approvedById: expect.any(String),
-      targetDate: expect.any(Date),
-      createdAt: expect.any(Date),
-      updatedAt: expect.any(Date),
-    }
-  })
+  const mockWithdrawalService = {
+    create: jest.fn((dto) => {
+      return {
+        id: Date.now(),
+        ...dto,
+      }
+    }),
+    findAll: jest.fn().mockReturnValueOnce(mockData),
+    update: jest.fn((id, dto) => ({
+      id,
+      ...dto,
+    })),
+    findOne: jest.fn((id) => {
+      return mockData.find((res) => res.id === id)
+    }),
+    remove: jest.fn((id) => {
+      return mockData.filter((task) => task.id !== id)
+    }),
+    removeMany: jest.fn((ids) => {
+      return mockData.filter((task) => !ids.includes(task.id))
+    }),
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [WithdrawalController],
-      providers: [
-        WithdrawalService,
-        {
-          provide: PrismaService,
-          useValue: prismaMock,
-        },
-      ],
-    }).compile()
+      providers: [WithdrawalService, PrismaService],
+    })
+      .overrideProvider(WithdrawalService)
+      .useValue(mockWithdrawalService)
+      .compile()
 
     controller = module.get<WithdrawalController>(WithdrawalController)
   })
@@ -97,137 +94,107 @@ describe('WithdrawalController', () => {
   })
 
   describe('getData', () => {
-    it('should list all withdrawals in db', async () => {
-      const mockList = jest.fn<PrismaPromise<Withdrawal[]>, []>().mockResolvedValue(expected)
-
-      const mockImplementation = jest
-        .spyOn(prismaService.withdrawal, 'findMany')
-        .mockImplementation(mockList)
-
-      expect(await controller.findAll()).toEqual(expected)
-      expect(await controller.findAll()).toHaveLength(3)
-      expect(mockImplementation).toBeCalled()
+    it('should list all withdrawals', async () => {
+      const result = await controller.findAll()
+      expect(result).toHaveLength(3)
+      expect(result).toEqual(mockData)
+      expect(mockWithdrawalService.findAll).toHaveBeenCalled()
     })
     it('should get one withdrawal', async () => {
-      const mockItem = jest.fn<PrismaPromise<Withdrawal>, []>().mockResolvedValue(expectedOne)
-
-      const mockImplementation = jest.spyOn(controller, 'findOne').mockImplementation(mockItem)
-      expect(await controller.findOne('00000000-0000-0000-0000-000000000000')).toEqual(expectedOne)
-      expect(mockImplementation).toBeCalled()
+      const result = controller.findOne('00000000-0000-0000-0000-000000000001')
+      const expected = mockData[0]
+      expect(result).toEqual(expected)
+      expect(mockWithdrawalService.findOne).toHaveBeenCalledWith(
+        '00000000-0000-0000-0000-000000000001',
+      )
     })
   })
 
   describe('create and update data', () => {
     it('it should create withdrawal', async () => {
-      const data = {
-        id: '00000000-0000-0000-0000-000000000004',
+      const result = await controller.create({
         status: WithdrawStatus.initial,
-        currency: Currency.BGN,
-        amount: 150,
-        reason: 'no-reason',
-        sourceVaultId: '00000000-0000-0000-0000-000000000000',
-        sourceCampaignId: '00000000-0000-0000-0000-000000000000',
-        bankAccountId: '00000000-0000-0000-0000-000000000000',
-        documentId: '00000000-0000-0000-0000-000000000000',
-        approvedById: '00000000-0000-0000-0000-000000000000',
-        targetDate: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        currency: Currency.USD,
+        amount: 350,
+        reason: 'reason',
+        sourceVaultId: '00000000-0000-0000-0000-000000000016',
+        sourceCampaignId: '00000000-0000-0000-0000-000000000015',
+        bankAccountId: '00000000-0000-0000-0000-000000000014',
+        documentId: '00000000-0000-0000-0000-000000000013',
+        approvedById: '00000000-0000-0000-0000-000000000012',
+      })
+      const expected = {
+        id: expect.any(Number),
+        status: WithdrawStatus.initial,
+        currency: Currency.USD,
+        amount: 350,
+        reason: 'reason',
+        sourceVaultId: '00000000-0000-0000-0000-000000000016',
+        sourceCampaignId: '00000000-0000-0000-0000-000000000015',
+        bankAccountId: '00000000-0000-0000-0000-000000000014',
+        documentId: '00000000-0000-0000-0000-000000000013',
+        approvedById: '00000000-0000-0000-0000-000000000012',
       }
 
-      const mockItem = jest.fn<PrismaPromise<Withdrawal>, []>().mockImplementation(() => {
-        expected.push(data)
-        return data as unknown as PrismaPromise<Withdrawal>
-      })
-
-      const mockImplementation = jest.spyOn(controller, 'create').mockImplementation(mockItem)
-
-      expect(await controller.create(data)).toEqual(data)
-      expect(expected).toHaveLength(4)
-      expect(mockImplementation).toBeCalled()
+      expect(result).toEqual(expected)
+      expect(mockWithdrawalService.create).toHaveBeenCalled()
     })
-    it('it should update withdrawal', async () => {
-      const data = {
-        id: '00000000-0000-0000-0000-000000000001',
-        status: WithdrawStatus.succeeded,
-        currency: Currency.BGN,
-        amount: 150,
-        reason: 'no-reason',
-        sourceVaultId: '00000000-0000-0000-0000-000000000000',
-        sourceCampaignId: '00000000-0000-0000-0000-000000000000',
-        bankAccountId: '00000000-0000-0000-0000-000000000000',
-        documentId: '00000000-0000-0000-0000-000000000000',
-        approvedById: '00000000-0000-0000-0000-000000000000',
-        targetDate: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-      const index = expected.findIndex((x) => x.id == data.id)
 
-      const mockItem = jest.fn<PrismaPromise<Withdrawal>, []>().mockImplementation(() => {
-        expected[index] = data
-        return data as unknown as PrismaPromise<Withdrawal>
+    it('it should update withdrawal', async () => {
+      const dto = {
+        status: WithdrawStatus.initial,
+        currency: Currency.USD,
+        amount: 350,
+        reason: 'reason',
+        sourceVaultId: '00000000-0000-0000-0000-000000000016',
+        sourceCampaignId: '00000000-0000-0000-0000-000000000015',
+        bankAccountId: '00000000-0000-0000-0000-000000000014',
+        documentId: '00000000-0000-0000-0000-000000000013',
+        approvedById: '00000000-0000-0000-0000-000000000012',
+      }
+
+      expect(await controller.update('1', dto)).toEqual({
+        id: '1',
+        ...dto,
       })
 
-      const mockImplementation = jest.spyOn(controller, 'update').mockImplementation(mockItem)
-
-      expect(await controller.update('00000000-0000-0000-0000-000000000001', data)).toEqual(data)
-      expect(expected[index]).toEqual(data)
-      expect(mockImplementation).toBeCalled()
+      expect(mockWithdrawalService.update).toHaveBeenCalledWith('1', dto)
     })
   })
 
-  describe('remove', () => {
+  describe('removeData', () => {
     it('should remove one item', async () => {
-      const itemToDelete = {
-        id: '00000000-0000-0000-0000-000000000001',
-        status: WithdrawStatus.succeeded,
-        currency: Currency.BGN,
-        amount: 150,
-        reason: 'no-reason',
-        sourceVaultId: '00000000-0000-0000-0000-000000000000',
-        sourceCampaignId: '00000000-0000-0000-0000-000000000000',
-        bankAccountId: '00000000-0000-0000-0000-000000000000',
-        documentId: '00000000-0000-0000-0000-000000000000',
-        approvedById: '00000000-0000-0000-0000-000000000000',
-        targetDate: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
+      const result = await controller.remove('00000000-0000-0000-0000-000000000001')
 
-      const mockFn = jest.fn<PrismaPromise<Withdrawal>, []>().mockImplementation(() => {
-        expected.splice(expected.indexOf(itemToDelete), 1)
-        return itemToDelete as unknown as PrismaPromise<Withdrawal>
-      })
-
-      const mockImplementation = jest.spyOn(controller, 'remove').mockImplementation(mockFn)
-
-      expect(await controller.remove('00000000-0000-0000-0000-000000000001')).toEqual(itemToDelete)
-      expect(expected).toHaveLength(2)
-      expect(mockImplementation).toBeCalled()
+      expect(result).toHaveLength(2)
+      expect(mockWithdrawalService.remove).toBeCalledWith('00000000-0000-0000-0000-000000000001')
     })
-    it('should remove many items', async () => {
-      const idsToDelete = [
+
+    it('should delete many documents', () => {
+      const toDell = [
         '00000000-0000-0000-0000-000000000001',
         '00000000-0000-0000-0000-000000000002',
       ]
-      const deletedItems: Withdrawal[] = []
-      const mockFn = jest.fn<PrismaPromise<Prisma.BatchPayload>, []>().mockImplementation(() => {
-        idsToDelete.map((id) => {
-          const itemIndex = expected.findIndex((x) => x.id == id)
-          deletedItems.push(expected[itemIndex])
-          expected.splice(itemIndex, 1)
-        })
-        return deletedItems.length as unknown as PrismaPromise<Prisma.BatchPayload>
-      })
-
-      const mockImplementation = jest
-        .spyOn(prismaMock.withdrawal, 'deleteMany')
-        .mockImplementation(mockFn)
-
-      expect(await prismaMock.withdrawal.deleteMany()).toEqual(2)
-      expect(expected).toHaveLength(1)
-      expect(mockImplementation).toBeCalled()
+      const result = controller.removeMany(toDell as [string])
+      const expected = [
+        {
+          id: '00000000-0000-0000-0000-000000000003',
+          status: WithdrawStatus.initial,
+          currency: Currency.USD,
+          amount: 350,
+          reason: 'reason',
+          sourceVaultId: '00000000-0000-0000-0000-000000000016',
+          sourceCampaignId: '00000000-0000-0000-0000-000000000015',
+          bankAccountId: '00000000-0000-0000-0000-000000000014',
+          documentId: '00000000-0000-0000-0000-000000000013',
+          approvedById: '00000000-0000-0000-0000-000000000012',
+          targetDate: null,
+          createdAt: null,
+          updatedAt: null,
+        },
+      ]
+      expect(result).toEqual(expected)
+      expect(mockWithdrawalService.removeMany).toHaveBeenCalledWith(toDell)
     })
   })
 })
