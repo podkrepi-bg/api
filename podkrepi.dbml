@@ -11,9 +11,12 @@ Table Bootcamp {
   id String [pk]
   firstName String [not null]
   lastName String [not null]
+  status BootcampStatus [not null, default: 'todo']
+  title String [not null]
   email String [unique, not null]
-  phone String
-  company String
+  message String [not null]
+  startDate DateTime [default: `now()`, not null]
+  endDate DateTime
 }
 
 Table Person {
@@ -477,6 +480,14 @@ Enum RecurringDonationStatus {
   incompleteExpired
   pastDue
   unpaid
+}
+
+Enum BootcampStatus {
+  todo
+  inProgress
+  forReview
+  done
+  other
 }
 
 Enum WithdrawStatus {

@@ -37,4 +37,12 @@ export class BootcampController {
   remove(@Param('id') id: string) {
     return this.bootcampService.remove(id);
   }
+
+  @Post('delete-many')
+  @Public()
+  removeMany(@Body() tasksToDelete: [string]) {
+    return this.bootcampService.removeMany(tasksToDelete)
+  }
+
+
 }

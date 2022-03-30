@@ -45,7 +45,28 @@ export class BootcampService {
   async remove(id: string): Promise<string | void> {
     try {
       const deletedTask = await this.prisma.bootcamp.delete({ where: { id: id } })
-      return `${deletedTask.company} Deleted Succesfully!`
+      return `${deletedTask.title} Deleted Succesfully!`
+    } catch (error) {
+      throw new NotFoundException(error.message)
+    }
+  }
+
+  async removeMany(tasksToDelete: [string]): Promise<string | void> {
+    try {
+      const ids = await this.prisma.bootcamp.findMany({ where: { id: { in: tasksToDelete } } })
+      if (!ids.length) {
+        throw new NotFoundException('Requested task ids does not exist!')
+      }
+      console.log(ids);
+
+      await this.prisma.bootcamp.deleteMany({
+        where: {
+          id: {
+            in: tasksToDelete,
+          },
+        },
+      })
+      return `Deleted Succesfully ${ids.length} from ${tasksToDelete.length} tasks!`
     } catch (error) {
       throw new NotFoundException(error.message)
     }

@@ -7,7 +7,8 @@
 export class CreateBootcampDto {
   firstName: string;
 lastName: string;
+title: string;
 email: string;
-phone?: string;
-company?: string;
+message: string;
+endDate?: Date;
 }
