@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common'
+import { PrismaService } from '../prisma/prisma.service'
 import { CreateBootcampDto } from './dto/create-bootcamp.dto'
 import { UpdateBootcampDto } from './dto/update-bootcamp.dto'
 
 @Injectable()
 export class BootcampService {
-  create(createBootcampDto: CreateBootcampDto) {
-    return 'This action adds a new bootcamp'
+  constructor(private prisma: PrismaService) {}
+
+  async create(createBootcampDto: CreateBootcampDto) {
+    return await this.prisma.bootcamp.create({ data: createBootcampDto })
   }
 
   findAll() {

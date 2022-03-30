@@ -10,8 +10,8 @@ export class BootcampController {
 
   @Post()
   @Public()
-  create(@Body() createBootcampDto: CreateBootcampDto) {
-    return this.bootcampService.create(createBootcampDto)
+  async create(@Body() createBootcampDto: CreateBootcampDto) {
+    return await this.bootcampService.create(createBootcampDto)
   }
 
   @Get()
