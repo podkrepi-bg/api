@@ -41,7 +41,7 @@ describe('CoordinatorService', () => {
     it('should return searching coordinator', async () => {
       const findFirst = jest.spyOn(service, 'findOne')
       //create
-      const searching = await service.create({personId: person.id})
+      const searching = await service.create({personId: person?.id})
       const id = searching.id
       //findOne
       const result = await service.findOne(id)
@@ -59,7 +59,7 @@ describe('CoordinatorService', () => {
 
   describe('delete',  () => {
     it('should delete',async () => {
-      const coordinator = await service.create({ personId: person.id })
+      const coordinator = await service.create({ personId: person?.id })
       const remove = jest.spyOn(service, 'remove')
       await service.remove(coordinator.id)
 
