@@ -38,7 +38,7 @@ export class CampaignFileController {
       Logger.warn('No person record with keycloak ID: ' + user.sub)
       throw new NotFoundException('No person record with keycloak ID: ' + user.sub)
     }
-    const filesRole = body.filesRole
+    const filesRole = body.roles
     return await Promise.all(
       files.map((file, key) => {
         return this.campaignFileService.create(

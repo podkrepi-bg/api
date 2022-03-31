@@ -7,5 +7,5 @@ export class FilesRoleDto {
   @ApiProperty()
   @Expose()
   @IsEnum(CampaignFileRole)
-  filesRole: CampaignFileRole[]
+  roles: CampaignFileRole[]
 }
