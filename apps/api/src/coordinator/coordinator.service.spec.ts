@@ -61,4 +61,15 @@ describe('CoordinatorService', () => {
       }
     })
   })
+
+  describe('delete',  () => {
+    it('should delete',async () => {
+      const coordinator = await service.create({ personId: person.id })
+      const remove = jest.spyOn(service, 'remove')
+      await service.remove(coordinator.id)
+
+      expect(remove).toBeCalledWith(coordinator.id)
+      expect(isUUID(coordinator.id)).toBe(true)
+    })
+  });
 })
