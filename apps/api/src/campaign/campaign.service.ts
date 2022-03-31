@@ -116,6 +116,39 @@ export class CampaignService {
     return this.prisma.vault.findFirst({ where: { campaignId } })
   }
 
+  async getDonationsForCampaign(campaignId: string): Promise<Donation[]> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: campaignId },
+      include: {
+        vaults: true,
+      },
+    })
+
+    if (campaign === null) {
+      Logger.warn('No campaign record with id: ' + campaign)
+      throw new NotFoundException('No campaign record with id: ' + campaign)
+    }
+
+    const whereVaultIds = campaign.vaults.map((vault) => {
+      return { targetVaultId: vault.id }
+    })
+
+    const donations = await this.prisma.donation.findMany({
+      where: {
+        OR: whereVaultIds,
+      },
+      include: {
+        person: { select: { firstName: true, lastName: true } },
+      },
+    })
+
+    donations.map((donation) => {
+      if (donation.person?.firstName === null) donation.person.firstName = 'anonymous'
+    })
+
+    return donations
+  }
+
   async getDonationByIntentId(paymentIntentId: string): Promise<Donation | null> {
     return this.prisma.donation.findFirst({ where: { extPaymentIntentId: paymentIntentId } })
   }
