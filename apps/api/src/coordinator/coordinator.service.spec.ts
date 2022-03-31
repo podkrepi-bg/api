@@ -1,4 +1,3 @@
-import { NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { Person } from '@prisma/client'
 import { isUUID } from 'class-validator'
