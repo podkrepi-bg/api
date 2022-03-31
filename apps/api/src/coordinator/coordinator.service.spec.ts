@@ -20,7 +20,9 @@ describe('CoordinatorService', () => {
 
     service = module.get<CoordinatorService>(CoordinatorService)
     prismaService = module.get<PrismaService>(PrismaService)
-    person = await prismaService.person.findFirst({where: {coordinators: {none: {}}}}) as Person
+    if(!person) {
+      person = await prismaService.person.create({ data: { firstName: "Ivan", lastName: "Petrov", email: "test@test.com" }}) as Person
+    }  
   })
 
   it('should be defined', () => {
