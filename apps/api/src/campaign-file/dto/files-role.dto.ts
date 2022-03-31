@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger'
+import { CampaignFileRole } from '@prisma/client'
 import { Expose } from 'class-transformer'
-import { IsJSON, IsNotEmpty } from 'class-validator'
+import { IsEnum } from 'class-validator'
 
 export class FilesRoleDto {
   @ApiProperty()
   @Expose()
-  @IsNotEmpty()
-  @IsJSON({ each: true })
-  filesRole: string
+  @IsEnum(CampaignFileRole)
+  filesRole: CampaignFileRole[]
 }

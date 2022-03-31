@@ -38,11 +38,11 @@ export class CampaignFileController {
       Logger.warn('No person record with keycloak ID: ' + user.sub)
       throw new NotFoundException('No person record with keycloak ID: ' + user.sub)
     }
-    const filesRole = JSON.parse(body.filesRole)
+    const filesRole = body.filesRole
     return await Promise.all(
-      files.map((file) => {
+      files.map((file, key) => {
         return this.campaignFileService.create(
-          filesRole.find((f) => f.file === file.originalname).role,
+          filesRole[key],
           campaignId,
           file.mimetype,
           file.originalname,
