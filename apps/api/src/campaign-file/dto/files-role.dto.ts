@@ -6,6 +6,6 @@ import { IsEnum } from 'class-validator'
 export class FilesRoleDto {
   @ApiProperty()
   @Expose()
-  @IsEnum(CampaignFileRole)
+  @IsEnum(CampaignFileRole, { each: true })
   roles: CampaignFileRole[]
 }
