@@ -42,7 +42,7 @@ export class CampaignFileController {
     return await Promise.all(
       files.map((file, key) => {
         return this.campaignFileService.create(
-          filesRole[key],
+          Array.isArray(filesRole) ? filesRole[key] : filesRole,
           campaignId,
           file.mimetype,
           file.originalname,
