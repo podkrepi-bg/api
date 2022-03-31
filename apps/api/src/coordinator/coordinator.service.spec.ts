@@ -39,12 +39,11 @@ describe('CoordinatorService', () => {
   })
 
   describe('Find one', () => {
-    let id = ''
     it('should return searching coordinator', async () => {
       const findFirst = jest.spyOn(service, 'findOne')
       //create
       const searching = await service.create({personId: person.id})
-      id = searching.id
+      const id = searching.id
       //findOne
       const result = await service.findOne(id)
       //assert
@@ -53,9 +52,6 @@ describe('CoordinatorService', () => {
       expect(result?.id).toStrictEqual(searching.id)
       expect(result?.personId).toStrictEqual(searching.personId)
 
-    })
-    
-    afterAll(async () => {
       if (id) {
         await service.remove(id)
       }
