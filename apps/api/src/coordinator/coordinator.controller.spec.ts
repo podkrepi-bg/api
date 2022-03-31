@@ -88,4 +88,10 @@ describe('CoordinatorController', () => {
     })
   })
 
+  describe('delete', () => {
+    it('should update coordinator', async () => {
+      await controller.remove('00000000-0000-0000-0000-000000000001')
+      expect(mockCoordinatorService.remove).toBeCalled()
+    })
+  });
 })
