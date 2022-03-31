@@ -11,7 +11,7 @@ export async function coordinatorSeed() {
     throw new Error('No persons subscribed to newsletter')
   }
 
-  const result = persons.slice(1, 15).map((p) => {
+  const result = persons.map((p) => {
     return { personId: p.id }
   })
 
