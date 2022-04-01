@@ -10,28 +10,28 @@ export class CityController {
 
   @Get('list')
   @Public()
-  async getData() {
-    return await this.cityService.listCities()
+  async findAll() {
+    return await this.cityService.findAll()
   }
 
   @Get(':id')
   @Public()
   findOne(@Param('id') id: string) {
-    return this.cityService.listCity(id)
+    return this.cityService.findOne(id)
   }
 
   @Post('create')
   async create(@Body() CreateCityDto: CreateCityDto) {
-    return await this.cityService.createCity(CreateCityDto)
+    return await this.cityService.create(CreateCityDto)
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCityDto: UpdateCityDto) {
-    return this.cityService.updateCity(id, updateCityDto)
+    return this.cityService.update(id, updateCityDto)
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.cityService.removeCity(id)
+    return this.cityService.remove(id)
   }
 }

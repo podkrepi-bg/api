@@ -8,11 +8,11 @@ import { UpdateCityDto } from './dto/update-city.dto'
 export class CityService {
   constructor(private prisma: PrismaService) {}
 
-  async listCities(): Promise<City[]> {
+  async findAll(): Promise<City[]> {
     return this.prisma.city.findMany({ include: { countryCode: true } })
   }
 
-  async listCity(cityId: string): Promise<City> {
+  async findOne(cityId: string): Promise<City> {
     const city = await this.prisma.city.findFirst({ where: { id: cityId } })
     if (!city) {
       Logger.warn('No city record with ID: ' + cityId)
@@ -21,11 +21,11 @@ export class CityService {
     return city
   }
 
-  async createCity(createCityDto: CreateCityDto): Promise<City> {
-    return this.prisma.city.create({ data: createCityDto.toEntity() })
+  async create(createCityDto: CreateCityDto): Promise<City> {
+    return this.prisma.city.create({ data: createCityDto })
   }
 
-  async updateCity(id: string, updateCityDto: UpdateCityDto) {
+  async update(id: string, updateCityDto: UpdateCityDto) {
     try {
       return await this.prisma.city.update({
         where: { id },
@@ -38,7 +38,7 @@ export class CityService {
     }
   }
 
-  async removeCity(cityId: string) {
+  async remove(cityId: string) {
     return await this.prisma.city.delete({ where: { id: cityId } })
   }
 }
