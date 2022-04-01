@@ -28,7 +28,7 @@ jobs:
         run: yarn prisma generate
       - name: Migrate database
         run: yarn prisma migrate deploy
-      - name: NX Test API # https://github.com/marketplace/actions/nrwl-nx
+      - name: NX Build and lint API # https://github.com/marketplace/actions/nrwl-nx
         uses: MansaGroup/nrwl-nx-action@v2
         with:
           targets: lint,build
@@ -37,5 +37,4 @@ jobs:
         uses: ArtiomTr/jest-coverage-report-action@v2.0.5
         with:
           package-manager: yarn
-          github-token: ${{ secrets.DEVOPS_PACKAGES_TOKEN }}
           test-script: yarn test:ci
