@@ -1,10 +1,11 @@
-import { City, PrismaPromise } from '.prisma/client'
 import { Test, TestingModule } from '@nestjs/testing'
-
 import { PrismaService } from '../prisma/prisma.service'
 import { prismaMock } from '../prisma/prisma-client.mock'
 import { CityController } from './city.controller'
 import { CityService } from './city.service'
+import { mockReset } from 'jest-mock-extended'
+import { NotFoundException } from '@nestjs/common'
+import { CreateCityDto } from './dto/create-city.dto'
 
 const mockData = [
   {
@@ -30,39 +31,21 @@ const mockData = [
 describe('CityController', () => {
   let controller: CityController
 
-  const mockCityService = {
-    create: jest.fn((dto) => {
-      return {
-        id: Date.now(),
-        ...dto,
-      }
-    }),
-    findAll: jest.fn().mockReturnValueOnce(mockData),
-    update: jest.fn((id, dto) => ({
-      id,
-      ...dto,
-    })),
-    findOne: jest.fn((id) => {
-      return mockData.find((res) => res.id === id)
-    }),
-    remove: jest.fn((id) => {
-      return mockData.filter((task) => task.id !== id)
-    }),
-    removeMany: jest.fn((ids) => {
-      return mockData.filter((task) => !ids.includes(task.id))
-    }),
-  }
-
   beforeEach(async () => {
+    prismaMock.city.findMany.mockResolvedValue(mockData)
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CityController],
-      providers: [CityService, PrismaService],
+      providers: [CityService, { provide: PrismaService, useValue: prismaMock}],
     })
-      .overrideProvider(CityService)
-      .useValue(mockCityService)
       .compile()
 
     controller = module.get<CityController>(CityController)
+  })
+
+  // Reset the mock after each test
+  afterEach(() => {
+    mockReset(prismaMock)
   })
 
   it('should be defined', () => {
@@ -70,60 +53,56 @@ describe('CityController', () => {
   })
 
   describe('getData', () => {
-    it('should list all cities in db', async () => {
+    it('should list all cities', async () => {
       const result = await controller.findAll()
       expect(result).toHaveLength(3)
       expect(result).toEqual(mockData)
-      expect(mockCityService.findAll).toHaveBeenCalled()
     })
-    it('should get one city', async () => {
-      const result = await controller.findOne('00000000-0000-0000-0000-000000000001')
-      const expected = mockData[0]
-      expect(result).toEqual(expected)
-      expect(mockCityService.findOne).toHaveBeenCalledWith('00000000-0000-0000-0000-000000000001')
-    })
-  })
+    it('should get 1 city', async () => {
+      const city = mockData[0]
+      prismaMock.city.findFirst.mockResolvedValue(city)
 
-  describe('create and update data', () => {
-    it('it should create city', async () => {
-      const result = await controller.create({
-        countryId: '00000000-0000-0000-0000-000000000010',
-        name: 'Sofia',
-        postalCode: '1000',
-      })
-      const expected = {
-        id: expect.any(Number),
-        countryId: '00000000-0000-0000-0000-000000000010',
-        name: 'Sofia',
-        postalCode: '1000',
+      const result = await controller.findOne(city.id)
+      expect(result).toEqual(city)
+      expect(prismaMock.city.findFirst).toHaveBeenCalledWith({ where: { id: city.id } })
+    })
+    it('should throw error if city does not exist', async () => {
+      const city = mockData[0]
+
+      await expect(controller.findOne.bind(controller, city.id))
+        .rejects.toThrow(new NotFoundException('No city record with ID: ' + city.id))
+    })
+    it('should create a city', async () => {
+      const city = mockData[0]
+      prismaMock.city.create.mockResolvedValue(city)
+
+      const createDto: CreateCityDto = {
+        name: city.name,
+        postalCode: city.postalCode,
+        countryId: city.countryId,
       }
-
-      expect(result).toEqual(expected)
-      expect(mockCityService.create).toHaveBeenCalled()
+      const result = await controller.create(createDto)
+      expect(result).toEqual(city)
+      expect(prismaMock.city.create).toHaveBeenCalledWith({ data: createDto})
     })
+    it('should update a city', async () => {
+      const city = mockData[0]
+      prismaMock.city.update.mockResolvedValue(city)
 
-    it('it should update city', async () => {
-      const dto = {
-        countryId: '00000000-0000-0000-0000-000000000010',
-        name: 'Sofia',
-        postalCode: '1000',
-      }
-
-      expect(await controller.update('1', dto)).toEqual({
-        id: '1',
-        ...dto,
-      })
-
-      expect(mockCityService.update).toHaveBeenCalledWith('1', dto)
+      const result = await controller.update(city.id, city)
+      expect(result).toEqual(city)
+      expect(prismaMock.city.update).toHaveBeenCalledWith(
+        {
+          where: { id: city.id },
+          data: city,
+        })
     })
-  })
-
-  describe('removeData', () => {
-    it('should remove one item', async () => {
-      const result = await controller.remove('00000000-0000-0000-0000-000000000001')
-
-      expect(result).toHaveLength(2)
-      expect(mockCityService.remove).toBeCalledWith('00000000-0000-0000-0000-000000000001')
+    it('should remove 1 city', async () => {
+      const city = mockData[0]
+      prismaMock.city.delete.mockResolvedValue(city)
+      const result = await controller.remove(city.id)
+      expect(result).toEqual(city)
+      expect(prismaMock.city.delete).toHaveBeenCalledWith({ where: { id: city.id } })
     })
   })
 })

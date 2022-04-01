@@ -1,9 +1,9 @@
 import { City } from '@prisma/client'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
-
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCityDto } from './dto/create-city.dto'
 import { UpdateCityDto } from './dto/update-city.dto'
+
 @Injectable()
 export class CityService {
   constructor(private prisma: PrismaService) {}
