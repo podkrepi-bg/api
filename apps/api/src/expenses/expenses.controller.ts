@@ -8,7 +8,8 @@ import {
   Patch,
   UnauthorizedException,
 } from '@nestjs/common'
-import { AuthenticatedUser, Public } from 'nest-keycloak-connect'
+import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { ExpensesService } from './expenses.service'
@@ -46,45 +47,36 @@ export class ExpensesController {
   }
 
   @Patch(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   update(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
     @Param('id')
     id: string,
     @Body() data: UpdateExpenseDto,
   ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
-
     return this.expensesService.update(id, data)
   }
 
   @Delete(':id')
-  remove(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
-    @Param('id')
-    id: string,
-  ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
-
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  remove(@Param('id') id: string) {
     return this.expensesService.remove(id)
   }
 
   @Delete()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   removeMany(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
     @Body()
     idsToDelete: string[],
   ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
-
     return this.expensesService.removeMany(idsToDelete)
   }
 }
