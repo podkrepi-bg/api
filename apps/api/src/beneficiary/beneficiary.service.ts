@@ -1,5 +1,5 @@
 import { Beneficiary } from '.prisma/client'
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateBeneficiaryDto } from './dto/create-beneficiary.dto'
 import { UpdateBeneficiaryDto } from './dto/update-beneficiary.dto'
@@ -10,22 +10,24 @@ export class BeneficiaryService {
   constructor(private prisma: PrismaService) {}
 
   async createBeneficiary(inputDto: CreateBeneficiaryDto): Promise<Beneficiary> {
-    return this.prisma.beneficiary.create({ data: inputDto })
+    return await this.prisma.beneficiary.create({ data: inputDto })
   }
 
   async listBeneficiaries(): Promise<Beneficiary[]> {
-    return this.prisma.beneficiary.findMany({ include: { person: true } })
+    return await this.prisma.beneficiary.findMany({ include: { person: true } })
   }
 
   async viewBeneficiary(id: string): Promise<Beneficiary | null | undefined> {
-    return this.prisma.beneficiary
-      .findFirst({
-        where: { id },
-        include: { person: true },
-      })
-      .catch(() => {
-        throw new NotFoundException(`Could not find beneficiary`)
-      })
+    const beneficiary = await this.prisma.beneficiary.findFirst({
+      where: { id },
+      include: { person: true },
+    })
+
+    if (!beneficiary) {
+      Logger.warn('No beneficiary record with ID: ' + id)
+      throw new NotFoundException('No beneficiary record with ID: ' + id)
+    }
+    return beneficiary
   }
 
   async editBeneficiary(
