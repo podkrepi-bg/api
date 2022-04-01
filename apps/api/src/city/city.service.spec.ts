@@ -17,14 +17,4 @@ describe('CityService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined()
   })
-
-  it('should not connect to db', async() => {
-    prismaMock.city.findMany.mockResolvedValue([{
-      id: "string",
-      name: "string",
-      postalCode: "string",
-      countryId: "string"}])
-    const test = await service.findAll()
-    console.log(test)
-  })
 })

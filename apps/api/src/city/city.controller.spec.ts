@@ -52,57 +52,55 @@ describe('CityController', () => {
     expect(controller).toBeDefined()
   })
 
-  describe('getData', () => {
-    it('should list all cities', async () => {
-      const result = await controller.findAll()
-      expect(result).toHaveLength(3)
-      expect(result).toEqual(mockData)
-    })
-    it('should get 1 city', async () => {
-      const city = mockData[0]
-      prismaMock.city.findFirst.mockResolvedValue(city)
+  it('should list all cities', async () => {
+    const result = await controller.findAll()
+    expect(result).toHaveLength(3)
+    expect(result).toEqual(mockData)
+  })
+  it('should get 1 city', async () => {
+    const city = mockData[0]
+    prismaMock.city.findFirst.mockResolvedValue(city)
 
-      const result = await controller.findOne(city.id)
-      expect(result).toEqual(city)
-      expect(prismaMock.city.findFirst).toHaveBeenCalledWith({ where: { id: city.id } })
-    })
-    it('should throw error if city does not exist', async () => {
-      const city = mockData[0]
+    const result = await controller.findOne(city.id)
+    expect(result).toEqual(city)
+    expect(prismaMock.city.findFirst).toHaveBeenCalledWith({ where: { id: city.id } })
+  })
+  it('should throw error if city does not exist', async () => {
+    const city = mockData[0]
 
-      await expect(controller.findOne.bind(controller, city.id))
-        .rejects.toThrow(new NotFoundException('No city record with ID: ' + city.id))
-    })
-    it('should create a city', async () => {
-      const city = mockData[0]
-      prismaMock.city.create.mockResolvedValue(city)
+    await expect(controller.findOne.bind(controller, city.id))
+      .rejects.toThrow(new NotFoundException('No city record with ID: ' + city.id))
+  })
+  it('should create a city', async () => {
+    const city = mockData[0]
+    prismaMock.city.create.mockResolvedValue(city)
 
-      const createDto: CreateCityDto = {
-        name: city.name,
-        postalCode: city.postalCode,
-        countryId: city.countryId,
-      }
-      const result = await controller.create(createDto)
-      expect(result).toEqual(city)
-      expect(prismaMock.city.create).toHaveBeenCalledWith({ data: createDto})
-    })
-    it('should update a city', async () => {
-      const city = mockData[0]
-      prismaMock.city.update.mockResolvedValue(city)
+    const createDto: CreateCityDto = {
+      name: city.name,
+      postalCode: city.postalCode,
+      countryId: city.countryId,
+    }
+    const result = await controller.create(createDto)
+    expect(result).toEqual(city)
+    expect(prismaMock.city.create).toHaveBeenCalledWith({ data: createDto})
+  })
+  it('should update a city', async () => {
+    const city = mockData[0]
+    prismaMock.city.update.mockResolvedValue(city)
 
-      const result = await controller.update(city.id, city)
-      expect(result).toEqual(city)
-      expect(prismaMock.city.update).toHaveBeenCalledWith(
-        {
-          where: { id: city.id },
-          data: city,
-        })
-    })
-    it('should remove 1 city', async () => {
-      const city = mockData[0]
-      prismaMock.city.delete.mockResolvedValue(city)
-      const result = await controller.remove(city.id)
-      expect(result).toEqual(city)
-      expect(prismaMock.city.delete).toHaveBeenCalledWith({ where: { id: city.id } })
-    })
+    const result = await controller.update(city.id, city)
+    expect(result).toEqual(city)
+    expect(prismaMock.city.update).toHaveBeenCalledWith(
+      {
+        where: { id: city.id },
+        data: city,
+      })
+  })
+  it('should remove 1 city', async () => {
+    const city = mockData[0]
+    prismaMock.city.delete.mockResolvedValue(city)
+    const result = await controller.remove(city.id)
+    expect(result).toEqual(city)
+    expect(prismaMock.city.delete).toHaveBeenCalledWith({ where: { id: city.id } })
   })
 })
