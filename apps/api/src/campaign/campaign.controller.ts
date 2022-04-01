@@ -39,6 +39,12 @@ export class CampaignController {
     return this.campaignService.getCampaignById(id)
   }
 
+  @Get('donations/:id')
+  @Public()
+  async getDonations(@Param('id') id: string) {
+    return await this.campaignService.getDonationsForCampaign(id)
+  }
+
   @Patch(':id')
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],
