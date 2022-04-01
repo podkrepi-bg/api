@@ -1,17 +1,7 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Delete,
-  Patch,
-  UnauthorizedException,
-} from '@nestjs/common'
-import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { Controller, Get, Post, Body, Param, Delete, Patch } from '@nestjs/common'
+import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
-import { KeycloakTokenParsed } from '../auth/keycloak'
 import { ExpensesService } from './expenses.service'
 import { CreateExpenseDto } from './dto/create-expense.dto'
 import { UpdateExpenseDto } from './dto/update-expense.dto'
@@ -27,16 +17,7 @@ export class ExpensesController {
   }
 
   @Post('create-expense')
-  create(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
-    @Body()
-    createExpenseDto: CreateExpenseDto,
-  ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
-
+  create(@Body() createExpenseDto: CreateExpenseDto) {
     return this.expensesService.createExpense(createExpenseDto)
   }
 
@@ -51,11 +32,7 @@ export class ExpensesController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  update(
-    @Param('id')
-    id: string,
-    @Body() data: UpdateExpenseDto,
-  ) {
+  update(@Param('id') id: string, @Body() data: UpdateExpenseDto) {
     return this.expensesService.update(id, data)
   }
 
@@ -73,10 +50,7 @@ export class ExpensesController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  removeMany(
-    @Body()
-    idsToDelete: string[],
-  ) {
+  removeMany(@Body() idsToDelete: string[]) {
     return this.expensesService.removeMany(idsToDelete)
   }
 }
