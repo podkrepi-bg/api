@@ -39,7 +39,7 @@ describe('CoordinatorController', () => {
     }),
     remove: jest.fn((id) => {
       return mockData.filter((task) => task.id !== id)
-    })
+    }),
   }
 
   beforeEach(async () => {
@@ -55,7 +55,7 @@ describe('CoordinatorController', () => {
     })
       .overrideProvider(CoordinatorService)
       .useValue(mockCoordinatorService)
-    .compile()
+      .compile()
 
     controller = module.get<CoordinatorController>(CoordinatorController)
   })
@@ -75,14 +75,16 @@ describe('CoordinatorController', () => {
       const result = await controller.findOne('00000000-0000-0000-0000-000000000001')
       const expected = mockData[0]
       expect(result).toEqual(expected)
-      expect(mockCoordinatorService.findOne).toHaveBeenCalledWith('00000000-0000-0000-0000-000000000001')
+      expect(mockCoordinatorService.findOne).toHaveBeenCalledWith(
+        '00000000-0000-0000-0000-000000000001',
+      )
     })
   })
 
   describe('create', () => {
     it('should create new coordinator', async () => {
       const personId = '00000000-0000-0000-0000-000000010001'
-      const coordinator = await controller.create({personId})
+      const coordinator = await controller.create({ personId })
       expect(coordinator.personId).toBe(personId)
       expect(mockCoordinatorService.create).toBeCalledWith({ personId })
     })
@@ -93,5 +95,5 @@ describe('CoordinatorController', () => {
       await controller.remove('00000000-0000-0000-0000-000000000001')
       expect(mockCoordinatorService.remove).toBeCalled()
     })
-  });
+  })
 })

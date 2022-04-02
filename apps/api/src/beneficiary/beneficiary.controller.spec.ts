@@ -79,89 +79,81 @@ describe('BeneficiaryController', () => {
     expect(controller).toBeDefined()
   })
 
-  describe('getData', () => {
-    it('should list all beneficiaries in db', async () => {
-      const result = await controller.list()
-      expect(result).toHaveLength(3)
-      expect(result).toEqual(mockData)
-      expect(prismaMock.beneficiary.findMany).toHaveBeenCalled()
-    })
-    it('should get one beneficiary', async () => {
-      const beneficiary = mockData[0]
-      prismaMock.beneficiary.findFirst.mockResolvedValue(beneficiary)
+  it('should list all beneficiaries in db', async () => {
+    const result = await controller.list()
+    expect(result).toHaveLength(3)
+    expect(result).toEqual(mockData)
+    expect(prismaMock.beneficiary.findMany).toHaveBeenCalled()
+  })
+  it('should get one beneficiary', async () => {
+    const beneficiary = mockData[0]
+    prismaMock.beneficiary.findFirst.mockResolvedValue(beneficiary)
 
-      const result = await controller.getById(beneficiary.id)
-      expect(result).toEqual(beneficiary)
-      expect(prismaMock.beneficiary.findFirst).toHaveBeenCalledWith({
-        where: { id: beneficiary.id },
-        include: { person: true },
-      })
-    })
-
-    it('should throw error if beneficiary does not exist', async () => {
-      const beneficiary = mockData[0]
-
-      await expect(controller.getById.bind(controller, beneficiary.id)).rejects.toThrow(
-        new NotFoundException('No beneficiary record with ID: ' + beneficiary.id),
-      )
+    const result = await controller.getById(beneficiary.id)
+    expect(result).toEqual(beneficiary)
+    expect(prismaMock.beneficiary.findFirst).toHaveBeenCalledWith({
+      where: { id: beneficiary.id },
+      include: { person: true },
     })
   })
 
-  describe('create and update data', () => {
-    it('it should create beneficiary', async () => {
-      const beneficiary = mockData[0]
-      prismaMock.beneficiary.create.mockResolvedValue(beneficiary)
+  it('should throw error if beneficiary does not exist', async () => {
+    const beneficiary = mockData[0]
 
-      const createDto: CreateBeneficiaryDto = {
-        type: BeneficiaryType.individual,
-        personId: beneficiary.personId,
-        coordinatorId: beneficiary.coordinatorId,
-        countryCode: beneficiary.countryCode,
-        cityId: beneficiary.cityId,
-        coordinatorRelation: beneficiary.coordinatorRelation,
-        description: '',
-        privateData: '',
-        publicData: '',
-      }
+    await expect(controller.getById.bind(controller, beneficiary.id)).rejects.toThrow(
+      new NotFoundException('No beneficiary record with ID: ' + beneficiary.id),
+    )
+  })
+  it('it should create beneficiary', async () => {
+    const beneficiary = mockData[0]
+    prismaMock.beneficiary.create.mockResolvedValue(beneficiary)
 
-      const result = await controller.create(createDto)
-      expect(result).toEqual(beneficiary)
-      expect(prismaMock.beneficiary.create).toHaveBeenCalledWith({ data: createDto })
-    })
+    const createDto: CreateBeneficiaryDto = {
+      type: BeneficiaryType.individual,
+      personId: beneficiary.personId,
+      coordinatorId: beneficiary.coordinatorId,
+      countryCode: beneficiary.countryCode,
+      cityId: beneficiary.cityId,
+      coordinatorRelation: beneficiary.coordinatorRelation,
+      description: '',
+      privateData: '',
+      publicData: '',
+    }
 
-    it('it should update beneficiary', async () => {
-      const beneficiary = mockData[0]
-      prismaMock.beneficiary.update.mockResolvedValue(beneficiary)
-
-      const result = await controller.editById(beneficiary.id, beneficiary)
-      expect(result).toEqual(beneficiary)
-      expect(prismaMock.beneficiary.update).toHaveBeenCalledWith({
-        where: { id: beneficiary.id },
-        data: beneficiary,
-      })
-    })
+    const result = await controller.create(createDto)
+    expect(result).toEqual(beneficiary)
+    expect(prismaMock.beneficiary.create).toHaveBeenCalledWith({ data: createDto })
   })
 
-  describe('removeData', () => {
-    it('should remove one item', async () => {
-      const beneficiary = mockData[0]
-      prismaMock.beneficiary.delete.mockResolvedValue(beneficiary)
+  it('it should update beneficiary', async () => {
+    const beneficiary = mockData[0]
+    prismaMock.beneficiary.update.mockResolvedValue(beneficiary)
 
-      const result = await controller.deleteById(beneficiary.id)
-      expect(result).toEqual(beneficiary)
-      expect(prismaMock.beneficiary.delete).toHaveBeenCalledWith({ where: { id: beneficiary.id } })
-    })
-
-    it('should remove many items', async () => {
-      const ids = ['150d29a0-0414-4617-8a0b-9f88f6bd22bf', '159c3d7b-f752-43e9-870b-f05e5b7c313c']
-
-      prismaMock.beneficiary.deleteMany.mockResolvedValue({ count: 2 })
-
-      const result = await controller.deleteMany({ ids: ids })
-      expect(result).toEqual({ count: 2 })
-      expect(prismaMock.beneficiary.deleteMany).toHaveBeenCalledWith({
-        where: { id: { in: ids } },
-      })
+    const result = await controller.editById(beneficiary.id, beneficiary)
+    expect(result).toEqual(beneficiary)
+    expect(prismaMock.beneficiary.update).toHaveBeenCalledWith({
+      where: { id: beneficiary.id },
+      data: beneficiary,
     })
   })
+  it('should remove one item', async () => {
+    const beneficiary = mockData[0]
+    prismaMock.beneficiary.delete.mockResolvedValue(beneficiary)
+
+    const result = await controller.deleteById(beneficiary.id)
+    expect(result).toEqual(beneficiary)
+    expect(prismaMock.beneficiary.delete).toHaveBeenCalledWith({ where: { id: beneficiary.id } })
+  })
+
+  // it('should remove many items', async () => {
+  //   const ids = ['150d29a0-0414-4617-8a0b-9f88f6bd22bf', '159c3d7b-f752-43e9-870b-f05e5b7c313c']
+
+  //   prismaMock.beneficiary.deleteMany.mockResolvedValue({ count: 2 })
+
+  //   const result = await controller.deleteMany({ ids: ids })
+  //   expect(result).toEqual({ count: 2 })
+  //   expect(prismaMock.beneficiary.deleteMany).toHaveBeenCalledWith({
+  //     where: { id: { in: ids } },
+  //   })
+  // })
 })

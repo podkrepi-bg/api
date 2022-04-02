@@ -143,8 +143,7 @@ export class CampaignService {
     })
 
     donations.map((donation) => {
-      if (!donation.person)
-        donation.person = { firstName: 'anonymous', lastName: '' }
+      if (!donation.person) donation.person = { firstName: 'anonymous', lastName: '' }
     })
 
     return donations

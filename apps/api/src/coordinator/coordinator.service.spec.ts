@@ -11,18 +11,16 @@ describe('CoordinatorService', () => {
   let person: Person
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        CoordinatorService,
-        PrismaService,
-        PersonService
-      ],
+      providers: [CoordinatorService, PrismaService, PersonService],
     }).compile()
 
     service = module.get<CoordinatorService>(CoordinatorService)
     prismaService = module.get<PrismaService>(PrismaService)
-    if(!person) {
-      person = await prismaService.person.create({ data: { firstName: "Ivan", lastName: "Petrov", email: "test@test.com" }}) as Person
-    }  
+    if (!person) {
+      person = (await prismaService.person.create({
+        data: { firstName: 'Ivan', lastName: 'Petrov', email: 'test@test.com' },
+      })) as Person
+    }
   })
 
   it('should be defined', () => {
@@ -43,7 +41,7 @@ describe('CoordinatorService', () => {
     it('should return searching coordinator', async () => {
       const findFirst = jest.spyOn(service, 'findOne')
       //create
-      const searching = await service.create({personId: person.id})
+      const searching = await service.create({ personId: person.id })
       const id = searching.id
       //findOne
       const result = await service.findOne(id)
@@ -59,8 +57,8 @@ describe('CoordinatorService', () => {
     })
   })
 
-  describe('delete',  () => {
-    it('should delete',async () => {
+  describe('delete', () => {
+    it('should delete', async () => {
       const coordinator = await service.create({ personId: person.id })
       const remove = jest.spyOn(service, 'remove')
       await service.remove(coordinator.id)
@@ -68,5 +66,5 @@ describe('CoordinatorService', () => {
       expect(remove).toBeCalledWith(coordinator.id)
       expect(isUUID(coordinator.id)).toBe(true)
     })
-  });
+  })
 })
