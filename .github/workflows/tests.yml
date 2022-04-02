@@ -21,11 +21,20 @@ jobs:
         with:
           node-version: '16'
           cache: 'yarn'
+      - name: Run database
+        run: docker-compose up -d pg-db
       - run: yarn
       - name: Generate Prisma DB client
         run: yarn prisma generate
-      - name: NX Test API # https://github.com/marketplace/actions/nrwl-nx
+      - name: Migrate database
+        run: yarn prisma migrate deploy
+      - name: NX Build and lint API # https://github.com/marketplace/actions/nrwl-nx
         uses: MansaGroup/nrwl-nx-action@v2
         with:
-          targets: lint,test,build
+          targets: lint,build
           projects: api
+      - name: Jest coverage report
+        uses: ArtiomTr/jest-coverage-report-action@v2.0.5
+        with:
+          package-manager: yarn
+          test-script: yarn test:ci

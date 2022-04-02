@@ -11,6 +11,7 @@
     "build": "yarn nx build",
     "build-all": "yarn nx run-many --target build --all --parallel",
     "test": "yarn nx run-many --target test --all",
+    "test:ci": "yarn prisma generate && yarn jest",
     "test:changed": "yarn nx test --watch --onlyChanged",
     "stripe:listen-webhook": "stripe listen --forward-to localhost:5010/api/stripe/webhook",
     "format": "nx format affected",

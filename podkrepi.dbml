@@ -103,6 +103,7 @@ Table Beneficiary {
 
 Table CampaignType {
   id String [pk]
+  category CampaignTypeCategory [not null, default: 'others']
   name String [not null]
   slug String [unique, not null]
   description String
@@ -144,7 +145,7 @@ Table Campaign {
 Table CampaignFile {
   id String [pk]
   filename String [not null]
-  mimetype String
+  mimetype String [not null]
   campaignId String [not null]
   uploadedById String [not null]
   role CampaignFileRole [not null]
@@ -500,12 +501,28 @@ Enum BankAccountStatus {
   errored
 }
 
+Enum CampaignTypeCategory {
+  medical
+  charity
+  disasters
+  education
+  events
+  environment
+  sport
+  art
+  nature
+  animals
+  others
+}
+
 Enum CampaignFileRole {
   background
   coordinator
   campaignPhoto
   invoice
   document
+  profilePhoto
+  campaignListPhoto
 }
 
 Ref: Coordinator.personId > Person.id

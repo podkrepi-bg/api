@@ -14,6 +14,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
+import { UpdateCampaignDto } from './dto/update-campaign.dto'
 
 @Injectable()
 export class CampaignService {
@@ -22,11 +23,17 @@ export class CampaignService {
   async listCampaigns(): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({
       include: {
+        campaignType: {
+          select: {
+            category: true,
+          },
+        },
         vaults: {
           select: {
             donations: { select: { amount: true } },
           },
         },
+        campaignFiles: true,
       },
     })
 
@@ -48,7 +55,7 @@ export class CampaignService {
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
     const campaign = await this.prisma.campaign.findFirst({ where: { id: campaignId } })
-    if (campaign === null) {
+    if (!campaign) {
       Logger.warn('No campaign record with ID: ' + campaignId)
       throw new NotFoundException('No campaign record with ID: ' + campaignId)
     }
@@ -107,6 +114,40 @@ export class CampaignService {
 
   async getCampaignVault(campaignId: string): Promise<Vault | null> {
     return this.prisma.vault.findFirst({ where: { campaignId } })
+  }
+
+  async getDonationsForCampaign(campaignId: string): Promise<Donation[]> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: campaignId },
+      include: {
+        vaults: true,
+      },
+    })
+
+    if (campaign === null) {
+      Logger.warn('No campaign record with id: ' + campaign)
+      throw new NotFoundException('No campaign record with id: ' + campaign)
+    }
+
+    const whereVaultIds = campaign.vaults.map((vault) => {
+      return { targetVaultId: vault.id }
+    })
+
+    const donations = await this.prisma.donation.findMany({
+      where: {
+        OR: whereVaultIds,
+      },
+      include: {
+        person: { select: { firstName: true, lastName: true } },
+      },
+    })
+
+    donations.map((donation) => {
+      if (!donation.person)
+        donation.person = { firstName: 'anonymous', lastName: '' }
+    })
+
+    return donations
   }
 
   async getDonationByIntentId(paymentIntentId: string): Promise<Donation | null> {
@@ -246,5 +287,33 @@ export class CampaignService {
       return paymentIntent.payment_method
     }
     return paymentIntent.payment_method?.id ?? 'none'
+  }
+
+  async update(id: string, updateCampaignDto: UpdateCampaignDto): Promise<Campaign | null> {
+    const result = await this.prisma.campaign.update({
+      where: { id: id },
+      data: updateCampaignDto,
+    })
+    if (!result) throw new NotFoundException('Not found')
+    return result
+  }
+
+  async removeCampaign(campaignId: string) {
+    return await this.prisma.campaign.delete({ where: { id: campaignId } })
+  }
+
+  //DELETE MANY
+  async removeMany(itemsToDelete: string[]): Promise<{ count: number }> {
+    try {
+      return await this.prisma.campaign.deleteMany({
+        where: {
+          id: {
+            in: itemsToDelete,
+          },
+        },
+      })
+    } catch (error) {
+      throw new NotFoundException()
+    }
   }
 }

@@ -5,7 +5,7 @@ import { Person } from '../../person/entities/person.entity'
 export class CampaignFile {
   id: string
   filename: string
-  mimetype: string | null
+  mimetype: string
   campaignId: string
   uploadedById: string
   role: CampaignFileRole
