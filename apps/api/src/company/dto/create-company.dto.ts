@@ -46,7 +46,6 @@ export class CreateCompanyDto {
       cityId: this.cityId,
       countryCode: this.countryCode,
       legalPersonName: this.legalPersonName,
-      createdAt: new Date(),
     }
   }
 }
