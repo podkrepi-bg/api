@@ -8,7 +8,7 @@ import { UpdateBootcampDto } from './dto/update-bootcamp.dto';
 export class BootcampController {
   constructor(private readonly bootcampService: BootcampService) {}
 
-  @Post()
+  @Post('create')
   @Public()
   create(@Body() createBootcampDto: CreateBootcampDto) {
     return this.bootcampService.create(createBootcampDto);
@@ -20,7 +20,7 @@ export class BootcampController {
     return this.bootcampService.findAll();
   }
 
-  @Get(':id')
+  @Get('byId/:id')
   @Public()
   findOne(@Param('id') id: string) {
     return this.bootcampService.findOne(id);

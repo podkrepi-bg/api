@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { BootcampStatus } from '@prisma/client'
-import { Expose } from 'class-transformer'
-import { IsDateString, IsEmail, IsNotEmpty, IsString } from 'class-validator'
+import { Expose, Type } from 'class-transformer'
+import { IsDate, IsDateString, IsEmail, IsNotEmpty, IsString } from 'class-validator'
 @Expose()
 export class CreateBootcampDto {
   @ApiProperty({enum:BootcampStatus})
@@ -25,13 +25,15 @@ export class CreateBootcampDto {
   message: string
   @ApiProperty()
   @Expose()
-  @IsDateString()
+  @IsDate()
   @IsNotEmpty()
+  @Type(() => Date)
   endDate: Date
   @ApiProperty()
   @Expose()
-  @IsDateString()
+  @IsDate()
   @IsNotEmpty()
+  @Type(() => Date)
   startDate:Date
   @ApiProperty()
   @Expose()
