@@ -17,7 +17,6 @@ export class CreateCompanyDto {
     description:
       'BULSTAT Unified Identification Code (UIC) https://psc.egov.bg/en/psc-starting-a-business-bulstat',
   })
-  @IsUUID()
   companyNumber: string
 
   @Expose()
