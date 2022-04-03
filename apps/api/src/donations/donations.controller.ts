@@ -7,6 +7,7 @@ import { DonationsService } from './donations.service'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
+import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 
 @Controller('donation')
 export class DonationsController {
@@ -65,6 +66,23 @@ export class DonationsController {
     }
 
     return this.donationsService.create(createPaymentDto, user)
+  }
+
+  @Post('create-bank-payment')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  createBankPayment(
+    @AuthenticatedUser()
+    user: KeycloakTokenParsed,
+    bankPaymentDto: CreateBankPaymentDto,
+  ) {
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+
+    return this.donationsService.createBankPayment(bankPaymentDto)
   }
 
   @Patch(':id')
