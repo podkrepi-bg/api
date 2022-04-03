@@ -22,7 +22,7 @@ export class CompanyService {
         throw new NotFoundException('No city record with ID: ' + cityId)
       }
     }
-    return this.prisma.company.create({ data: createCompanyDto })
+    return this.prisma.company.create({ data: createCompanyDto.toEntity() })
   }
 
   async findAll() {
