@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { PrismaService } from '../prisma/prisma.service'
-import { prismaMock } from '../prisma/prisma-client.mock'
+
+import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { CityController } from './city.controller'
 import { CityService } from './city.service'
 import { mockReset } from 'jest-mock-extended'
@@ -36,9 +36,8 @@ describe('CityController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CityController],
-      providers: [CityService, { provide: PrismaService, useValue: prismaMock}],
-    })
-      .compile()
+      providers: [CityService, MockPrismaService],
+    }).compile()
 
     controller = module.get<CityController>(CityController)
   })
@@ -68,8 +67,9 @@ describe('CityController', () => {
   it('should throw error if city does not exist', async () => {
     const city = mockData[0]
 
-    await expect(controller.findOne.bind(controller, city.id))
-      .rejects.toThrow(new NotFoundException('No city record with ID: ' + city.id))
+    await expect(controller.findOne.bind(controller, city.id)).rejects.toThrow(
+      new NotFoundException('No city record with ID: ' + city.id),
+    )
   })
   it('should create a city', async () => {
     const city = mockData[0]
@@ -82,7 +82,7 @@ describe('CityController', () => {
     }
     const result = await controller.create(createDto)
     expect(result).toEqual(city)
-    expect(prismaMock.city.create).toHaveBeenCalledWith({ data: createDto})
+    expect(prismaMock.city.create).toHaveBeenCalledWith({ data: createDto })
   })
   it('should update a city', async () => {
     const city = mockData[0]
@@ -90,11 +90,10 @@ describe('CityController', () => {
 
     const result = await controller.update(city.id, city)
     expect(result).toEqual(city)
-    expect(prismaMock.city.update).toHaveBeenCalledWith(
-      {
-        where: { id: city.id },
-        data: city,
-      })
+    expect(prismaMock.city.update).toHaveBeenCalledWith({
+      where: { id: city.id },
+      data: city,
+    })
   })
   it('should remove 1 city', async () => {
     const city = mockData[0]

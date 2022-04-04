@@ -4,7 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 
-import { prismaMock } from '../prisma/prisma-client.mock'
+import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { PrismaService } from '../prisma/prisma.service'
 import { SupportController } from './support.controller'
 import { SupportService } from './support.service'
@@ -20,16 +20,7 @@ describe('SupportController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SupportController],
-      providers: [
-        SupportService,
-        {
-          provide: PrismaService,
-          useValue: prismaMock,
-        },
-        EmailService,
-        TemplateService,
-        ConfigService,
-      ],
+      providers: [SupportService, MockPrismaService, EmailService, TemplateService, ConfigService],
     }).compile()
 
     controller = module.get<SupportController>(SupportController)
