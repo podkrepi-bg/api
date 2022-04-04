@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { Public } from 'nest-keycloak-connect'
 import { BootcampService } from './bootcamp.service'
 import { CreateBootcampDto } from './dto/create-bootcamp.dto'
+import { DeleteManyBootcampDto } from './dto/delete-many-bootcamps.dto'
 import { UpdateBootcampDto } from './dto/update-bootcamp.dto'
 
 @Controller('bootcamp')
@@ -36,5 +37,11 @@ export class BootcampController {
   @Public()
   async remove(@Param('id') id: string) {
     return await this.bootcampService.remove(id)
+  }
+
+  @Post('delete-many')
+  @Public()
+  async deleteMany(@Body() data: DeleteManyBootcampDto) {
+    return await this.bootcampService.removeManyBootcamps(data)
   }
 }
