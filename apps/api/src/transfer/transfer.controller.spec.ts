@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 
 import { TransferService } from './transfer.service'
 import { TransferController } from './transfer.controller'
+import { MockPrismaService } from '../prisma/prisma-client.mock'
 
 describe('TransferController', () => {
   let controller: TransferController
@@ -9,7 +10,7 @@ describe('TransferController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TransferController],
-      providers: [TransferService],
+      providers: [TransferService, MockPrismaService],
     }).compile()
 
     controller = module.get<TransferController>(TransferController)
