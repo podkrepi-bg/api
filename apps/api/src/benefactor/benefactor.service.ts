@@ -22,6 +22,14 @@ export class BenefactorService {
     try {
       return await this.prisma.benefactor.findFirst({
         where: { id },
+        include: {
+          person: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
         rejectOnNotFound: true,
       })
     } catch (err) {

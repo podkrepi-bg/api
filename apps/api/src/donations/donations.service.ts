@@ -11,6 +11,7 @@ import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CampaignService } from '../campaign/campaign.service'
 import { DonationMetadata } from './dontation-metadata.interface'
+import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 
 type DeleteManyResponse = {
   count: number
@@ -85,6 +86,10 @@ export class DonationsService {
 
   async create(inputDto: CreatePaymentDto, user: KeycloakTokenParsed): Promise<Donation> {
     return await this.prisma.donation.create({ data: inputDto.toEntity(user) })
+  }
+
+  async createBankPayment(inputDto: CreateBankPaymentDto): Promise<Donation> {
+    return await this.prisma.donation.create({ data: inputDto.toEntity() })
   }
 
   async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Donation> {
