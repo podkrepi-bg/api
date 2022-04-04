@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { MockPrismaService } from '../prisma/prisma-client.mock'
-import { ExpensesService } from './expenses.service'
+import { TransferService } from './transfer.service'
 
-describe('ExpensesService', () => {
-  let service: ExpensesService
+describe('TransferService', () => {
+  let service: TransferService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [MockPrismaService, ExpensesService],
+      providers: [TransferService, MockPrismaService],
     }).compile()
 
-    service = module.get<ExpensesService>(ExpensesService)
+    service = module.get<TransferService>(TransferService)
   })
 
   it('should be defined', () => {

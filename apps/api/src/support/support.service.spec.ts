@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
-import { PrismaService } from '../prisma/prisma.service'
+import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { SupportService } from './support.service'
 
 describe('SupportService', () => {
@@ -10,7 +10,7 @@ describe('SupportService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [SupportService, PrismaService, EmailService, TemplateService, ConfigService],
+      providers: [SupportService, MockPrismaService, EmailService, TemplateService, ConfigService],
     }).compile()
 
     service = module.get<SupportService>(SupportService)

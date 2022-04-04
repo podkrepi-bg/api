@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { PrismaService } from '../prisma/prisma.service'
+import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { CampaignTypesController } from './campaign-types.controller'
 import { CampaignTypesService } from './campaign-types.service'
 
@@ -9,7 +9,7 @@ describe('CampaignTypesController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CampaignTypesController],
-      providers: [CampaignTypesService, PrismaService],
+      providers: [CampaignTypesService, MockPrismaService],
     }).compile()
 
     controller = module.get<CampaignTypesController>(CampaignTypesController)

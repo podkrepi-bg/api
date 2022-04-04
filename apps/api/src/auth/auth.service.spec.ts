@@ -11,8 +11,7 @@ import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
 import { LoginDto } from './dto/login.dto'
 import { AuthService } from './auth.service'
 import { RegisterDto } from './dto/register.dto'
-import { PrismaService } from '../prisma/prisma.service'
-import { prismaMock } from '../prisma/prisma-client.mock'
+import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 
 jest.mock('@keycloak/keycloak-admin-client')
 
@@ -40,10 +39,7 @@ describe('AuthService', () => {
           provide: KeycloakAdminClient,
           useValue: mockDeep<KeycloakAdminClient>(),
         },
-        {
-          provide: PrismaService,
-          useValue: prismaMock,
-        },
+        MockPrismaService,
         {
           provide: KEYCLOAK_INSTANCE,
           useValue: mockDeep<KeycloakConnect.Keycloak>(),

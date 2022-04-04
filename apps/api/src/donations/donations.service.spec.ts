@@ -3,8 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
 
 import { DonationsService } from './donations.service'
-import { PrismaService } from '../prisma/prisma.service'
-import { prismaMock } from '../prisma/prisma-client.mock'
+import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { CampaignService } from '../campaign/campaign.service'
 
 describe('DonationsService', () => {
@@ -16,10 +15,7 @@ describe('DonationsService', () => {
         ConfigService,
         CampaignService,
         DonationsService,
-        {
-          provide: PrismaService,
-          useValue: prismaMock,
-        },
+        MockPrismaService,
         {
           provide: STRIPE_CLIENT_TOKEN,
           useValue: jest.fn(),
