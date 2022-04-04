@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateBootcampDto } from './dto/create-bootcamp.dto'
 import { DeleteManyBootcampDto } from './dto/delete-many-bootcamps.dto'
@@ -25,7 +25,13 @@ export class BootcampService {
   }
 
   async remove(id: string) {
-    return await this.prisma.bootcamp.delete({ where: { id } })
+    const result = await this.prisma.bootcamp.delete({ where: { id } })
+
+    if (!result) {
+      throw new NotFoundException('Sorry Id not found.')
+    }
+
+    return result
   }
 
   async removeManyBootcamps(data: DeleteManyBootcampDto) {
