@@ -93,7 +93,12 @@ describe('BeneficiaryController', () => {
     expect(result).toEqual(beneficiary)
     expect(prismaMock.beneficiary.findFirst).toHaveBeenCalledWith({
       where: { id: beneficiary.id },
-      include: { person: true },
+      include: {
+        person: true,
+        city: { select: { name: true } },
+        company: { select: { companyName: true } },
+        coordinator: { select: { person: true } },
+      },
     })
   })
 
@@ -101,9 +106,10 @@ describe('BeneficiaryController', () => {
     const beneficiary = mockData[0]
 
     await expect(controller.getById.bind(controller, beneficiary.id)).rejects.toThrow(
-      new NotFoundException('No beneficiary record with ID: ' + beneficiary.id),
+      new NotFoundException('Could not find beneficiary'),
     )
   })
+
   it('it should create beneficiary', async () => {
     const beneficiary = mockData[0]
     prismaMock.beneficiary.create.mockResolvedValue(beneficiary)
@@ -144,16 +150,4 @@ describe('BeneficiaryController', () => {
     expect(result).toEqual(beneficiary)
     expect(prismaMock.beneficiary.delete).toHaveBeenCalledWith({ where: { id: beneficiary.id } })
   })
-
-  // it('should remove many items', async () => {
-  //   const ids = ['150d29a0-0414-4617-8a0b-9f88f6bd22bf', '159c3d7b-f752-43e9-870b-f05e5b7c313c']
-
-  //   prismaMock.beneficiary.deleteMany.mockResolvedValue({ count: 2 })
-
-  //   const result = await controller.deleteMany({ ids: ids })
-  //   expect(result).toEqual({ count: 2 })
-  //   expect(prismaMock.beneficiary.deleteMany).toHaveBeenCalledWith({
-  //     where: { id: { in: ids } },
-  //   })
-  // })
 })
