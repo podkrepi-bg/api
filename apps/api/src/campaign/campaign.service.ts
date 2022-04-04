@@ -23,11 +23,9 @@ export class CampaignService {
   async listCampaigns(): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({
       include: {
-        campaignType: {
-          select: {
-            category: true,
-          },
-        },
+        campaignType: { select: { category: true } },
+        beneficiary: { select: { person: true } },
+        coordinator: { select: { person: true } },
         vaults: {
           select: {
             donations: { select: { amount: true } },
@@ -114,6 +112,41 @@ export class CampaignService {
 
   async getCampaignVault(campaignId: string): Promise<Vault | null> {
     return this.prisma.vault.findFirst({ where: { campaignId } })
+  }
+
+  async getDonationsForCampaign(campaignId: string): Promise<Donation[]> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: campaignId },
+      include: {
+        vaults: true,
+      },
+    })
+
+    if (campaign === null) {
+      Logger.warn('No campaign record with id: ' + campaign)
+      throw new NotFoundException('No campaign record with id: ' + campaign)
+    }
+
+    const whereVaultIds = campaign.vaults.map((vault) => {
+      return { targetVaultId: vault.id }
+    })
+
+    const donations = await this.prisma.donation.findMany({
+      where: {
+        OR: whereVaultIds,
+      },
+      include: {
+        person: { select: { firstName: true, lastName: true } },
+      },
+    })
+
+    donations.map((donation) => {
+      if (!donation.person) {
+        donation.person = { firstName: 'anonymous', lastName: '' }
+      }
+    })
+
+    return donations
   }
 
   async getDonationByIntentId(paymentIntentId: string): Promise<Donation | null> {
