@@ -247,6 +247,8 @@ export class CampaignService {
       })
     }
 
+    this.updateCampaignStatusIfTargetReached(donation)
+
     return donation
   }
 
@@ -259,6 +261,45 @@ export class CampaignService {
     }
 
     return true
+  }
+
+  /**
+   * Call after adding a successful donation to a vault.
+   * This will set the campaign state to 'complete' if the campaign's target amount has been reached
+   */
+  public async updateCampaignStatusIfTargetReached(donation: Donation) {
+    if (!donation || !donation.targetVaultId) {
+      throw new Error('Invalid donation parameter. Cannot check if campaign goal has been reached.')
+    }
+    const campaign = await this.prisma.campaign.findFirst({
+      where: {
+        vaults: {
+          some: {
+            id: donation.targetVaultId,
+          },
+        },
+      },
+      select: {
+        vaults: true,
+        targetAmount: true,
+        id: true,
+      },
+    })
+
+    if (campaign && campaign.targetAmount) {
+      const totalAmount = campaign.vaults.map((vault) => vault.amount).reduce((a, b) => a + b, 0)
+
+      if (totalAmount >= campaign.targetAmount) {
+        await this.prisma.campaign.update({
+          where: {
+            id: campaign.id,
+          },
+          data: {
+            state: CampaignState.complete,
+          },
+        })
+      }
+    }
   }
 
   private extractPersonFromIntent(

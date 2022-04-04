@@ -87,7 +87,7 @@ export class DonationsService {
     const donation = await this.prisma.donation.create({ data: inputDto.toEntity(user) })
 
     if (donation.status === DonationStatus.succeeded)
-      this.updateCampaignStatusIfTargetReached(donation)
+      this.campaignServie.updateCampaignStatusIfTargetReached(donation)
 
     return donation
   }
@@ -96,7 +96,7 @@ export class DonationsService {
     const donation = await this.prisma.donation.create({ data: inputDto.toEntity() })
 
     if (donation.status === DonationStatus.succeeded)
-      this.updateCampaignStatusIfTargetReached(donation)
+    this.campaignServie.updateCampaignStatusIfTargetReached(donation)
 
     return donation
   }
@@ -111,7 +111,7 @@ export class DonationsService {
       })
 
       if (updatePaymentDto.status === 'succeeded') {
-        this.updateCampaignStatusIfTargetReached(donation)
+        this.campaignServie.updateCampaignStatusIfTargetReached(donation)
       }
 
       return donation
@@ -150,41 +150,5 @@ export class DonationsService {
       return acc
     }, 0)
     return { donations, total }
-  }
-
-  /**
-   * Call after adding a successful donation to a vault.
-   * This will set the campaign state to 'complete' if the campaign's target amount has been reached
-   */
-  private async updateCampaignStatusIfTargetReached(donation: Donation) {
-    const campaign = await this.prisma.campaign.findFirst({
-      where: {
-        vaults: {
-          some: {
-            id: donation.targetVaultId,
-          },
-        },
-      },
-      select: {
-        vaults: true,
-        targetAmount: true,
-        id: true,
-      },
-    })
-
-    if (campaign && campaign.targetAmount) {
-      const totalAmount = campaign.vaults.map((vault) => vault.amount).reduce((a, b) => a + b, 0)
-
-      if (totalAmount >= campaign.targetAmount) {
-        await this.prisma.campaign.update({
-          where: {
-            id: campaign.id,
-          },
-          data: {
-            state: CampaignState.complete,
-          },
-        })
-      }
-    }
   }
 }
