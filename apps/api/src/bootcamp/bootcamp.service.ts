@@ -23,7 +23,11 @@ export class BootcampService {
   }
 
   async update(id: string, updateBootcampDto: UpdateBootcampDto) {
-    return await this.prisma.bootcamp.update({ where: { id }, data: updateBootcampDto })
+    const result = await this.prisma.bootcamp.update({ where: { id }, data: updateBootcampDto })
+    if (!result) {
+      throw new NotFoundException('Sorry Id not found.')
+    }
+    return result
   }
 
   async remove(id: string) {
