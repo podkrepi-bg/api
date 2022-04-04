@@ -14,14 +14,24 @@ export class BeneficiaryService {
   }
 
   async listBeneficiaries(): Promise<Beneficiary[]> {
-    return this.prisma.beneficiary.findMany({ include: { person: true } })
+    return this.prisma.beneficiary.findMany({
+      include: {
+        person: true,
+        company: { select: { companyName: true } },
+      },
+    })
   }
 
   async viewBeneficiary(id: string): Promise<Beneficiary | null | undefined> {
     return this.prisma.beneficiary
       .findFirst({
         where: { id },
-        include: { person: true },
+        include: {
+          person: true,
+          city: { select: { name: true } },
+          company: { select: { companyName: true } },
+          coordinator: { select: { person: true } },
+        },
       })
       .catch(() => {
         throw new NotFoundException(`Could not find beneficiary`)
