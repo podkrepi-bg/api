@@ -17,7 +17,9 @@ export class BootcampService {
   }
 
   async findOne(id: string) {
-    return await this.prisma.bootcamp.findFirst({ where: { id } })
+    return await this.prisma.bootcamp.findFirst({ where: { id } }).catch(() => {
+      throw new NotFoundException('Bootcamp not found')
+    })
   }
 
   async update(id: string, updateBootcampDto: UpdateBootcampDto) {
