@@ -20,7 +20,7 @@ export class BootcampController {
     return this.bootcampService.findAll();
   }
 
-  @Get('byId/:id')
+  @Get(':id')
   @Public()
   findOne(@Param('id') id: string) {
     return this.bootcampService.findOne(id);
