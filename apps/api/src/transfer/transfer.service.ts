@@ -59,18 +59,4 @@ export class TransferService {
     if (!result) throw new NotFoundException('Not found')
     return result
   }
-
-  async removeMany(idsToDelete: string[]): Promise<{ count: number }> {
-    try {
-      return await this.prisma.transfer.deleteMany({
-        where: {
-          id: {
-            in: idsToDelete,
-          },
-        },
-      })
-    } catch (error) {
-      throw new NotFoundException()
-    }
-  }
 }

@@ -33,9 +33,4 @@ export class TransferController {
   remove(@Param('id') id: string) {
     return this.transferService.remove(id)
   }
-
-  @Post('delete-many')
-  removeMany(@Body() idsToDelete: string[]) {
-    return this.transferService.removeMany(idsToDelete)
-  }
 }
