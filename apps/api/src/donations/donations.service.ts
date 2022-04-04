@@ -173,9 +173,9 @@ export class DonationsService {
     })
 
     if (campaign && campaign.targetAmount) {
-      const totalAmount = campaign.vaults.map((vaults) => vaults.amount).reduce((a, b) => a + b, 0)
+      const totalAmount = campaign.vaults.map((vault) => vault.amount).reduce((a, b) => a + b, 0)
 
-      if (totalAmount > campaign.targetAmount) {
+      if (totalAmount >= campaign.targetAmount) {
         await this.prisma.campaign.update({
           where: {
             id: campaign.id,
