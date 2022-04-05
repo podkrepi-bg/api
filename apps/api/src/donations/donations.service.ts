@@ -1,17 +1,16 @@
-import Stripe from 'stripe'
-import { Donation } from '@prisma/client'
-import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common'
-
+import { ConfigService } from '@nestjs/config'
+import { CampaignState, Donation, DonationStatus } from '@prisma/client'
+import Stripe from 'stripe'
 import { KeycloakTokenParsed } from '../auth/keycloak'
-import { PrismaService } from '../prisma/prisma.service'
-import { CreateSessionDto } from './dto/create-session.dto'
-import { CreatePaymentDto } from './dto/create-payment.dto'
-import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CampaignService } from '../campaign/campaign.service'
+import { PrismaService } from '../prisma/prisma.service'
 import { DonationMetadata } from './dontation-metadata.interface'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
+import { CreatePaymentDto } from './dto/create-payment.dto'
+import { CreateSessionDto } from './dto/create-session.dto'
+import { UpdatePaymentDto } from './dto/update-payment.dto'
 
 type DeleteManyResponse = {
   count: number
@@ -85,21 +84,37 @@ export class DonationsService {
   }
 
   async create(inputDto: CreatePaymentDto, user: KeycloakTokenParsed): Promise<Donation> {
-    return await this.prisma.donation.create({ data: inputDto.toEntity(user) })
+    const donation = await this.prisma.donation.create({ data: inputDto.toEntity(user) })
+
+    if (donation.status === DonationStatus.succeeded)
+      this.campaignServie.updateCampaignStatusIfTargetReached(donation)
+
+    return donation
   }
 
   async createBankPayment(inputDto: CreateBankPaymentDto): Promise<Donation> {
-    return await this.prisma.donation.create({ data: inputDto.toEntity() })
+    const donation = await this.prisma.donation.create({ data: inputDto.toEntity() })
+
+    if (donation.status === DonationStatus.succeeded)
+    this.campaignServie.updateCampaignStatusIfTargetReached(donation)
+
+    return donation
   }
 
   async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Donation> {
     try {
-      return await this.prisma.donation.update({
+      const donation = await this.prisma.donation.update({
         where: { id },
         data: {
           status: updatePaymentDto.status,
         },
       })
+
+      if (updatePaymentDto.status === 'succeeded') {
+        this.campaignServie.updateCampaignStatusIfTargetReached(donation)
+      }
+
+      return donation
     } catch (err) {
       const msg = `Update failed. No Donation found with ID: ${id}`
 
