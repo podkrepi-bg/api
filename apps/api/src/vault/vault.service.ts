@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Vault } from '@prisma/client'
-
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateVaultDto } from './dto/create-vault.dto'
 import { UpdateVaultDto } from './dto/update-vault.dto'
@@ -69,6 +68,7 @@ export class VaultService {
       throw err
     }
   }
+
   async removeMany(idsToDelete: string[]): Promise<DeleteManyResponse> {
     try {
       return await this.prisma.vault.deleteMany({
@@ -84,5 +84,24 @@ export class VaultService {
 
       throw err
     }
+  }
+
+  /**
+   * Increment vault amount
+   * TODO: Replace with joined view
+   */
+  public async incrementVaultAmount(vaultId: string, amount: number): Promise<Vault> {
+    if (amount <= 0) {
+      throw new Error('Amount cannot be negative or zero.')
+    }
+
+    return await this.prisma.vault.update({
+      data: {
+        amount: {
+          increment: amount,
+        },
+      },
+      where: { id: vaultId },
+    })
   }
 }

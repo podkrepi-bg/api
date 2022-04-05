@@ -9,16 +9,16 @@ import {
   Person,
   Vault,
 } from '.prisma/client'
-import Stripe from 'stripe'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
-
+import Stripe from 'stripe'
 import { PrismaService } from '../prisma/prisma.service'
+import { VaultService } from '../vault/vault.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from './dto/update-campaign.dto'
 
 @Injectable()
 export class CampaignService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private vaultService: VaultService) {}
 
   async listCampaigns(): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({
@@ -232,19 +232,8 @@ export class CampaignService {
       where: { id: donation.id },
     })
 
-    /**
-     * Update vault amount
-     * TODO: Replace with joined view
-     */
     if (vault) {
-      await this.prisma.vault.update({
-        data: {
-          amount: {
-            increment: amount,
-          },
-        },
-        where: { id: vault.id },
-      })
+      await this.vaultService.incrementVaultAmount(vault.id, amount)
     }
 
     this.updateCampaignStatusIfTargetReached(donation)
