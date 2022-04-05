@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Vault } from '@prisma/client'
+import { CampaignService } from '../campaign/campaign.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateVaultDto } from './dto/create-vault.dto'
 import { UpdateVaultDto } from './dto/update-vault.dto'
@@ -10,7 +11,7 @@ type DeleteManyResponse = {
 
 @Injectable()
 export class VaultService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private campaignService: CampaignService) {}
 
   async create(createVaultDto: CreateVaultDto) {
     return await this.prisma.vault.create({ data: createVaultDto.toEntity() })
@@ -95,7 +96,7 @@ export class VaultService {
       throw new Error('Amount cannot be negative or zero.')
     }
 
-    return await this.prisma.vault.update({
+    const vault = await this.prisma.vault.update({
       data: {
         amount: {
           increment: amount,
@@ -103,5 +104,9 @@ export class VaultService {
       },
       where: { id: vaultId },
     })
+
+    await this.campaignService.updateCampaignStatusIfTargetReached(vault.campaignId)
+
+    return vault
   }
 }

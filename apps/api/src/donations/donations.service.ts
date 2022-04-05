@@ -1,11 +1,12 @@
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { CampaignState, Donation, DonationStatus } from '@prisma/client'
+import { Donation, DonationStatus } from '@prisma/client'
 import Stripe from 'stripe'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CampaignService } from '../campaign/campaign.service'
 import { PrismaService } from '../prisma/prisma.service'
+import { VaultService } from '../vault/vault.service'
 import { DonationMetadata } from './dontation-metadata.interface'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
@@ -23,6 +24,7 @@ export class DonationsService {
     private config: ConfigService,
     private campaignServie: CampaignService,
     private prisma: PrismaService,
+    private vaultService: VaultService,
   ) {}
 
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
@@ -86,23 +88,38 @@ export class DonationsService {
   async create(inputDto: CreatePaymentDto, user: KeycloakTokenParsed): Promise<Donation> {
     const donation = await this.prisma.donation.create({ data: inputDto.toEntity(user) })
 
-    if (donation.status === DonationStatus.succeeded)
-      this.campaignServie.updateCampaignStatusIfTargetReached(donation)
+    if (donation.status === DonationStatus.succeeded) {
+      await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
+    }
 
     return donation
   }
 
+  /**
+   * Used by the administrators to manually add donations executed by bank payments to a campaign.
+   */
   async createBankPayment(inputDto: CreateBankPaymentDto): Promise<Donation> {
     const donation = await this.prisma.donation.create({ data: inputDto.toEntity() })
 
-    if (donation.status === DonationStatus.succeeded)
-    this.campaignServie.updateCampaignStatusIfTargetReached(donation)
+    // Donation status check is not needed, because bank payments are only added by admins if the bank transfer was successful.
+    await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
 
     return donation
   }
 
   async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Donation> {
     try {
+      const oldDonationStatus = (
+        await this.prisma.donation.findFirst({
+          where: { id },
+          select: { status: true },
+        })
+      )?.status
+
+      if (oldDonationStatus === DonationStatus.succeeded) {
+        throw new Error('Succeded donations cannot be updated.')
+      }
+
       const donation = await this.prisma.donation.update({
         where: { id },
         data: {
@@ -110,8 +127,8 @@ export class DonationsService {
         },
       })
 
-      if (updatePaymentDto.status === 'succeeded') {
-        this.campaignServie.updateCampaignStatusIfTargetReached(donation)
+      if (updatePaymentDto.status === DonationStatus.succeeded) {
+        await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
       }
 
       return donation
