@@ -48,6 +48,9 @@ describe('CampaignTypesController', () => {
     }).compile()
 
     controller = module.get<CampaignTypesController>(CampaignTypesController)
+  })
+
+  afterEach(() => {
     mockReset(prismaMock)
   })
 
