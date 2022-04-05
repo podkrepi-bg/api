@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { PrismaService } from '../prisma/prisma.service'
-import { prismaMock } from '../prisma/prisma-client.mock'
+
+import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { CityController } from './city.controller'
 import { CityService } from './city.service'
 import { mockReset } from 'jest-mock-extended'
@@ -36,7 +36,7 @@ describe('CityController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CityController],
-      providers: [CityService, { provide: PrismaService, useValue: prismaMock }],
+      providers: [CityService, MockPrismaService],
     }).compile()
 
     controller = module.get<CityController>(CityController)

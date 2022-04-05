@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { BeneficiaryType, PersonRelation } from '@prisma/client'
 
-import { PrismaService } from '../prisma/prisma.service'
+import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { prismaMock } from '../prisma/prisma-client.mock'
 import { mockReset } from 'jest-mock-extended'
 import { NotFoundException } from '@nestjs/common'
@@ -65,7 +65,7 @@ describe('BeneficiaryController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [BeneficiaryController],
-      providers: [BeneficiaryService, { provide: PrismaService, useValue: prismaMock }],
+      providers: [BeneficiaryService, MockPrismaService],
     }).compile()
 
     controller = module.get<BeneficiaryController>(BeneficiaryController)

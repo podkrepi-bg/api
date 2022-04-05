@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { prismaMock } from '../prisma/prisma-client.mock'
-import { PrismaService } from '../prisma/prisma.service'
+import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { CoordinatorController } from './coordinator.controller'
 import { CoordinatorService } from './coordinator.service'
 
@@ -45,13 +44,7 @@ describe('CoordinatorController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CoordinatorController],
-      providers: [
-        CoordinatorService,
-        {
-          provide: PrismaService,
-          useValue: prismaMock,
-        },
-      ],
+      providers: [CoordinatorService, MockPrismaService],
     })
       .overrideProvider(CoordinatorService)
       .useValue(mockCoordinatorService)

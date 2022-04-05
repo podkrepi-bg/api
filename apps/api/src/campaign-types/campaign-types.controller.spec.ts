@@ -4,7 +4,7 @@ import { CampaignTypeCategory } from '@prisma/client'
 import { mockReset } from 'jest-mock-extended'
 import { prismaMock } from '../prisma/prisma-client.mock'
 
-import { PrismaService } from '../prisma/prisma.service'
+import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { CampaignTypesController } from './campaign-types.controller'
 import { CampaignTypesService } from './campaign-types.service'
 import { CreateCampaignTypeDto } from './dto/create-campaign-type.dto'
@@ -44,13 +44,10 @@ describe('CampaignTypesController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CampaignTypesController],
-      providers: [CampaignTypesService, { provide: PrismaService, useValue: prismaMock }],
+      providers: [CampaignTypesService, MockPrismaService],
     }).compile()
 
     controller = module.get<CampaignTypesController>(CampaignTypesController)
-  })
-
-  afterEach(() => {
     mockReset(prismaMock)
   })
 
@@ -117,6 +114,8 @@ describe('CampaignTypesController', () => {
 
     const result = await controller.remove(campaignType.id)
     expect(result).toEqual(campaignType)
-    expect(prismaMock.campaignType.delete).toHaveBeenCalledWith({ where: { id: campaignType.id } })
+    expect(prismaMock.campaignType.delete).toHaveBeenCalledWith({
+      where: { id: campaignType.id },
+    })
   })
 })
