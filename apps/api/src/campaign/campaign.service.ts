@@ -9,7 +9,7 @@ import {
   Person,
   Vault,
 } from '.prisma/client'
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import Stripe from 'stripe'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
@@ -18,7 +18,8 @@ import { UpdateCampaignDto } from './dto/update-campaign.dto'
 
 @Injectable()
 export class CampaignService {
-  constructor(private prisma: PrismaService, private vaultService: VaultService) {}
+  constructor(private prisma: PrismaService,
+    @Inject(forwardRef(()=>VaultService)) private vaultService: VaultService) {}
 
   async listCampaigns(): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({

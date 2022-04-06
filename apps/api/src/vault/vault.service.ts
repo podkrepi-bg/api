@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
 import { Vault } from '@prisma/client'
 import { CampaignService } from '../campaign/campaign.service'
 import { PrismaService } from '../prisma/prisma.service'
@@ -11,7 +11,11 @@ type DeleteManyResponse = {
 
 @Injectable()
 export class VaultService {
-  constructor(private prisma: PrismaService, private campaignService: CampaignService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => CampaignService))
+    private campaignService: CampaignService,
+  ) {}
 
   async create(createVaultDto: CreateVaultDto) {
     return await this.prisma.vault.create({ data: createVaultDto.toEntity() })
