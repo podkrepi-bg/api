@@ -19,9 +19,7 @@ export class AccountController {
     if (user) {
       // Public authenticated
       console.log(user)
-      return {
-        status: 'authenticated', user, person: await this.personService.findOne(user.sub as string)
-      }
+      return  await this.personService.findOne(user.sub as string);
     }
     // Public
     return { status: 'unauthenticated' }
