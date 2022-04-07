@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common'
+import { Body, Controller, Get, Patch } from '@nestjs/common'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
@@ -19,10 +19,15 @@ export class AccountController {
     if (user) {
       // Public authenticated
       console.log(user)
-      return  await this.personService.findOne(user.sub as string);
+      return await this.personService.findOne(user.sub as string);
     }
     // Public
     return { status: 'unauthenticated' }
+  }
+
+  @Patch('me')
+  async updateProfile(@AuthenticatedUser() user: KeycloakTokenParsed, @Body() data) {
+    return await this.accountService.updateUserProfile(user.sub as string, data)
   }
 
   @Get('private')
