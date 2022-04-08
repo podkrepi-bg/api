@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch } from '@nestjs/common'
+import { Body, Controller, Get, Put } from '@nestjs/common'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
@@ -26,7 +26,7 @@ export class AccountController {
     return { status: 'unauthenticated' }
   }
 
-  @Patch('me')
+  @Put('me')
   async updateProfile(@AuthenticatedUser() user: KeycloakTokenParsed, @Body() data: UpdatePersonDto) {
     if (data.birthday) {
       data.birthday = new Date(data.birthday);
