@@ -135,4 +135,19 @@ describe('CountryController', () => {
       data: updateCountryDto,
     })
   })
+
+  it('should throw error if trying to update a country that does not exist', async () => {
+    const notExistingId = '12345'
+
+    const prismaSpy = jest.spyOn(prismaMock.country, 'update').mockImplementation(() => {
+      const msg = 'Update failed. No country record found with ID: ' + notExistingId
+      throw new NotFoundException(msg)
+    })
+
+    await expect(controller.update.bind(controller, notExistingId)).rejects.toThrow(
+      new NotFoundException(`Update failed. No country record found with ID: ${notExistingId}`),
+    )
+
+    expect(prismaSpy).toHaveBeenCalled()
+  })
 })
