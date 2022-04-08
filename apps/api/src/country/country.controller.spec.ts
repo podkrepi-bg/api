@@ -1,11 +1,12 @@
+import { NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { mockReset } from 'jest-mock-extended'
 
 import { prismaMock, MockPrismaService } from '../prisma/prisma-client.mock'
-import { PrismaService } from '../prisma/prisma.service'
 
 import { CountryController } from './country.controller'
 import { CountryService } from './country.service'
+import { CreateCountryDto } from './dto/create-country.dto'
 
 const mockData = [
   {
@@ -48,5 +49,43 @@ describe('CountryController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined()
+  })
+
+  it('should list all countries', async () => {
+    const result = await controller.findAll()
+    expect(result).toHaveLength(3)
+    expect(result).toEqual(mockData)
+  })
+
+  it('should get 1 country', async () => {
+    const country = mockData[0]
+    prismaMock.country.findFirst.mockResolvedValue(country)
+
+    const result = await controller.findOne(country.id)
+    expect(result).toEqual(country)
+    expect(prismaMock.country.findFirst).toHaveBeenCalledWith({
+      where: {
+        id: country.id,
+      },
+      include: {
+        cities: true,
+      },
+      rejectOnNotFound: true,
+    })
+  })
+
+  it.only('should throw error if country does not exist', async () => {
+    const notExistingId = '12345'
+
+    const prismaSpy = jest.spyOn(prismaMock.country, 'findFirst').mockImplementation(() => {
+      const msg = 'No Country record with ID: ' + notExistingId
+      throw new NotFoundException(msg)
+    })
+
+    await expect(controller.findOne.bind(controller, notExistingId)).rejects.toThrow(
+      new NotFoundException(`No Country record with ID: ${notExistingId}`),
+    )
+
+    expect(prismaSpy).toHaveBeenCalled()
   })
 })
