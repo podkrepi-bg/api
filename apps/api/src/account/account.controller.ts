@@ -3,6 +3,7 @@ import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
+import { UpdatePersonDto } from '../person/dto/update-person.dto'
 import { PersonService } from '../person/person.service'
 import { AccountService } from './account.service'
 
@@ -26,7 +27,10 @@ export class AccountController {
   }
 
   @Patch('me')
-  async updateProfile(@AuthenticatedUser() user: KeycloakTokenParsed, @Body() data) {
+  async updateProfile(@AuthenticatedUser() user: KeycloakTokenParsed, @Body() data: UpdatePersonDto) {
+    if (data.birthday) {
+      data.birthday = new Date(data.birthday);
+    }
     return await this.accountService.updateUserProfile(user.sub as string, data)
   }
 
