@@ -7,6 +7,7 @@ import { prismaMock, MockPrismaService } from '../prisma/prisma-client.mock'
 import { CountryController } from './country.controller'
 import { CountryService } from './country.service'
 import { CreateCountryDto } from './dto/create-country.dto'
+import { UpdateCountryDto } from './dto/update-country.dto'
 
 const mockData = [
   {
@@ -106,5 +107,32 @@ describe('CountryController', () => {
     const result = await controller.create(createDto)
     expect(result).toEqual(newCountry)
     expect(prismaMock.country.create).toHaveBeenCalledWith({ data: createDto })
+  })
+
+  it('should update a country', async () => {
+    const country = mockData[0]
+    const updateCountryDto: UpdateCountryDto = {
+      name: 'Germany',
+      countryCode: 'DE',
+    }
+    const updatedCountry = {
+      id: '00000000-0000-0000-0000-000000000001',
+      name: 'Germany',
+      countryCode: 'DE',
+      cities: ['Sofia', 'Varna', 'Plovdiv'],
+    }
+
+    prismaMock.country.update.mockResolvedValue(updatedCountry)
+
+    const result = await controller.update(country.id, updateCountryDto)
+
+    expect(result).toEqual(updatedCountry)
+    expect(prismaMock.country.update).toHaveBeenCalledWith({
+      where: { id: country.id },
+      include: {
+        cities: true,
+      },
+      data: updateCountryDto,
+    })
   })
 })
