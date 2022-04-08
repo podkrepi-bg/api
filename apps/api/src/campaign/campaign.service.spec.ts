@@ -1,14 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing'
-
-import { CampaignService } from './campaign.service'
 import { MockPrismaService } from '../prisma/prisma-client.mock'
+import { VaultModule } from '../vault/vault.module'
+import { VaultService } from '../vault/vault.service'
+import { CampaignService } from './campaign.service'
 
 describe('CampaignService', () => {
   let service: CampaignService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CampaignService, MockPrismaService],
+      imports: [VaultModule],
+      providers: [CampaignService, MockPrismaService, VaultService],
     }).compile()
 
     service = module.get<CampaignService>(CampaignService)

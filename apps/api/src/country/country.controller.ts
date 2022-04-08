@@ -1,16 +1,6 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UnauthorizedException,
-} from '@nestjs/common'
-import { AuthenticatedUser, Public } from 'nest-keycloak-connect'
-
-import { KeycloakTokenParsed } from '../auth/keycloak'
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common'
+import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 import { CountryService } from './country.service'
 import { CreateCountryDto } from './dto/create-country.dto'
@@ -21,16 +11,11 @@ export class CountryController {
   constructor(private readonly countryService: CountryService) {}
 
   @Post('create-country')
-  create(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
-    @Body()
-    createCountryDto: CreateCountryDto,
-  ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
-
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  create(@Body() createCountryDto: CreateCountryDto) {
     return this.countryService.create(createCountryDto)
   }
 
@@ -47,31 +32,20 @@ export class CountryController {
   }
 
   @Patch(':id')
-  update(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
-    @Param('id')
-    id: string,
-    @Body() updateCountryDto: UpdateCountryDto,
-  ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
-
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  update(@Param('id') id: string, @Body() updateCountryDto: UpdateCountryDto) {
     return this.countryService.updateCountryById(id, updateCountryDto)
   }
 
   @Delete(':id')
-  remove(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
-    @Param('id')
-    id: string,
-  ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
-
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  remove(@Param('id') id: string) {
     return this.countryService.removeCountryById(id)
   }
 }

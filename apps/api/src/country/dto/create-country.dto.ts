@@ -20,5 +20,5 @@ export class CreateCountryDto {
   @ApiProperty()
   @Expose()
   @IsOptional()
-  cities: City[]
+  cities?: City[]
 }
