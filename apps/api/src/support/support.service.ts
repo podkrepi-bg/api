@@ -34,7 +34,10 @@ export class SupportService {
   }
 
   async listSupportRequests(): Promise<Supporter[]> {
-    return await this.prisma.supporter.findMany({ include: { person: true } })
+    return await this.prisma.supporter.findMany({
+      include: { person: true },
+      orderBy: { createdAt: 'desc' },
+    })
   }
 
   async createInfoRequest(
@@ -52,7 +55,10 @@ export class SupportService {
   }
 
   async listInfoRequests(): Promise<InfoRequest[]> {
-    return await this.prisma.infoRequest.findMany({ include: { person: true } })
+    return await this.prisma.infoRequest.findMany({
+      include: { person: true },
+      orderBy: { createdAt: 'desc' },
+    })
   }
 
   async sendWelcomeEmail(inputDto: CreateRequestDto) {
