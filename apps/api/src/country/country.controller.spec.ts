@@ -74,7 +74,7 @@ describe('CountryController', () => {
     })
   })
 
-  it.only('should throw error if country does not exist', async () => {
+  it('should throw error if country does not exist', async () => {
     const notExistingId = '12345'
 
     const prismaSpy = jest.spyOn(prismaMock.country, 'findFirst').mockImplementation(() => {
@@ -87,5 +87,24 @@ describe('CountryController', () => {
     )
 
     expect(prismaSpy).toHaveBeenCalled()
+  })
+
+  it('should create a country', async () => {
+    const newCountry = {
+      id: '00000000-0000-0000-0000-000000000004',
+      name: 'France',
+      countryCode: 'FR',
+    }
+
+    prismaMock.country.create.mockResolvedValue(newCountry)
+
+    const createDto: CreateCountryDto = {
+      name: newCountry.name,
+      countryCode: newCountry.countryCode,
+    }
+
+    const result = await controller.create(createDto)
+    expect(result).toEqual(newCountry)
+    expect(prismaMock.country.create).toHaveBeenCalledWith({ data: createDto })
   })
 })
