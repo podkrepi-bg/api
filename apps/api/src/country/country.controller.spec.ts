@@ -75,7 +75,7 @@ describe('CountryController', () => {
     })
   })
 
-  it('should throw error if country does not exist', async () => {
+  it('should throw error if trying to get a country that does not exist', async () => {
     const notExistingId = '12345'
 
     const prismaSpy = jest.spyOn(prismaMock.country, 'findFirst').mockImplementation(() => {
