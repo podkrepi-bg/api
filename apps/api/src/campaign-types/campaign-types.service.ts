@@ -32,8 +32,4 @@ export class CampaignTypesService {
   async remove(id: string) {
     return await this.prisma.campaignType.delete({ where: { id } })
   }
-
-  // async removeMany(data: DeleteManyCampaignTypesDto) {
-  //   return await this.prisma.campaignType.deleteMany({ where: { id: { in: data.ids } } })
-  // }
 }
