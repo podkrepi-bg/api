@@ -150,4 +150,15 @@ describe('CountryController', () => {
 
     expect(prismaSpy).toHaveBeenCalled()
   })
+
+  it('should remove a country', async () => {
+    const country = mockData[0]
+
+    prismaMock.country.delete.mockResolvedValue(country)
+
+    const result = await controller.remove(country.id)
+
+    expect(result).toEqual(country)
+    expect(prismaMock.country.delete).toHaveBeenCalledWith({ where: { id: country.id } })
+  })
 })
