@@ -44,12 +44,4 @@ export class UpdatePersonDto {
   @ApiProperty()
   @Expose()
   personalNumber?: string
-  
-  @ApiProperty()
-  @Expose()
-  keycloakId?: string
- 
-  @ApiProperty()
-  @Expose()
-  stripeCustomerId?: string
 }
