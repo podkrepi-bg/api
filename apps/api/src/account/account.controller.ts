@@ -30,9 +30,6 @@ export class AccountController {
 
   @Put('me')
   async updateProfile(@AuthenticatedUser() user: KeycloakTokenParsed, @Body() data: UpdatePersonDto) {
-    if (data.birthday) {
-      data.birthday = new Date(data.birthday);
-    }
     return await this.accountService.updateUserProfile(user.sub as string, data)
   }
 
