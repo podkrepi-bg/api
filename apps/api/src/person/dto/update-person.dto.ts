@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { Expose } from "class-transformer"
-import { IsString } from "class-validator"
+import { IsEmail, IsString } from "class-validator"
 
 export class UpdatePersonDto {
   @ApiProperty()
@@ -15,12 +15,8 @@ export class UpdatePersonDto {
 
   @ApiProperty()
   @Expose()
-  @IsString()
+  @IsEmail()
   email?: string
-
-  @ApiProperty()
-  @Expose()
-  emailConfirmed?: boolean
 
   @ApiProperty()
   @Expose()
