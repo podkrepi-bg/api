@@ -104,6 +104,9 @@ describe('SupportController', () => {
       jest.spyOn(prismaService.supporter, 'findMany').mockImplementation(mockList)
 
       expect(await controller.getSuporters()).toIncludeSameMembers(expected)
+      expect(prismaService.supporter.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ orderBy: { createdAt: 'desc' } }),
+      )
     })
   })
 
@@ -133,6 +136,9 @@ describe('SupportController', () => {
       jest.spyOn(prismaService.infoRequest, 'findMany').mockImplementation(mockList)
 
       expect(await controller.getInfoRequests()).toIncludeSameMembers(expected)
+      expect(prismaService.infoRequest.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ orderBy: { createdAt: 'desc' } }),
+      )
     })
   })
 })
