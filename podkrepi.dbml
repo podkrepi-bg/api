@@ -523,6 +523,7 @@ Enum CampaignFileRole {
   document
   profilePhoto
   campaignListPhoto
+  beneficiaryPhoto
 }
 
 Ref: Coordinator.personId > Person.id

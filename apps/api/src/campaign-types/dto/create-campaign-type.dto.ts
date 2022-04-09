@@ -19,9 +19,9 @@ export class CreateCampaignTypeDto {
   slug: string
   @ApiProperty()
   @IsString()
-  @IsOptional()
+  // @IsOptional()
   @Expose()
-  description?: string
+  description?: string | null
   @ApiProperty()
   @IsUUID()
   @IsOptional()
