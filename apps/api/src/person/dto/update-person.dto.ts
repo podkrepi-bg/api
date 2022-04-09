@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { Expose } from "class-transformer"
-import { IsEmail, IsString } from "class-validator"
+import { IsBoolean, IsEmail, IsString } from "class-validator"
 
 export class UpdatePersonDto {
   @ApiProperty()
@@ -28,6 +28,7 @@ export class UpdatePersonDto {
   
   @ApiProperty()
   @Expose()
+  @IsBoolean()
   newsletter?: boolean
 
   @ApiProperty()
