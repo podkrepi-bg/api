@@ -145,7 +145,7 @@ export class DonationsService {
       return await this.prisma.donation.updateMany({
         where: { id: { in: ids } },
         data: {
-          status: 'deleted',
+          status: DonationStatus.deleted,
         },
       })
     } catch (err) {
