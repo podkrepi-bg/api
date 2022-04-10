@@ -142,8 +142,11 @@ export class DonationsService {
 
   async remove(ids: string[]): Promise<DeleteManyResponse> {
     try {
-      return await this.prisma.donation.deleteMany({
+      return await this.prisma.donation.updateMany({
         where: { id: { in: ids } },
+        data: {
+          status: DonationStatus.deleted,
+        },
       })
     } catch (err) {
       const msg = `Delete failed. No Donation found with given ID`
