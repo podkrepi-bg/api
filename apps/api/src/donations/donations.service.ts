@@ -1,7 +1,7 @@
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Donation, DonationStatus } from '@prisma/client'
+import { Donation, DonationStatus, Prisma } from '@prisma/client'
 import Stripe from 'stripe'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CampaignService } from '../campaign/campaign.service'
@@ -12,10 +12,6 @@ import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
-
-type DeleteManyResponse = {
-  count: number
-}
 
 @Injectable()
 export class DonationsService {
@@ -140,7 +136,7 @@ export class DonationsService {
     }
   }
 
-  async remove(ids: string[]): Promise<DeleteManyResponse> {
+  async softDelete(ids: string[]): Promise<Prisma.BatchPayload> {
     try {
       return await this.prisma.donation.updateMany({
         where: { id: { in: ids } },
