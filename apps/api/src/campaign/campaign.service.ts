@@ -80,6 +80,11 @@ export class CampaignService {
           },
         },
         campaignFiles: true,
+        vaults: {
+          select: {
+            donations: { select: { amount: true } },
+          },
+        },
       },
     })
 
@@ -88,15 +93,14 @@ export class CampaignService {
       throw new NotFoundException('No campaign record with slug: ' + slug)
     }
 
-    const reachedAmount: Record<string, number> = await this.prisma.$queryRaw`
-      SELECT
-      SUM(d.amount) as reached_amount
-      FROM vaults v
-      JOIN donations d on v.id = d.target_vault_id
-      WHERE d.status = 'succeeded' and v.campaign_id = ${campaign.id}`
-
-    //the query always returns 1 record with the value as number or null if no donations where made yet
-    campaign['summary'] = [{ reachedAmount: reachedAmount[0]['reached_amount'] }]
+    let campaignAmountReached = 0
+    for (const vault of campaign.vaults) {
+      for (const donation of vault.donations) {
+        campaignAmountReached += donation.amount
+      }
+    }
+    campaign['summary'] = [{ reachedAmount: campaignAmountReached }]
+    campaign.vaults = []
 
     return campaign
   }
