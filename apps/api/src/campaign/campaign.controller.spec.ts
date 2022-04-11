@@ -11,6 +11,29 @@ import { CampaignService } from './campaign.service'
 describe('CampaignController', () => {
   let controller: CampaignController
   let prismaService: PrismaService
+  const mockCampaign = {
+    id: 'testId',
+    state: CampaignState.active,
+    slug: 'test-slug',
+    title: 'Test name',
+    description: null,
+    essence: 'test',
+    coordinatorId: 'testCoordinatorId',
+    beneficiaryId: 'testBeneficiaryId',
+    campaignTypeId: 'testCampaignTypeId',
+    targetAmount: 1000,
+    startDate: null,
+    endDate: null,
+    createdAt: new Date('2022-04-08T06:36:33.661Z'),
+    updatedAt: new Date('2022-04-08T06:36:33.662Z'),
+    deletedAt: null,
+    approvedById: null,
+    currency: Currency.BGN,
+    beneficiary: {},
+    coordinator: {},
+    campaignFiles: [],
+    vaults: [{ donations: [{ amount: 100 }, { amount: 10 }] }, { donations: [] }],
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -22,44 +45,39 @@ describe('CampaignController', () => {
     prismaService = prismaMock
   })
 
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
   it('should be defined', () => {
     expect(controller).toBeDefined()
+  })
+
+  describe('getData ', () => {
+    it('should return proper campaign list', async () => {
+      const mockList = jest.fn().mockResolvedValue([mockCampaign])
+      jest.spyOn(prismaService.campaign, 'findMany').mockImplementation(mockList)
+
+      expect(await controller.getData()).toEqual([
+        {
+          ...mockCampaign,
+          ...{ summary: [{ reachedAmount: 110 }], vaults: [] },
+        },
+      ])
+      expect(prismaService.campaign.findMany).toHaveBeenCalled()
+    })
   })
 
   describe('viewBySlug ', () => {
     it('should return proper campaign', async () => {
       const slug = 'test-name'
-      const mockCampaign = {
-        id: 'testId',
-        state: CampaignState.active,
-        slug,
-        title: 'Test name',
-        description: null,
-        essence: 'test',
-        coordinatorId: 'testCoordinatorId',
-        beneficiaryId: 'testBeneficiaryId',
-        campaignTypeId: 'testCampaignTypeId',
-        targetAmount: 1000,
-        startDate: null,
-        endDate: null,
-        createdAt: new Date('2022-04-08T06:36:33.661Z'),
-        updatedAt: new Date('2022-04-08T06:36:33.662Z'),
-        deletedAt: null,
-        approvedById: null,
-        currency: Currency.BGN,
-        beneficiary: {},
-        coordinator: {},
-        campaignFiles: [],
-        vaults: [{ donations: [{ amount: 100 }, { amount: 10 }] }, { donations: [] }],
-      }
-
-      const mockObject = jest.fn().mockResolvedValue(mockCampaign)
+      const mockObject = jest.fn().mockResolvedValue({ ...mockCampaign, ...{ slug } })
       jest.spyOn(prismaService.campaign, 'findFirst').mockImplementation(mockObject)
 
       expect(await controller.viewBySlug(slug)).toEqual({
         campaign: {
           ...mockCampaign,
-          ...{ summary: [{ reachedAmount: 110 }], vaults: [] },
+          ...{ summary: [{ reachedAmount: 110 }], vaults: [], slug },
         },
       })
       expect(prismaService.campaign.findFirst).toHaveBeenCalledWith(

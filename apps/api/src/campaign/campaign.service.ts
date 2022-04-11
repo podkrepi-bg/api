@@ -18,8 +18,10 @@ import { UpdateCampaignDto } from './dto/update-campaign.dto'
 
 @Injectable()
 export class CampaignService {
-  constructor(private prisma: PrismaService,
-    @Inject(forwardRef(()=>VaultService)) private vaultService: VaultService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => VaultService)) private vaultService: VaultService,
+  ) {}
 
   async listCampaigns(): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({
@@ -37,19 +39,7 @@ export class CampaignService {
     })
 
     //TODO: remove this when Prisma starts supporting nested groupbys
-    for (const campaign of campaigns) {
-      let campaignAmountReached = 0
-      for (const vault of campaign.vaults) {
-        for (const donation of vault.donations) {
-          campaignAmountReached += donation.amount
-        }
-      }
-      campaign['summary'] = [{ reachedAmount: campaignAmountReached }]
-      //now remove the unnecessary records in vault and donations from response
-      campaign.vaults = []
-    }
-
-    return campaigns
+    return campaigns.map(this.addReachedAmount)
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
@@ -93,16 +83,7 @@ export class CampaignService {
       throw new NotFoundException('No campaign record with slug: ' + slug)
     }
 
-    let campaignAmountReached = 0
-    for (const vault of campaign.vaults) {
-      for (const donation of vault.donations) {
-        campaignAmountReached += donation.amount
-      }
-    }
-    campaign['summary'] = [{ reachedAmount: campaignAmountReached }]
-    campaign.vaults = []
-
-    return campaign
+    return this.addReachedAmount(campaign)
   }
 
   async listCampaignTypes(): Promise<CampaignType[]> {
@@ -335,5 +316,17 @@ export class CampaignService {
     } catch (error) {
       throw new NotFoundException()
     }
+  }
+
+  private addReachedAmount(campaign: Campaign & { vaults: { donations: { amount: number }[] }[] }) {
+    let campaignAmountReached = 0
+
+    for (const vault of campaign.vaults) {
+      for (const donation of vault.donations) {
+        campaignAmountReached += donation.amount
+      }
+    }
+
+    return { ...campaign, ...{ summary: [{ reachedAmount: campaignAmountReached }], vaults: [] } }
   }
 }
