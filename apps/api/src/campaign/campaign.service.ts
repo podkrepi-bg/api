@@ -18,8 +18,10 @@ import { UpdateCampaignDto } from './dto/update-campaign.dto'
 
 @Injectable()
 export class CampaignService {
-  constructor(private prisma: PrismaService,
-    @Inject(forwardRef(()=>VaultService)) private vaultService: VaultService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => VaultService)) private vaultService: VaultService,
+  ) {}
 
   async listCampaigns(): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({
@@ -37,19 +39,7 @@ export class CampaignService {
     })
 
     //TODO: remove this when Prisma starts supporting nested groupbys
-    for (const campaign of campaigns) {
-      let campaignAmountReached = 0
-      for (const vault of campaign.vaults) {
-        for (const donation of vault.donations) {
-          campaignAmountReached += donation.amount
-        }
-      }
-      campaign['summary'] = [{ reachedAmount: campaignAmountReached }]
-      //now remove the unnecessary records in vault and donations from response
-      campaign.vaults = []
-    }
-
-    return campaigns
+    return campaigns.map(this.addReachedAmount)
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
@@ -80,6 +70,11 @@ export class CampaignService {
           },
         },
         campaignFiles: true,
+        vaults: {
+          select: {
+            donations: { select: { amount: true } },
+          },
+        },
       },
     })
 
@@ -88,17 +83,7 @@ export class CampaignService {
       throw new NotFoundException('No campaign record with slug: ' + slug)
     }
 
-    const reachedAmount: Record<string, number> = await this.prisma.$queryRaw`
-      SELECT
-      SUM(d.amount) as reached_amount
-      FROM vaults v
-      JOIN donations d on v.id = d.target_vault_id
-      WHERE d.status = 'succeeded' and v.campaign_id = ${campaign.id}`
-
-    //the query always returns 1 record with the value as number or null if no donations where made yet
-    campaign['summary'] = [{ reachedAmount: reachedAmount[0]['reached_amount'] }]
-
-    return campaign
+    return this.addReachedAmount(campaign)
   }
 
   async listCampaignTypes(): Promise<CampaignType[]> {
@@ -331,5 +316,17 @@ export class CampaignService {
     } catch (error) {
       throw new NotFoundException()
     }
+  }
+
+  private addReachedAmount(campaign: Campaign & { vaults: { donations: { amount: number }[] }[] }) {
+    let campaignAmountReached = 0
+
+    for (const vault of campaign.vaults) {
+      for (const donation of vault.donations) {
+        campaignAmountReached += donation.amount
+      }
+    }
+
+    return { ...campaign, ...{ summary: [{ reachedAmount: campaignAmountReached }], vaults: [] } }
   }
 }
