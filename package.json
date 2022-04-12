@@ -35,6 +35,7 @@
     "@nestjs/terminus": "8.0.4",
     "@ntegral/nestjs-sentry": "3.0.6",
     "@prisma/client": "^3.11.0",
+    "@sendgrid/client": "^7.6.2",
     "@sendgrid/mail": "7.6.0",
     "@sentry/node": "6.14.1",
     "@types/aws-sdk": "^2.7.0",
