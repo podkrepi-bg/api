@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
+import { ConfigService } from '@nestjs/config'
 import { CampaignFileController } from './campaign-file.controller'
 import { CampaignFileService } from './campaign-file.service'
 import { S3Service } from '../s3/s3.service'
@@ -11,7 +12,7 @@ describe('CampaignFileController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CampaignFileController],
-      providers: [CampaignFileService, MockPrismaService, S3Service, PersonService],
+      providers: [CampaignFileService, MockPrismaService, S3Service, PersonService, ConfigService],
     }).compile()
 
     controller = module.get<CampaignFileController>(CampaignFileController)
