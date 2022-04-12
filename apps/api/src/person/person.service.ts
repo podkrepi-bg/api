@@ -7,7 +7,7 @@ import { UpdatePersonDto } from './dto/update-person.dto'
 
 @Injectable()
 export class PersonService {
-  private isEnable = true
+  private enabled = true
   private contactsUrl: string
 
   constructor(private prisma: PrismaService, private config: ConfigService) {
@@ -17,14 +17,14 @@ export class PersonService {
     if (apiKey && this.contactsUrl) {
       client.setApiKey(apiKey)
     } else {
-      this.isEnable = false
+      this.enabled = false
       Logger.warn('no apiKey or contactsUrl for sendgrid, will not add user to the contact list')
     }
   }
 
   async create(createPersonDto: CreatePersonDto) {
     const person = await this.prisma.person.create({ data: createPersonDto })
-    if (createPersonDto.newsletter && this.isEnable) {
+    if (createPersonDto.newsletter && this.enabled) {
       await this.addToContactList(createPersonDto)
     }
     return person
