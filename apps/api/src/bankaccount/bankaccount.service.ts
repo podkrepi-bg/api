@@ -39,19 +39,4 @@ export class BankAccountService {
     if (!result) throw new NotFoundException('sorry id not found')
     return result
   }
-
-  //DELETE MANY
-  async removeMany(itemsToDelete: [string]): Promise<{ count: number }> {
-    try {
-      return await this.prisma.bankAccount.deleteMany({
-        where: {
-          id: {
-            in: itemsToDelete,
-          },
-        },
-      })
-    } catch (error) {
-      throw new NotFoundException()
-    }
-  }
 }

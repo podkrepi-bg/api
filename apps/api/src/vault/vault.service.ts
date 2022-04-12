@@ -74,23 +74,6 @@ export class VaultService {
     }
   }
 
-  async removeMany(idsToDelete: string[]): Promise<DeleteManyResponse> {
-    try {
-      return await this.prisma.vault.deleteMany({
-        where: {
-          id: {
-            in: idsToDelete,
-          },
-        },
-      })
-    } catch (err) {
-      const msg = `Error while deleting Vaults! Exception was: ${err.message}`
-      Logger.warn(msg)
-
-      throw err
-    }
-  }
-
   /**
    * Increment vault amount
    * TODO: Replace with joined view

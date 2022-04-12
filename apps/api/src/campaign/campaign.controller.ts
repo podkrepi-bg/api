@@ -62,13 +62,4 @@ export class CampaignController {
   async remove(@Param('id') id: string) {
     return this.campaignService.removeCampaign(id)
   }
-
-  @Post('deletemany')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
-  async removeMany(@Body() itemsToDelete: string[]) {
-    return this.campaignService.removeMany(itemsToDelete)
-  }
 }

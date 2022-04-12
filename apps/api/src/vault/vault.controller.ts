@@ -82,24 +82,4 @@ export class VaultController {
 
     return this.vaultService.remove(id)
   }
-
-  @Post('/delete-many')
-  async removeMany(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
-    @Body() idsToDelete: string[],
-  ) {
-    const checkAuth = async (id) => {
-      const vault = await this.vaultService.findOne(id)
-      const campaign = await this.campaignService.getCampaignById(vault.campaignId)
-
-      if (user?.sub !== campaign.coordinatorId) {
-        throw new UnauthorizedException()
-      }
-    }
-
-    idsToDelete.forEach(checkAuth)
-
-    return this.vaultService.removeMany(idsToDelete)
-  }
 }

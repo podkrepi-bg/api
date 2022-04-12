@@ -84,17 +84,4 @@ export class DocumentController {
 
     return this.documentService.remove(id)
   }
-
-  @Post('/delete-many')
-  removeMany(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
-    @Body() idsToDelete: string[],
-  ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
-
-    return this.documentService.removeMany(idsToDelete)
-  }
 }

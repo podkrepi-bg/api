@@ -303,21 +303,6 @@ export class CampaignService {
     return await this.prisma.campaign.delete({ where: { id: campaignId } })
   }
 
-  //DELETE MANY
-  async removeMany(itemsToDelete: string[]): Promise<{ count: number }> {
-    try {
-      return await this.prisma.campaign.deleteMany({
-        where: {
-          id: {
-            in: itemsToDelete,
-          },
-        },
-      })
-    } catch (error) {
-      throw new NotFoundException()
-    }
-  }
-
   private addReachedAmount(campaign: Campaign & { vaults: { donations: { amount: number }[] }[] }) {
     let campaignAmountReached = 0
 
