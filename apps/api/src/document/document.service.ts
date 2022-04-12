@@ -75,20 +75,4 @@ export class DocumentService {
       throw new NotFoundException(msg)
     }
   }
-  async removeMany(idsToDelete: string[]): Promise<DeleteManyResponse> {
-    try {
-      return await this.prisma.document.deleteMany({
-        where: {
-          id: {
-            in: idsToDelete,
-          },
-        },
-      })
-    } catch (err) {
-      const msg = `Delete failed. No Document found with given ID`
-
-      Logger.warn(msg)
-      throw new NotFoundException(msg)
-    }
-  }
 }

@@ -47,20 +47,4 @@ export class ExpensesService {
       throw new NotFoundException(msg)
     }
   }
-
-  async removeMany(idsToDelete: string[]) {
-    try {
-      return await this.prisma.expense.deleteMany({
-        where: {
-          id: {
-            in: idsToDelete,
-          },
-        },
-      })
-    } catch (err) {
-      const msg = 'Delete failed. No Expense found with given ID'
-      Logger.warn(msg)
-      throw new NotFoundException(msg)
-    }
-  }
 }

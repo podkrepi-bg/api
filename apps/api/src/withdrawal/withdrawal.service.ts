@@ -44,19 +44,4 @@ export class WithdrawalService {
     if (!result) throw new NotFoundException('Not found')
     return result
   }
-
-  //DELETE MANY
-  async removeMany(itemsToDelete: string[]): Promise<{ count: number }> {
-    try {
-      return await this.prisma.withdrawal.deleteMany({
-        where: {
-          id: {
-            in: itemsToDelete,
-          },
-        },
-      })
-    } catch (error) {
-      throw new NotFoundException()
-    }
-  }
 }

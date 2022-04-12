@@ -74,13 +74,4 @@ export class CompanyService {
     }
   }
 
-  async removeMany(ids: string[]) {
-    return this.prisma.company.deleteMany({
-      where: {
-        id: {
-          in: ids,
-        },
-      },
-    })
-  }
 }

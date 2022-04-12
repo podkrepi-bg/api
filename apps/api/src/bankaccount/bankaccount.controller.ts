@@ -31,9 +31,4 @@ export class BankAccountController {
   remove(@Param('id') id: string) {
     return this.bankaccountService.remove(id)
   }
-
-  @Post('deletemany')
-  removeMany(@Body() itemsToDelete: [string]) {
-    return this.bankaccountService.removeMany(itemsToDelete)
-  }
 }
