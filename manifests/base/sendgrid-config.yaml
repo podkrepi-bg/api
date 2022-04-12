@@ -5,3 +5,4 @@ metadata:
 data:
   sender-email: info@podkrepi.bg
   internal-notifications-email: qa@podkrepi.bg
+  contacts-endpoint: /v3/marketing/contacts

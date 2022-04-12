@@ -46,6 +46,7 @@ export const validationSchema = Joi.object({
   SENDGRID_API_KEY: Joi.string().allow('').optional(),
   SENDGRID_SENDER_EMAIL: Joi.string().email().required(),
   SENDGRID_INTERNAL_EMAIL: Joi.string().email().required(),
+  SENDGRID_CONTACTS_URL: Joi.string().required(),
 
   // Stripe
   STRIPE_SECRET_KEY: Joi.string().required(),

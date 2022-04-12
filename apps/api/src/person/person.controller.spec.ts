@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { PersonController } from './person.controller'
@@ -9,7 +10,7 @@ describe('PersonController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PersonController],
-      providers: [PersonService, MockPrismaService],
+      providers: [PersonService, MockPrismaService, ConfigService],
     }).compile()
 
     controller = module.get<PersonController>(PersonController)

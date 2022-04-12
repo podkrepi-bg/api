@@ -105,6 +105,11 @@ spec:
                 configMapKeyRef:
                   name: sendgrid-config
                   key: internal-notifications-email
+            - name: SENDGRID_CONTACTS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: sendgrid-config
+                  key: contacts-endpoint
             - name: SENDGRID_API_KEY
               valueFrom:
                 secretKeyRef:
