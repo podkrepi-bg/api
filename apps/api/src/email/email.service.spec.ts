@@ -20,7 +20,7 @@ const emailMock = {
 }
 describe('EmailService enabled ', () => {
   let service: EmailService
-  const emailTemplateMock = beforeEach(async () => {
+  beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [EmailService, TemplateService, ConfigService],
     })
