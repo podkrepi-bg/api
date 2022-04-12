@@ -42,10 +42,10 @@ export class BootcampService {
     }
   }
 
-  async remove(id: string): Promise<string | void> {
+  async remove(id: string) {
     try {
-      const deletedTask = await this.prisma.bootcamp.delete({ where: { id: id } })
-      return `${deletedTask.title} Deleted Succesfully!`
+      return await this.prisma.bootcamp.delete({ where: { id: id } })
+
     } catch (error) {
       throw new NotFoundException(error.message)
     }
