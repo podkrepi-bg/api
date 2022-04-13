@@ -13,7 +13,8 @@ import {
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'
-import { Public, AuthenticatedUser } from 'nest-keycloak-connect'
+import { Public, AuthenticatedUser, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { PersonService } from '../person/person.service'
 import { FilesRoleDto } from './dto/files-role.dto'
 import { CampaignFileService } from './campaign-file.service'
@@ -27,6 +28,10 @@ export class CampaignFileController {
 
   @Post(':campaign_id')
   @UseInterceptors(FilesInterceptor('file'))
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async create(
     @Param('campaign_id') campaignId: string,
     @Body() body: FilesRoleDto,
