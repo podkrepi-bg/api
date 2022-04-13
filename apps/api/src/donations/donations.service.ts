@@ -64,7 +64,7 @@ export class DonationsService {
   }
 
   async listDonations(): Promise<Donation[]> {
-    return await this.prisma.donation.findMany()
+    return await this.prisma.donation.findMany({orderBy: [{createdAt: 'desc'}]})
   }
 
   async getDonationById(id: string): Promise<Donation> {
