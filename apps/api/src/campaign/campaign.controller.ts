@@ -25,7 +25,10 @@ export class CampaignController {
   }
 
   @Post('create-campaign')
-  @Public()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async create(@Body() createDto: CreateCampaignDto) {
     return await this.campaignService.createCampaign(createDto)
   }
