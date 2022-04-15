@@ -11,10 +11,17 @@ import { CampaignController } from './campaign.controller'
 import { CampaignService } from './campaign.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { KeycloakTokenParsed } from '../auth/keycloak'
+import { ConfigService } from '@nestjs/config'
+import { PersonService } from '../person/person.service'
 
 describe('CampaignController', () => {
   let controller: CampaignController
   let prismaService: PrismaService
+  const personServiceMock = {
+    findOneByKeycloakId: jest.fn(() => {
+      return { id: personIdMock }
+    }),
+  }
   const mockCreateCampaign = {
     slug: 'test-slug',
     title: 'Test name',
@@ -46,14 +53,15 @@ describe('CampaignController', () => {
       vaults: [{ donations: [{ amount: 100 }, { amount: 10 }] }, { donations: [] }],
     },
   }
+  const personIdMock = 'testPersonId'
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CampaignController],
-      providers: [CampaignService, MockPrismaService, VaultService],
+      providers: [CampaignService, MockPrismaService, VaultService, PersonService, ConfigService],
     })
-      .overrideGuard(AuthenticatedUser)
-      .useValue({})
+      .overrideProvider(PersonService)
+      .useValue(personServiceMock)
       .compile()
 
     controller = module.get<CampaignController>(CampaignController)
@@ -117,7 +125,7 @@ describe('CampaignController', () => {
 
   describe('create ', () => {
     const mockUser = {
-      sub: 'testPersonId',
+      sub: 'testKeycloackId',
       realm_access: { roles: [] },
       'allowed-origins': [],
     } as KeycloakTokenParsed
@@ -132,7 +140,7 @@ describe('CampaignController', () => {
           ...{ realm_access: { roles: [RealmViewSupporters.role] } },
         }),
       ).toEqual(mockCampaign)
-
+      expect(personServiceMock.findOneByKeycloakId).not.toHaveBeenCalled()
       expect(prismaService.campaign.create).toHaveBeenCalledWith({
         data: mockCreateCampaign.toEntity(),
       })
@@ -142,14 +150,15 @@ describe('CampaignController', () => {
       jest.spyOn(prismaService.campaign, 'create').mockImplementation(mockObject)
 
       expect(await controller.create(mockCreateCampaign, mockUser)).toEqual(mockCampaign)
+      expect(personServiceMock.findOneByKeycloakId).toHaveBeenCalledWith(mockUser.sub)
       expect(prismaService.campaign.create).toHaveBeenCalledWith({
         data: {
           ...mockCreateCampaign.toEntity(),
           ...{
             coordinator: {
               connectOrCreate: {
-                where: { personId: mockUser.sub },
-                create: { personId: mockUser.sub },
+                where: { personId: personIdMock },
+                create: { personId: personIdMock },
               },
             },
           },
