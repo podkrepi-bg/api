@@ -7,10 +7,14 @@ import { CampaignService } from './campaign.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from '../campaign/dto/update-campaign.dto'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
+import { PersonService } from '../person/person.service'
 
 @Controller('campaign')
 export class CampaignController {
-  constructor(private readonly campaignService: CampaignService) {}
+  constructor(
+    private readonly campaignService: CampaignService,
+    private readonly personService: PersonService,
+  ) {}
 
   @Get('list')
   @Public()
@@ -30,8 +34,12 @@ export class CampaignController {
     @Body() createDto: CreateCampaignDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
-    const personId = !isAdmin(user) ? (user.sub as string) : undefined
-    return await this.campaignService.createCampaign(createDto, personId)
+    let person
+    if (!isAdmin(user)) {
+      person = await this.personService.findOneByKeycloakId(user.sub as string)
+    }
+
+    return await this.campaignService.createCampaign(createDto, person?.id)
   }
 
   @Get('byId/:id')
