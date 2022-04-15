@@ -6,7 +6,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/commo
 import { CampaignService } from './campaign.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from '../campaign/dto/update-campaign.dto'
-import { KeycloakTokenParsed } from '../auth/keycloak'
+import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 
 @Controller('campaign')
 export class CampaignController {
@@ -30,9 +30,8 @@ export class CampaignController {
     @Body() createDto: CreateCampaignDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
-    const isAdmin = user.realm_access?.roles.includes(RealmViewSupporters.role)
-    const id = isAdmin ? undefined : (user.sub as string)
-    return await this.campaignService.createCampaign(createDto, id)
+    const personId = !isAdmin(user) ? (user.sub as string) : undefined
+    return await this.campaignService.createCampaign(createDto, personId)
   }
 
   @Get('byId/:id')

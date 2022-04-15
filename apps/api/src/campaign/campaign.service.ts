@@ -11,7 +11,6 @@ import {
 } from '.prisma/client'
 import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import Stripe from 'stripe'
-import { CreateCoordinatorDto } from '../coordinator/dto/create-coordinator.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
@@ -49,6 +48,14 @@ export class CampaignService {
       Logger.warn('No campaign record with ID: ' + campaignId)
       throw new NotFoundException('No campaign record with ID: ' + campaignId)
     }
+    return campaign
+  }
+
+  async getCampaignByIdAndPersonId(campaignId: string, personId: string): Promise<Campaign | null> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: campaignId, coordinator: { personId } },
+      include: { coordinator: true },
+    })
     return campaign
   }
 
@@ -91,18 +98,17 @@ export class CampaignService {
     return this.prisma.campaignType.findMany()
   }
 
-  async createCampaign(inputDto: CreateCampaignDto, id?: string): Promise<Campaign> {
+  async createCampaign(inputDto: CreateCampaignDto, personId?: string): Promise<Campaign> {
     let createInput
-    if (id) {
-      const coordinatorDto = { personId: id } as CreateCoordinatorDto
+    if (personId) {
       createInput = {
         data: {
           ...inputDto.toEntity(),
           ...{
             coordinator: {
               connectOrCreate: {
-                where: coordinatorDto,
-                create: coordinatorDto,
+                where: { personId },
+                create: { personId },
               },
             },
           },

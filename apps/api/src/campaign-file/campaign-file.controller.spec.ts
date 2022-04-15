@@ -5,6 +5,8 @@ import { CampaignFileService } from './campaign-file.service'
 import { S3Service } from '../s3/s3.service'
 import { PersonService } from '../person/person.service'
 import { MockPrismaService } from '../prisma/prisma-client.mock'
+import { CampaignService } from '../campaign/campaign.service'
+import { VaultService } from '../vault/vault.service'
 
 describe('CampaignFileController', () => {
   let controller: CampaignFileController
@@ -12,7 +14,15 @@ describe('CampaignFileController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CampaignFileController],
-      providers: [CampaignFileService, MockPrismaService, S3Service, PersonService, ConfigService],
+      providers: [
+        CampaignFileService,
+        MockPrismaService,
+        S3Service,
+        PersonService,
+        ConfigService,
+        CampaignService,
+        VaultService
+      ],
     }).compile()
 
     controller = module.get<CampaignFileController>(CampaignFileController)

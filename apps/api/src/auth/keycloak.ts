@@ -1,3 +1,8 @@
+import { RealmViewSupporters } from '@podkrepi-bg/podkrepi-types'
+
+export function isAdmin(user: KeycloakTokenParsed): boolean {
+  return user.realm_access?.roles.includes(RealmViewSupporters.role) ? true : false
+}
 export interface KeycloakTokenParsed extends KeycloakProfile {
   exp?: number
   iat?: number
