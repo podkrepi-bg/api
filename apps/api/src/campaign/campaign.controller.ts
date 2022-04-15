@@ -1,11 +1,12 @@
 import { Campaign } from '.prisma/client'
-import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
 
 import { CampaignService } from './campaign.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from '../campaign/dto/update-campaign.dto'
+import { KeycloakTokenParsed } from '../auth/keycloak'
 
 @Controller('campaign')
 export class CampaignController {
@@ -25,8 +26,13 @@ export class CampaignController {
   }
 
   @Post('create-campaign')
-  async create(@Body() createDto: CreateCampaignDto) {
-    return await this.campaignService.createCampaign(createDto)
+  async create(
+    @Body() createDto: CreateCampaignDto,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    const isAdmin = user.realm_access?.roles.includes(RealmViewSupporters.role)
+    const id = isAdmin ? undefined : (user.sub as string)
+    return await this.campaignService.createCampaign(createDto, id)
   }
 
   @Get('byId/:id')

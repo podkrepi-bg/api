@@ -32,6 +32,7 @@ export class CreateCampaignDto {
   essence: string
 
   @ApiProperty()
+  @IsOptional()
   @Expose()
   @IsUUID()
   coordinatorId: string

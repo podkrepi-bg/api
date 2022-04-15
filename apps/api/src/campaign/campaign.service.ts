@@ -11,6 +11,7 @@ import {
 } from '.prisma/client'
 import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import Stripe from 'stripe'
+import { CreateCoordinatorDto } from '../coordinator/dto/create-coordinator.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
@@ -90,10 +91,31 @@ export class CampaignService {
     return this.prisma.campaignType.findMany()
   }
 
-  async createCampaign(inputDto: CreateCampaignDto): Promise<Campaign> {
-    return this.prisma.campaign.create({
-      data: inputDto.toEntity(),
-    })
+  async createCampaign(inputDto: CreateCampaignDto, id?: string): Promise<Campaign> {
+    let createInput
+    if (id) {
+      const coordinatorDto = { personId: id } as CreateCoordinatorDto
+      createInput = {
+        data: {
+          ...inputDto.toEntity(),
+          ...{
+            coordinator: {
+              connectOrCreate: {
+                where: coordinatorDto,
+                create: coordinatorDto,
+              },
+            },
+          },
+        },
+        include: { coordinator: true },
+      }
+    } else {
+      createInput = {
+        data: inputDto.toEntity(),
+      }
+    }
+
+    return this.prisma.campaign.create(createInput)
   }
 
   async getCampaignVault(campaignId: string): Promise<Vault | null> {
