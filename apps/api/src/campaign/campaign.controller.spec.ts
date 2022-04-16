@@ -1,7 +1,6 @@
 import { NotFoundException } from '@nestjs/common'
 import { Currency } from '.prisma/client'
 import { Test, TestingModule } from '@nestjs/testing'
-import { AuthenticatedUser } from 'nest-keycloak-connect'
 import { CampaignState } from '@prisma/client'
 import { RealmViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
