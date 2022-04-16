@@ -42,7 +42,7 @@ describe('CampaignFileController', () => {
         ConfigService,
         {
           provide: CampaignService,
-          useValue: { getCampaignByIdAndPersonId: jest.fn(() => (null)) },
+          useValue: { getCampaignByIdAndPersonId: jest.fn(() => null) },
         },
         VaultService,
       ],
