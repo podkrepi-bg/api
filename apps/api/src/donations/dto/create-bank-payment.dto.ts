@@ -53,7 +53,6 @@ export class CreateBankPaymentDto {
   @IsString()
   @IsOptional()
   @IsEmail()
-  @IsUUID()
   personsEmail: string | null
 
   public toEntity(): Prisma.DonationCreateInput {
