@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
-import { RealmViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { CampaignFileController } from './campaign-file.controller'
 import { CampaignFileService } from './campaign-file.service'
 import { S3Service } from '../s3/s3.service'
@@ -21,7 +20,7 @@ describe('CampaignFileController', () => {
   const campaignId = 'testCampaignId'
   const userMock = {
     sub: 'testKeycloackId',
-    realm_access: { roles: [] },
+    resource_access: { account: { roles: [] } },
     'allowed-origins': [],
   } as KeycloakTokenParsed
 
@@ -71,7 +70,7 @@ describe('CampaignFileController', () => {
     expect(
       await controller.create(campaignId, { roles: ['background'] }, files, {
         ...userMock,
-        ...{ realm_access: { roles: [RealmViewSupporters.role] } },
+        ...{ resource_access: { account: { roles: ['account-view-supporters'] } } },
       }),
     ).toEqual([fileId, fileId])
 

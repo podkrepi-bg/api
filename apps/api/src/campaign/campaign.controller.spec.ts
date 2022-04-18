@@ -2,7 +2,6 @@ import { NotFoundException } from '@nestjs/common'
 import { Currency } from '.prisma/client'
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignState } from '@prisma/client'
-import { RealmViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
@@ -125,7 +124,7 @@ describe('CampaignController', () => {
   describe('create ', () => {
     const mockUser = {
       sub: 'testKeycloackId',
-      realm_access: { roles: [] },
+      resource_access: { account: { roles: [] } },
       'allowed-origins': [],
     } as KeycloakTokenParsed
 
@@ -136,7 +135,7 @@ describe('CampaignController', () => {
       expect(
         await controller.create(mockCreateCampaign, {
           ...mockUser,
-          ...{ realm_access: { roles: [RealmViewSupporters.role] } },
+          ...{ resource_access: { account: { roles: ['account-view-supporters'] } } },
         }),
       ).toEqual(mockCampaign)
       expect(personServiceMock.findOneByKeycloakId).not.toHaveBeenCalled()

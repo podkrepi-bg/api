@@ -1,7 +1,16 @@
 import { Campaign } from '.prisma/client'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  NotFoundException,
+} from '@nestjs/common'
 
 import { CampaignService } from './campaign.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
@@ -37,6 +46,9 @@ export class CampaignController {
     let person
     if (!isAdmin(user)) {
       person = await this.personService.findOneByKeycloakId(user.sub as string)
+      if (!person) {
+        throw new NotFoundException('No person found for logged user')
+      }
     }
 
     return await this.campaignService.createCampaign(createDto, person?.id)

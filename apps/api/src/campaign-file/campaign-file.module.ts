@@ -9,6 +9,13 @@ import { VaultService } from '../vault/vault.service'
 
 @Module({
   controllers: [CampaignFileController],
-  providers: [CampaignFileService, PrismaService, S3Service, PersonService, CampaignService, VaultService],
+  providers: [
+    CampaignFileService,
+    PrismaService,
+    S3Service,
+    PersonService,
+    CampaignService,
+    VaultService,
+  ],
 })
 export class CampaignFileModule {}

@@ -1,7 +1,22 @@
-import { RealmViewSupporters } from '@podkrepi-bg/podkrepi-types'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 export function isAdmin(user: KeycloakTokenParsed): boolean {
-  return user.realm_access?.roles.includes(RealmViewSupporters.role) ? true : false
+  if (!user.resource_access) {
+    return false
+  }
+
+  const roles = [RealmViewSupporters.role, ViewSupporters.role].map((role) => {
+    const [key, roleName] = role.split(':')
+    return {
+      key,
+      value: roleName,
+    }
+  })
+
+  return roles.some((role) => {
+    const userRoles = (user.resource_access as KeycloakResourceAccess)[role.key]
+    return userRoles ? userRoles.roles.includes(role.value) : false
+  })
 }
 export interface KeycloakTokenParsed extends KeycloakProfile {
   exp?: number
