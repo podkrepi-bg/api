@@ -156,7 +156,6 @@ export class DonationsService {
 
   async getDonationsByUser(personSub: string) {
     const person = await this.person.findOneByKeycloakId(personSub)
-    console.log(person?.id)
     const donations = await this.prisma.donation.findMany({
       include: {
         targetVault: {
