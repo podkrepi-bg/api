@@ -5,6 +5,7 @@ import { Donation, DonationStatus, Prisma } from '@prisma/client'
 import Stripe from 'stripe'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CampaignService } from '../campaign/campaign.service'
+import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
 import { DonationMetadata } from './dontation-metadata.interface'
@@ -20,6 +21,7 @@ export class DonationsService {
     private config: ConfigService,
     private campaignServie: CampaignService,
     private prisma: PrismaService,
+    private person: PersonService,
     private vaultService: VaultService,
   ) {}
 
@@ -64,7 +66,7 @@ export class DonationsService {
   }
 
   async listDonations(): Promise<Donation[]> {
-    return await this.prisma.donation.findMany({orderBy: [{createdAt: 'desc'}]})
+    return await this.prisma.donation.findMany({ orderBy: [{ createdAt: 'desc' }] })
   }
 
   async getDonationById(id: string): Promise<Donation> {
@@ -152,14 +154,16 @@ export class DonationsService {
     }
   }
 
-  async getDonationsByUser(personId: string) {
+  async getDonationsByUser(personSub: string) {
+    const person = await this.person.findOneByKeycloakId(personSub)
+    console.log(person?.id)
     const donations = await this.prisma.donation.findMany({
       include: {
         targetVault: {
           include: { campaign: true },
         },
       },
-      where: { personId },
+      where: { personId: person?.id },
     })
     const total = donations.reduce((acc, current) => {
       acc += current.amount
