@@ -21,7 +21,7 @@ export class DonationsService {
     private campaignServie: CampaignService,
     private prisma: PrismaService,
     private vaultService: VaultService,
-  ) { }
+  ) {}
 
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
     const list = await this.stripeClient.prices.list({ active, type })
@@ -68,13 +68,13 @@ export class DonationsService {
       orderBy: [
         {
           person: {
-            firstName: 'asc'
-          }
+            firstName: 'asc',
+          },
         },
         {
-          createdAt: 'asc'
+          createdAt: 'desc',
         },
-      ]
+      ],
     })
   }
 
