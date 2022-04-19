@@ -152,7 +152,7 @@ export class DonationsService {
     }
   }
 
-  async getDonationsByUser(personSub: string) {
+  async getDonationsByUser(keycloakId: string) {
     const donations = await this.prisma.donation.findMany({
       include: {
         targetVault: {
@@ -161,7 +161,7 @@ export class DonationsService {
       },
       where: {
         person: {
-          keycloakId: personSub,
+          keycloakId: keycloakId,
         },
       },
     })
