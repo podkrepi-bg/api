@@ -64,7 +64,7 @@ export class DonationsService {
   }
 
   async listDonations(): Promise<Donation[]> {
-    return await this.prisma.donation.findMany({orderBy: [{createdAt: 'desc'}]})
+    return await this.prisma.donation.findMany({ orderBy: [{ createdAt: 'desc' }] })
   }
 
   async getDonationById(id: string): Promise<Donation> {
@@ -166,5 +166,20 @@ export class DonationsService {
       return acc
     }, 0)
     return { donations, total }
+  }
+
+  async getRecentDonationsByCampaign(campaignId: string) {
+    const vaults = await this.prisma.vault.findMany({ where: { campaignId } })
+    const donations = await this.prisma.donation.findMany({
+      where: {
+        targetVaultId: {
+          in: vaults.map((v) => v.id),
+        },
+        status: DonationStatus.succeeded,
+      },
+      select: { person: true, amount: true, createdAt: true, targetVaultId: true, provider: true },
+      orderBy: { createdAt: 'desc' },
+    })
+    return donations
   }
 }
