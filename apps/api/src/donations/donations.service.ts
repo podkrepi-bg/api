@@ -163,14 +163,18 @@ export class DonationsService {
     }
   }
 
-  async getDonationsByUser(personId: string) {
+  async getDonationsByUser(keycloakId: string) {
     const donations = await this.prisma.donation.findMany({
       include: {
         targetVault: {
           include: { campaign: true },
         },
       },
-      where: { personId },
+      where: {
+        person: {
+          keycloakId: keycloakId,
+        },
+      },
     })
     const total = donations.reduce((acc, current) => {
       acc += current.amount
