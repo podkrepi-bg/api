@@ -10,6 +10,8 @@ import {
   Patch,
   Post,
   NotFoundException,
+  forwardRef,
+  Inject
 } from '@nestjs/common'
 
 import { CampaignService } from './campaign.service'
@@ -22,7 +24,7 @@ import { PersonService } from '../person/person.service'
 export class CampaignController {
   constructor(
     private readonly campaignService: CampaignService,
-    private readonly personService: PersonService,
+    @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
   ) {}
 
   @Get('list')

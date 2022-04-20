@@ -9,8 +9,16 @@ import {
   Person,
   Vault,
 } from '.prisma/client'
-import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common'
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import Stripe from 'stripe'
+import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
@@ -21,6 +29,7 @@ export class CampaignService {
   constructor(
     private prisma: PrismaService,
     @Inject(forwardRef(() => VaultService)) private vaultService: VaultService,
+    @Inject(forwardRef(() => PersonService)) private personService: PersonService,
   ) {}
 
   async listCampaigns(): Promise<Campaign[]> {
@@ -55,6 +64,17 @@ export class CampaignService {
     const campaign = await this.prisma.campaign.findFirst({
       where: { id: campaignId, coordinator: { personId } },
       include: { coordinator: true },
+    })
+    return campaign
+  }
+
+  async getCampaignByVaultIdAndPersonId(
+    vaultId: string,
+    personId: string,
+  ): Promise<{ vaults: Vault[]; id: string } | null> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { coordinator: { personId } },
+      select: { id: true, vaults: { where: { id: vaultId } } },
     })
     return campaign
   }
@@ -329,6 +349,15 @@ export class CampaignService {
 
   async removeCampaign(campaignId: string) {
     return await this.prisma.campaign.delete({ where: { id: campaignId } })
+  }
+
+  async checkCampaignOwner(keycloakId: string, campaignId: string) {
+    const person = (await this.personService.findOneByKeycloakId(keycloakId)) as Person
+    const campaign = await this.getCampaignByIdAndPersonId(campaignId, person.id)
+
+    if (!campaign) {
+      throw new UnauthorizedException()
+    }
   }
 
   private addReachedAmount(campaign: Campaign & { vaults: { donations: { amount: number }[] }[] }) {
