@@ -24,7 +24,7 @@ describe('DonationsService', () => {
           provide: STRIPE_CLIENT_TOKEN,
           useValue: jest.fn(),
         },
-        PersonService
+        PersonService,
       ],
     }).compile()
 

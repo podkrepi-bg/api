@@ -11,7 +11,7 @@ import {
   Logger,
   Body,
   Inject,
-  forwardRef
+  forwardRef,
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'

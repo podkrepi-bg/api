@@ -1,4 +1,4 @@
-import { PersonService } from "../person.service"
+import { PersonService } from '../person.service'
 
 export const personServiceMock = {
   findOneByKeycloakId: jest.fn(() => ({ id: 'testPersonId' })),

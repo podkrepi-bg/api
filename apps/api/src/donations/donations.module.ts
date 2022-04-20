@@ -34,7 +34,7 @@ import { PaymentSucceededService } from './events/payment-intent-succeeded.servi
     }),
     VaultModule,
     CampaignModule,
-    PersonModule
+    PersonModule,
   ],
   controllers: [DonationsController],
   providers: [
@@ -44,7 +44,7 @@ import { PaymentSucceededService } from './events/payment-intent-succeeded.servi
     CampaignService,
     PrismaService,
     VaultService,
-    PersonService
+    PersonService,
   ],
 })
 export class DonationsModule {}

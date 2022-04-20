@@ -11,7 +11,7 @@ import {
   Post,
   NotFoundException,
   forwardRef,
-  Inject
+  Inject,
 } from '@nestjs/common'
 
 import { CampaignService } from './campaign.service'
