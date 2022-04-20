@@ -28,7 +28,7 @@ export class VaultController {
     @AuthenticatedUser() user: KeycloakTokenParsed,
     @Body() createVaultDto: CreateVaultDto,
   ) {
-    this.campaignService.checkCampaignOwner(user.sub as string, createVaultDto.campaignId)
+    await this.campaignService.checkCampaignOwner(user.sub as string, createVaultDto.campaignId)
     return this.vaultService.create(createVaultDto)
   }
 
@@ -56,14 +56,14 @@ export class VaultController {
     @Param('id') id: string,
     @Body() updateVaultDto: UpdateVaultDto,
   ) {
-    this.vaultService.checkVaultOwner(user.sub as string, id)
+    await this.vaultService.checkVaultOwner(user.sub as string, id)
 
     return this.vaultService.update(id, updateVaultDto)
   }
 
   @Delete(':id')
   async remove(@AuthenticatedUser() user: KeycloakTokenParsed, @Param('id') id: string) {
-    this.vaultService.checkVaultOwner(user.sub as string, id)
+    await this.vaultService.checkVaultOwner(user.sub as string, id)
 
     return this.vaultService.remove(id)
   }
