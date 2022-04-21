@@ -60,6 +60,29 @@ services:
     networks:
       - backend-net
 
+  keycloak:
+    container_name: keycloak
+    image: docker.io/bitnami/keycloak:15
+    environment:
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+      - DEBUG=true
+      - DEBUG_PORT='*:8787'
+      - DB_VENDOR=POSTGRES
+      - DB_ADDR=pg-db
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_NAME?}
+      - DB_USER=${DB_USER?}
+      - DB_PASSWORD=${DB_PASS?}
+      - TZ=Europe/Sofia
+    depends_on:
+      - pg-db
+    ports:
+      - '9080:8080'
+      - '8787:8787' # debug port
+    networks:
+      - backend-net
+
   # Flyway is deprecated, Prisma migrations are taking place
   # flyway:
   #   build:
@@ -78,6 +101,7 @@ services:
 
 volumes:
   pg-db-data:
+    driver: local
 
 networks:
   backend-net:
