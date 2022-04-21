@@ -5,7 +5,6 @@ import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateVaultDto } from './dto/create-vault.dto'
 import { UpdateVaultDto } from './dto/update-vault.dto'
-import { Person } from '.prisma/client'
 
 @Injectable()
 export class VaultService {
@@ -73,12 +72,16 @@ export class VaultService {
   }
 
   async checkVaultOwner(keycloakId: string, vaultId: string) {
-    const person = (await this.personService.findOneByKeycloakId(keycloakId)) as Person
+    const person = await this.personService.findOneByKeycloakId(keycloakId)
+    if (!person) {
+      Logger.warn(`No person record with keycloak ID: ${keycloakId}`)
+      throw new UnauthorizedException()
+    }
+
     const campaign = await this.campaignService.getCampaignByVaultIdAndPersonId(
       vaultId,
       person.id as string,
     )
-
     if (!campaign) {
       throw new UnauthorizedException()
     }

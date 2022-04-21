@@ -352,9 +352,13 @@ export class CampaignService {
   }
 
   async checkCampaignOwner(keycloakId: string, campaignId: string) {
-    const person = (await this.personService.findOneByKeycloakId(keycloakId)) as Person
-    const campaign = await this.getCampaignByIdAndPersonId(campaignId, person.id)
+    const person = await this.personService.findOneByKeycloakId(keycloakId)
+    if (!person) {
+      Logger.warn(`No person record with keycloak ID: ${keycloakId}`)
+      throw new UnauthorizedException()
+    }
 
+    const campaign = await this.getCampaignByIdAndPersonId(campaignId, person.id)
     if (!campaign) {
       throw new UnauthorizedException()
     }
