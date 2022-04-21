@@ -1,20 +1,17 @@
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
+import { forwardRef, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { Vault } from '@prisma/client'
 import { CampaignService } from '../campaign/campaign.service'
+import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateVaultDto } from './dto/create-vault.dto'
 import { UpdateVaultDto } from './dto/update-vault.dto'
-
-type DeleteManyResponse = {
-  count: number
-}
 
 @Injectable()
 export class VaultService {
   constructor(
     private prisma: PrismaService,
-    @Inject(forwardRef(() => CampaignService))
-    private campaignService: CampaignService,
+    @Inject(forwardRef(() => CampaignService)) private campaignService: CampaignService,
+    @Inject(forwardRef(() => PersonService)) private personService: PersonService,
   ) {}
 
   async create(createVaultDto: CreateVaultDto) {
@@ -71,6 +68,22 @@ export class VaultService {
       Logger.warn(msg)
 
       throw err
+    }
+  }
+
+  async checkVaultOwner(keycloakId: string, vaultId: string) {
+    const person = await this.personService.findOneByKeycloakId(keycloakId)
+    if (!person) {
+      Logger.warn(`No person record with keycloak ID: ${keycloakId}`)
+      throw new UnauthorizedException()
+    }
+
+    const campaign = await this.campaignService.getCampaignByVaultIdAndPersonId(
+      vaultId,
+      person.id as string,
+    )
+    if (!campaign) {
+      throw new UnauthorizedException()
     }
   }
 

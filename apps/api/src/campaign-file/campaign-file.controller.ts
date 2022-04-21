@@ -10,6 +10,8 @@ import {
   NotFoundException,
   Logger,
   Body,
+  Inject,
+  forwardRef,
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'
@@ -24,7 +26,7 @@ import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 export class CampaignFileController {
   constructor(
     private readonly campaignFileService: CampaignFileService,
-    private readonly personService: PersonService,
+    @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
     private readonly campaignService: CampaignService,
   ) {}
 

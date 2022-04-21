@@ -28,12 +28,7 @@ export class VaultController {
     @AuthenticatedUser() user: KeycloakTokenParsed,
     @Body() createVaultDto: CreateVaultDto,
   ) {
-    const campaign = await this.campaignService.getCampaignById(createVaultDto.campaignId)
-
-    if (user?.sub !== campaign.coordinatorId) {
-      throw new UnauthorizedException()
-    }
-
+    await this.campaignService.checkCampaignOwner(user.sub as string, createVaultDto.campaignId)
     return this.vaultService.create(createVaultDto)
   }
 
@@ -61,24 +56,14 @@ export class VaultController {
     @Param('id') id: string,
     @Body() updateVaultDto: UpdateVaultDto,
   ) {
-    const vault = await this.vaultService.findOne(id)
-    const campaign = await this.campaignService.getCampaignById(vault.campaignId)
-
-    if (user?.sub !== campaign.coordinatorId) {
-      throw new UnauthorizedException()
-    }
+    await this.vaultService.checkVaultOwner(user.sub as string, id)
 
     return this.vaultService.update(id, updateVaultDto)
   }
 
   @Delete(':id')
   async remove(@AuthenticatedUser() user: KeycloakTokenParsed, @Param('id') id: string) {
-    const vault = await this.vaultService.findOne(id)
-    const campaign = await this.campaignService.getCampaignById(vault.campaignId)
-
-    if (user?.sub !== campaign.coordinatorId) {
-      throw new UnauthorizedException()
-    }
+    await this.vaultService.checkVaultOwner(user.sub as string, id)
 
     return this.vaultService.remove(id)
   }
