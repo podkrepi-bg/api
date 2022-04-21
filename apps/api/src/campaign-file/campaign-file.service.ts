@@ -18,17 +18,11 @@ export class CampaignFileService {
     uploadedBy: Person,
     buf: Buffer,
   ): Promise<string> {
-    const campaign = await this.prisma.campaign.findFirst({ where: { id: campaignId } })
-    if (campaign === null) {
-      Logger.warn('No campaign record with ID: ' + campaignId)
-      throw new NotFoundException('No campaign record with ID: ' + campaignId)
-    }
-
     const file: CreateCampaignFileDto = {
       filename,
       mimetype,
       role,
-      campaignId: campaign.id,
+      campaignId,
       uploadedById: uploadedBy.id,
     }
     const dbFile = await this.prisma.campaignFile.create({ data: file })

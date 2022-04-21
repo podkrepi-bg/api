@@ -73,7 +73,10 @@ export class DonationsController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  createBankPayment(bankPaymentDto: CreateBankPaymentDto) {
+  createBankPayment(
+    @Body()
+    bankPaymentDto: CreateBankPaymentDto,
+  ) {
     return this.donationsService.createBankPayment(bankPaymentDto)
   }
 

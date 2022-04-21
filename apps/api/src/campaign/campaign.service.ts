@@ -51,6 +51,14 @@ export class CampaignService {
     return campaign
   }
 
+  async getCampaignByIdAndPersonId(campaignId: string, personId: string): Promise<Campaign | null> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: campaignId, coordinator: { personId } },
+      include: { coordinator: true },
+    })
+    return campaign
+  }
+
   async getCampaignBySlug(slug: string): Promise<Campaign> {
     const campaign = await this.prisma.campaign.findFirst({
       where: { slug },
@@ -90,10 +98,30 @@ export class CampaignService {
     return this.prisma.campaignType.findMany()
   }
 
-  async createCampaign(inputDto: CreateCampaignDto): Promise<Campaign> {
-    return this.prisma.campaign.create({
-      data: inputDto.toEntity(),
-    })
+  async createCampaign(inputDto: CreateCampaignDto, personId?: string): Promise<Campaign> {
+    let createInput
+    if (personId) {
+      createInput = {
+        data: {
+          ...inputDto.toEntity(),
+          ...{
+            coordinator: {
+              connectOrCreate: {
+                where: { personId },
+                create: { personId },
+              },
+            },
+          },
+        },
+        include: { coordinator: true },
+      }
+    } else {
+      createInput = {
+        data: inputDto.toEntity(),
+      }
+    }
+
+    return this.prisma.campaign.create(createInput)
   }
 
   async getCampaignVault(campaignId: string): Promise<Vault | null> {
