@@ -169,15 +169,12 @@ export class DonationsService {
   }
 
   async getRecentDonationsByCampaign(campaignId: string) {
-    const vaults = await this.prisma.vault.findMany({ where: { campaignId } })
     const donations = await this.prisma.donation.findMany({
       where: {
-        targetVaultId: {
-          in: vaults.map((v) => v.id),
-        },
+        targetVault: { campaignId },
         status: DonationStatus.succeeded,
       },
-      select: { person: true, amount: true, createdAt: true, targetVaultId: true, provider: true },
+      select: { person: true, amount: true, createdAt: true, provider: true },
       orderBy: { createdAt: 'desc' },
     })
     return donations
