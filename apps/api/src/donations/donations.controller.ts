@@ -103,9 +103,9 @@ export class DonationsController {
     return this.donationsService.softDelete(idsToDelete)
   }
 
-  @Get('recent/by-campaign/:id')
+  @Get('list/:campaignId')
   @Public()
-  async getLastTenStripeDonationsByCampaign(@Param('id') id: string) {
+  async getRecentDonationsByCampaign(@Param('campaignId') id: string) {
     return await this.donationsService.getRecentDonationsByCampaign(id)
   }
 }
