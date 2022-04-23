@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { PersonService } from './person.service'
 import { CreatePersonDto } from './dto/create-person.dto'
 import { UpdatePersonDto } from './dto/update-person.dto'
-import { Public } from 'nest-keycloak-connect'
+import { Public, AuthenticatedUser } from 'nest-keycloak-connect'
+import { KeycloakTokenParsed } from '../auth/keycloak'
 
 @Controller('person')
 export class PersonController {
@@ -12,6 +13,16 @@ export class PersonController {
   @Public()
   async create(@Body() createPersonDto: CreatePersonDto) {
     return await this.personService.create(createPersonDto)
+  }
+
+  @Post('register')
+  async register(@AuthenticatedUser() user: KeycloakTokenParsed) {
+    return await this.personService.create({
+      firstName: user.given_name as string,
+      lastName: user.family_name as string,
+      email: user.email as string,
+      keycloakId: user.sub,
+    })
   }
 
   @Get()
