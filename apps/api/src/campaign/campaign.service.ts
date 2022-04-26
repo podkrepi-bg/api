@@ -48,7 +48,7 @@ export class CampaignService {
     })
 
     //TODO: remove this when Prisma starts supporting nested groupbys
-    return campaigns.map(this.addReachedAmount)
+    return campaigns.map(this.addReachedAmountAndDonors)
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
@@ -100,7 +100,7 @@ export class CampaignService {
         campaignFiles: true,
         vaults: {
           select: {
-            donations: { select: { amount: true } },
+            donations: { select: { amount: true, personId: true } },
           },
         },
       },
@@ -111,7 +111,7 @@ export class CampaignService {
       throw new NotFoundException('No campaign record with slug: ' + slug)
     }
 
-    return this.addReachedAmount(campaign)
+    return this.addReachedAmountAndDonors(campaign)
   }
 
   async listCampaignTypes(): Promise<CampaignType[]> {
@@ -364,15 +364,42 @@ export class CampaignService {
     }
   }
 
-  private addReachedAmount(campaign: Campaign & { vaults: { donations: { amount: number }[] }[] }) {
+  private addReachedAmountAndDonors(
+    campaign: Campaign & {
+      vaults: { donations: { amount: number; personId?: string | null }[] }[]
+    },
+  ) {
     let campaignAmountReached = 0
+    const donors = new Set<string>()
+    let shouldAddDonors = false
+    let anonymousDonors = 0
 
     for (const vault of campaign.vaults) {
       for (const donation of vault.donations) {
         campaignAmountReached += donation.amount
+
+        if (donation.personId !== undefined) {
+          shouldAddDonors = true
+          if (donation.personId === null) {
+            anonymousDonors++
+          } else {
+            donors.add(donation.personId)
+          }
+        }
       }
     }
 
-    return { ...campaign, ...{ summary: [{ reachedAmount: campaignAmountReached }], vaults: [] } }
+    return {
+      ...campaign,
+      ...{
+        summary: [
+          {
+            reachedAmount: campaignAmountReached,
+            donors: shouldAddDonors ? donors.size + anonymousDonors : undefined,
+          },
+        ],
+        vaults: [],
+      },
+    }
   }
 }
