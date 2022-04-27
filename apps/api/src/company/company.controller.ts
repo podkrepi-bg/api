@@ -84,17 +84,4 @@ export class CompanyController {
 
     return this.companyService.remove(id)
   }
-
-  @Post('/delete-many')
-  removeMany(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
-    @Body() idsToDelete: string[],
-  ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
-
-    return this.companyService.removeMany(idsToDelete)
-  }
 }

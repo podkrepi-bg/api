@@ -16,3 +16,8 @@ beforeEach(() => {
 })
 
 export const prismaMock = prisma as DeepMockProxy<PrismaService>
+
+export const MockPrismaService = {
+  provide: PrismaService,
+  useValue: prismaMock,
+}

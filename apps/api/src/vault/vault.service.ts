@@ -1,17 +1,18 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { forwardRef, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { Vault } from '@prisma/client'
-
+import { CampaignService } from '../campaign/campaign.service'
+import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateVaultDto } from './dto/create-vault.dto'
 import { UpdateVaultDto } from './dto/update-vault.dto'
 
-type DeleteManyResponse = {
-  count: number
-}
-
 @Injectable()
 export class VaultService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => CampaignService)) private campaignService: CampaignService,
+    @Inject(forwardRef(() => PersonService)) private personService: PersonService,
+  ) {}
 
   async create(createVaultDto: CreateVaultDto) {
     return await this.prisma.vault.create({ data: createVaultDto.toEntity() })
@@ -69,20 +70,43 @@ export class VaultService {
       throw err
     }
   }
-  async removeMany(idsToDelete: string[]): Promise<DeleteManyResponse> {
-    try {
-      return await this.prisma.vault.deleteMany({
-        where: {
-          id: {
-            in: idsToDelete,
-          },
-        },
-      })
-    } catch (err) {
-      const msg = `Error while deleting Vaults! Exception was: ${err.message}`
-      Logger.warn(msg)
 
-      throw err
+  async checkVaultOwner(keycloakId: string, vaultId: string) {
+    const person = await this.personService.findOneByKeycloakId(keycloakId)
+    if (!person) {
+      Logger.warn(`No person record with keycloak ID: ${keycloakId}`)
+      throw new UnauthorizedException()
     }
+
+    const campaign = await this.campaignService.getCampaignByVaultIdAndPersonId(
+      vaultId,
+      person.id as string,
+    )
+    if (!campaign) {
+      throw new UnauthorizedException()
+    }
+  }
+
+  /**
+   * Increment vault amount
+   * TODO: Replace with joined view
+   */
+  public async incrementVaultAmount(vaultId: string, amount: number): Promise<Vault> {
+    if (amount <= 0) {
+      throw new Error('Amount cannot be negative or zero.')
+    }
+
+    const vault = await this.prisma.vault.update({
+      data: {
+        amount: {
+          increment: amount,
+        },
+      },
+      where: { id: vaultId },
+    })
+
+    await this.campaignService.updateCampaignStatusIfTargetReached(vault.campaignId)
+
+    return vault
   }
 }

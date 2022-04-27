@@ -4,7 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 
-import { prismaMock } from '../prisma/prisma-client.mock'
+import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { PrismaService } from '../prisma/prisma.service'
 import { SupportController } from './support.controller'
 import { SupportService } from './support.service'
@@ -20,16 +20,7 @@ describe('SupportController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SupportController],
-      providers: [
-        SupportService,
-        {
-          provide: PrismaService,
-          useValue: prismaMock,
-        },
-        EmailService,
-        TemplateService,
-        ConfigService,
-      ],
+      providers: [SupportService, MockPrismaService, EmailService, TemplateService, ConfigService],
     }).compile()
 
     controller = module.get<SupportController>(SupportController)
@@ -113,6 +104,9 @@ describe('SupportController', () => {
       jest.spyOn(prismaService.supporter, 'findMany').mockImplementation(mockList)
 
       expect(await controller.getSuporters()).toIncludeSameMembers(expected)
+      expect(prismaService.supporter.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ orderBy: { createdAt: 'desc' } }),
+      )
     })
   })
 
@@ -142,6 +136,9 @@ describe('SupportController', () => {
       jest.spyOn(prismaService.infoRequest, 'findMany').mockImplementation(mockList)
 
       expect(await controller.getInfoRequests()).toIncludeSameMembers(expected)
+      expect(prismaService.infoRequest.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ orderBy: { createdAt: 'desc' } }),
+      )
     })
   })
 })

@@ -34,9 +34,4 @@ export class WithdrawalController {
   remove(@Param('id') id: string) {
     return this.withdrawalService.remove(id)
   }
-
-  @Post('deletemany')
-  removeMany(@Body() itemsToDelete: string[]) {
-    return this.withdrawalService.removeMany(itemsToDelete)
-  }
 }

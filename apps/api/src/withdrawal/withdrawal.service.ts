@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { Withdrawal } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateWithdrawalDto } from './dto/create-withdrawal.dto'
@@ -19,11 +19,14 @@ export class WithdrawalService {
   }
 
   async findOne(id: string): Promise<Withdrawal | null> {
-    const result = await this.prisma.withdrawal.findUnique({
+    const result = await this.prisma.withdrawal.findFirst({
       where: { id },
       include: { bankAccount: true, approvedBy: true, sourceCampaign: true, sourceVault: true },
     })
-    if (!result) throw new NotFoundException('Not found')
+    if (!result) {
+      Logger.warn('No withdrawal record with ID: ' + id)
+      throw new NotFoundException('No withdrawal record with ID: ' + id)
+    }
     return result
   }
 
@@ -40,20 +43,5 @@ export class WithdrawalService {
     const result = await this.prisma.withdrawal.delete({ where: { id: id } })
     if (!result) throw new NotFoundException('Not found')
     return result
-  }
-
-  //DELETE MANY
-  async removeMany(itemsToDelete: string[]): Promise<{ count: number }> {
-    try {
-      return await this.prisma.withdrawal.deleteMany({
-        where: {
-          id: {
-            in: itemsToDelete,
-          },
-        },
-      })
-    } catch (error) {
-      throw new NotFoundException()
-    }
   }
 }

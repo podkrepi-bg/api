@@ -1,19 +1,21 @@
-import { Module } from '@nestjs/common'
-import { Public } from 'nest-keycloak-connect'
-import { ConfigService } from '@nestjs/config'
 import { StripeModule } from '@golevelup/nestjs-stripe'
-
-import { DonationsService } from './donations.service'
-import { DonationsController } from './donations.controller'
-import { PaymentSucceededService } from './events/payment-intent-succeeded.service'
-import { PaymentCreatedService } from './events/payment-created.service'
-import { CampaignService } from '../campaign/campaign.service'
+import { Module } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { Public } from 'nest-keycloak-connect'
 import { CampaignModule } from '../campaign/campaign.module'
+import { CampaignService } from '../campaign/campaign.service'
+import { PersonModule } from '../person/person.module'
+import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
+import { VaultModule } from '../vault/vault.module'
+import { VaultService } from '../vault/vault.service'
+import { DonationsController } from './donations.controller'
+import { DonationsService } from './donations.service'
+import { PaymentCreatedService } from './events/payment-created.service'
+import { PaymentSucceededService } from './events/payment-intent-succeeded.service'
 
 @Module({
   imports: [
-    CampaignModule,
     StripeModule.forRootAsync(StripeModule, {
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => ({
@@ -30,6 +32,9 @@ import { PrismaService } from '../prisma/prisma.service'
         },
       }),
     }),
+    VaultModule,
+    CampaignModule,
+    PersonModule,
   ],
   controllers: [DonationsController],
   providers: [
@@ -38,6 +43,8 @@ import { PrismaService } from '../prisma/prisma.service'
     PaymentSucceededService,
     CampaignService,
     PrismaService,
+    VaultService,
+    PersonService,
   ],
 })
 export class DonationsModule {}

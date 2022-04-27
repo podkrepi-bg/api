@@ -44,13 +44,4 @@ export class ExpensesController {
   remove(@Param('id') id: string) {
     return this.expensesService.remove(id)
   }
-
-  @Delete()
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
-  removeMany(@Body() idsToDelete: string[]) {
-    return this.expensesService.removeMany(idsToDelete)
-  }
 }

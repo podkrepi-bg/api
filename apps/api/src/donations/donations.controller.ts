@@ -74,14 +74,9 @@ export class DonationsController {
     mode: RoleMatchingMode.ANY,
   })
   createBankPayment(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
+    @Body()
     bankPaymentDto: CreateBankPaymentDto,
   ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
-
     return this.donationsService.createBankPayment(bankPaymentDto)
   }
 
@@ -91,17 +86,11 @@ export class DonationsController {
     mode: RoleMatchingMode.ANY,
   })
   update(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
     @Param('id')
     id: string,
     @Body()
     updatePaymentDto: UpdatePaymentDto,
   ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
-
     return this.donationsService.update(id, updatePaymentDto)
   }
 
@@ -110,16 +99,10 @@ export class DonationsController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  remove(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
+  delete(
     @Body()
     idsToDelete: string[],
   ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
-
-    return this.donationsService.remove(idsToDelete)
+    return this.donationsService.softDelete(idsToDelete)
   }
 }

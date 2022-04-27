@@ -1,21 +1,18 @@
+import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
-
+import { PersonService } from '../person/person.service'
+import { MockPrismaService } from '../prisma/prisma-client.mock'
+import { VaultModule } from '../vault/vault.module'
+import { VaultService } from '../vault/vault.service'
 import { CampaignService } from './campaign.service'
-import { PrismaService } from '../prisma/prisma.service'
-import { prismaMock } from '../prisma/prisma-client.mock'
 
 describe('CampaignService', () => {
   let service: CampaignService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        CampaignService,
-        {
-          provide: PrismaService,
-          useValue: prismaMock,
-        },
-      ],
+      imports: [VaultModule],
+      providers: [CampaignService, MockPrismaService, VaultService, PersonService, ConfigService],
     }).compile()
 
     service = module.get<CampaignService>(CampaignService)

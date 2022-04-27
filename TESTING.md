@@ -4,7 +4,7 @@
 
 Install `stripe-cli` from <https://stripe.com/docs/stripe-cli>
 
-In a first shell forward stripe webhook events to the locally running API
+In one shell forward stripe webhook events to the locally running API
 
 ```shell
 yarn stripe:listen-webhook
@@ -17,7 +17,7 @@ STRIPE_SECRET_KEY=sk_test_.....
 STRIPE_WEBHOOK_SECRET=whsec_.....
 ```
 
-In a first shell start the API process
+In another shell start the API process
 
 ```shell
 yarn dev

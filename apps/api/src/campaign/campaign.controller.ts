@@ -1,15 +1,31 @@
 import { Campaign } from '.prisma/client'
-import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  NotFoundException,
+  forwardRef,
+  Inject,
+} from '@nestjs/common'
 
 import { CampaignService } from './campaign.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from '../campaign/dto/update-campaign.dto'
+import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
+import { PersonService } from '../person/person.service'
 
 @Controller('campaign')
 export class CampaignController {
-  constructor(private readonly campaignService: CampaignService) {}
+  constructor(
+    private readonly campaignService: CampaignService,
+    @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
+  ) {}
 
   @Get('list')
   @Public()
@@ -25,9 +41,19 @@ export class CampaignController {
   }
 
   @Post('create-campaign')
-  @Public()
-  async create(@Body() createDto: CreateCampaignDto) {
-    return await this.campaignService.createCampaign(createDto)
+  async create(
+    @Body() createDto: CreateCampaignDto,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    let person
+    if (!isAdmin(user)) {
+      person = await this.personService.findOneByKeycloakId(user.sub as string)
+      if (!person) {
+        throw new NotFoundException('No person found for logged user')
+      }
+    }
+
+    return await this.campaignService.createCampaign(createDto, person?.id)
   }
 
   @Get('byId/:id')
@@ -61,14 +87,5 @@ export class CampaignController {
   })
   async remove(@Param('id') id: string) {
     return this.campaignService.removeCampaign(id)
-  }
-
-  @Post('deletemany')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
-  async removeMany(@Body() itemsToDelete: string[]) {
-    return this.campaignService.removeMany(itemsToDelete)
   }
 }

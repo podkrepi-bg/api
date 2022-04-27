@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { PrismaService } from '../prisma/prisma.service'
+import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { BankAccountController } from './bankaccount.controller'
 import { BankAccountService } from './bankaccount.service'
 
@@ -9,7 +9,7 @@ describe('BankaccountController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [BankAccountController],
-      providers: [PrismaService, BankAccountService],
+      providers: [MockPrismaService, BankAccountService],
     }).compile()
 
     controller = module.get<BankAccountController>(BankAccountController)
