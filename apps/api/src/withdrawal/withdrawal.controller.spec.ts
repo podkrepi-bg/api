@@ -2,12 +2,10 @@ import { NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { WithdrawStatus, Currency } from '@prisma/client'
 import { mockReset } from 'jest-mock-extended'
-import { prismaMock } from '../prisma/prisma-client.mock'
-import { PrismaService } from '../prisma/prisma.service'
+import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { CreateWithdrawalDto } from './dto/create-withdrawal.dto'
 import { WithdrawalController } from './withdrawal.controller'
 import { WithdrawalService } from './withdrawal.service'
-
 
 const mockData = [
   {
@@ -64,7 +62,7 @@ describe('WithdrawalController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [WithdrawalController],
-      providers: [WithdrawalService, { provide: PrismaService, useValue: prismaMock }],
+      providers: [WithdrawalService, MockPrismaService],
     }).compile()
 
     controller = module.get<WithdrawalController>(WithdrawalController)
@@ -93,7 +91,7 @@ describe('WithdrawalController', () => {
       expect(result).toEqual(withdrawal)
       expect(prismaMock.withdrawal.findFirst).toHaveBeenCalledWith({
         where: { id: withdrawal.id },
-        include: { bankAccount: true, approvedBy: true, sourceCampaign: true, sourceVault: true }
+        include: { bankAccount: true, approvedBy: true, sourceCampaign: true, sourceVault: true },
       })
     })
   })
@@ -101,8 +99,9 @@ describe('WithdrawalController', () => {
   it('should throw error if withdrawal does not exist', async () => {
     const withdrawal = mockData[0]
 
-    await expect(controller.findOne.bind(controller, withdrawal.id))
-      .rejects.toThrow(new NotFoundException('No withdrawal record with ID: ' + withdrawal.id))
+    await expect(controller.findOne.bind(controller, withdrawal.id)).rejects.toThrow(
+      new NotFoundException('No withdrawal record with ID: ' + withdrawal.id),
+    )
   })
 
   describe('create and update data', () => {
@@ -123,7 +122,7 @@ describe('WithdrawalController', () => {
       }
       const result = await controller.create(createDto)
       expect(result).toEqual(withdrawal)
-      expect(prismaMock.withdrawal.create).toHaveBeenCalledWith({ data: createDto})
+      expect(prismaMock.withdrawal.create).toHaveBeenCalledWith({ data: createDto })
     })
     it('should update a withdrawal', async () => {
       const withdrawal = mockData[0]
@@ -131,11 +130,10 @@ describe('WithdrawalController', () => {
 
       const result = await controller.update(withdrawal.id, withdrawal)
       expect(result).toEqual(withdrawal)
-      expect(prismaMock.withdrawal.update).toHaveBeenCalledWith(
-        {
-          where: { id: withdrawal.id },
-          data: withdrawal,
-        })
+      expect(prismaMock.withdrawal.update).toHaveBeenCalledWith({
+        where: { id: withdrawal.id },
+        data: withdrawal,
+      })
     })
   })
 

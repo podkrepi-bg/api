@@ -6,10 +6,6 @@ import { PrismaService } from '../prisma/prisma.service'
 import { CreateDocumentDto } from './dto/create-document.dto'
 import { UpdateDocumentDto } from './dto/update-document.dto'
 
-type DeleteManyResponse = {
-  count: number
-}
-
 @Injectable()
 export class DocumentService {
   constructor(private prisma: PrismaService) {}
