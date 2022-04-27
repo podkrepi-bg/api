@@ -1,17 +1,10 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UnauthorizedException,
-} from '@nestjs/common'
+import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common'
+
 import { RecurringDonationService } from './recurring-donation.service'
 import { CreateRecurringDonationDto } from './dto/create-recurring-donation.dto'
 import { UpdateRecurringDonationDto } from './dto/update-recurring-donation.dto'
-import { Public } from 'nest-keycloak-connect'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 @Controller('recurring-donation')
 export class RecurringDonationController {
@@ -36,13 +29,19 @@ export class RecurringDonationController {
   }
 
   @Patch(':id')
-  @Public()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   update(@Param('id') id: string, @Body() updateRecurringDonationDto: UpdateRecurringDonationDto) {
     return this.recurringDonationService.update(id, updateRecurringDonationDto)
   }
 
   @Delete(':id')
-  @Public()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   remove(@Param('id') id: string) {
     return this.recurringDonationService.remove(id)
   }
