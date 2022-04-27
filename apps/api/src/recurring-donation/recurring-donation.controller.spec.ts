@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { PrismaService } from '../prisma/prisma.service'
+import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { RecurringDonationController } from './recurring-donation.controller'
 import { RecurringDonationService } from './recurring-donation.service'
 
@@ -9,7 +9,7 @@ describe('RecurringDonationController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RecurringDonationController],
-      providers: [RecurringDonationService, PrismaService],
+      providers: [RecurringDonationService, MockPrismaService],
     }).compile()
 
     controller = module.get<RecurringDonationController>(RecurringDonationController)

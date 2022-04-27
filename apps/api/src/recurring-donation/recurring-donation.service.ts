@@ -32,14 +32,14 @@ export class RecurringDonationService {
   ): Promise<RecurringDonation | null> {
     const result = await this.prisma.recurringDonation.update({
       where: { id: id },
-      data: { 
+      data: {
         personId: updateRecurringDonationDto.personId,
         status: updateRecurringDonationDto.status,
         extSubscriptionId: updateRecurringDonationDto.extSubscriptionId,
         extCustomerId: updateRecurringDonationDto.extCustomerId,
         amount: updateRecurringDonationDto.amount,
         currency: updateRecurringDonationDto.currency,
-       },
+      },
     })
     if (!result) throw new NotFoundException('Not found')
     return result
@@ -64,7 +64,4 @@ export class RecurringDonationService {
       throw new NotFoundException()
     }
   }
-
-
 }
-

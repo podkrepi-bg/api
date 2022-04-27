@@ -11,7 +11,7 @@ import {
 import { RecurringDonationService } from './recurring-donation.service'
 import { CreateRecurringDonationDto } from './dto/create-recurring-donation.dto'
 import { UpdateRecurringDonationDto } from './dto/update-recurring-donation.dto'
-import {  Public } from 'nest-keycloak-connect'
+import { Public } from 'nest-keycloak-connect'
 
 @Controller('recurring-donation')
 export class RecurringDonationController {
@@ -19,10 +19,9 @@ export class RecurringDonationController {
 
   @Post()
   @Public()
-  create( @Body() createRecurringDonationDto: CreateRecurringDonationDto,) {
-     return this.recurringDonationService.create(createRecurringDonationDto)
+  create(@Body() createRecurringDonationDto: CreateRecurringDonationDto) {
+    return this.recurringDonationService.create(createRecurringDonationDto)
   }
-
 
   @Get()
   @Public()
