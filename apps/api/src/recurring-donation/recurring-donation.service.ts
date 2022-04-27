@@ -50,18 +50,4 @@ export class RecurringDonationService {
     if (!result) throw new NotFoundException('Not found')
     return result
   }
-
-  async removeMany(itemsToDelete: string[]): Promise<{ count: number }> {
-    try {
-      return await this.prisma.recurringDonation.deleteMany({
-        where: {
-          id: {
-            in: itemsToDelete,
-          },
-        },
-      })
-    } catch (error) {
-      throw new NotFoundException()
-    }
-  }
 }
