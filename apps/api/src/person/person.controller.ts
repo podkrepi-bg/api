@@ -15,16 +15,6 @@ export class PersonController {
     return await this.personService.create(createPersonDto)
   }
 
-  @Post('register')
-  async register(@AuthenticatedUser() user: KeycloakTokenParsed) {
-    return await this.personService.create({
-      firstName: user.given_name as string,
-      lastName: user.family_name as string,
-      email: user.email as string,
-      keycloakId: user.sub,
-    })
-  }
-
   @Get()
   @Public()
   async findAll() {

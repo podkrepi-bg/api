@@ -21,16 +21,33 @@ export class AccountController {
       // Public authenticated
       console.log(user)
       return {
-        user: await this.personService.findOne(user.sub as string)
-      };
+        user: await this.personService.findOne(user.sub as string),
+      }
     }
     // Public
     return { status: 'unauthenticated' }
   }
 
   @Put('me')
-  async updateProfile(@AuthenticatedUser() user: KeycloakTokenParsed, @Body() data: UpdatePersonDto) {
+  async updateProfile(
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+    @Body() data: UpdatePersonDto,
+  ) {
     return await this.accountService.updateUserProfile(user.sub as string, data)
+  }
+
+  @Get('new')
+  async register(@AuthenticatedUser() user: KeycloakTokenParsed) {
+    const person = await this.personService.create({
+      firstName: user.given_name as string,
+      lastName: user.family_name as string,
+      email: user.email as string,
+      keycloakId: user.sub,
+    })
+
+    return {
+      user: person,
+    }
   }
 
   @Get('private')
