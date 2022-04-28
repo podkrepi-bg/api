@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { MockPrismaService } from '../prisma/prisma-client.mock'
-import { AccountService } from './account.service'
+import { RecurringDonationService } from './recurring-donation.service'
 
-describe('AccountService', () => {
-  let service: AccountService
+describe('RecurringDonationService', () => {
+  let service: RecurringDonationService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AccountService, MockPrismaService],
+      providers: [RecurringDonationService, MockPrismaService],
     }).compile()
 
-    service = module.get<AccountService>(AccountService)
+    service = module.get<RecurringDonationService>(RecurringDonationService)
   })
 
   it('should be defined', () => {

@@ -92,13 +92,34 @@ describe('CampaignController', () => {
   describe('viewBySlug ', () => {
     it('should return proper campaign', async () => {
       const slug = 'test-name'
-      const mockObject = jest.fn().mockResolvedValue({ ...mockCampaign, ...{ slug } })
+
+      const mockObject = jest.fn().mockResolvedValue({
+        ...mockCampaign,
+        ...{
+          slug,
+          vaults: [
+            {
+              donations: [
+                { amount: 100, personId: 'donorId1' },
+                { amount: 10, personId: null },
+              ],
+            },
+            {
+              donations: [
+                { amount: 100, personId: 'donorId1' },
+                { amount: 100, personId: 'donorId2' },
+                { amount: 100, personId: null },
+              ],
+            },
+          ],
+        },
+      })
       jest.spyOn(prismaService.campaign, 'findFirst').mockImplementation(mockObject)
 
       expect(await controller.viewBySlug(slug)).toEqual({
         campaign: {
           ...mockCampaign,
-          ...{ summary: [{ reachedAmount: 110 }], vaults: [], slug },
+          ...{ summary: [{ reachedAmount: 410, donors: 4 }], vaults: [], slug },
         },
       })
       expect(prismaService.campaign.findFirst).toHaveBeenCalledWith(

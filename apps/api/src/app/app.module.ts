@@ -41,7 +41,9 @@ import { VaultModule } from '../vault/vault.module'
 import { CampaignFileModule } from '../campaign-file/campaign-file.module'
 import { WithdrawalModule } from '../withdrawal/withdrawal.module'
 import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
+import { RecurringDonationModule } from '../recurring-donation/recurring-donation.module'
 import { TransferModule } from '../transfer/transfer.module'
+
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -80,6 +82,7 @@ import { TransferModule } from '../transfer/transfer.module'
     VaultModule,
     WithdrawalModule,
     CampaignTypesModule,
+    RecurringDonationModule,
     TransferModule,
   ],
   controllers: [AppController],
