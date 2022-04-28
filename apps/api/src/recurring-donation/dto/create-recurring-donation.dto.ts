@@ -22,6 +22,11 @@ export class CreateRecurringDonationDto {
 
   @ApiProperty()
   @Expose()
+  @IsUUID()
+  campaignId: string
+
+  @ApiProperty()
+  @Expose()
   @IsString()
   @IsUUID()
   extSubscriptionId: string
@@ -51,6 +56,7 @@ export class CreateRecurringDonationDto {
       status: this.status,
       extSubscriptionId: this.extSubscriptionId,
       extCustomerId: this.extCustomerId,
+      campaignId: this.campaignId,
       amount: this.amount,
       currency: this.currency,
       sourceVault: {
