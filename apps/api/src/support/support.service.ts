@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { InfoRequest, Supporter } from '.prisma/client'
+import { InfoRequest, Supporter, CampaignReport } from '.prisma/client'
 
 import {
   InquiryReceivedEmailDto,
@@ -12,6 +12,7 @@ import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateInquiryDto } from './dto/create-inquiry.dto'
 import { CreateRequestDto } from './dto/create-request.dto'
+import { CreateCampaignReportDto } from './dto/create-campagin-report.dto'
 
 @Injectable()
 export class SupportService {
@@ -51,6 +52,17 @@ export class SupportService {
     return {
       id: request.id,
       personId: request.personId,
+    }
+  }
+
+  async createCampaignReport(
+    inputDto: CreateCampaignReportDto,
+  ): Promise<Pick<CampaignReport, 'id' | 'reportedById'>> {
+    const request = await this.prisma.campaignReport.create({ data: inputDto.toEntity() })
+
+    return {
+      id: request.id,
+      reportedById: request.reportedById,
     }
   }
 
