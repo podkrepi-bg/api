@@ -10,6 +10,7 @@ import {
 import { SupportService } from './support.service'
 import { CreateInquiryDto } from './dto/create-inquiry.dto'
 import { CreateRequestDto } from './dto/create-request.dto'
+import { CreateCampaignReportDto } from './dto/create-campagin-report.dto'
 
 @Controller('support')
 export class SupportController {
@@ -43,5 +44,11 @@ export class SupportController {
   })
   async getInfoRequests() {
     return await this.supportService.listInfoRequests()
+  }
+
+  @Post('create-report')
+  @Public()
+  async createReport(@Body() createDto: CreateCampaignReportDto) {
+    return await this.supportService.createCampaignReport(createDto)
   }
 }
