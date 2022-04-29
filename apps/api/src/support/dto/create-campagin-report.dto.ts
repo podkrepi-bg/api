@@ -22,7 +22,6 @@ export class CreateCampaignReportDto {
 
   @ApiProperty()
   @Expose()
-  @IsNotEmpty()
   @IsString()
   public readonly reportContent: string
 
