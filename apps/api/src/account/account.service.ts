@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class AccountService {
     constructor(private prismaService: PrismaService) {}
 
-    async updateUserProfile(id: string, data: UpdatePersonDto): Promise<Person> {
-        return await this.prismaService.person.update({where: {id}, data})
+    async updateUserProfile(keycloakId: string, data: UpdatePersonDto): Promise<Person> {
+        return await this.prismaService.person.update({ where: { keycloakId }, data })
     }
 }
