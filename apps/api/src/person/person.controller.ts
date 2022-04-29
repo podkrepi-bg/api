@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { PersonService } from './person.service'
 import { CreatePersonDto } from './dto/create-person.dto'
 import { UpdatePersonDto } from './dto/update-person.dto'
-import { Public } from 'nest-keycloak-connect'
+import { Public, AuthenticatedUser } from 'nest-keycloak-connect'
+import { KeycloakTokenParsed } from '../auth/keycloak'
 
 @Controller('person')
 export class PersonController {
