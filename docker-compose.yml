@@ -60,6 +60,8 @@ services:
     networks:
       - backend-net
 
+    ## Postgres Keycloak ##
+  ##########################
   postgresql:
     image: docker.io/bitnami/postgresql
     environment:
@@ -71,6 +73,8 @@ services:
     ports:
       - 5433:5432
 
+    ## Local Keycloak ##
+  ##########################
   keycloak:
     container_name: keycloak
     image: docker.io/bitnami/keycloak:15
