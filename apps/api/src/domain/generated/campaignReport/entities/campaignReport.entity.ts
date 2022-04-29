@@ -5,12 +5,12 @@ import { Person } from '../../person/entities/person.entity'
 export class CampaignReport {
   id: string
   campaignId: string
-  reportedById: string
+  personId: string
   createdAt: Date
   updatedAt: Date | null
   status: ReportStatus
   reason: ReportReason
   reportContent: string
   campaign?: Campaign
-  reportedBy?: Person
+  person?: Person
 }

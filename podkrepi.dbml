@@ -147,14 +147,14 @@ Table Campaign {
 Table CampaignReport {
   id String [pk]
   campaignId String [not null]
-  reportedById String [not null]
+  personId String [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   status ReportStatus [not null, default: 'initial']
   reason ReportReason [not null]
   reportContent String [not null]
   campaign Campaign [not null]
-  reportedBy Person [not null]
+  person Person [not null]
 }
 
 Table CampaignFile {
@@ -587,7 +587,7 @@ Ref: Campaign.coordinatorId > Coordinator.id
 
 Ref: CampaignReport.campaignId > Campaign.id
 
-Ref: CampaignReport.reportedById > Person.id
+Ref: CampaignReport.personId > Person.id
 
 Ref: CampaignFile.campaignId > Campaign.id
 

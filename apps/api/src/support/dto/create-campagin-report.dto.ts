@@ -36,7 +36,7 @@ export class CreateCampaignReportDto {
       status: ReportStatus.initial,
       reportContent: this.reportContent,
       campaign: { connect: { id: this.campaignId } },
-      reportedBy: {
+      person: {
         connectOrCreate: {
           create: this.person,
           where: { email: this.person.email },

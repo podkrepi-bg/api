@@ -57,12 +57,12 @@ export class SupportService {
 
   async createCampaignReport(
     inputDto: CreateCampaignReportDto,
-  ): Promise<Pick<CampaignReport, 'id' | 'reportedById'>> {
-    const request = await this.prisma.campaignReport.create({ data: inputDto.toEntity() })
+  ): Promise<Pick<CampaignReport, 'id' | 'personId'>> {
+    const report = await this.prisma.campaignReport.create({ data: inputDto.toEntity() })
 
     return {
-      id: request.id,
-      reportedById: request.reportedById,
+      id: report.id,
+      personId: report.personId,
     }
   }
 

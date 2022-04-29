@@ -189,14 +189,14 @@ model Campaign {
 model CampaignReport {
   id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   campaignId    String       @map("campaign_id") @db.Uuid
-  reportedById  String       @map("reported_by_id") @db.Uuid
+  personId      String       @map("person_id") @db.Uuid
   createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime?    @updatedAt @map("updated_at") @db.Timestamptz(6)
   status        ReportStatus @default(initial)
   reason        ReportReason
   reportContent String       @map("report_content")
   campaign      Campaign     @relation(fields: [campaignId], references: [id])
-  reportedBy    Person       @relation(fields: [reportedById], references: [id])
+  person        Person       @relation(fields: [personId], references: [id])
 
   @@map("campaign_reports")
 }

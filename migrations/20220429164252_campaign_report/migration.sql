@@ -8,7 +8,7 @@ CREATE TYPE "report_reason" AS ENUM ('none', 'duplicate', 'inappropriate', 'ille
 CREATE TABLE "campaign_reports" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "campaign_id" UUID NOT NULL,
-    "reported_by_id" UUID NOT NULL,
+    "person_id" UUID NOT NULL,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6),
     "status" "report_status" NOT NULL DEFAULT E'initial',
@@ -19,7 +19,7 @@ CREATE TABLE "campaign_reports" (
 );
 
 -- AddForeignKey
-ALTER TABLE "campaign_reports" ADD CONSTRAINT "campaign_reports_reported_by_id_fkey" FOREIGN KEY ("reported_by_id") REFERENCES "people"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "campaign_reports" ADD CONSTRAINT "campaign_reports_person_id_fkey" FOREIGN KEY ("person_id") REFERENCES "people"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "campaign_reports" ADD CONSTRAINT "campaign_reports_campaign_id_fkey" FOREIGN KEY ("campaign_id") REFERENCES "campaigns"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
