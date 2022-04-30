@@ -15,6 +15,8 @@ import {
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'
+import { RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { Public, AuthenticatedUser } from 'nest-keycloak-connect'
 import { PersonService } from '../person/person.service'
 import { FilesRoleDto } from './dto/files-role.dto'
@@ -83,7 +85,10 @@ export class CampaignFileController {
   }
 
   @Delete(':id')
-  @Public()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   remove(@Param('id') id: string) {
     return this.campaignFileService.remove(id)
   }

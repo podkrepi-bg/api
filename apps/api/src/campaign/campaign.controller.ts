@@ -28,7 +28,6 @@ export class CampaignController {
   ) {}
 
   @Get('list')
-  @Public()
   async getData() {
     return this.campaignService.listCampaigns()
   }

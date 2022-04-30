@@ -1,4 +1,4 @@
-import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common'
 
 import { RecurringDonationService } from './recurring-donation.service'
@@ -11,19 +11,20 @@ export class RecurringDonationController {
   constructor(private readonly recurringDonationService: RecurringDonationService) {}
 
   @Post()
-  @Public()
   create(@Body() createRecurringDonationDto: CreateRecurringDonationDto) {
     return this.recurringDonationService.create(createRecurringDonationDto)
   }
 
   @Get()
-  @Public()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   findAll() {
     return this.recurringDonationService.findAll()
   }
 
   @Get(':id')
-  @Public()
   findOne(@Param('id') id: string) {
     return this.recurringDonationService.findOne(id)
   }

@@ -8,7 +8,8 @@ import {
   Delete,
   UnauthorizedException,
 } from '@nestjs/common'
-import { AuthenticatedUser } from 'nest-keycloak-connect'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
+import { AuthenticatedUser, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
 import { VaultService } from './vault.service'
 import { CampaignService } from '../campaign/campaign.service'
@@ -33,6 +34,10 @@ export class VaultController {
   }
 
   @Get()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   findAll(@AuthenticatedUser() user: KeycloakTokenParsed) {
     if (!user) {
       throw new UnauthorizedException()
@@ -42,6 +47,10 @@ export class VaultController {
   }
 
   @Get(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   findOne(@AuthenticatedUser() user: KeycloakTokenParsed, @Param('id') id: string) {
     if (!user) {
       throw new UnauthorizedException()
