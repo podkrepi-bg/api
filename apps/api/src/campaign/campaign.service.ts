@@ -52,6 +52,16 @@ export class CampaignService {
     return campaigns.map(this.addReachedAmountAndDonors)
   }
 
+  async listAllCampaigns(): Promise<Campaign[]> {
+    return await this.prisma.campaign.findMany({
+      include: {
+        campaignType: { select: { name: true } },
+        beneficiary: { select: { person: { select: { firstName: true, lastName: true } } } },
+        coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
+      },
+    })
+  }
+
   async getCampaignById(campaignId: string): Promise<Campaign> {
     const campaign = await this.prisma.campaign.findFirst({ where: { id: campaignId } })
     if (!campaign) {

@@ -33,6 +33,12 @@ export class CampaignController {
     return this.campaignService.listCampaigns()
   }
 
+  @Get('list-all')
+  @Public()
+  async getAdminList() {
+    return this.campaignService.listAllCampaigns()
+  }
+
   @Get(':slug')
   @Public()
   async viewBySlug(@Param('slug') slug: string): Promise<{ campaign: Campaign | null }> {
