@@ -9,8 +9,16 @@ import {
   Person,
   Vault,
 } from '.prisma/client'
-import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common'
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import Stripe from 'stripe'
+import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
@@ -21,10 +29,12 @@ export class CampaignService {
   constructor(
     private prisma: PrismaService,
     @Inject(forwardRef(() => VaultService)) private vaultService: VaultService,
+    @Inject(forwardRef(() => PersonService)) private personService: PersonService,
   ) {}
 
   async listCampaigns(): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({
+      where: { state: { in: [CampaignState.active, CampaignState.complete] } },
       include: {
         campaignType: { select: { category: true } },
         beneficiary: { select: { person: true } },
@@ -39,7 +49,7 @@ export class CampaignService {
     })
 
     //TODO: remove this when Prisma starts supporting nested groupbys
-    return campaigns.map(this.addReachedAmount)
+    return campaigns.map(this.addReachedAmountAndDonors)
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
@@ -48,6 +58,25 @@ export class CampaignService {
       Logger.warn('No campaign record with ID: ' + campaignId)
       throw new NotFoundException('No campaign record with ID: ' + campaignId)
     }
+    return campaign
+  }
+
+  async getCampaignByIdAndPersonId(campaignId: string, personId: string): Promise<Campaign | null> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: campaignId, coordinator: { personId } },
+      include: { coordinator: true },
+    })
+    return campaign
+  }
+
+  async getCampaignByVaultIdAndPersonId(
+    vaultId: string,
+    personId: string,
+  ): Promise<{ vaults: Vault[]; id: string } | null> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { coordinator: { personId } },
+      select: { id: true, vaults: { where: { id: vaultId } } },
+    })
     return campaign
   }
 
@@ -72,7 +101,7 @@ export class CampaignService {
         campaignFiles: true,
         vaults: {
           select: {
-            donations: { select: { amount: true } },
+            donations: { select: { amount: true, personId: true } },
           },
         },
       },
@@ -83,17 +112,37 @@ export class CampaignService {
       throw new NotFoundException('No campaign record with slug: ' + slug)
     }
 
-    return this.addReachedAmount(campaign)
+    return this.addReachedAmountAndDonors(campaign)
   }
 
   async listCampaignTypes(): Promise<CampaignType[]> {
     return this.prisma.campaignType.findMany()
   }
 
-  async createCampaign(inputDto: CreateCampaignDto): Promise<Campaign> {
-    return this.prisma.campaign.create({
-      data: inputDto.toEntity(),
-    })
+  async createCampaign(inputDto: CreateCampaignDto, personId?: string): Promise<Campaign> {
+    let createInput
+    if (personId) {
+      createInput = {
+        data: {
+          ...inputDto.toEntity(),
+          ...{
+            coordinator: {
+              connectOrCreate: {
+                where: { personId },
+                create: { personId },
+              },
+            },
+          },
+        },
+        include: { coordinator: true },
+      }
+    } else {
+      createInput = {
+        data: inputDto.toEntity(),
+      }
+    }
+
+    return this.prisma.campaign.create(createInput)
   }
 
   async getCampaignVault(campaignId: string): Promise<Vault | null> {
@@ -303,15 +352,55 @@ export class CampaignService {
     return await this.prisma.campaign.delete({ where: { id: campaignId } })
   }
 
-  private addReachedAmount(campaign: Campaign & { vaults: { donations: { amount: number }[] }[] }) {
+  async checkCampaignOwner(keycloakId: string, campaignId: string) {
+    const person = await this.personService.findOneByKeycloakId(keycloakId)
+    if (!person) {
+      Logger.warn(`No person record with keycloak ID: ${keycloakId}`)
+      throw new UnauthorizedException()
+    }
+
+    const campaign = await this.getCampaignByIdAndPersonId(campaignId, person.id)
+    if (!campaign) {
+      throw new UnauthorizedException()
+    }
+  }
+
+  private addReachedAmountAndDonors(
+    campaign: Campaign & {
+      vaults: { donations: { amount: number; personId?: string | null }[] }[]
+    },
+  ) {
     let campaignAmountReached = 0
+    const donors = new Set<string>()
+    let shouldAddDonors = false
+    let anonymousDonors = 0
 
     for (const vault of campaign.vaults) {
       for (const donation of vault.donations) {
         campaignAmountReached += donation.amount
+
+        if (donation.personId !== undefined) {
+          shouldAddDonors = true
+          if (donation.personId === null) {
+            anonymousDonors++
+          } else {
+            donors.add(donation.personId)
+          }
+        }
       }
     }
 
-    return { ...campaign, ...{ summary: [{ reachedAmount: campaignAmountReached }], vaults: [] } }
+    return {
+      ...campaign,
+      ...{
+        summary: [
+          {
+            reachedAmount: campaignAmountReached,
+            donors: shouldAddDonors ? donors.size + anonymousDonors : undefined,
+          },
+        ],
+        vaults: [],
+      },
+    }
   }
 }

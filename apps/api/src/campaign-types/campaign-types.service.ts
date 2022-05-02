@@ -1,7 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCampaignTypeDto } from './dto/create-campaign-type.dto'
-// import { DeleteManyCampaignTypesDto } from './dto/delete-many-campaign-types.dto'
 import { UpdateCampaignTypeDto } from './dto/update-campaign-type.dto'
 
 @Injectable()

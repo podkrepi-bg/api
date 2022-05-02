@@ -43,7 +43,10 @@ export class DonationsController {
   }
 
   @Get('list')
-  @Public()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   findAll() {
     return this.donationsService.listDonations()
   }

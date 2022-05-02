@@ -12,6 +12,7 @@ import { campaignTypesSeed } from './campaign-type.seed'
 import { bankAccountSeed } from './bankaccount.seed'
 import { vaultSeed } from './vault.seed'
 import { expenseSeed } from './expense.seed'
+import { donationsSeed } from './donations.seed'
 
 const prisma = new PrismaClient()
 
@@ -21,17 +22,16 @@ async function main() {
   const isDevConfig = process.env.NODE_ENV == 'development'
   if (isDevConfig) {
     console.warn('Executing development seeds')
-    await Promise.all([
-      await personSeed(),
-      await infoRequestSeed(),
-      await supportersSeed(),
-      await coordinatorSeed(),
-      await beneficiarySeed(),
-      await campaignSeed(),
-      await bankAccountSeed(),
-      await vaultSeed(),
-      await expenseSeed(),
-    ])
+    await personSeed()
+    await infoRequestSeed()
+    await supportersSeed()
+    await coordinatorSeed()
+    await beneficiarySeed()
+    await campaignSeed()
+    await bankAccountSeed()
+    await vaultSeed()
+    await expenseSeed()
+    await donationsSeed()
   }
 }
 

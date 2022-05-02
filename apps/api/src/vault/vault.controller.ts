@@ -8,7 +8,8 @@ import {
   Delete,
   UnauthorizedException,
 } from '@nestjs/common'
-import { AuthenticatedUser } from 'nest-keycloak-connect'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
+import { AuthenticatedUser, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
 import { VaultService } from './vault.service'
 import { CampaignService } from '../campaign/campaign.service'
@@ -28,16 +29,15 @@ export class VaultController {
     @AuthenticatedUser() user: KeycloakTokenParsed,
     @Body() createVaultDto: CreateVaultDto,
   ) {
-    const campaign = await this.campaignService.getCampaignById(createVaultDto.campaignId)
-
-    if (user?.sub !== campaign.coordinatorId) {
-      throw new UnauthorizedException()
-    }
-
+    await this.campaignService.checkCampaignOwner(user.sub as string, createVaultDto.campaignId)
     return this.vaultService.create(createVaultDto)
   }
 
   @Get()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   findAll(@AuthenticatedUser() user: KeycloakTokenParsed) {
     if (!user) {
       throw new UnauthorizedException()
@@ -47,6 +47,10 @@ export class VaultController {
   }
 
   @Get(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   findOne(@AuthenticatedUser() user: KeycloakTokenParsed, @Param('id') id: string) {
     if (!user) {
       throw new UnauthorizedException()
@@ -61,24 +65,14 @@ export class VaultController {
     @Param('id') id: string,
     @Body() updateVaultDto: UpdateVaultDto,
   ) {
-    const vault = await this.vaultService.findOne(id)
-    const campaign = await this.campaignService.getCampaignById(vault.campaignId)
-
-    if (user?.sub !== campaign.coordinatorId) {
-      throw new UnauthorizedException()
-    }
+    await this.vaultService.checkVaultOwner(user.sub as string, id)
 
     return this.vaultService.update(id, updateVaultDto)
   }
 
   @Delete(':id')
   async remove(@AuthenticatedUser() user: KeycloakTokenParsed, @Param('id') id: string) {
-    const vault = await this.vaultService.findOne(id)
-    const campaign = await this.campaignService.getCampaignById(vault.campaignId)
-
-    if (user?.sub !== campaign.coordinatorId) {
-      throw new UnauthorizedException()
-    }
+    await this.vaultService.checkVaultOwner(user.sub as string, id)
 
     return this.vaultService.remove(id)
   }

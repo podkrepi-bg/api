@@ -11,7 +11,14 @@ describe('PersonController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PersonController],
       providers: [PersonService, MockPrismaService, ConfigService],
-    }).compile()
+    })
+      .overrideProvider(ConfigService)
+      .useValue({
+        get: jest.fn((key: string) => {
+          return key === 'sendgrid.apiKey' ? 'SG.test' : 'testUrl'
+        }),
+      })
+      .compile()
 
     controller = module.get<PersonController>(PersonController)
   })

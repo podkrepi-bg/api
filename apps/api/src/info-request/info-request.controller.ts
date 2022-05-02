@@ -1,4 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common'
+import { RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { InfoRequestService } from './info-request.service'
 import { UpdateInfoRequestDto } from './dto/update-info-request.dto'
 import { Public } from 'nest-keycloak-connect'
@@ -15,6 +17,10 @@ export class InfoRequestController {
   }
 
   @Get('list')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   findAll() {
     return this.infoRequestService.findAll()
   }
@@ -25,11 +31,19 @@ export class InfoRequestController {
   }
 
   @Patch(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   update(@Param('id') id: string, @Body() updateInfoRequestDto: UpdateInfoRequestDto) {
     return this.infoRequestService.update(id, updateInfoRequestDto)
   }
 
   @Delete(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   remove(@Param('id') id: string) {
     return this.infoRequestService.remove(id)
   }
