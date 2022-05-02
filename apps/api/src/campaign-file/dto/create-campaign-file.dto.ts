@@ -4,6 +4,6 @@ export class CreateCampaignFileDto {
   filename: string
   mimetype: string
   campaignId: string
-  uploadedById: string
+  personId: string
   role: CampaignFileRole
 }

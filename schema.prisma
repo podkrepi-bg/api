@@ -206,10 +206,10 @@ model CampaignFile {
   filename     String           @db.VarChar(200)
   mimetype     String           @db.VarChar(50)
   campaignId   String           @map("campaign_id") @db.Uuid
-  uploadedById String           @map("uploaded_by_id") @db.Uuid
+  personId     String           @map("person_id") @db.Uuid
   role         CampaignFileRole
   campaign     Campaign         @relation(fields: [campaignId], references: [id])
-  uploadedBy   Person           @relation(fields: [uploadedById], references: [id])
+  person       Person           @relation(fields: [personId], references: [id])
 
 
   @@map("campaign_files")
