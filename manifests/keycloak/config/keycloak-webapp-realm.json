@@ -883,7 +883,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "DEV-KEYCLOAK-SECRET",
       "redirectUris": [
         "http://localhost:5010/*"
       ],
@@ -1599,7 +1599,7 @@
     "strictTransportSecurity": "max-age=31536000; includeSubDomains"
   },
   "smtpServer": {
-    "password": "**********",
+    "password": "ADD_FROM_UI",
     "starttls": "",
     "port": "465",
     "auth": "true",
@@ -1607,7 +1607,7 @@
     "from": "info@podkrepi.bg",
     "fromDisplayName": "Podkrepi.bg",
     "ssl": "true",
-    "user": "AKIAVJTANAT6ZUTGKFGD"
+    "user": "ADD_FROM_UI"
   },
   "eventsEnabled": false,
   "eventsListeners": [

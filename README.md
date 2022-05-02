@@ -38,9 +38,9 @@
 
 To run and develop the module NodeJS 16 is required. In this section 2 ways of configuring a development environment are described.
 
-## Installing the dependencies
+## Installing the prerequisites
 
-The following dependencies are required in order to be able to run the project:
+The following prerequisites are required in order to be able to run the project:
 
 - [NodeJS 16 LTS](https://nodejs.org/en/download/)
 - [yarn](https://classic.yarnpkg.com/lang/en/docs/install)
@@ -54,7 +54,7 @@ If you wish to keep your host clean, it is also possible to develop the module i
 - Open the folder of the module in VS Code
 - Hit `Ctrl`/`Cmd` + `Shift` + `P` -> Remote-Containers: Reopen Folder in Container
 
-## Install dependencies
+## Clone the code and install dependencies
 
 ```shell
 git clone git@github.com:podkrepi-bg/api.git
@@ -63,13 +63,20 @@ cd api
 yarn
 ```
 
-## Create the Database Instance in Docker
+## Create Docker containers for the Dev Database(postgres) and the Identity Server(Keycloak)
 
 :information_source: Use `docker-compose` version `>=1.29`
 
 ```shell
-docker-compose up --build -d pg-db
+docker-compose up --build -d pg-db keycloak keycloak-db
 ```
+
+This will start the following services:
+
+- Postgres db on default port 5432 for your local development
+- Keycloak Identity server Admin UI on http://localhost:8180 with user/pass admin/admin.
+
+**_NOTE:_** When running the Frontend for the first time, you will need to register your own local user from the frontend UI or add the user from Keycloak Admin UI, then mark email as Verified and assign roles as needed.
 
 ## Initialize the Database with Prisma Migration scripts
 
@@ -88,84 +95,11 @@ yarn prisma db seed
 
 ## Setup local environment
 
-Copy example local env and add values
+Copy the provided .env.local.example to .env.local
 
 ```shell
 cp .env.local.example .env.local
 ```
-
-## Setup local Keycloak with own Database
-
-Create postgresql and keycloak images in docker container
-
-```docker
-docker-compose up --build -d  keycloak postgresql
-```
-
-### After starting your keycloak server visit:
-
-http://localhost:8180
-
-<details>
-<summary>Click on Administration Console.</summary>
-
-![image](https://user-images.githubusercontent.com/67734870/165364835-547818b7-b710-4343-b71e-5fe7dc702530.png)
-
-</details>
-
-### **Importing realm**
-
-### **_On the top left corner click on add realm button_**
-
-<details>
-<summary>Add realm</summary>
-
-![image](https://user-images.githubusercontent.com/67734870/165366330-29373ec8-5fac-493b-b1ed-89ef33bd4afc.png)
-
-</details>
-
-**path to realm [api/manifests/keycloak-webapp-realm.json](https://github.com/podkrepi-bg/api/blob/master/manifests/keycloak-webapp-realm.json) and click create**
-
-<details>
-<summary>Select file</summary>
-
-![image](https://user-images.githubusercontent.com/67734870/165367475-fb5f23c7-882f-4598-92ec-9afa8693a773.png)
-
-</details>
-
-### After import success
-
-<details>
-<summary>Click on Clients</summary>
-
-![image](https://user-images.githubusercontent.com/67734870/165895062-42af2f65-e48c-4555-a66e-13645cc479c9.png)
-
-</details>
-
-### Find **jwt-headless** in the table
-
-<details>
-<summary>Click on jwt-headless</summary>
-
-![image](https://user-images.githubusercontent.com/67734870/165896122-cc401545-8080-4bda-bcc3-64175bfeb85e.png)
-
-</details>
-
-### On Credentials you need to copy your Secret and paste to your **_Keycloak_Secret_** in local environment _(.env.local)_
-
-<details>
-<summary>Credentials</summary>
-
-![image](https://user-images.githubusercontent.com/67734870/165898254-e942c885-545f-4ff6-b1d9-551ffbd55972.png)
-
-</details>
-
-<details>
-<summary>Regenerate Secret</summary>
-
-![image](https://user-images.githubusercontent.com/67734870/165898589-97c4bc0f-61a3-4c5c-a2bc-db29abf46911.png)
-
-</details>
 
 ### Run the tests
 
@@ -181,7 +115,7 @@ yarn test
 yarn dev
 ```
 
-and it will listen on <http://localhost:5010/api>
+and the backend API server will listen on <http://localhost:5010/api>
 
 ## (Alternative) Development Environment To Run Inside Docker
 

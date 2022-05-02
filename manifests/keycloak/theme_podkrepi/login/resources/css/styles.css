@@ -1,0 +1,20 @@
+.login-pf body {
+    background: White none;
+}
+
+div.kc-logo-text {
+    background-image: url(../img/podkrepi-bg-logo.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 100px;
+}
+
+.pf-c-button.pf-m-primary{
+    background-color:rgb(41, 78, 133);
+    border-radius: 20px;
+}
+
+.pf-c-button.pf-m-primary:hover{
+    background-color: rgb(32, 62, 106);
+}
