@@ -25,6 +25,10 @@ export class RecurringDonationController {
   }
 
   @Get(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   findOne(@Param('id') id: string) {
     return this.recurringDonationService.findOne(id)
   }

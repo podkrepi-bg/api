@@ -10,7 +10,6 @@ import { UpdateExpenseDto } from './dto/update-expense.dto'
 export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}
 
-  @Public()
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
