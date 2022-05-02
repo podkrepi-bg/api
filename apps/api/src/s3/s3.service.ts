@@ -37,7 +37,7 @@ export class S3Service {
         Metadata: {
           originalName: dbFile.filename,
           campaignId: dbFile.campaignId,
-          uploadedById: dbFile.uploadedById,
+          personId: dbFile.personId,
         },
       })
       .promise()
