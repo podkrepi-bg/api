@@ -34,6 +34,7 @@ export class CampaignService {
 
   async listCampaigns(): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({
+      where: { state: { in: [CampaignState.active, CampaignState.complete] } },
       include: {
         campaignType: { select: { category: true } },
         beneficiary: { select: { person: true } },

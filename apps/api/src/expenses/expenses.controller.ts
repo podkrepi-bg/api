@@ -10,13 +10,19 @@ import { UpdateExpenseDto } from './dto/update-expense.dto'
 export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}
 
-  @Public()
-  @Get('list')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async findAll() {
     return await this.expensesService.listExpenses()
   }
 
   @Post('create-expense')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   create(@Body() createExpenseDto: CreateExpenseDto) {
     return this.expensesService.createExpense(createExpenseDto)
   }
