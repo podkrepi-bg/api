@@ -34,7 +34,10 @@ export class CampaignController {
   }
 
   @Get('list-all')
-  @Public()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async getAdminList() {
     return this.campaignService.listAllCampaigns()
   }
