@@ -89,6 +89,30 @@ describe('CampaignController', () => {
     })
   })
 
+  describe('getAdminList ', () => {
+    it('should return proper campaign list', async () => {
+      const mockAdminCampaign = {
+        ...mockCreateCampaign,
+        ...{
+          id: 'testId',
+          state: CampaignState.active,
+          createdAt: new Date('2022-04-08T06:36:33.661Z'),
+          updatedAt: new Date('2022-04-08T06:36:33.662Z'),
+          deletedAt: null,
+          approvedById: null,
+          beneficiary: { firstName: 'Test', lastName: 'Test' },
+          coordinator: { firstName: 'Test', lastName: 'Test' },
+          campaignType: { name: 'Test type' },
+        },
+      }
+      const mockList = jest.fn().mockResolvedValue([mockAdminCampaign])
+      jest.spyOn(prismaService.campaign, 'findMany').mockImplementation(mockList)
+
+      expect(await controller.getAdminList()).toEqual([mockAdminCampaign])
+      expect(prismaService.campaign.findMany).toHaveBeenCalled()
+    })
+  })
+
   describe('viewBySlug ', () => {
     it('should return proper campaign', async () => {
       const slug = 'test-name'
