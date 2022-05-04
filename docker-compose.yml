@@ -60,7 +60,8 @@ services:
     networks:
       - backend-net
 
-    ## Postgres Keycloak ##
+  ## LOCAL IDENTITY PROVIDER - KEYCLOAK
+  ## Keycloak Database  ##
   ##########################
   keycloak-db:
     container_name: ${COMPOSE_PROJECT_NAME?}-keycloak-db
@@ -74,7 +75,7 @@ services:
     networks:
       backend-net:
 
-    ## Local Keycloak ##
+  ## Keycloak Server ##
   ##########################
   keycloak:
     container_name: ${COMPOSE_PROJECT_NAME?}-keycloak
@@ -100,6 +101,26 @@ services:
       - './manifests/keycloak/config:/opt/bitnami/keycloak/config'
     networks:
       backend-net:
+
+  # ## KEYCLOAK CONFIGURATOR - removes the need to recreate keycloak container upon config changes
+  # ## uncomment if you plan to tune the keycloak realm configuration
+  # ## usage: docker-compose up --build -d keycloak-config
+  # keycloak-config:
+  #   container_name: ${COMPOSE_PROJECT_NAME?}-keycloak-config
+  #   image: bitnami/keycloak-config-cli:latest
+  #   depends_on:
+  #     - keycloak
+  #   volumes:
+  #     - './manifests/keycloak/config:/opt/bitnami/keycloak/config'
+  #   environment:
+  #     - keycloak.url=http://keycloak:8080/auth
+  #     - keycloak.user=admin
+  #     - keycloak.password=admin
+  #     - keycloak.availability-check.enabled=true
+  #     - import.cache.enabled=false
+  #     - import.path=/opt/bitnami/keycloak/config
+  #   networks:
+  #     backend-net:
 volumes:
   pg-db-data:
   keycloak-db-data:
