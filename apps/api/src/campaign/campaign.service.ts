@@ -281,7 +281,11 @@ export class CampaignService {
   async canAcceptDonations(campaignId: string): Promise<boolean> {
     const campaign = await this.getCampaignById(campaignId)
 
-    const validStates: CampaignState[] = ['active']
+    const validStates: CampaignState[] = [CampaignState.active]
+    if (campaign.allowDonationOnComplete) {
+      validStates.push(CampaignState.complete)
+    }
+    
     if (!validStates.includes(campaign.state)) {
       return false
     }

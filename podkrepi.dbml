@@ -125,6 +125,7 @@ Table Campaign {
   campaignTypeId String [not null]
   description String
   targetAmount Int [default: 0]
+  allowDonationOnComplete Boolean [not null, default: false]
   startDate DateTime
   endDate DateTime
   createdAt DateTime [default: `now()`, not null]
