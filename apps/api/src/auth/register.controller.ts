@@ -10,7 +10,7 @@ export class RegisterController {
 
   @Post()
   @Public()
-  @Scopes('view')
+  // @Scopes('view')
   async register(@Body() registerDto: RegisterDto) {
     return await this.authService.createUser(registerDto)
   }

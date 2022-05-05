@@ -48,6 +48,7 @@
     "keycloak-connect": "15.0.2",
     "mjml": "4.10.4",
     "nest-keycloak-connect": "1.7.6",
+    "next-auth": "^4.3.4",
     "reflect-metadata": "0.1.13",
     "rxjs": "7.4.0",
     "stripe": "8.186.1",

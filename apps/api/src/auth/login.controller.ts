@@ -11,7 +11,7 @@ export class LoginController {
 
   @Post()
   @Public()
-  @Scopes('view')
+  // @Scopes('view')
   async login(@Body() loginDto: LoginDto) {
     return await this.authService.login(loginDto)
   }
