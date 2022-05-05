@@ -1,4 +1,4 @@
-import { Prisma, ReportReason, ReportStatus } from '.prisma/client'
+import { Prisma, ReportReason, ReportStatus, NotifierType } from '.prisma/client'
 import { Expose, Type } from 'class-transformer'
 import { IsEnum, IsNotEmpty, IsObject, IsString, IsUUID, ValidateNested } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
@@ -30,8 +30,14 @@ export class CreateCampaignReportDto {
   @IsEnum(ReportReason, { context: ReportReason })
   public readonly reason: ReportReason
 
+  @Expose()
+  @ApiProperty({ enum: NotifierType })
+  @IsEnum(NotifierType, { context: NotifierType })
+  public readonly notifierType: NotifierType
+
   public toEntity(): Prisma.CampaignReportCreateInput {
     return {
+      notifierType: this.notifierType,
       reason: this.reason,
       status: ReportStatus.initial,
       reportContent: this.reportContent,

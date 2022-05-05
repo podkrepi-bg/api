@@ -194,6 +194,7 @@ model CampaignReport {
   updatedAt     DateTime?    @updatedAt @map("updated_at") @db.Timestamptz(6)
   status        ReportStatus @default(initial)
   reason        ReportReason
+  notifierType  NotifierType @default(other)
   reportContent String       @map("report_content")
   campaign      Campaign     @relation(fields: [campaignId], references: [id])
   person        Person       @relation(fields: [personId], references: [id])
@@ -694,3 +695,11 @@ enum ReportReason {
 
   @@map("report_reason")
 }
+
+enum NotifierType {
+  benefactor
+  other
+
+  @@map("notifier_type")
+}
+

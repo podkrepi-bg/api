@@ -152,6 +152,7 @@ Table CampaignReport {
   updatedAt DateTime
   status ReportStatus [not null, default: 'initial']
   reason ReportReason [not null]
+  notifierType NotifierType [not null, default: 'other']
   reportContent String [not null]
   campaign Campaign [not null]
   person Person [not null]
@@ -560,6 +561,11 @@ Enum ReportReason {
   discrimination
   explicitContent
   fraud
+  other
+}
+
+Enum NotifierType {
+  benefactor
   other
 }
 
