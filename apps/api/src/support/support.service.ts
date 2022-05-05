@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InfoRequest, Supporter, CampaignReport } from '.prisma/client'
 
@@ -54,6 +54,13 @@ export class SupportService {
       personId: request.personId,
     }
   }
+  
+    async listInfoRequests(): Promise<InfoRequest[]> {
+      return await this.prisma.infoRequest.findMany({
+        include: { person: true },
+        orderBy: { createdAt: 'desc' },
+      })
+    }
 
   async createCampaignReport(
     inputDto: CreateCampaignReportDto,
@@ -73,11 +80,19 @@ export class SupportService {
     })
   }
 
-  async listInfoRequests(): Promise<InfoRequest[]> {
-    return await this.prisma.infoRequest.findMany({
-      include: { person: true },
-      orderBy: { createdAt: 'desc' },
+  async getCampaignReport(id: string): Promise<CampaignReport | null> {
+    const result = await this.prisma.campaignReport.findUnique({
+      where: { id },
+      include: { person: true, campaign: true },
     })
+    if (!result) throw new NotFoundException('Not found campaign report with ID: ' + id)
+    return result
+  }
+
+  async removeCampaignReport(id: string): Promise<CampaignReport | null> {
+    const result = await this.prisma.campaignReport.delete({ where: { id: id } })
+    if (!result) throw new NotFoundException('Not found campaign report with ID: ' + id)
+    return result
   }
 
   async sendWelcomeEmail(inputDto: CreateRequestDto) {
