@@ -66,6 +66,13 @@ export class SupportService {
     }
   }
 
+  async listCampaignReports(): Promise<CampaignReport[]> {
+    return await this.prisma.campaignReport.findMany({
+      include: { person: true, campaign: true },
+      orderBy: { createdAt: 'desc' },
+    })
+  }
+
   async listInfoRequests(): Promise<InfoRequest[]> {
     return await this.prisma.infoRequest.findMany({
       include: { person: true },

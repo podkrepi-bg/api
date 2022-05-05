@@ -51,4 +51,13 @@ export class SupportController {
   async createReport(@Body() createDto: CreateCampaignReportDto) {
     return await this.supportService.createCampaignReport(createDto)
   }
+
+  @Get('reports/list')
+  @Roles({
+    roles: [RealmViewContactRequests.role, ViewContactRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async getCampaignReports() {
+    return await this.supportService.listCampaignReports()
+  }
 }
