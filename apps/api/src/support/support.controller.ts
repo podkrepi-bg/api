@@ -53,7 +53,7 @@ export class SupportController {
   }
 
   //TODO: define custom admin role for campaign reports
-  
+
   @Get('reports/list')
   @Roles({
     roles: [RealmViewContactRequests.role, ViewContactRequests.role],
@@ -80,5 +80,4 @@ export class SupportController {
   async removeCampaignReportById(@Param('id') id: string) {
     return await this.supportService.removeCampaignReport(id)
   }
-  
 }

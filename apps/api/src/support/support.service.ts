@@ -54,13 +54,13 @@ export class SupportService {
       personId: request.personId,
     }
   }
-  
-    async listInfoRequests(): Promise<InfoRequest[]> {
-      return await this.prisma.infoRequest.findMany({
-        include: { person: true },
-        orderBy: { createdAt: 'desc' },
-      })
-    }
+
+  async listInfoRequests(): Promise<InfoRequest[]> {
+    return await this.prisma.infoRequest.findMany({
+      include: { person: true },
+      orderBy: { createdAt: 'desc' },
+    })
+  }
 
   async createCampaignReport(
     inputDto: CreateCampaignReportDto,

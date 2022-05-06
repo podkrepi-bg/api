@@ -1,6 +1,7 @@
 import { ReportStatus, ReportReason, NotifierType } from '@prisma/client'
 import { Campaign } from '../../campaign/entities/campaign.entity'
 import { Person } from '../../person/entities/person.entity'
+import { ReportFile } from '../../reportFile/entities/reportFile.entity'
 
 export class CampaignReport {
   id: string
@@ -14,4 +15,5 @@ export class CampaignReport {
   reportContent: string
   campaign?: Campaign
   person?: Person
+  reportFiles?: ReportFile[]
 }
