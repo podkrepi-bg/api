@@ -13,6 +13,7 @@ import {
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose, Type } from 'class-transformer'
 import { Currency, Prisma } from '.prisma/client'
+import { getBankHash } from '../hash-generator'
 
 @Expose()
 export class CreateCampaignDto {
@@ -30,6 +31,11 @@ export class CreateCampaignDto {
   @Expose()
   @IsString()
   essence: string
+
+  @ApiProperty()
+  @Expose()
+  @IsString()
+  bankHash: string
 
   @ApiProperty()
   @IsOptional()
@@ -103,6 +109,7 @@ export class CreateCampaignDto {
       slug: this.slug,
       description: this.description,
       essence: this.essence,
+      bankHash: getBankHash(),
       currency: this.currency,
       targetAmount: this.targetAmount,
       allowDonationOnComplete: this.allowDonationOnComplete,

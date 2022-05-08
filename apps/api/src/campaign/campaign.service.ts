@@ -23,7 +23,6 @@ import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from './dto/update-campaign.dto'
-import { getBankHash } from './hash-generator'
 
 @Injectable()
 export class CampaignService {
@@ -153,7 +152,6 @@ export class CampaignService {
       }
     }
 
-    createInput.data['bankHash'] = getBankHash()
     return this.prisma.campaign.create(createInput)
   }
 
