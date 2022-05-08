@@ -1,6 +1,6 @@
 import ShortUniqueId from 'short-unique-id'
 
-export function getCampaignHash(): string {
+export function getBankHash(): string {
   const dictionary = [
     '0',
     '1',

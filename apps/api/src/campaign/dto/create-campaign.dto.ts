@@ -64,6 +64,11 @@ export class CreateCampaignDto {
   @ApiProperty()
   @IsOptional()
   @Expose()
+  allowDonationOnComplete: boolean
+
+  @ApiProperty()
+  @IsOptional()
+  @Expose()
   @IsNumber()
   @IsPositive()
   @Max(500000)
@@ -100,6 +105,7 @@ export class CreateCampaignDto {
       essence: this.essence,
       currency: this.currency,
       targetAmount: this.targetAmount,
+      allowDonationOnComplete: this.allowDonationOnComplete,
       startDate: this.startDate,
       endDate: this.endDate,
       vaults: { create: { currency: this.currency, name: this.title } },
