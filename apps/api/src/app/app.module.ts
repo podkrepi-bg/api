@@ -43,6 +43,7 @@ import { WithdrawalModule } from '../withdrawal/withdrawal.module'
 import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
 import { RecurringDonationModule } from '../recurring-donation/recurring-donation.module'
 import { TransferModule } from '../transfer/transfer.module'
+import { EmailModule } from '../email/email.module'
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { TransferModule } from '../transfer/transfer.module'
     CampaignTypesModule,
     RecurringDonationModule,
     TransferModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [
