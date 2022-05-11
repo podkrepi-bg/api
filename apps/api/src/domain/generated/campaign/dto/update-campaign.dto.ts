@@ -2,6 +2,7 @@ export class UpdateCampaignDto {
   slug?: string
   title?: string
   essence?: string
+  bankHash?: string
   description?: string
   targetAmount?: number
   startDate?: Date
