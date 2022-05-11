@@ -286,11 +286,10 @@ export class CampaignService {
 
   async validateCampaign(campaign: Campaign): Promise<Campaign> {
     const canAcceptDonation = await this.canAcceptDonations(campaign)
-    if (canAcceptDonation) {
-      return campaign
+    if (!canAcceptDonation) {
+      throw new NotAcceptableException('This campaign cannot accept donations')
     }
-
-    throw new NotAcceptableException('This campaign cannot accept donations')
+    return campaign
   }
 
   async canAcceptDonations(campaign: Campaign): Promise<boolean> {

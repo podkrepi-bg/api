@@ -1,8 +1,8 @@
 import Stripe from 'stripe'
 import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { Campaign, Donation, DonationStatus, Prisma } from '@prisma/client'
-import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CampaignService } from '../campaign/campaign.service'
@@ -57,7 +57,12 @@ export class DonationsService {
   ): Stripe.Checkout.SessionCreateParams.LineItem[] {
     // Use priceId if provided
     if (sessionDto.priceId) {
-      return [{ price: sessionDto.priceId, quantity: 1 }]
+      return [
+        {
+          price: sessionDto.priceId,
+          quantity: 1,
+        },
+      ]
     }
     // Create donation with custom amount
     return [
@@ -68,17 +73,6 @@ export class DonationsService {
         quantity: 1,
       },
     ]
-  }
-
-  async validateCampaign(sessionDto: CreateSessionDto): Promise<Campaign> {
-    const campaign = await this.campaignService.getCampaignById(sessionDto.campaignId)
-
-    const canAcceptDonation = await this.campaignService.canAcceptDonations(campaign)
-    if (canAcceptDonation) {
-      return campaign
-    }
-
-    throw new NotAcceptableException('This campaign cannot accept donations')
   }
 
   async listDonations(): Promise<Donation[]> {
