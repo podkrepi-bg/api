@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
 import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import {
   ViewContactRequests,
@@ -11,6 +11,7 @@ import { SupportService } from './support.service'
 import { CreateInquiryDto } from './dto/create-inquiry.dto'
 import { CreateRequestDto } from './dto/create-request.dto'
 import { CreateCampaignReportDto } from './dto/create-campagin-report.dto'
+import { UpdateCampaignReportDto } from './dto/update-campaign-report.dto'
 
 @Controller('support')
 export class SupportController {
@@ -70,6 +71,18 @@ export class SupportController {
   })
   async getCampaignReportById(@Param('id') id: string) {
     return await this.supportService.getCampaignReport(id)
+  }
+
+  @Put('report/:id')
+  @Roles({
+    roles: [RealmViewContactRequests.role, ViewContactRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async updateCampaignReportById(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateCampaignReportDto,
+  ) {
+    return await this.supportService.updateCampaignReport(id, updateDto)
   }
 
   @Delete('report/:id')
