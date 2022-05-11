@@ -1,8 +1,8 @@
-import { Prisma, ReportReason, ReportStatus, NotifierType } from '.prisma/client'
-import { Expose, Type } from 'class-transformer'
-import { IsEnum, IsNotEmpty, IsObject, IsString, IsUUID, ValidateNested } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
+import { Expose, Type } from 'class-transformer'
 import { CreatePersonDto } from '@podkrepi-bg/podkrepi-types'
+import { Prisma, ReportReason, ReportStatus, NotifierType } from '.prisma/client'
+import { IsEnum, IsNotEmpty, IsObject, IsString, IsUUID, ValidateNested } from 'class-validator'
 
 @Expose()
 export class CreateCampaignReportDto {
@@ -31,6 +31,11 @@ export class CreateCampaignReportDto {
   public readonly reason: ReportReason
 
   @Expose()
+  @ApiProperty({ enum: ReportStatus })
+  @IsEnum(ReportStatus, { context: ReportStatus })
+  public readonly status: ReportStatus
+
+  @Expose()
   @ApiProperty({ enum: NotifierType })
   @IsEnum(NotifierType, { context: NotifierType })
   public readonly notifierType: NotifierType
@@ -39,7 +44,7 @@ export class CreateCampaignReportDto {
     return {
       notifierType: this.notifierType,
       reason: this.reason,
-      status: ReportStatus.initial,
+      status: this.status,
       reportContent: this.reportContent,
       campaign: { connect: { id: this.campaignId } },
       person: {
