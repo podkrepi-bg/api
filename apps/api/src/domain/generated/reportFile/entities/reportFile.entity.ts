@@ -1,6 +1,5 @@
 import { CampaignReport } from '../../campaignReport/entities/campaignReport.entity'
 import { Person } from '../../person/entities/person.entity'
-import { Campaign } from '../../campaign/entities/campaign.entity'
 
 export class ReportFile {
   id: string
@@ -8,8 +7,6 @@ export class ReportFile {
   mimetype: string
   campaignReportId: string
   uploadedById: string
-  campaignId: string
-  CampaignReport?: CampaignReport
+  campaignReport?: CampaignReport
   uploadedBy?: Person
-  Campaign?: Campaign
 }

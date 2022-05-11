@@ -8,7 +8,6 @@ import { Vault } from '../../vault/entities/vault.entity'
 import { Withdrawal } from '../../withdrawal/entities/withdrawal.entity'
 import { CampaignFile } from '../../campaignFile/entities/campaignFile.entity'
 import { CampaignReport } from '../../campaignReport/entities/campaignReport.entity'
-import { ReportFile } from '../../reportFile/entities/reportFile.entity'
 
 export class Campaign {
   id: string
@@ -38,5 +37,4 @@ export class Campaign {
   withdrawals?: Withdrawal[]
   campaignFiles?: CampaignFile[]
   campaignReport?: CampaignReport[]
-  reportFile?: ReportFile[]
 }
