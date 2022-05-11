@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { CampaignFile } from '@prisma/client'
+import { CampaignFile, ReportFile } from '@prisma/client'
 import { S3, Endpoint } from 'aws-sdk'
 import { config } from 'aws-sdk'
 import { Readable } from 'stream'
@@ -37,6 +37,27 @@ export class S3Service {
         Metadata: {
           originalName: dbFile.filename,
           campaignId: dbFile.campaignId,
+          uploadedById: dbFile.uploadedById,
+        },
+      })
+      .promise()
+      .then((x) => x.Key)
+  }
+
+  async uploadReportFileObject(
+    dbFile: ReportFile,
+    mimetype: string,
+    stream: Buffer,
+  ): Promise<string> {
+    return await this.s3
+      .upload({
+        Bucket: this.bucketName,
+        Body: stream,
+        Key: dbFile.id,
+        ContentType: mimetype,
+        Metadata: {
+          originalName: dbFile.filename,
+          campaignReportId: dbFile.campaignReportId,
           uploadedById: dbFile.uploadedById,
         },
       })
