@@ -38,7 +38,7 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   withdrawals Withdrawal [not null]
   campaignFiles CampaignFile [not null]
   reports CampaignReport [not null]
-  ReportFile ReportFile [not null]
+  reportFiles ReportFile [not null]
 
   Note: 'Generic person object'
 }
@@ -142,8 +142,7 @@ Table Campaign {
   vaults Vault [not null]
   withdrawals Withdrawal [not null]
   campaignFiles CampaignFile [not null]
-  CampaignReport CampaignReport [not null]
-  ReportFile ReportFile [not null]
+  campaignReport CampaignReport [not null]
 }
 
 Table CampaignReport {
@@ -178,10 +177,8 @@ Table ReportFile {
   mimetype String [not null]
   campaignReportId String [not null]
   uploadedById String [not null]
-  campaignId String [not null]
-  CampaignReport CampaignReport [not null]
+  campaignReport CampaignReport [not null]
   uploadedBy Person [not null]
-  Campaign Campaign [not null]
 }
 
 Table InfoRequest {
@@ -617,8 +614,6 @@ Ref: CampaignFile.uploadedById > Person.id
 Ref: ReportFile.campaignReportId > CampaignReport.id
 
 Ref: ReportFile.uploadedById > Person.id
-
-Ref: ReportFile.campaignId > Campaign.id
 
 Ref: InfoRequest.personId > Person.id
 
