@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { InfoRequest, Supporter, CampaignReport } from '.prisma/client'
+import { InfoRequest, Supporter } from '.prisma/client'
 
 import {
   InquiryReceivedEmailDto,
@@ -12,9 +12,6 @@ import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateInquiryDto } from './dto/create-inquiry.dto'
 import { CreateRequestDto } from './dto/create-request.dto'
-import { ReportFileService } from '../report-file/report-file.service'
-import { CreateCampaignReportDto } from './dto/create-campagin-report.dto'
-import { UpdateCampaignReportDto } from './dto/update-campaign-report.dto'
 
 @Injectable()
 export class SupportService {
@@ -22,7 +19,6 @@ export class SupportService {
     private prisma: PrismaService,
     private emailService: EmailService,
     private config: ConfigService,
-    private reportFileService: ReportFileService,
   ) {}
 
   async createSupporter(inputDto: CreateRequestDto): Promise<Pick<Supporter, 'id' | 'personId'>> {
@@ -63,68 +59,6 @@ export class SupportService {
       include: { person: true },
       orderBy: { createdAt: 'desc' },
     })
-  }
-
-  async createCampaignReport(
-    inputDto: CreateCampaignReportDto,
-  ): Promise<Pick<CampaignReport, 'id' | 'personId'>> {
-    const report = await this.prisma.campaignReport.create({ data: inputDto.toEntity() })
-
-    return {
-      id: report.id,
-      personId: report.personId,
-    }
-  }
-
-  async updateCampaignReport(
-    id: string,
-    updateDto: UpdateCampaignReportDto,
-  ): Promise<CampaignReport | null> {
-    const person = await this.prisma.person.update({
-      where: { id: updateDto.personId },
-      data: updateDto.person,
-    })
-    if (!person) throw new NotFoundException('Not found')
-
-    const result = await this.prisma.campaignReport.update({
-      where: { id: id },
-      data: updateDto.toEntity(),
-    })
-    if (!result) throw new NotFoundException('Not found')
-    return result
-  }
-
-  async listCampaignReports(): Promise<CampaignReport[]> {
-    return await this.prisma.campaignReport.findMany({
-      include: { person: true, campaign: true },
-      orderBy: { createdAt: 'desc' },
-    })
-  }
-
-  async getCampaignReport(id: string): Promise<CampaignReport | null> {
-    const result = await this.prisma.campaignReport.findUnique({
-      where: { id },
-      include: { person: true, campaign: true },
-    })
-    if (!result) throw new NotFoundException('Not found campaign report with ID: ' + id)
-    return result
-  }
-
-  async removeCampaignReport(id: string): Promise<CampaignReport | null> {
-    const files = await this.prisma.reportFile.findMany({
-      where: { campaignReportId: id },
-    })
-    await Promise.all(
-      files.map((file) => {
-        return this.reportFileService.remove(file.id)
-      }),
-    )
-    const result = await this.prisma.campaignReport.delete({
-      where: { id: id },
-    })
-    if (!result) throw new NotFoundException('Not found campaign report with ID: ' + id)
-    console.log('deleted report and files')
-    return result
   }
 
   async sendWelcomeEmail(inputDto: CreateRequestDto) {
