@@ -7,17 +7,19 @@ import { PersonService } from '../person/person.service'
 import { SupportService } from '../support/support.service'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
+import { CampaignReportService } from '../campaign-report/campaign-report.service'
+import { ConfigService } from '@nestjs/config'
 
 @Module({
+  imports: [ConfigService],
   controllers: [ReportFileController],
   providers: [
     ReportFileService,
+    CampaignReportService,
     PrismaService,
     S3Service,
     PersonService,
-    SupportService,
-    EmailService,
-    TemplateService,
+    ConfigService,
   ],
 })
 export class ReportFileModule {}
