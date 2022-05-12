@@ -8,7 +8,8 @@ import {
   Delete,
   UnauthorizedException,
 } from '@nestjs/common'
-import { AuthenticatedUser } from 'nest-keycloak-connect'
+import { AuthenticatedUser, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
 
@@ -34,6 +35,10 @@ export class CompanyController {
   }
 
   @Get('/list')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   findAll(
     @AuthenticatedUser()
     user: KeycloakTokenParsed,
@@ -46,6 +51,10 @@ export class CompanyController {
   }
 
   @Get(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   findOne(
     @AuthenticatedUser()
     user: KeycloakTokenParsed,
@@ -59,6 +68,10 @@ export class CompanyController {
   }
 
   @Patch(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   update(
     @AuthenticatedUser()
     user: KeycloakTokenParsed,
@@ -73,6 +86,10 @@ export class CompanyController {
   }
 
   @Delete(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   remove(
     @AuthenticatedUser()
     user: KeycloakTokenParsed,

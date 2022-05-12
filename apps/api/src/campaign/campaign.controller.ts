@@ -33,6 +33,15 @@ export class CampaignController {
     return this.campaignService.listCampaigns()
   }
 
+  @Get('list-all')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async getAdminList() {
+    return this.campaignService.listAllCampaigns()
+  }
+
   @Get(':slug')
   @Public()
   async viewBySlug(@Param('slug') slug: string): Promise<{ campaign: Campaign | null }> {
