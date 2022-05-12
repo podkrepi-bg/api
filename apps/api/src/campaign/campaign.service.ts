@@ -34,6 +34,7 @@ export class CampaignService {
 
   async listCampaigns(): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({
+      where: { state: { in: [CampaignState.active, CampaignState.complete] } },
       include: {
         campaignType: { select: { category: true } },
         beneficiary: { select: { person: true } },
@@ -49,6 +50,16 @@ export class CampaignService {
 
     //TODO: remove this when Prisma starts supporting nested groupbys
     return campaigns.map(this.addReachedAmountAndDonors)
+  }
+
+  async listAllCampaigns(): Promise<Campaign[]> {
+    return await this.prisma.campaign.findMany({
+      include: {
+        campaignType: { select: { name: true } },
+        beneficiary: { select: { person: { select: { firstName: true, lastName: true } } } },
+        coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
+      },
+    })
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
@@ -270,7 +281,11 @@ export class CampaignService {
   async canAcceptDonations(campaignId: string): Promise<boolean> {
     const campaign = await this.getCampaignById(campaignId)
 
-    const validStates: CampaignState[] = ['active']
+    const validStates: CampaignState[] = [CampaignState.active]
+    if (campaign.allowDonationOnComplete) {
+      validStates.push(CampaignState.complete)
+    }
+    
     if (!validStates.includes(campaign.state)) {
       return false
     }
