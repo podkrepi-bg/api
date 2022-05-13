@@ -64,6 +64,7 @@ export class AuthService {
         refreshToken: grant.refresh_token?.token,
       }
     } catch (error) {
+      console.error(error)
       if (error.message === '401:Unauthorized') {
         throw new UnauthorizedException(error.message, error?.response?.data)
       }
