@@ -81,7 +81,7 @@ describe('AuthService', () => {
     const email = 'someuser@example.com'
     const password = 's3cret'
 
-    it('should call issueToken', async () => {
+    it('should call issueGrant', async () => {
       const token = mockDeep<Grant>({
         access_token: { token: 't23456' },
       })
@@ -90,12 +90,12 @@ describe('AuthService', () => {
         .mockResolvedValue(token)
       const loginDto = plainToClass(LoginDto, { email, password })
       const loginSpy = jest.spyOn(service, 'login')
-      const issueTokenSpy = jest.spyOn(service, 'issueToken')
+      const issueGrantSpy = jest.spyOn(service, 'issueGrant')
 
       expect(await service.login(loginDto)).toBeObject()
       expect(loginSpy).toHaveBeenCalledWith(loginDto)
       expect(keycloakSpy).toHaveBeenCalledWith(email, password)
-      expect(issueTokenSpy).toHaveBeenCalledWith(email, password)
+      expect(issueGrantSpy).toHaveBeenCalledWith(email, password)
       expect(admin.auth).not.toHaveBeenCalled()
     })
 
@@ -106,7 +106,7 @@ describe('AuthService', () => {
       const loginDto = plainToClass(LoginDto, { email, password })
       const loginSpy = jest.spyOn(service, 'login')
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
-      const issueTokenSpy = jest.spyOn(service, 'issueToken')
+      const issueGrantSpy = jest.spyOn(service, 'issueGrant')
 
       try {
         await service.login(loginDto)
@@ -116,7 +116,7 @@ describe('AuthService', () => {
       }
 
       expect(loginSpy).toHaveBeenCalledWith(loginDto)
-      expect(issueTokenSpy).toHaveBeenCalledWith(email, password)
+      expect(issueGrantSpy).toHaveBeenCalledWith(email, password)
       expect(keycloakSpy).toHaveBeenCalledWith(email, password)
       expect(consoleSpy).toBeCalled()
       consoleSpy.mockRestore()
@@ -174,7 +174,7 @@ describe('AuthService', () => {
         enabled: true,
         emailVerified: true,
         groups: [],
-        requiredActions: ['VERIFY_EMAIL'],
+        requiredActions: [],
         attributes: { selfReg: true },
         credentials: [
           {
