@@ -1,8 +1,9 @@
-import { InjectStripeClient } from '@golevelup/nestjs-stripe'
-import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { Donation, DonationStatus, Prisma } from '@prisma/client'
 import Stripe from 'stripe'
+import { ConfigService } from '@nestjs/config'
+import { InjectStripeClient } from '@golevelup/nestjs-stripe'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Campaign, Donation, DonationStatus, Prisma } from '@prisma/client'
+
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CampaignService } from '../campaign/campaign.service'
 import { PrismaService } from '../prisma/prisma.service'
@@ -18,7 +19,7 @@ export class DonationsService {
   constructor(
     @InjectStripeClient() private stripeClient: Stripe,
     private config: ConfigService,
-    private campaignServie: CampaignService,
+    private campaignService: CampaignService,
     private prisma: PrismaService,
     private vaultService: VaultService,
   ) {}
@@ -31,50 +32,52 @@ export class DonationsService {
   async createCheckoutSession(
     sessionDto: CreateSessionDto,
   ): Promise<{ session: Stripe.Checkout.Session }> {
-    await this.validateCampaign(sessionDto)
+    const campaign = await this.campaignService.validateCampaignId(sessionDto.campaignId)
 
+    const { mode } = sessionDto
     const appUrl = this.config.get<string>('APP_URL')
-    const mode = sessionDto.mode
-    const metadata: DonationMetadata = {
-      campaignId: sessionDto.campaignId,
-    }
+    const metadata: DonationMetadata = { campaignId: sessionDto.campaignId }
 
     const session = await this.stripeClient.checkout.sessions.create({
       mode,
-      line_items: [{ price: sessionDto.priceId, quantity: 1 }],
+      line_items: this.prepareSessionItems(sessionDto, campaign),
       payment_method_types: ['card'],
       payment_intent_data: mode === 'payment' ? { metadata } : undefined,
       subscription_data: mode === 'subscription' ? { metadata } : undefined,
       success_url: sessionDto.successUrl ?? `${appUrl}/success`,
       cancel_url: sessionDto.cancelUrl ?? `${appUrl}/canceled`,
-      tax_id_collection: {
-        enabled: true,
-      },
+      tax_id_collection: { enabled: true },
     })
     return { session }
   }
 
-  async validateCampaign(sessionDto: CreateSessionDto) {
-    const canAcceptDonation = await this.campaignServie.canAcceptDonations(sessionDto.campaignId)
-    if (canAcceptDonation) {
-      return true
+  private prepareSessionItems(
+    sessionDto: CreateSessionDto,
+    campaign: Campaign,
+  ): Stripe.Checkout.SessionCreateParams.LineItem[] {
+    // Use priceId if provided
+    if (sessionDto.priceId) {
+      return [
+        {
+          price: sessionDto.priceId,
+          quantity: 1,
+        },
+      ]
     }
-
-    throw new NotAcceptableException('This campaign cannot accept donations')
+    // Create donation with custom amount
+    return [
+      {
+        name: campaign.title,
+        amount: sessionDto.amount,
+        currency: campaign.currency,
+        quantity: 1,
+      },
+    ]
   }
 
   async listDonations(): Promise<Donation[]> {
     return await this.prisma.donation.findMany({
-      orderBy: [
-        {
-          person: {
-            firstName: 'asc',
-          },
-        },
-        {
-          createdAt: 'desc',
-        },
-      ],
+      orderBy: [{ person: { firstName: 'asc' } }, { createdAt: 'desc' }],
     })
   }
 
@@ -170,16 +173,14 @@ export class DonationsService {
           include: { campaign: true },
         },
       },
-      where: {
-        person: {
-          keycloakId: keycloakId,
-        },
-      },
+      where: { person: { keycloakId } },
     })
+
     const total = donations.reduce((acc, current) => {
       acc += current.amount
       return acc
     }, 0)
+
     return { donations, total }
   }
 }
