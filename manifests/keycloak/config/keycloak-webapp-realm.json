@@ -507,7 +507,7 @@
       "username": "service-account-jwt-headless",
       "enabled": true,
       "totp": false,
-      "emailVerified": false,
+      "emailVerified": true,
       "serviceAccountClientId": "jwt-headless",
       "disableableCredentialTypes": [],
       "requiredActions": [],
@@ -517,6 +517,9 @@
       "clientRoles": {
         "jwt-headless": [
           "uma_protection"
+        ],
+        "realm-management": [
+          "manage-users"
         ]
       },
       "notBefore": 0,
