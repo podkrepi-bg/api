@@ -1,5 +1,3 @@
-import { LogLevel } from '@sentry/types'
-
 /**
  * Be sure to add `process.env` vars in validation schema at ./validation.config.ts
  */
@@ -15,7 +13,7 @@ export default () => ({
     environment: process.env.APP_ENV,
     debug: false,
     enabled: process.env.APP_ENV !== 'development',
-    logLevel: LogLevel.Debug,
+    logLevel: 'debug',
     tracesSampleRate: 1.0,
   },
   sendgrid: {

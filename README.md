@@ -38,9 +38,9 @@
 
 To run and develop the module NodeJS 16 is required. In this section 2 ways of configuring a development environment are described.
 
-## Installing the dependencies
+## Installing the prerequisites
 
-The following dependencies are required in order to be able to run the project:
+The following prerequisites are required in order to be able to run the project:
 
 - [NodeJS 16 LTS](https://nodejs.org/en/download/)
 - [yarn](https://classic.yarnpkg.com/lang/en/docs/install)
@@ -54,7 +54,7 @@ If you wish to keep your host clean, it is also possible to develop the module i
 - Open the folder of the module in VS Code
 - Hit `Ctrl`/`Cmd` + `Shift` + `P` -> Remote-Containers: Reopen Folder in Container
 
-## Install dependencies
+## Clone the code and install dependencies
 
 ```shell
 git clone git@github.com:podkrepi-bg/api.git
@@ -63,13 +63,20 @@ cd api
 yarn
 ```
 
-## Create the Database Instance in Docker
+## Create Docker containers for the Dev Database(postgres) and the Identity Server(Keycloak)
 
-:information_source: Use `docker-compose` version `>=1.29`
+:information_source: Use `docker-compose` version `>=2.5`
 
 ```shell
-docker-compose up --build -d pg-db
+docker-compose --profile local-keycloak up -d
 ```
+
+This will start the following services in your local docker:
+
+- Local Postgres DB on default port 5432 for your personal development
+- Local Keycloak Identity server Admin UI on <http://localhost:8180> with config coming from `./manifests/keycloak/config`:
+  - Keycloak Admin User: `admin` with pass: `admin`
+  - Podkrepi realm users: coordinator@podkrepi.bg, reviewer@podkrepi.bg, admin@podkrepi.bg, all with pass: `$ecurePa33`
 
 ## Initialize the Database with Prisma Migration scripts
 
@@ -88,7 +95,7 @@ yarn prisma db seed
 
 ## Setup local environment
 
-Copy example local env and add values
+Copy the provided .env.local.example to .env.local
 
 ```shell
 cp .env.local.example .env.local
@@ -108,7 +115,7 @@ yarn test
 yarn dev
 ```
 
-and it will listen on <http://localhost:5010/api>
+and the backend API server will listen on <http://localhost:5010/api>
 
 ## (Alternative) Development Environment To Run Inside Docker
 
@@ -253,10 +260,12 @@ yarn prisma migrate reset
 | `S3_BUCKET`               | The S3 bucket to be used for storing files   | campaign-files                                                              |
 | `S3_ACCESS_KEY`           | The S3 access key.                           | \*\*\*\*\*\*                                                                |
 | `S3_SECRET_ACCESS_KEY`    | The S3 secret access key.                    | \*\*\*\*\*\*                                                                |
-| `KEYCLOAK_URL`            | Keycloak authentication url                  | <https://keycloak.podkrepi.bg/auth>                                         |
+| `KEYCLOAK_URL`            | Keycloak authentication url                  | <http://localhost:8180/auth>                                                |
 | `KEYCLOAK_REALM`          | Keycloak Realm name                          | webapp                                                                      |
 | `KEYCLOAK_CLIENT_ID`      | Keycloak Client name                         | jwt-headless                                                                |
-| `KEYCLOAK_SECRET`         | Secret to reach Keycloak in headless mode    | \*\*\*\*\*\*                                                                |
+| `KEYCLOAK_SECRET`         | Secret to reach Keycloak in headless mode    | DEV-KEYCLOAK-SECRET                                                         |
+| `KEYCLOAK_USER`           | Master user for Keycloak Server              | admin                                                                       |
+| `KEYCLOAK_PASSWORD`       | Master user's password for Keycloak Server   | admin                                                                       |
 | `STRIPE_SECRET_KEY`       | Stripe secret key                            | \*\*\*\*\*\*                                                                |
 | `STRIPE_WEBHOOK_SECRET`   | Stripe webhook secret key                    | \*\*\*\*\*\*                                                                |
 | `SENTRY_DSN`              | Sentry Data Source Name                      | <https://58b71cdea21f45c0bcbe5c1b49317973@o540074.ingest.sentry.io/5707518> |
