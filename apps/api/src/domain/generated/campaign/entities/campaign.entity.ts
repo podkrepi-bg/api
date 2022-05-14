@@ -15,11 +15,13 @@ export class Campaign {
   slug: string
   title: string
   essence: string
+  bankHash: string
   coordinatorId: string
   beneficiaryId: string
   campaignTypeId: string
   description: string | null
   targetAmount: number | null
+  allowDonationOnComplete: boolean
   startDate: Date | null
   endDate: Date | null
   createdAt: Date

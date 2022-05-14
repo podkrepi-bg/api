@@ -1,5 +1,6 @@
 import faker from 'faker'
 import { PrismaClient, CampaignState, Currency } from '@prisma/client'
+import { getBankHash } from '../../apps/api/src/campaign/hash-generator'
 
 const prisma = new PrismaClient()
 
@@ -49,6 +50,7 @@ export async function campaignSeed() {
         description: faker.lorem.paragraphs(4),
         targetAmount: parseInt(faker.finance.amount(2000, 200000)),
         currency: Currency.BGN,
+        bankHash: getBankHash(),
       }
     }),
     skipDuplicates: true,

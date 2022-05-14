@@ -120,11 +120,13 @@ Table Campaign {
   slug String [unique, not null]
   title String [not null]
   essence String [not null]
+  bankHash String [not null]
   coordinatorId String [not null]
   beneficiaryId String [not null]
   campaignTypeId String [not null]
   description String
   targetAmount Int [default: 0]
+  allowDonationOnComplete Boolean [not null, default: false]
   startDate DateTime
   endDate DateTime
   createdAt DateTime [default: `now()`, not null]
@@ -162,10 +164,10 @@ Table CampaignFile {
   filename String [not null]
   mimetype String [not null]
   campaignId String [not null]
-  uploadedById String [not null]
+  personId String [not null]
   role CampaignFileRole [not null]
   campaign Campaign [not null]
-  uploadedBy Person [not null]
+  person Person [not null]
 }
 
 Table InfoRequest {
@@ -591,7 +593,7 @@ Ref: CampaignReport.personId > Person.id
 
 Ref: CampaignFile.campaignId > Campaign.id
 
-Ref: CampaignFile.uploadedById > Person.id
+Ref: CampaignFile.personId > Person.id
 
 Ref: InfoRequest.personId > Person.id
 

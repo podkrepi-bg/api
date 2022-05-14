@@ -1,7 +1,18 @@
 import Stripe from 'stripe'
 import { Expose } from 'class-transformer'
 import { ApiProperty } from '@nestjs/swagger'
-import { IsIn, IsNotEmpty, IsOptional, IsString, IsUrl, IsUUID } from 'class-validator'
+import {
+  IsIn,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  IsUrl,
+  IsUUID,
+  Min,
+  ValidateIf,
+} from 'class-validator'
 
 export class CreateSessionDto {
   @ApiProperty()
@@ -14,7 +25,17 @@ export class CreateSessionDto {
   @Expose()
   @IsNotEmpty()
   @IsString()
+  @ValidateIf((o) => !o.amount || o.priceId)
   public readonly priceId: string
+
+  @ApiProperty()
+  @Expose()
+  @IsNumber()
+  @IsNotEmpty()
+  @IsPositive()
+  @Min(100, { message: 'Minimum donation amount in cents is 100' })
+  @ValidateIf((o) => !o.priceId || o.amount)
+  public readonly amount: number
 
   @ApiProperty()
   @Expose()

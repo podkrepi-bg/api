@@ -14,6 +14,7 @@ import {
   Inject,
   Injectable,
   Logger,
+  NotAcceptableException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
@@ -50,6 +51,16 @@ export class CampaignService {
 
     //TODO: remove this when Prisma starts supporting nested groupbys
     return campaigns.map(this.addReachedAmountAndDonors)
+  }
+
+  async listAllCampaigns(): Promise<Campaign[]> {
+    return await this.prisma.campaign.findMany({
+      include: {
+        campaignType: { select: { name: true } },
+        beneficiary: { select: { person: { select: { firstName: true, lastName: true } } } },
+        coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
+      },
+    })
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
@@ -268,10 +279,25 @@ export class CampaignService {
     return donation
   }
 
-  async canAcceptDonations(campaignId: string): Promise<boolean> {
+  async validateCampaignId(campaignId: string): Promise<Campaign> {
     const campaign = await this.getCampaignById(campaignId)
+    return this.validateCampaign(campaign)
+  }
 
-    const validStates: CampaignState[] = ['active']
+  async validateCampaign(campaign: Campaign): Promise<Campaign> {
+    const canAcceptDonation = await this.canAcceptDonations(campaign)
+    if (!canAcceptDonation) {
+      throw new NotAcceptableException('This campaign cannot accept donations')
+    }
+    return campaign
+  }
+
+  async canAcceptDonations(campaign: Campaign): Promise<boolean> {
+    const validStates: CampaignState[] = [CampaignState.active]
+    if (campaign.allowDonationOnComplete) {
+      validStates.push(CampaignState.complete)
+    }
+
     if (!validStates.includes(campaign.state)) {
       return false
     }

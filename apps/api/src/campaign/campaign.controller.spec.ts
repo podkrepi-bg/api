@@ -11,6 +11,7 @@ import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { ConfigService } from '@nestjs/config'
 import { PersonService } from '../person/person.service'
+import * as hashGenerator from './hash-generator'
 
 describe('CampaignController', () => {
   let controller: CampaignController
@@ -36,6 +37,7 @@ describe('CampaignController', () => {
     toEntity: new CreateCampaignDto().toEntity,
   } as CreateCampaignDto
 
+  const bankHashMock = 'A1B2C'
   const mockCampaign = {
     ...mockCreateCampaign,
     ...{
@@ -48,6 +50,7 @@ describe('CampaignController', () => {
       beneficiary: {},
       coordinator: {},
       campaignFiles: [],
+      bankHash: bankHashMock,
       vaults: [{ donations: [{ amount: 100 }, { amount: 10 }] }, { donations: [] }],
     },
   }
@@ -85,6 +88,30 @@ describe('CampaignController', () => {
           ...{ summary: [{ reachedAmount: 110 }], vaults: [] },
         },
       ])
+      expect(prismaService.campaign.findMany).toHaveBeenCalled()
+    })
+  })
+
+  describe('getAdminList ', () => {
+    it('should return proper campaign list', async () => {
+      const mockAdminCampaign = {
+        ...mockCreateCampaign,
+        ...{
+          id: 'testId',
+          state: CampaignState.active,
+          createdAt: new Date('2022-04-08T06:36:33.661Z'),
+          updatedAt: new Date('2022-04-08T06:36:33.662Z'),
+          deletedAt: null,
+          approvedById: null,
+          beneficiary: { firstName: 'Test', lastName: 'Test' },
+          coordinator: { firstName: 'Test', lastName: 'Test' },
+          campaignType: { name: 'Test type' },
+        },
+      }
+      const mockList = jest.fn().mockResolvedValue([mockAdminCampaign])
+      jest.spyOn(prismaService.campaign, 'findMany').mockImplementation(mockList)
+
+      expect(await controller.getAdminList()).toEqual([mockAdminCampaign])
       expect(prismaService.campaign.findMany).toHaveBeenCalled()
     })
   })
@@ -148,6 +175,7 @@ describe('CampaignController', () => {
       resource_access: { account: { roles: [] } },
       'allowed-origins': [],
     } as KeycloakTokenParsed
+    jest.spyOn(hashGenerator, 'getBankHash').mockReturnValue(bankHashMock)
 
     it('should call create without coordinator if user is admin', async () => {
       const mockObject = jest.fn().mockResolvedValue(mockCampaign)
@@ -161,7 +189,7 @@ describe('CampaignController', () => {
       ).toEqual(mockCampaign)
       expect(personServiceMock.findOneByKeycloakId).not.toHaveBeenCalled()
       expect(prismaService.campaign.create).toHaveBeenCalledWith({
-        data: mockCreateCampaign.toEntity(),
+        data: {...mockCreateCampaign.toEntity(), ...{bankHash: bankHashMock}},
       })
     })
     it('should call create with coordinator', async () => {
@@ -181,6 +209,7 @@ describe('CampaignController', () => {
               },
             },
           },
+          ...{ bankHash: bankHashMock },
         },
         include: { coordinator: true },
       })
