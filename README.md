@@ -68,15 +68,15 @@ yarn
 :information_source: Use `docker-compose` version `>=1.29`
 
 ```shell
-docker-compose up --build -d pg-db keycloak keycloak-db
+docker-compose --profile local-keycloak up -d
 ```
 
 This will start the following services in your local docker:
 
-* Local Postgres db on default port 5432 for your personal development
-* Local Keycloak Identity server Admin UI on http://localhost:8180 with config coming from ./manifests/keycloak/config:
-  * Keycloak Admin User: admin with pass: admin
-  * Podkrepi realm users: coordinator@podkrepi.bg, reviewer@podkrepi.bg, admin@podkrepi.bg, all with pass: $ecurePa33
+- Local Postgres db on default port 5432 for your personal development
+- Local Keycloak Identity server Admin UI on <http://localhost:8180> with config coming from `./manifests/keycloak/config`:
+  - Keycloak Admin User: `admin` with pass: `admin`
+  - Podkrepi realm users: coordinator@podkrepi.bg, reviewer@podkrepi.bg, admin@podkrepi.bg, all with pass: $ecurePa33
 
 ## Initialize the Database with Prisma Migration scripts
 

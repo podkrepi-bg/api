@@ -61,12 +61,16 @@ services:
     networks:
       - backend-net
 
-  ## LOCAL IDENTITY PROVIDER - KEYCLOAK
+  ########################################
+  ## LOCAL IDENTITY PROVIDER - KEYCLOAK ##
+  ########################################
+
   ## Keycloak Database  ##
-  ##########################
+  ########################
   keycloak-db:
     container_name: ${COMPOSE_PROJECT_NAME?}-keycloak-db
     image: docker.io/bitnami/postgresql:13
+    profiles: ['local-keycloak']
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
       - POSTGRESQL_USERNAME=bn_keycloak
@@ -77,18 +81,19 @@ services:
       backend-net:
 
   ## Keycloak Server ##
-  ##########################
+  #####################
   keycloak:
     container_name: ${COMPOSE_PROJECT_NAME?}-keycloak
     image: docker.io/bitnami/keycloak:15
+    profiles: ['local-keycloak']
     environment:
-      - KEYCLOAK_USER=admin
-      - KEYCLOAK_PASSWORD=admin
+      - KEYCLOAK_USER=${KEYCLOAK_PASSWORD}
+      - KEYCLOAK_PASSWORD=${KEYCLOAK_PASSWORD}
       - KEYCLOAK_EXTRA_ARGS=-Dkeycloak.import=/opt/bitnami/keycloak/config/keycloak-webapp-realm.json
       - DEBUG=true
       - DEBUG_PORT='*:8787'
       - DB_VENDOR=POSTGRES
-      - DB_ADDR=${COMPOSE_PROJECT_NAME?}-keycloak-db
+      - DB_ADDR=keycloak-db
       - DB_DATABASE=bitnami_keycloak
       - DB_USER=bn_keycloak
       - TZ=Europe/Sofia
@@ -109,6 +114,7 @@ services:
   # keycloak-config:
   #   container_name: ${COMPOSE_PROJECT_NAME?}-keycloak-config
   #   image: bitnami/keycloak-config-cli:latest
+  #   profiles: ['local-keycloak']
   #   depends_on:
   #     - keycloak
   #   volumes:
