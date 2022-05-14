@@ -65,7 +65,7 @@ yarn
 
 ## Create Docker containers for the Dev Database(postgres) and the Identity Server(Keycloak)
 
-:information_source: Use `docker-compose` version `>=1.29`
+:information_source: Use `docker-compose` version `>=2.5`
 
 ```shell
 docker-compose --profile local-keycloak up -d
@@ -73,10 +73,10 @@ docker-compose --profile local-keycloak up -d
 
 This will start the following services in your local docker:
 
-- Local Postgres db on default port 5432 for your personal development
+- Local Postgres DB on default port 5432 for your personal development
 - Local Keycloak Identity server Admin UI on <http://localhost:8180> with config coming from `./manifests/keycloak/config`:
   - Keycloak Admin User: `admin` with pass: `admin`
-  - Podkrepi realm users: coordinator@podkrepi.bg, reviewer@podkrepi.bg, admin@podkrepi.bg, all with pass: $ecurePa33
+  - Podkrepi realm users: coordinator@podkrepi.bg, reviewer@podkrepi.bg, admin@podkrepi.bg, all with pass: `$ecurePa33`
 
 ## Initialize the Database with Prisma Migration scripts
 
@@ -260,10 +260,12 @@ yarn prisma migrate reset
 | `S3_BUCKET`               | The S3 bucket to be used for storing files   | campaign-files                                                              |
 | `S3_ACCESS_KEY`           | The S3 access key.                           | \*\*\*\*\*\*                                                                |
 | `S3_SECRET_ACCESS_KEY`    | The S3 secret access key.                    | \*\*\*\*\*\*                                                                |
-| `KEYCLOAK_URL`            | Keycloak authentication url                  | <https://keycloak.podkrepi.bg/auth>                                         |
+| `KEYCLOAK_URL`            | Keycloak authentication url                  | <http://localhost:8180/auth>                                                |
 | `KEYCLOAK_REALM`          | Keycloak Realm name                          | webapp                                                                      |
 | `KEYCLOAK_CLIENT_ID`      | Keycloak Client name                         | jwt-headless                                                                |
-| `KEYCLOAK_SECRET`         | Secret to reach Keycloak in headless mode    | \*\*\*\*\*\*                                                                |
+| `KEYCLOAK_SECRET`         | Secret to reach Keycloak in headless mode    | DEV-KEYCLOAK-SECRET                                                         |
+| `KEYCLOAK_USER`           | Master user for Keycloak Server              | admin                                                                       |
+| `KEYCLOAK_PASSWORD`       | Master user's password for Keycloak Server   | admin                                                                       |
 | `STRIPE_SECRET_KEY`       | Stripe secret key                            | \*\*\*\*\*\*                                                                |
 | `STRIPE_WEBHOOK_SECRET`   | Stripe webhook secret key                    | \*\*\*\*\*\*                                                                |
 | `SENTRY_DSN`              | Sentry Data Source Name                      | <https://58b71cdea21f45c0bcbe5c1b49317973@o540074.ingest.sentry.io/5707518> |
