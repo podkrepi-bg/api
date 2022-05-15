@@ -15,6 +15,9 @@ import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'
 import { KeycloakTokenParsed } from './keycloak'
 import { PrismaService } from '../prisma/prisma.service'
+import { HttpService } from '@nestjs/axios'
+import { RefreshDto } from './dto/refresh.dto'
+import { map } from 'rxjs'
 
 type ErrorResponse = { error: string; data: unknown }
 type LoginResponse = {
@@ -40,6 +43,7 @@ export class AuthService {
     private readonly config: ConfigService,
     private readonly admin: KeycloakAdminClient,
     private readonly prismaService: PrismaService,
+    private readonly httpService: HttpService,
     @Inject(KEYCLOAK_INSTANCE) private keycloak: KeycloakConnect.Keycloak,
   ) {}
 
@@ -50,6 +54,20 @@ export class AuthService {
   async issueToken(email: string, password: string): Promise<string | undefined> {
     const grant = await this.issueGrant(email, password)
     return grant.access_token?.token
+  }
+
+  async issueTokenFromRefresh(refreshDto: RefreshDto) {
+    const secret = this.config.get<string>('keycloak.secret')
+    const clientId = this.config.get<string>('keycloak.clientId')
+    const tokenUrl = `${this.config.get<string>('keycloak.serverUrl')}/realms/${this.config.get<string>('keycloak.realm')}/protocol/openid-connect/token`
+    const data = {
+      'client_id':clientId as string,
+      'client_secret':secret as string,
+      'refresh_token': refreshDto.refreshToken as string,
+      'grant_type':'refresh_token'
+    }
+    const params = new URLSearchParams(data)
+    return this.httpService.post(tokenUrl,params.toString()).pipe(map(res => res.data))
   }
 
   async login(loginDto: LoginDto): Promise<LoginResponse | ErrorResponse> {
