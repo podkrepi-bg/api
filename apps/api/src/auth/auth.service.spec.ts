@@ -13,6 +13,7 @@ import { LoginDto } from './dto/login.dto'
 import { AuthService } from './auth.service'
 import { RegisterDto } from './dto/register.dto'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
+import { RefreshDto } from './dto/refresh.dto'
 
 jest.mock('@keycloak/keycloak-admin-client')
 
@@ -80,6 +81,18 @@ describe('AuthService', () => {
       expect(await service.issueToken(email, password)).toBe('t23456')
       expect(keycloakSpy).toHaveBeenCalledWith(email, password)
       expect(tokenSpy).toHaveBeenCalledWith(email, password)
+      expect(admin.auth).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('refresh', () => {
+    it('should call issueTokenFromRefresh', async () => {
+      const refreshToken = 'JWT_TOKEN'
+      const refreshDto = plainToClass(RefreshDto, { refreshToken })
+      const refreshSpy = jest.spyOn(service, 'issueTokenFromRefresh')
+
+      expect(await service.issueTokenFromRefresh(refreshDto)).toBeObject()
+      expect(refreshSpy).toHaveBeenCalledWith(refreshDto)
       expect(admin.auth).not.toHaveBeenCalled()
     })
   })
