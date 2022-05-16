@@ -4,22 +4,22 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common'
+import { HttpService } from '@nestjs/axios'
+import { catchError, map } from 'rxjs'
 import KeycloakConnect from 'keycloak-connect'
 import { ConfigService } from '@nestjs/config'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
 import { RequiredActionAlias } from '@keycloak/keycloak-admin-client/lib/defs/requiredActionProviderRepresentation'
-
-import { Person } from '.prisma/client'
-import { LoginDto } from './dto/login.dto'
-import { RegisterDto } from './dto/register.dto'
-import { KeycloakTokenParsed } from './keycloak'
-import { PrismaService } from '../prisma/prisma.service'
-import { HttpService } from '@nestjs/axios'
-import { RefreshDto } from './dto/refresh.dto'
-import { catchError, map } from 'rxjs'
 import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
 import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth'
+
+import { Person } from '.prisma/client'
+import { PrismaService } from '../prisma/prisma.service'
+import { LoginDto } from './dto/login.dto'
+import { RegisterDto } from './dto/register.dto'
+import { RefreshDto } from './dto/refresh.dto'
+import { KeycloakTokenParsed } from './keycloak'
 
 type ErrorResponse = { error: string; data: unknown }
 type KeycloakErrorResponse = { error: string; 'error_description': string }

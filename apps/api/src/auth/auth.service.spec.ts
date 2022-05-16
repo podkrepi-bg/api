@@ -8,6 +8,7 @@ import { UnauthorizedException } from '@nestjs/common'
 import KeycloakConnect, { Grant } from 'keycloak-connect'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
+import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth'
 
 import { LoginDto } from './dto/login.dto'
 import { AuthService } from './auth.service'
@@ -15,7 +16,6 @@ import { RegisterDto } from './dto/register.dto'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { RefreshDto } from './dto/refresh.dto'
 import { Observable } from 'rxjs'
-import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth'
 
 jest.mock('@keycloak/keycloak-admin-client')
 
