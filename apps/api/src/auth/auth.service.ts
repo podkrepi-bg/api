@@ -78,7 +78,7 @@ export class AuthService {
     const data = {
       'client_id':clientId as string,
       'client_secret':secret as string,
-      'refresh_token': refreshDto.refreshToken as string,
+      'refresh_token': refreshDto.refreshToken,
       'grant_type':'refresh_token'
     }
     const params = new URLSearchParams(data)
