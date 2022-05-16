@@ -2,6 +2,7 @@ version: '3.7'
 services:
   api:
     image: podkrepi-api
+    profiles: ['api-docker']
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -60,24 +61,77 @@ services:
     networks:
       - backend-net
 
-  # Flyway is deprecated, Prisma migrations are taking place
-  # flyway:
-  #   build:
-  #     context: ./db
-  #     dockerfile: ./flyway/Dockerfile
-  #   container_name: ${COMPOSE_PROJECT_NAME?}-flyway
-  #   hostname: flyway
-  #   # https://flywaydb.org/documentation/configuration/configfile#reference
-  #   # jdbc:postgresql://<host>:<port>/<database>?<key1>=<value1>&<key2>=<value2>...
-  #   command: migrate
-  #   entrypoint: flyway -url=jdbc:postgresql://${DB_HOST?}:${DB_PORT?}/${DB_NAME?} -schemas=app,campaign,account -user=${DB_USER?} -password=${DB_PASS?} -connectRetries=60
-  #   depends_on:
-  #     - pg-db
-  #   networks:
-  #     - backend-net
+  ########################################
+  ## LOCAL IDENTITY PROVIDER - KEYCLOAK ##
+  ########################################
 
+  ## Keycloak Database  ##
+  ########################
+  keycloak-db:
+    container_name: ${COMPOSE_PROJECT_NAME?}-keycloak-db
+    image: docker.io/bitnami/postgresql:13
+    profiles: ['local-keycloak']
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - POSTGRESQL_USERNAME=bn_keycloak
+      - POSTGRESQL_DATABASE=bitnami_keycloak
+    volumes:
+      - 'keycloak-db-data:/bitnami/postgresql'
+    networks:
+      backend-net:
+
+  ## Keycloak Server ##
+  #####################
+  keycloak:
+    container_name: ${COMPOSE_PROJECT_NAME?}-keycloak
+    image: docker.io/bitnami/keycloak:15
+    profiles: ['local-keycloak']
+    environment:
+      - KEYCLOAK_USER=${KEYCLOAK_PASSWORD}
+      - KEYCLOAK_PASSWORD=${KEYCLOAK_PASSWORD}
+      - KEYCLOAK_EXTRA_ARGS=-Dkeycloak.import=/opt/bitnami/keycloak/config/keycloak-webapp-realm.json
+      - DEBUG=true
+      - DEBUG_PORT='*:8787'
+      - DB_VENDOR=POSTGRES
+      - DB_ADDR=keycloak-db
+      - DB_DATABASE=bitnami_keycloak
+      - DB_USER=bn_keycloak
+      - TZ=Europe/Sofia
+    depends_on:
+      - keycloak-db
+    ports:
+      - '8180:8080'
+      - '8787:8787'
+    volumes:
+      - './manifests/keycloak/theme_podkrepi:/opt/bitnami/keycloak/themes/theme_podkrepi'
+      - './manifests/keycloak/config:/opt/bitnami/keycloak/config'
+    networks:
+      backend-net:
+
+  # ## KEYCLOAK CONFIGURATOR - removes the need to recreate keycloak container upon config changes
+  # ## uncomment if you plan to tune the keycloak realm configuration
+  # ## usage: docker-compose up --build -d keycloak-config
+  # keycloak-config:
+  #   container_name: ${COMPOSE_PROJECT_NAME?}-keycloak-config
+  #   image: bitnami/keycloak-config-cli:latest
+  #   profiles: ['local-keycloak']
+  #   depends_on:
+  #     - keycloak
+  #   volumes:
+  #     - './manifests/keycloak/config:/opt/bitnami/keycloak/config'
+  #   environment:
+  #     - keycloak.url=http://keycloak:8080/auth
+  #     - keycloak.user=admin
+  #     - keycloak.password=admin
+  #     - keycloak.availability-check.enabled=true
+  #     - import.cache.enabled=false
+  #     - import.path=/opt/bitnami/keycloak/config
+  #   networks:
+  #     backend-net:
 volumes:
   pg-db-data:
+  keycloak-db-data:
+    driver: local
 
 networks:
   backend-net:

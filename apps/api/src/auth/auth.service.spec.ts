@@ -1,17 +1,21 @@
 import { Person } from '.prisma/client'
 import { mockDeep } from 'jest-mock-extended'
 import { ConfigService } from '@nestjs/config'
+import { HttpService } from '@nestjs/axios'
 import { plainToClass } from 'class-transformer'
 import { Test, TestingModule } from '@nestjs/testing'
 import { UnauthorizedException } from '@nestjs/common'
 import KeycloakConnect, { Grant } from 'keycloak-connect'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
+import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth'
 
 import { LoginDto } from './dto/login.dto'
 import { AuthService } from './auth.service'
 import { RegisterDto } from './dto/register.dto'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
+import { RefreshDto } from './dto/refresh.dto'
+import { Observable } from 'rxjs'
 
 jest.mock('@keycloak/keycloak-admin-client')
 
@@ -19,6 +23,7 @@ describe('AuthService', () => {
   let service: AuthService
   let config: ConfigService
   let admin: KeycloakAdminClient
+  let httpService: HttpService
   let keycloak: KeycloakConnect.Keycloak
 
   beforeEach(async () => {
@@ -39,6 +44,10 @@ describe('AuthService', () => {
           provide: KeycloakAdminClient,
           useValue: mockDeep<KeycloakAdminClient>(),
         },
+        {
+          provide: HttpService,
+          useValue: mockDeep<HttpService>(),
+        },
         MockPrismaService,
         {
           provide: KEYCLOAK_INSTANCE,
@@ -51,6 +60,7 @@ describe('AuthService', () => {
     config = module.get<ConfigService>(ConfigService)
     admin = module.get<KeycloakAdminClient>(KeycloakAdminClient)
     keycloak = module.get<KeycloakConnect.Keycloak>(KEYCLOAK_INSTANCE)
+    httpService = module.get<HttpService>(HttpService)
   })
 
   it('should be defined', () => {
@@ -69,10 +79,23 @@ describe('AuthService', () => {
       const keycloakSpy = jest
         .spyOn(keycloak.grantManager, 'obtainDirectly')
         .mockResolvedValue(token)
-
       expect(await service.issueToken(email, password)).toBe('t23456')
       expect(keycloakSpy).toHaveBeenCalledWith(email, password)
       expect(tokenSpy).toHaveBeenCalledWith(email, password)
+      expect(admin.auth).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('refresh', () => {
+    it('should call issueTokenFromRefresh', async () => {
+      const refreshToken = 'JWT_TOKEN'
+      const refreshDto = plainToClass(RefreshDto, { refreshToken })
+      const refreshSpy = jest.spyOn(service, 'issueTokenFromRefresh').mockResolvedValue(new Observable((s => {
+        s.next({} as TokenResponseRaw)
+      })))
+
+      expect(await service.issueTokenFromRefresh(refreshDto)).toBeObject()
+      expect(refreshSpy).toHaveBeenCalledWith(refreshDto)
       expect(admin.auth).not.toHaveBeenCalled()
     })
   })
@@ -81,7 +104,7 @@ describe('AuthService', () => {
     const email = 'someuser@example.com'
     const password = 's3cret'
 
-    it('should call issueToken', async () => {
+    it('should call issueGrant', async () => {
       const token = mockDeep<Grant>({
         access_token: { token: 't23456' },
       })
@@ -90,12 +113,12 @@ describe('AuthService', () => {
         .mockResolvedValue(token)
       const loginDto = plainToClass(LoginDto, { email, password })
       const loginSpy = jest.spyOn(service, 'login')
-      const issueTokenSpy = jest.spyOn(service, 'issueToken')
+      const issueGrantSpy = jest.spyOn(service, 'issueGrant')
 
       expect(await service.login(loginDto)).toBeObject()
       expect(loginSpy).toHaveBeenCalledWith(loginDto)
       expect(keycloakSpy).toHaveBeenCalledWith(email, password)
-      expect(issueTokenSpy).toHaveBeenCalledWith(email, password)
+      expect(issueGrantSpy).toHaveBeenCalledWith(email, password)
       expect(admin.auth).not.toHaveBeenCalled()
     })
 
@@ -106,7 +129,7 @@ describe('AuthService', () => {
       const loginDto = plainToClass(LoginDto, { email, password })
       const loginSpy = jest.spyOn(service, 'login')
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
-      const issueTokenSpy = jest.spyOn(service, 'issueToken')
+      const issueGrantSpy = jest.spyOn(service, 'issueGrant')
 
       try {
         await service.login(loginDto)
@@ -116,7 +139,7 @@ describe('AuthService', () => {
       }
 
       expect(loginSpy).toHaveBeenCalledWith(loginDto)
-      expect(issueTokenSpy).toHaveBeenCalledWith(email, password)
+      expect(issueGrantSpy).toHaveBeenCalledWith(email, password)
       expect(keycloakSpy).toHaveBeenCalledWith(email, password)
       expect(consoleSpy).toBeCalled()
       consoleSpy.mockRestore()
@@ -174,7 +197,7 @@ describe('AuthService', () => {
         enabled: true,
         emailVerified: true,
         groups: [],
-        requiredActions: ['VERIFY_EMAIL'],
+        requiredActions: [],
         attributes: { selfReg: true },
         credentials: [
           {

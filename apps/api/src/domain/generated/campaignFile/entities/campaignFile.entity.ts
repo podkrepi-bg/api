@@ -7,8 +7,8 @@ export class CampaignFile {
   filename: string
   mimetype: string
   campaignId: string
-  uploadedById: string
+  personId: string
   role: CampaignFileRole
   campaign?: Campaign
-  uploadedBy?: Person
+  person?: Person
 }

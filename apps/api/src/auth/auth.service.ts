@@ -4,19 +4,30 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common'
+import { HttpService } from '@nestjs/axios'
+import { catchError, map } from 'rxjs'
+import KeycloakConnect from 'keycloak-connect'
 import { ConfigService } from '@nestjs/config'
+import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
 import { RequiredActionAlias } from '@keycloak/keycloak-admin-client/lib/defs/requiredActionProviderRepresentation'
+import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
+import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth'
 
+import { Person } from '.prisma/client'
+import { PrismaService } from '../prisma/prisma.service'
 import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'
-import { PrismaService } from '../prisma/prisma.service'
-import { Person } from '.prisma/client'
-
-import KeycloakConnect from 'keycloak-connect'
-import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
+import { RefreshDto } from './dto/refresh.dto'
+import { KeycloakTokenParsed } from './keycloak'
 
 type ErrorResponse = { error: string; data: unknown }
+type KeycloakErrorResponse = { error: string; 'error_description': string }
+type LoginResponse = {
+  user: KeycloakTokenParsed | undefined
+  accessToken: string | undefined
+  refreshToken: string | undefined
+}
 
 /**
  * Add missing `token` field to `KeycloakConnect.Token`
@@ -25,8 +36,11 @@ type ErrorResponse = { error: string; data: unknown }
 declare module 'keycloak-connect' {
   interface Token {
     token: string | undefined
+    content: KeycloakTokenParsed | undefined
   }
 }
+
+
 
 @Injectable()
 export class AuthService {
@@ -34,24 +48,52 @@ export class AuthService {
     private readonly config: ConfigService,
     private readonly admin: KeycloakAdminClient,
     private readonly prismaService: PrismaService,
+    private readonly httpService: HttpService,
     @Inject(KEYCLOAK_INSTANCE) private keycloak: KeycloakConnect.Keycloak,
   ) {}
 
   async issueGrant(email: string, password: string): Promise<KeycloakConnect.Grant> {
-    return await this.keycloak.grantManager.obtainDirectly(email, password)
+    return this.keycloak.grantManager.obtainDirectly(email, password)
   }
 
   async issueToken(email: string, password: string): Promise<string | undefined> {
     const grant = await this.issueGrant(email, password)
-
     return grant.access_token?.token
   }
 
-  async login(loginDto: LoginDto): Promise<{ jwt: string } | ErrorResponse> {
+  async issueTokenFromRefresh(refreshDto: RefreshDto) {
+    const secret = this.config.get<string>('keycloak.secret')
+    const clientId = this.config.get<string>('keycloak.clientId')
+    const tokenUrl = `${this.config.get<string>('keycloak.serverUrl')}/realms/${this.config.get<string>('keycloak.realm')}/protocol/openid-connect/token`
+    const data = {
+      client_id: clientId as string,
+      client_secret: secret as string,
+      refresh_token: refreshDto.refreshToken,
+      grant_type: <const>'refresh_token'
+    }
+    const params = new URLSearchParams(data)
+    return this.httpService.post<KeycloakErrorResponse | TokenResponseRaw>(tokenUrl,params.toString()).pipe(
+      map(res => res.data),
+      catchError(({response} :{response: AxiosResponse<KeycloakErrorResponse>}) => {
+      const error = response.data;
+      if (error.error === 'invalid_grant') {
+        throw new UnauthorizedException(error['error_description'])
+      }
+      throw new InternalServerErrorException('CannotIssueTokenError')
+    }))
+  }
+
+  async login(loginDto: LoginDto): Promise<LoginResponse | ErrorResponse> {
     try {
-      const jwt = await this.issueToken(loginDto.email, loginDto.password)
-      if (!jwt) throw new InternalServerErrorException('CannotIssueTokenError')
-      return { jwt }
+      const grant = await this.issueGrant(loginDto.email, loginDto.password)
+      if (!grant.access_token?.token) {
+        throw new InternalServerErrorException('CannotIssueTokenError')
+      }
+      return {
+        user: grant.access_token?.content,
+        accessToken: grant.access_token?.token,
+        refreshToken: grant.refresh_token?.token,
+      }
     } catch (error) {
       console.error(error)
       if (error.message === '401:Unauthorized') {
@@ -65,7 +107,7 @@ export class AuthService {
     try {
       await this.authenticateAdmin()
       // Create user in Keycloak
-      const user = await this.createKeycloakUser(registerDto)
+      const user = await this.createKeycloakUser(registerDto, false)
       // Insert or connect person in app db
       return await this.createPerson(registerDto, user.id)
     } catch (error) {
@@ -86,7 +128,7 @@ export class AuthService {
     })
   }
 
-  private async createKeycloakUser(registerDto: RegisterDto) {
+  private async createKeycloakUser(registerDto: RegisterDto, verifyEmail: boolean) {
     return await this.admin.users.create({
       username: registerDto.email,
       email: registerDto.email,
@@ -95,10 +137,8 @@ export class AuthService {
       enabled: true,
       emailVerified: true,
       groups: [],
-      requiredActions: [RequiredActionAlias.VERIFY_EMAIL],
-      attributes: {
-        selfReg: true,
-      },
+      requiredActions: verifyEmail ? [RequiredActionAlias.VERIFY_EMAIL] : [],
+      attributes: { selfReg: true },
       credentials: [
         {
           type: 'password',

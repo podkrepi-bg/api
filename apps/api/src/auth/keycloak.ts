@@ -18,6 +18,7 @@ export function isAdmin(user: KeycloakTokenParsed): boolean {
     return userRoles ? userRoles.roles.includes(role.value) : false
   })
 }
+
 export interface KeycloakTokenParsed extends KeycloakProfile {
   exp?: number
   iat?: number

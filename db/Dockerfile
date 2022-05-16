@@ -1,4 +1,4 @@
-FROM bitnami/postgresql:13-debian-10 AS builder
+FROM bitnami/postgresql:13 AS builder
 
 # Use root
 USER 0

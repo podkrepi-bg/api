@@ -14,6 +14,7 @@ import {
   Inject,
   Injectable,
   Logger,
+  NotAcceptableException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
@@ -278,14 +279,25 @@ export class CampaignService {
     return donation
   }
 
-  async canAcceptDonations(campaignId: string): Promise<boolean> {
+  async validateCampaignId(campaignId: string): Promise<Campaign> {
     const campaign = await this.getCampaignById(campaignId)
+    return this.validateCampaign(campaign)
+  }
 
+  async validateCampaign(campaign: Campaign): Promise<Campaign> {
+    const canAcceptDonation = await this.canAcceptDonations(campaign)
+    if (!canAcceptDonation) {
+      throw new NotAcceptableException('This campaign cannot accept donations')
+    }
+    return campaign
+  }
+
+  async canAcceptDonations(campaign: Campaign): Promise<boolean> {
     const validStates: CampaignState[] = [CampaignState.active]
     if (campaign.allowDonationOnComplete) {
       validStates.push(CampaignState.complete)
     }
-    
+
     if (!validStates.includes(campaign.state)) {
       return false
     }
