@@ -66,10 +66,10 @@ export class AuthService {
     const clientId = this.config.get<string>('keycloak.clientId')
     const tokenUrl = `${this.config.get<string>('keycloak.serverUrl')}/realms/${this.config.get<string>('keycloak.realm')}/protocol/openid-connect/token`
     const data = {
-      'client_id':clientId as string,
-      'client_secret':secret as string,
-      'refresh_token': refreshDto.refreshToken,
-      'grant_type':'refresh_token'
+      client_id: clientId as string,
+      client_secret: secret as string,
+      refresh_token: refreshDto.refreshToken,
+      grant_type: <const>'refresh_token'
     }
     const params = new URLSearchParams(data)
     return this.httpService.post<KeycloakErrorResponse | TokenResponseRaw>(tokenUrl,params.toString()).pipe(
