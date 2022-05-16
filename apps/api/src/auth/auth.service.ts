@@ -19,20 +19,10 @@ import { HttpService } from '@nestjs/axios'
 import { RefreshDto } from './dto/refresh.dto'
 import { catchError, map } from 'rxjs'
 import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
+import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth'
 
 type ErrorResponse = { error: string; data: unknown }
 type KeycloakErrorResponse = { error: string; 'error_description': string }
-type TokenResponse = { 
-  "access_token": string,
-  "expires_in": number,
-  "refresh_expires_in": number,
-  "refresh_token": string,
-  "token_type": string,
-  "id_token": string,
-  "not-before-policy": number,
-  "session_state": string,
-  "scope": string
- }
 type LoginResponse = {
   user: KeycloakTokenParsed | undefined
   accessToken: string | undefined
@@ -82,7 +72,7 @@ export class AuthService {
       'grant_type':'refresh_token'
     }
     const params = new URLSearchParams(data)
-    return this.httpService.post<KeycloakErrorResponse | TokenResponse>(tokenUrl,params.toString()).pipe(
+    return this.httpService.post<KeycloakErrorResponse | TokenResponseRaw>(tokenUrl,params.toString()).pipe(
       map(res => res.data),
       catchError(({response} :{response: AxiosResponse<KeycloakErrorResponse>}) => {
       const error = response.data;
