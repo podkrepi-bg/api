@@ -57,6 +57,11 @@ export class DonationsController {
     return this.donationsService.getDonationById(id)
   }
 
+  @Get('user/:id')
+  userDonationById(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
+    return this.donationsService.getUserDonationById(id, user.sub as string)
+  }
+
   @Post('create-payment')
   create(
     @AuthenticatedUser()

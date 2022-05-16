@@ -13,6 +13,7 @@ import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
+import { Person } from '../person/entities/person.entity'
 
 @Injectable()
 export class DonationsService {
@@ -93,6 +94,16 @@ export class DonationsService {
       Logger.warn(msg)
       throw new NotFoundException(msg)
     }
+  }
+
+  async getUserDonationById(
+    id: string,
+    keycloakId: string,
+  ): Promise<Donation & { person: Person | null } | null> {
+    return await this.prisma.donation.findFirst({
+      where: { id, person: { keycloakId }, status: DonationStatus.succeeded },
+      include: { person: true },
+    })
   }
 
   async create(inputDto: CreatePaymentDto, user: KeycloakTokenParsed): Promise<Donation> {
