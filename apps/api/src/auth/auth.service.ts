@@ -4,19 +4,25 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common'
+import { HttpService } from '@nestjs/axios'
+import { catchError, map } from 'rxjs'
 import KeycloakConnect from 'keycloak-connect'
 import { ConfigService } from '@nestjs/config'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
 import { RequiredActionAlias } from '@keycloak/keycloak-admin-client/lib/defs/requiredActionProviderRepresentation'
+import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
+import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth'
 
 import { Person } from '.prisma/client'
+import { PrismaService } from '../prisma/prisma.service'
 import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'
+import { RefreshDto } from './dto/refresh.dto'
 import { KeycloakTokenParsed } from './keycloak'
-import { PrismaService } from '../prisma/prisma.service'
 
 type ErrorResponse = { error: string; data: unknown }
+type KeycloakErrorResponse = { error: string; 'error_description': string }
 type LoginResponse = {
   user: KeycloakTokenParsed | undefined
   accessToken: string | undefined
@@ -34,12 +40,15 @@ declare module 'keycloak-connect' {
   }
 }
 
+
+
 @Injectable()
 export class AuthService {
   constructor(
     private readonly config: ConfigService,
     private readonly admin: KeycloakAdminClient,
     private readonly prismaService: PrismaService,
+    private readonly httpService: HttpService,
     @Inject(KEYCLOAK_INSTANCE) private keycloak: KeycloakConnect.Keycloak,
   ) {}
 
@@ -50,6 +59,28 @@ export class AuthService {
   async issueToken(email: string, password: string): Promise<string | undefined> {
     const grant = await this.issueGrant(email, password)
     return grant.access_token?.token
+  }
+
+  async issueTokenFromRefresh(refreshDto: RefreshDto) {
+    const secret = this.config.get<string>('keycloak.secret')
+    const clientId = this.config.get<string>('keycloak.clientId')
+    const tokenUrl = `${this.config.get<string>('keycloak.serverUrl')}/realms/${this.config.get<string>('keycloak.realm')}/protocol/openid-connect/token`
+    const data = {
+      client_id: clientId as string,
+      client_secret: secret as string,
+      refresh_token: refreshDto.refreshToken,
+      grant_type: <const>'refresh_token'
+    }
+    const params = new URLSearchParams(data)
+    return this.httpService.post<KeycloakErrorResponse | TokenResponseRaw>(tokenUrl,params.toString()).pipe(
+      map(res => res.data),
+      catchError(({response} :{response: AxiosResponse<KeycloakErrorResponse>}) => {
+      const error = response.data;
+      if (error.error === 'invalid_grant') {
+        throw new UnauthorizedException(error['error_description'])
+      }
+      throw new InternalServerErrorException('CannotIssueTokenError')
+    }))
   }
 
   async login(loginDto: LoginDto): Promise<LoginResponse | ErrorResponse> {
