@@ -17,7 +17,7 @@ import { KeycloakTokenParsed } from './keycloak'
 import { PrismaService } from '../prisma/prisma.service'
 import { HttpService } from '@nestjs/axios'
 import { RefreshDto } from './dto/refresh.dto'
-import { map } from 'rxjs'
+import { catchError, map, of } from 'rxjs'
 
 type ErrorResponse = { error: string; data: unknown }
 type LoginResponse = {
@@ -67,7 +67,13 @@ export class AuthService {
       'grant_type':'refresh_token'
     }
     const params = new URLSearchParams(data)
-    return this.httpService.post(tokenUrl,params.toString()).pipe(map(res => res.data))
+    return this.httpService.post(tokenUrl,params.toString()).pipe(map(res => res.data),catchError((err) => {
+      const error = err.response.data;
+      if (error.error === 'invalid_grant') {
+        throw new UnauthorizedException(error['error_description'])
+      }
+      throw new InternalServerErrorException('CannotIssueTokenError')
+    }))
   }
 
   async login(loginDto: LoginDto): Promise<LoginResponse | ErrorResponse> {
