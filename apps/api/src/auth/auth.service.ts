@@ -17,9 +17,22 @@ import { KeycloakTokenParsed } from './keycloak'
 import { PrismaService } from '../prisma/prisma.service'
 import { HttpService } from '@nestjs/axios'
 import { RefreshDto } from './dto/refresh.dto'
-import { catchError, map, of } from 'rxjs'
+import { catchError, map } from 'rxjs'
+import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
 
 type ErrorResponse = { error: string; data: unknown }
+type KeycloakErrorResponse = { error: string; 'error_description': string }
+type TokenResponse = { 
+  "access_token": string,
+  "expires_in": number,
+  "refresh_expires_in": number,
+  "refresh_token": string,
+  "token_type": string,
+  "id_token": string,
+  "not-before-policy": number,
+  "session_state": string,
+  "scope": string
+ }
 type LoginResponse = {
   user: KeycloakTokenParsed | undefined
   accessToken: string | undefined
@@ -36,6 +49,8 @@ declare module 'keycloak-connect' {
     content: KeycloakTokenParsed | undefined
   }
 }
+
+
 
 @Injectable()
 export class AuthService {
@@ -67,8 +82,10 @@ export class AuthService {
       'grant_type':'refresh_token'
     }
     const params = new URLSearchParams(data)
-    return this.httpService.post(tokenUrl,params.toString()).pipe(map(res => res.data),catchError((err) => {
-      const error = err.response.data;
+    return this.httpService.post<KeycloakErrorResponse | TokenResponse>(tokenUrl,params.toString()).pipe(
+      map(res => res.data),
+      catchError(({response} :{response: AxiosResponse<KeycloakErrorResponse>}) => {
+      const error = response.data;
       if (error.error === 'invalid_grant') {
         throw new UnauthorizedException(error['error_description'])
       }
