@@ -1,6 +1,7 @@
 import { Person } from '.prisma/client'
 import { mockDeep } from 'jest-mock-extended'
 import { ConfigService } from '@nestjs/config'
+import { HttpService } from '@nestjs/axios'
 import { plainToClass } from 'class-transformer'
 import { Test, TestingModule } from '@nestjs/testing'
 import { UnauthorizedException } from '@nestjs/common'
@@ -19,6 +20,7 @@ describe('AuthService', () => {
   let service: AuthService
   let config: ConfigService
   let admin: KeycloakAdminClient
+  let httpService: HttpService
   let keycloak: KeycloakConnect.Keycloak
 
   beforeEach(async () => {
@@ -39,6 +41,10 @@ describe('AuthService', () => {
           provide: KeycloakAdminClient,
           useValue: mockDeep<KeycloakAdminClient>(),
         },
+        {
+          provide: HttpService,
+          useValue: mockDeep<HttpService>(),
+        },
         MockPrismaService,
         {
           provide: KEYCLOAK_INSTANCE,
@@ -51,6 +57,7 @@ describe('AuthService', () => {
     config = module.get<ConfigService>(ConfigService)
     admin = module.get<KeycloakAdminClient>(KeycloakAdminClient)
     keycloak = module.get<KeycloakConnect.Keycloak>(KEYCLOAK_INSTANCE)
+    httpService = module.get<HttpService>(HttpService)
   })
 
   it('should be defined', () => {
