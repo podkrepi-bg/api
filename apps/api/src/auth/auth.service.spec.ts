@@ -90,9 +90,15 @@ describe('AuthService', () => {
     it('should call issueTokenFromRefresh', async () => {
       const refreshToken = 'JWT_TOKEN'
       const refreshDto = plainToClass(RefreshDto, { refreshToken })
-      const refreshSpy = jest.spyOn(service, 'issueTokenFromRefresh').mockResolvedValue(new Observable((s => {
-        s.next({} as TokenResponseRaw)
-      })))
+      const refreshSpy = jest.spyOn(service, 'issueTokenFromRefresh').mockResolvedValue(
+        new Observable((s) => {
+          s.next({
+            accessToken: 'test',
+            refreshToken: 'test-refresh',
+            expires: '300',
+          })
+        }),
+      )
 
       expect(await service.issueTokenFromRefresh(refreshDto)).toBeObject()
       expect(refreshSpy).toHaveBeenCalledWith(refreshDto)

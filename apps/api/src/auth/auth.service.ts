@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
-import { catchError, map } from 'rxjs'
+import { catchError, map, Observable } from 'rxjs'
 import KeycloakConnect from 'keycloak-connect'
 import { ConfigService } from '@nestjs/config'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
@@ -22,9 +22,9 @@ import { RefreshDto } from './dto/refresh.dto'
 import { KeycloakTokenParsed } from './keycloak'
 
 type ErrorResponse = { error: string; data: unknown }
-type KeycloakErrorResponse = { error: string; 'error_description': string }
-type LoginResponse = {
-  user: KeycloakTokenParsed | undefined
+type KeycloakErrorResponse = { error: string; error_description: string }
+type ApiTokenResponse = {
+  expires: string | undefined
   accessToken: string | undefined
   refreshToken: string | undefined
 }
@@ -39,8 +39,6 @@ declare module 'keycloak-connect' {
     content: KeycloakTokenParsed | undefined
   }
 }
-
-
 
 @Injectable()
 export class AuthService {
@@ -61,38 +59,49 @@ export class AuthService {
     return grant.access_token?.token
   }
 
-  async issueTokenFromRefresh(refreshDto: RefreshDto) {
+  async issueTokenFromRefresh(
+    refreshDto: RefreshDto,
+  ): Promise<Observable<ApiTokenResponse | ErrorResponse>> {
     const secret = this.config.get<string>('keycloak.secret')
     const clientId = this.config.get<string>('keycloak.clientId')
-    const tokenUrl = `${this.config.get<string>('keycloak.serverUrl')}/realms/${this.config.get<string>('keycloak.realm')}/protocol/openid-connect/token`
+    const tokenUrl = `${this.config.get<string>(
+      'keycloak.serverUrl',
+    )}/realms/${this.config.get<string>('keycloak.realm')}/protocol/openid-connect/token`
     const data = {
       client_id: clientId as string,
       client_secret: secret as string,
       refresh_token: refreshDto.refreshToken,
-      grant_type: <const>'refresh_token'
+      grant_type: <const>'refresh_token',
     }
     const params = new URLSearchParams(data)
-    return this.httpService.post<KeycloakErrorResponse | TokenResponseRaw>(tokenUrl,params.toString()).pipe(
-      map(res => res.data),
-      catchError(({response} :{response: AxiosResponse<KeycloakErrorResponse>}) => {
-      const error = response.data;
-      if (error.error === 'invalid_grant') {
-        throw new UnauthorizedException(error['error_description'])
-      }
-      throw new InternalServerErrorException('CannotIssueTokenError')
-    }))
+    return this.httpService
+      .post<KeycloakErrorResponse | TokenResponseRaw>(tokenUrl, params.toString())
+      .pipe(
+        map((res: AxiosResponse<TokenResponseRaw>) => ({
+          refreshToken: res.data.refresh_token,
+          accessToken: res.data.access_token,
+          expires: res.data.expires_in,
+        })),
+        catchError(({ response }: { response: AxiosResponse<KeycloakErrorResponse> }) => {
+          const error = response.data
+          if (error.error === 'invalid_grant') {
+            throw new UnauthorizedException(error['error_description'])
+          }
+          throw new InternalServerErrorException('CannotIssueTokenError')
+        }),
+      )
   }
 
-  async login(loginDto: LoginDto): Promise<LoginResponse | ErrorResponse> {
+  async login(loginDto: LoginDto): Promise<ApiTokenResponse | ErrorResponse> {
     try {
       const grant = await this.issueGrant(loginDto.email, loginDto.password)
       if (!grant.access_token?.token) {
         throw new InternalServerErrorException('CannotIssueTokenError')
       }
       return {
-        user: grant.access_token?.content,
-        accessToken: grant.access_token?.token,
         refreshToken: grant.refresh_token?.token,
+        accessToken: grant.access_token.token,
+        expires: grant.expires_in,
       }
     } catch (error) {
       console.error(error)
