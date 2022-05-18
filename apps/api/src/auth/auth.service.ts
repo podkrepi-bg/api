@@ -59,7 +59,9 @@ export class AuthService {
     return grant.access_token?.token
   }
 
-  async issueTokenFromRefresh(refreshDto: RefreshDto): Promise<Observable<ApiTokenResponse>> {
+  async issueTokenFromRefresh(
+    refreshDto: RefreshDto,
+  ): Promise<Observable<ApiTokenResponse | ErrorResponse>> {
     const secret = this.config.get<string>('keycloak.secret')
     const clientId = this.config.get<string>('keycloak.clientId')
     const tokenUrl = `${this.config.get<string>(
