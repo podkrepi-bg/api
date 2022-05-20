@@ -3,6 +3,7 @@ export class UpdatePersonDto {
   lastName?: string
   email?: string
   phone?: string
+  picture?: string
   company?: string
   newsletter?: boolean
   address?: string

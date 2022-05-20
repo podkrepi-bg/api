@@ -20,7 +20,6 @@ import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'
 import { RefreshDto } from './dto/refresh.dto'
 import { KeycloakTokenParsed } from './keycloak'
-import e from 'express'
 import { ProviderDto } from './dto/provider.dto'
 
 type ErrorResponse = { error: string; data: unknown }

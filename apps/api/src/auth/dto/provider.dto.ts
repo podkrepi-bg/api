@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose } from 'class-transformer'
-import { IsJWT, IsNotEmpty, IsString } from 'class-validator'
+import { IsJWT, IsNotEmpty, IsString, IsUrl } from 'class-validator'
 
 export class ProviderDto {
   @ApiProperty()
@@ -14,4 +14,10 @@ export class ProviderDto {
   @IsNotEmpty()
   @IsString()
   public readonly provider: string
+  @ApiProperty()
+  @Expose()
+  @IsNotEmpty()
+  @IsString()
+  @IsUrl()
+  public readonly picture: string
 }

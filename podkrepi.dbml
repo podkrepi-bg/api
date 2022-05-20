@@ -7,12 +7,13 @@ Project "Podkrepi.bg" {
   Note: ''
 }
 
-Table Person {
+Table people {
   id String [pk]
   firstName String [not null]
   lastName String [not null]
   email String [unique, not null]
   phone String
+  picture String
   company String
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
@@ -42,7 +43,7 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   Note: 'Generic person object'
 }
 
-Table Company {
+Table companies {
   id String [pk]
   companyName String [not null]
   companyNumber String [unique, not null, note: 'BULSTAT Unified Identification Code (UIC)
@@ -55,7 +56,7 @@ https://psc.egov.bg/en/psc-starting-a-business-bulstat']
   beneficiaries Beneficiary [not null]
 }
 
-Table Coordinator {
+Table coordinators {
   id String [pk]
   personId String [unique, not null]
   createdAt DateTime [default: `now()`, not null]
@@ -68,7 +69,7 @@ Table Coordinator {
 Alias: Organizer'
 }
 
-Table Benefactor {
+Table benefactors {
   id String [pk]
   personId String [not null]
   extCustomerId String [unique, note: 'Payment provider customer id']
@@ -79,7 +80,7 @@ Table Benefactor {
   Note: 'Benefactor is the person who gives money'
 }
 
-Table Beneficiary {
+Table beneficiaries {
   id String [pk]
   type BeneficiaryType [not null]
   personId String [note: 'Person in need when type is `individual`']
@@ -102,7 +103,7 @@ Table Beneficiary {
   Note: 'Beneficiary is the person who receives the benefit'
 }
 
-Table CampaignType {
+Table campaign_types {
   id String [pk]
   category CampaignTypeCategory [not null, default: 'others']
   name String [not null]
@@ -114,7 +115,7 @@ Table CampaignType {
   campaigns Campaign [not null]
 }
 
-Table Campaign {
+Table campaigns {
   id String [pk]
   state CampaignState [not null, default: 'draft']
   slug String [unique, not null]
@@ -146,7 +147,7 @@ Table Campaign {
   CampaignReport CampaignReport [not null]
 }
 
-Table CampaignReport {
+Table campaign_reports {
   id String [pk]
   campaignId String [not null]
   personId String [not null]
@@ -159,7 +160,7 @@ Table CampaignReport {
   person Person [not null]
 }
 
-Table CampaignFile {
+Table campaign_files {
   id String [pk]
   filename String [not null]
   mimetype String [not null]
@@ -170,7 +171,7 @@ Table CampaignFile {
   person Person [not null]
 }
 
-Table InfoRequest {
+Table info_requests {
   id String [pk]
   personId String [not null]
   message String [not null]
@@ -180,7 +181,7 @@ Table InfoRequest {
   person Person [not null]
 }
 
-Table Supporter {
+Table supporters {
   id String [pk]
   personId String [not null]
   createdAt DateTime [default: `now()`, not null]
@@ -214,7 +215,7 @@ Table Supporter {
   person Person [not null]
 }
 
-Table City {
+Table cities {
   id String [pk]
   name String [not null]
   postalCode String [unique, not null]
@@ -223,14 +224,14 @@ Table City {
   beneficiaries Beneficiary [not null]
 }
 
-Table Country {
+Table countries {
   id String [pk]
   name String [not null]
   countryCode String [unique, not null]
   cities City [not null]
 }
 
-Table Vault {
+Table vaults {
   id String [pk]
   name String [not null, default: '']
   currency Currency [not null, default: 'BGN']
@@ -247,7 +248,7 @@ Table Vault {
   withdraws Withdrawal [not null]
 }
 
-Table Donation {
+Table donations {
   id String [pk]
   type DonationType [not null]
   status DonationStatus [not null, default: 'initial']
@@ -265,7 +266,7 @@ Table Donation {
   targetVault Vault [not null]
 }
 
-Table RecurringDonation {
+Table recurring_donations {
   id String [pk]
   status RecurringDonationStatus [not null]
   vaultId String [not null]
@@ -282,7 +283,7 @@ Table RecurringDonation {
   Note: 'Donate on monthly basis'
 }
 
-Table Transfer {
+Table transfers {
   id String [pk]
   status TransferStatus [not null, default: 'initial']
   currency Currency [not null]
@@ -306,7 +307,7 @@ Table Transfer {
   Note: 'Move funds from one vault to another'
 }
 
-Table Withdrawal {
+Table withdrawals {
   id String [pk]
   status WithdrawStatus [not null, default: 'initial']
   currency Currency [not null]
@@ -328,7 +329,7 @@ Table Withdrawal {
   Note: 'Remove funds from a vault to given bank account'
 }
 
-Table BankAccount {
+Table bank_accounts {
   id String [pk]
   status BankAccountStatus [not null, default: 'new']
   ibanNumber String [not null, note: 'IBAN number']
@@ -342,7 +343,7 @@ Table BankAccount {
   withdraws Withdrawal [not null]
 }
 
-Table Expense {
+Table expenses {
   id String [pk]
   type ExpenseType [not null]
   status ExpenseStatus [not null]
@@ -360,7 +361,7 @@ Table Expense {
   Note: 'Pay for something from a given vault'
 }
 
-Table Document {
+Table documents {
   id String [pk]
   type DocumentType [not null]
   name String [not null]

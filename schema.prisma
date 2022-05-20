@@ -36,6 +36,7 @@ model Person {
   lastName           String              @map("last_name") @db.VarChar(100)
   email              String              @unique @db.Citext
   phone              String?             @db.VarChar(50)
+  picture            String?             @db.VarChar(250)
   company            String?             @db.VarChar(50)
   createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -160,7 +161,7 @@ model Campaign {
   slug                    String           @unique @db.VarChar(250)
   title                   String           @db.VarChar(200)
   essence                 String           @db.VarChar(500)
-  bankHash                String           @db.VarChar(5) @map("bank_hash")
+  bankHash                String           @map("bank_hash") @db.VarChar(5)
   coordinatorId           String           @map("coordinator_id") @db.Uuid
   beneficiaryId           String           @map("beneficiary_id") @db.Uuid
   campaignTypeId          String           @map("campaign_type_id") @db.Uuid
