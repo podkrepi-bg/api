@@ -55,24 +55,21 @@ export class AuthService {
     return this.keycloak.grantManager.obtainDirectly(email, password)
   }
 
-  async issueTokenFromProvider(
-    providerDto: ProviderDto,
-  ): Promise<Observable<ApiTokenResponse | ErrorResponse>> {
+  async tokenEndpoint(
+    data: Record<'grant_type' & string, string>,
+  ): Promise<Observable<ApiTokenResponse>> {
     const secret = this.config.get<string>('keycloak.secret')
     const clientId = this.config.get<string>('keycloak.clientId')
     const tokenUrl = `${this.config.get<string>(
       'keycloak.serverUrl',
     )}/realms/${this.config.get<string>('keycloak.realm')}/protocol/openid-connect/token`
-    const data = {
-      client_id: clientId as string,
-      client_secret: secret as string,
-      grant_type: <const>'urn:ietf:params:oauth:grant-type:token-exchange',
-      subject_token: providerDto.providerToken,
-      subject_issuer: providerDto.provider,
-      subject_token_type: 'urn:ietf:params:oauth:token-type:access_token',
-    }
-    const params = new URLSearchParams(data)
-    const $tokenObs = this.httpService
+
+    const params = new URLSearchParams({
+      secret: secret as string,
+      clientId: clientId as string,
+      ...data,
+    })
+    return await this.httpService
       .post<KeycloakErrorResponse | TokenResponseRaw>(tokenUrl, params.toString())
       .pipe(
         map((res: AxiosResponse<TokenResponseRaw>) => ({
@@ -88,11 +85,22 @@ export class AuthService {
           throw new InternalServerErrorException('CannotIssueTokenError')
         }),
       )
+  }
+
+  async issueTokenFromProvider(
+    providerDto: ProviderDto,
+  ): Promise<Observable<ApiTokenResponse | ErrorResponse>> {
+    const data = {
+      grant_type: <const>'urn:ietf:params:oauth:grant-type:token-exchange',
+      subject_token: providerDto.providerToken,
+      subject_issuer: providerDto.provider,
+      subject_token_type: 'urn:ietf:params:oauth:token-type:access_token',
+    }
+    const $tokenObs = await this.tokenEndpoint(data)
     const keycloakResponse = await firstValueFrom($tokenObs)
     const userInfo = await this.keycloak.grantManager.userInfo<string, KeycloakTokenParsed>(
-      keycloakResponse.accessToken,
+      keycloakResponse.accessToken as string,
     )
-    console.log(userInfo)
     await this.prismaService.person.upsert({
       // Create a person with the provided keycloakId
       create: {
@@ -117,34 +125,11 @@ export class AuthService {
   async issueTokenFromRefresh(
     refreshDto: RefreshDto,
   ): Promise<Observable<ApiTokenResponse | ErrorResponse>> {
-    const secret = this.config.get<string>('keycloak.secret')
-    const clientId = this.config.get<string>('keycloak.clientId')
-    const tokenUrl = `${this.config.get<string>(
-      'keycloak.serverUrl',
-    )}/realms/${this.config.get<string>('keycloak.realm')}/protocol/openid-connect/token`
     const data = {
-      client_id: clientId as string,
-      client_secret: secret as string,
       refresh_token: refreshDto.refreshToken,
       grant_type: <const>'refresh_token',
     }
-    const params = new URLSearchParams(data)
-    return this.httpService
-      .post<KeycloakErrorResponse | TokenResponseRaw>(tokenUrl, params.toString())
-      .pipe(
-        map((res: AxiosResponse<TokenResponseRaw>) => ({
-          refreshToken: res.data.refresh_token,
-          accessToken: res.data.access_token,
-          expires: res.data.expires_in,
-        })),
-        catchError(({ response }: { response: AxiosResponse<KeycloakErrorResponse> }) => {
-          const error = response.data
-          if (error.error === 'invalid_grant') {
-            throw new UnauthorizedException(error['error_description'])
-          }
-          throw new InternalServerErrorException('CannotIssueTokenError')
-        }),
-      )
+    return this.tokenEndpoint(data)
   }
 
   async login(loginDto: LoginDto): Promise<ApiTokenResponse | ErrorResponse> {

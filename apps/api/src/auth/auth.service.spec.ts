@@ -14,7 +14,7 @@ import { AuthService } from './auth.service'
 import { RegisterDto } from './dto/register.dto'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { RefreshDto } from './dto/refresh.dto'
-import { Observable } from 'rxjs'
+import { firstValueFrom, Observable } from 'rxjs'
 import { ProviderDto } from './dto/provider.dto'
 
 jest.mock('@keycloak/keycloak-admin-client')
@@ -86,6 +86,27 @@ describe('AuthService', () => {
     })
   })
 
+  describe('token endpoint', () => {
+    it('should call tokenEndpoint', async () => {
+      const data = {
+        grant_type: 'test-grant',
+        token: 'test-token',
+      }
+      const tokenEndpointSpy = jest.spyOn(service, 'tokenEndpoint').mockResolvedValue(
+        new Observable((s) => {
+          s.next({
+            accessToken: 'test',
+            refreshToken: 'test-refresh',
+            expires: '300',
+          })
+        }),
+      )
+      expect(await firstValueFrom(await service.tokenEndpoint(data))).toHaveProperty('accessToken')
+      expect(tokenEndpointSpy).toHaveBeenCalledWith(data)
+      expect(admin.auth).not.toHaveBeenCalled()
+    })
+  })
+
   describe('refresh', () => {
     it('should call issueTokenFromRefresh', async () => {
       const refreshToken = 'JWT_TOKEN'
@@ -100,7 +121,9 @@ describe('AuthService', () => {
         }),
       )
 
-      expect(await service.issueTokenFromRefresh(refreshDto)).toBeObject()
+      expect(await firstValueFrom(await service.issueTokenFromRefresh(refreshDto))).toHaveProperty(
+        'accessToken',
+      )
       expect(refreshSpy).toHaveBeenCalledWith(refreshDto)
       expect(admin.auth).not.toHaveBeenCalled()
     })
@@ -122,7 +145,9 @@ describe('AuthService', () => {
         }),
       )
 
-      expect(await service.issueTokenFromProvider(providerDto)).toBeObject()
+      expect(
+        await firstValueFrom(await service.issueTokenFromProvider(providerDto)),
+      ).toHaveProperty('accessToken')
       expect(providerSpy).toHaveBeenCalledWith(providerDto)
       expect(admin.auth).not.toHaveBeenCalled()
     })
