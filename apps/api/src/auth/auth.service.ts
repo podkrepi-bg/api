@@ -96,8 +96,8 @@ export class AuthService {
       subject_issuer: providerDto.provider,
       subject_token_type: 'urn:ietf:params:oauth:token-type:access_token',
     }
-    const $tokenObs = await this.tokenEndpoint(data)
-    const keycloakResponse = await firstValueFrom($tokenObs)
+    const tokenObs$ = await this.tokenEndpoint(data)
+    const keycloakResponse = await firstValueFrom(tokenObs$)
     const userInfo = await this.keycloak.grantManager.userInfo<string, KeycloakTokenParsed>(
       keycloakResponse.accessToken as string,
     )
@@ -114,7 +114,7 @@ export class AuthService {
       update: { keycloakId: userInfo.sub },
       where: { email: userInfo.email },
     })
-    return $tokenObs
+    return tokenObs$
   }
 
   async issueToken(email: string, password: string): Promise<string | undefined> {
