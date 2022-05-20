@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
-import { catchError, map, Observable } from 'rxjs'
+import { catchError, firstValueFrom, map, Observable } from 'rxjs'
 import KeycloakConnect from 'keycloak-connect'
 import { ConfigService } from '@nestjs/config'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
@@ -20,6 +20,8 @@ import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'
 import { RefreshDto } from './dto/refresh.dto'
 import { KeycloakTokenParsed } from './keycloak'
+import e from 'express'
+import { ProviderDto } from './dto/provider.dto'
 
 type ErrorResponse = { error: string; data: unknown }
 type KeycloakErrorResponse = { error: string; error_description: string }
@@ -52,6 +54,57 @@ export class AuthService {
 
   async issueGrant(email: string, password: string): Promise<KeycloakConnect.Grant> {
     return this.keycloak.grantManager.obtainDirectly(email, password)
+  }
+
+  async issueTokenFromProvider(
+    providerDto: ProviderDto,
+  ): Promise<Observable<ApiTokenResponse | ErrorResponse>> {
+    const secret = this.config.get<string>('keycloak.secret')
+    const clientId = this.config.get<string>('keycloak.clientId')
+    const tokenUrl = `${this.config.get<string>(
+      'keycloak.serverUrl',
+    )}/realms/${this.config.get<string>('keycloak.realm')}/protocol/openid-connect/token`
+    const data = {
+      client_id: clientId as string,
+      client_secret: secret as string,
+      grant_type: <const>'urn:ietf:params:oauth:grant-type:token-exchange',
+      subject_token: providerDto.providerToken,
+      subject_issuer: providerDto.provider,
+      subject_token_type: 'urn:ietf:params:oauth:token-type:access_token',
+    }
+    const params = new URLSearchParams(data)
+    const $tokenObs = this.httpService
+      .post<KeycloakErrorResponse | TokenResponseRaw>(tokenUrl, params.toString())
+      .pipe(
+        map((res: AxiosResponse<TokenResponseRaw>) => ({
+          refreshToken: res.data.refresh_token,
+          accessToken: res.data.access_token,
+          expires: res.data.expires_in,
+        })),
+        catchError(({ response }: { response: AxiosResponse<KeycloakErrorResponse> }) => {
+          const error = response.data
+          if (error.error === 'invalid_grant') {
+            throw new UnauthorizedException(error['error_description'])
+          }
+          throw new InternalServerErrorException('CannotIssueTokenError')
+        }),
+      )
+    const keycloakResponse = await firstValueFrom($tokenObs)
+    const userInfo = await this.keycloak.grantManager.userInfo<string, KeycloakTokenParsed>(
+      keycloakResponse.accessToken,
+    )
+    await this.prismaService.person.upsert({
+      // Create a person with the provided keycloakId
+      create: {
+        email: userInfo.email || '',
+        firstName: userInfo.given_name || '',
+        lastName: userInfo.family_name || '',
+      },
+      // Store keycloakId to the person with same email
+      update: { keycloakId: userInfo.sub },
+      where: { email: userInfo.email },
+    })
+    return $tokenObs
   }
 
   async issueToken(email: string, password: string): Promise<string | undefined> {
