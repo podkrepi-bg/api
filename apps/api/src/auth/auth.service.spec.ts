@@ -8,7 +8,6 @@ import { UnauthorizedException } from '@nestjs/common'
 import KeycloakConnect, { Grant } from 'keycloak-connect'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
-import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth'
 
 import { LoginDto } from './dto/login.dto'
 import { AuthService } from './auth.service'
@@ -16,6 +15,7 @@ import { RegisterDto } from './dto/register.dto'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { RefreshDto } from './dto/refresh.dto'
 import { Observable } from 'rxjs'
+import { ProviderDto } from './dto/provider.dto'
 
 jest.mock('@keycloak/keycloak-admin-client')
 
@@ -106,6 +106,28 @@ describe('AuthService', () => {
     })
   })
 
+  describe('provider token call', () => {
+    it('should call issueTokenFromProvider', async () => {
+      const providerToken = 'JWT_TOKEN'
+      const picture = 'http://image.com'
+      const provider = 'test-provider'
+      const refreshDto = plainToClass(ProviderDto, { provider, providerToken, picture })
+      const refreshSpy = jest.spyOn(service, 'issueTokenFromProvider').mockResolvedValue(
+        new Observable((s) => {
+          s.next({
+            accessToken: 'test',
+            refreshToken: 'test-refresh',
+            expires: '300',
+          })
+        }),
+      )
+
+      expect(await service.issueTokenFromProvider(refreshDto)).toBeObject()
+      expect(refreshSpy).toHaveBeenCalledWith(refreshDto)
+      expect(admin.auth).not.toHaveBeenCalled()
+    })
+  })
+
   describe('login', () => {
     const email = 'someuser@example.com'
     const password = 's3cret'
@@ -172,6 +194,7 @@ describe('AuthService', () => {
         emailConfirmed: false,
         phone: null,
         company: null,
+        picture: null,
         createdAt: new Date('2021-10-07T13:38:11.097Z'),
         updatedAt: new Date('2021-10-07T13:38:11.097Z'),
         newsletter: false,
