@@ -99,6 +99,7 @@ export class AuthService {
         email: userInfo.email || '',
         firstName: userInfo.given_name || '',
         lastName: userInfo.family_name || '',
+        picture: providerDto.picture,
       },
       // Store keycloakId to the person with same email
       update: { keycloakId: userInfo.sub },

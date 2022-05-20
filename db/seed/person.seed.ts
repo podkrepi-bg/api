@@ -11,6 +11,7 @@ export async function personSeed() {
       firstName: faker.name.firstName(),
       lastName: faker.name.lastName(),
       email: faker.internet.email(),
+      picture: faker.image.imageUrl(),
       phone: faker.phone.phoneNumber('+359########'),
       company: faker.company.companyName(),
       address: faker.address.streetName() + ', ' + faker.address.cityName(),
