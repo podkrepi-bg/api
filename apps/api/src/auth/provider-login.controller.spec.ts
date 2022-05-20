@@ -11,7 +11,7 @@ describe('ProviderLoginController', () => {
     const AuthServiceProvider = {
       provide: AuthService,
       useFactory: () => ({
-        issueTokenFromRefresh: jest.fn(() => ({})),
+        issueTokenFromProvider: jest.fn(() => ({})),
       }),
     }
 
@@ -32,8 +32,8 @@ describe('ProviderLoginController', () => {
     const providerDto = new ProviderDto()
     it('should call refreshToken', async () => {
       expect(await controller.providerLogin(providerDto))
-      expect(spyService.issueTokenFromRefresh).toHaveBeenCalled()
-      expect(spyService.issueTokenFromRefresh).toHaveBeenCalledWith(providerDto)
+      expect(spyService.issueTokenFromProvider).toHaveBeenCalled()
+      expect(spyService.issueTokenFromProvider).toHaveBeenCalledWith(providerDto)
     })
   })
 })
