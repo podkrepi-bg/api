@@ -111,8 +111,8 @@ describe('AuthService', () => {
       const providerToken = 'JWT_TOKEN'
       const picture = 'http://image.com'
       const provider = 'test-provider'
-      const refreshDto = plainToClass(ProviderDto, { provider, providerToken, picture })
-      const refreshSpy = jest.spyOn(service, 'issueTokenFromProvider').mockResolvedValue(
+      const providerDto = plainToClass(ProviderDto, { provider, providerToken, picture })
+      const providerSpy = jest.spyOn(service, 'issueTokenFromProvider').mockResolvedValue(
         new Observable((s) => {
           s.next({
             accessToken: 'test',
@@ -122,8 +122,8 @@ describe('AuthService', () => {
         }),
       )
 
-      expect(await service.issueTokenFromProvider(refreshDto)).toBeObject()
-      expect(refreshSpy).toHaveBeenCalledWith(refreshDto)
+      expect(await service.issueTokenFromProvider(providerDto)).toBeObject()
+      expect(providerSpy).toHaveBeenCalledWith(providerDto)
       expect(admin.auth).not.toHaveBeenCalled()
     })
   })

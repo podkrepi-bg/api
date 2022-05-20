@@ -11,7 +11,11 @@ describe('ProviderLoginController', () => {
     const AuthServiceProvider = {
       provide: AuthService,
       useFactory: () => ({
-        issueTokenFromProvider: jest.fn(() => ({})),
+        issueTokenFromProvider: jest.fn((providerDto: ProviderDto) => ({
+          accessToken: 'SOME_JWT_TOKEN',
+          refreshToken: 'SOME_REFRESH_TOKEN',
+          expires: 300,
+        })),
       }),
     }
 

@@ -1,7 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AuthService } from './auth.service';
-import { RefreshDto } from './dto/refresh.dto';
-import { RefreshController } from './refresh.controller';
+import { Test, TestingModule } from '@nestjs/testing'
+import { AuthService } from './auth.service'
+import { RefreshDto } from './dto/refresh.dto'
+import { RefreshController } from './refresh.controller'
 
 describe('RefreshController', () => {
   let controller: RefreshController
@@ -11,7 +11,11 @@ describe('RefreshController', () => {
     const AuthServiceProvider = {
       provide: AuthService,
       useFactory: () => ({
-        issueTokenFromRefresh: jest.fn(() => ({})),
+        issueTokenFromRefresh: jest.fn((refreshDto: RefreshDto) => ({
+          accessToken: 'SOME_JWT_TOKEN',
+          refreshToken: 'SOME_JWT_REFRESH_TOKEN',
+          expires: 300,
+        })),
       }),
     }
 
