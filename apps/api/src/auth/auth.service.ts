@@ -93,6 +93,7 @@ export class AuthService {
     const userInfo = await this.keycloak.grantManager.userInfo<string, KeycloakTokenParsed>(
       keycloakResponse.accessToken,
     )
+    console.log(userInfo)
     await this.prismaService.person.upsert({
       // Create a person with the provided keycloakId
       create: {
