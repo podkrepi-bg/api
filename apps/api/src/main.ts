@@ -9,7 +9,7 @@ import { setupExceptions } from './config/exceptions.config'
 import { setupValidation } from './config/validation.config'
 import { setupShutdownHooks } from './config/shutdown.config'
 
-const globalPrefix = 'api/v1'
+const globalPrefix = process.env.GLOBAL_PREFIX ?? 'api/v1'
 const logLevels: LogLevel[] = ['error', 'log', 'warn']
 
 async function bootstrap() {

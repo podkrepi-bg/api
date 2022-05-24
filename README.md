@@ -252,6 +252,7 @@ yarn prisma migrate reset
 | Setting                   | Description                                  | Default value                                                               |
 | ------------------------- | -------------------------------------------- | --------------------------------------------------------------------------- |
 | `PORT`                    | The address on which the module binds.       | 5010                                                                        |
+| `GLOBAL_PREFIX`           | Registers a prefix for every HTTP route path | api/v1                                                                      |
 | `APP_VERSION`             | The version of the application               | "unknown"                                                                   |
 | `APP_ENV`                 | Application runtime environment              | development                                                                 |
 | `NODE_ENV`                | Node build environment                       | development                                                                 |
