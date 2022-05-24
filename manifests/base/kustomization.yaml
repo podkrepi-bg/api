@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: podkrepibg-dev
 
 resources:
+  - ingress.yaml
   - keycloak-config.yaml
   - sendgrid-config.yaml
   - sentry-config.yaml
