@@ -36,7 +36,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3310
   await app.listen(port, () => {
     Logger.debug(`Listening at http://localhost:${port}/${globalPrefix}`, 'bootstrap')
-    Logger.debug(`Swagger Docs at http://localhost:${port}/docs`, 'bootstrap')
+    Logger.debug(`Swagger Docs at http://localhost:${port}/swagger`, 'bootstrap')
   })
 }
 
