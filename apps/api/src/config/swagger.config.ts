@@ -14,5 +14,5 @@ export function setupSwagger(app: INestApplication, appVersion: string) {
       controllerKey.replace(/controller/gi, '') + '.' + methodKey,
     ignoreGlobalPrefix: false,
   })
-  SwaggerModule.setup('docs', app, document)
+  SwaggerModule.setup('swagger', app, document)
 }

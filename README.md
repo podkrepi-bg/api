@@ -14,9 +14,11 @@
 
 ## Links
 
-- Website live at <https://podkrepi.bg>
-- API running at <https://podkrepi.bg/api>
-- Swagger docs at <https://podkrepi.bg/docs>
+| Service  | Development                      | Staging                           | Production                    |
+| -------- | -------------------------------- | --------------------------------- | ----------------------------- |
+| Website  | <https://localhost:3040>         | <https://dev.podkrepi.bg>         | <https://podkrepi.bg>         |
+| Rest API | <https://localhost:5010/api/v1>  | <https://dev.podkrepi.bg/api/v1>  | <https://podkrepi.bg/api/v1>  |
+| Swagger  | <https://localhost:5010/swagger> | <https://dev.podkrepi.bg/swagger> | <https://podkrepi.bg/swagger> |
 
 ## Dependencies and References
 
@@ -115,7 +117,7 @@ yarn test
 yarn dev
 ```
 
-and the backend API server will listen on <http://localhost:5010/api>
+and the backend API server will listen on <http://localhost:5010/api/v1>
 
 ## (Alternative) Development Environment To Run Inside Docker
 
@@ -127,7 +129,7 @@ docker-compose up --build -d
 
 After starting your dev server visit:
 
-- <http://localhost:5010/api> (API)
+- <http://localhost:5010/api/v1> (API)
 
 To shut down the dev server use:
 
