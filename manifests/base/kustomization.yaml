@@ -4,8 +4,8 @@ kind: Kustomization
 namespace: podkrepibg-dev
 
 resources:
- - keycloak-config.yaml
- - sendgrid-config.yaml
- - sentry-config.yaml
- - service.yaml
- - deployment.yaml
+  - keycloak-config.yaml
+  - sendgrid-config.yaml
+  - sentry-config.yaml
+  - service.yaml
+  - deployment.yaml
