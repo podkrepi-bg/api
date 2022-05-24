@@ -3,18 +3,23 @@ kind: Kustomization
 
 namespace: podkrepibg-dev
 
-resources:
-- keycloak-secret.local.yaml
-- sendgrid-secret.local.yaml
-- stripe-secret.local.yaml
-- ../../base
+bases:
+  - ../../base
 
 patches:
-- path: keycloak-config.patch.yaml
-- path: deployment.patch.yaml
+  - path: keycloak-config.patch.yaml
+  - path: deployment.patch.yaml
 
 images:
-- name: ghcr.io/podkrepi-bg/api/migrations
-  newTag: master
-- name: ghcr.io/podkrepi-bg/api
-  newTag: master
+  - name: ghcr.io/podkrepi-bg/api/migrations
+    newTag: master
+  - name: ghcr.io/podkrepi-bg/api
+    newTag: master
+
+secretGenerator:
+  - name: stripe-secret
+    envs: [stripe.env]
+  - name: keycloak-secret
+    envs: [keycloak-secret.env]
+  - name: sendgrid-secret
+    envs: [sendgrid-secret.env]
