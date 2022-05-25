@@ -70,7 +70,7 @@ yarn
 :information_source: Use `docker-compose` version `>=2.5`
 
 ```shell
-docker-compose --profile local-keycloak up -d
+docker-compose --profile local-keycloak up -d --build
 ```
 
 This will start the following services in your local docker:
