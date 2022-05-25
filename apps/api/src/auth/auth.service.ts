@@ -58,19 +58,12 @@ export class AuthService {
   async tokenEndpoint(
     data: Record<'grant_type' & string, string>,
   ): Promise<Observable<ApiTokenResponse>> {
-    const secret = this.config.get<string>('keycloak.secret')
-    const clientId = this.config.get<string>('keycloak.clientId')
-    const tokenUrl = `${this.config.get<string>(
-      'keycloak.serverUrl',
-    )}/realms/${this.config.get<string>('keycloak.realm')}/protocol/openid-connect/token`
-
     const params = new URLSearchParams({
-      secret: secret as string,
-      clientId: clientId as string,
+      ...this.requestSecrets(),
       ...data,
     })
     return await this.httpService
-      .post<KeycloakErrorResponse | TokenResponseRaw>(tokenUrl, params.toString())
+      .post<KeycloakErrorResponse | TokenResponseRaw>(this.createTokenUrl(), params.toString())
       .pipe(
         map((res: AxiosResponse<TokenResponseRaw>) => ({
           refreshToken: res.data.refresh_token,
@@ -196,6 +189,21 @@ export class AuthService {
         },
       ],
     })
+  }
+
+  private requestSecrets() {
+    const secret = this.config.get<string>('keycloak.secret') || ''
+    const clientId = this.config.get<string>('keycloak.clientId') || ''
+    return {
+      client_secret: secret,
+      client_id: clientId,
+    }
+  }
+
+  private createTokenUrl() {
+    const serverUrl = this.config.get<string>('keycloak.serverUrl')
+    const realm = this.config.get<string>('keycloak.realm')
+    return `${serverUrl}/realms/${realm}/protocol/openid-connect/token`
   }
 
   private async createPerson(registerDto: RegisterDto, keycloakId: string) {
