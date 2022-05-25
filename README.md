@@ -263,7 +263,7 @@ yarn prisma migrate reset
 | `S3_BUCKET`               | The S3 bucket to be used for storing files   | campaign-files                                                              |
 | `S3_ACCESS_KEY`           | The S3 access key.                           | \*\*\*\*\*\*                                                                |
 | `S3_SECRET_ACCESS_KEY`    | The S3 secret access key.                    | \*\*\*\*\*\*                                                                |
-| `KEYCLOAK_URL`            | Keycloak authentication url                  | <http://localhost:8180/auth>                                                |
+| `KEYCLOAK_URL`            | Keycloak authentication url                  | <http://localhost:8180>                                                     |
 | `KEYCLOAK_REALM`          | Keycloak Realm name                          | webapp                                                                      |
 | `KEYCLOAK_CLIENT_ID`      | Keycloak Client name                         | jwt-headless                                                                |
 | `KEYCLOAK_SECRET`         | Secret to reach Keycloak in headless mode    | DEV-KEYCLOAK-SECRET                                                         |
