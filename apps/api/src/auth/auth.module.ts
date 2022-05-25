@@ -7,11 +7,12 @@ import { PrismaService } from '../prisma/prisma.service'
 import { RegisterController } from './register.controller'
 import { AppConfigModule } from '../config/app-config.module'
 import { KeycloakConfigService } from '../config/keycloak-config.service'
-import { RefreshController } from './refresh.controller';
+import { RefreshController } from './refresh.controller'
 import { HttpModule } from '@nestjs/axios'
+import { ProviderLoginController } from './provider-login.controller'
 
 @Module({
-  controllers: [LoginController, RegisterController, RefreshController],
+  controllers: [LoginController, RegisterController, RefreshController, ProviderLoginController],
   providers: [AuthService, PrismaService],
   imports: [
     AppConfigModule,
