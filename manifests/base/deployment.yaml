@@ -41,13 +41,13 @@ spec:
             - containerPort: 80
           livenessProbe:
             httpGet:
-              path: /api/health
+              path: /api/v1/health
               port: 80
             initialDelaySeconds: 10
             periodSeconds: 5
           readinessProbe:
             httpGet:
-              path: /api/health
+              path: /api/v1/health
               port: 80
             initialDelaySeconds: 5
             periodSeconds: 5

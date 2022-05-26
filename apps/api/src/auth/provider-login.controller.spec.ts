@@ -1,30 +1,30 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { AuthService } from './auth.service'
-import { RefreshDto } from './dto/refresh.dto'
-import { RefreshController } from './refresh.controller'
+import { ProviderDto } from './dto/provider.dto'
+import { ProviderLoginController } from './provider-login.controller'
 
-describe('RefreshController', () => {
-  let controller: RefreshController
+describe('ProviderLoginController', () => {
+  let controller: ProviderLoginController
   let spyService: AuthService
 
   beforeEach(async () => {
     const AuthServiceProvider = {
       provide: AuthService,
       useFactory: () => ({
-        issueTokenFromRefresh: jest.fn((refreshDto: RefreshDto) => ({
+        issueTokenFromProvider: jest.fn((providerDto: ProviderDto) => ({
           accessToken: 'SOME_JWT_TOKEN',
-          refreshToken: 'SOME_JWT_REFRESH_TOKEN',
+          refreshToken: 'SOME_REFRESH_TOKEN',
           expires: 300,
         })),
       }),
     }
 
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [RefreshController],
+      controllers: [ProviderLoginController],
       providers: [AuthService, AuthServiceProvider],
     }).compile()
 
-    controller = module.get<RefreshController>(RefreshController)
+    controller = module.get<ProviderLoginController>(ProviderLoginController)
     spyService = module.get<AuthService>(AuthService)
   })
 
@@ -33,11 +33,11 @@ describe('RefreshController', () => {
   })
 
   describe('refreshToken', () => {
-    const refreshDto = new RefreshDto()
+    const providerDto = new ProviderDto()
     it('should call refreshToken', async () => {
-      expect(await controller.refresh(refreshDto))
-      expect(spyService.issueTokenFromRefresh).toHaveBeenCalled()
-      expect(spyService.issueTokenFromRefresh).toHaveBeenCalledWith(refreshDto)
+      expect(await controller.providerLogin(providerDto))
+      expect(spyService.issueTokenFromProvider).toHaveBeenCalled()
+      expect(spyService.issueTokenFromProvider).toHaveBeenCalledWith(providerDto)
     })
   })
 })

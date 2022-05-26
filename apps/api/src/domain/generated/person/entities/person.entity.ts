@@ -20,6 +20,7 @@ export class Person {
   lastName: string
   email: string
   phone: string | null
+  picture: string | null
   company: string | null
   createdAt: Date
   updatedAt: Date | null

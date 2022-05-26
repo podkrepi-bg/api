@@ -14,9 +14,11 @@
 
 ## Links
 
-- Website live at <https://podkrepi.bg>
-- API running at <https://podkrepi.bg/api>
-- Swagger docs at <https://podkrepi.bg/docs>
+| Service  | Development                      | Staging                           | Production                    |
+| -------- | -------------------------------- | --------------------------------- | ----------------------------- |
+| Website  | <https://localhost:3040>         | <https://dev.podkrepi.bg>         | <https://podkrepi.bg>         |
+| Rest API | <https://localhost:5010/api/v1>  | <https://dev.podkrepi.bg/api/v1>  | <https://podkrepi.bg/api/v1>  |
+| Swagger  | <https://localhost:5010/swagger> | <https://dev.podkrepi.bg/swagger> | <https://podkrepi.bg/swagger> |
 
 ## Dependencies and References
 
@@ -68,7 +70,7 @@ yarn
 :information_source: Use `docker-compose` version `>=2.5`
 
 ```shell
-docker-compose --profile local-keycloak up -d
+docker-compose --profile local-keycloak up -d --build
 ```
 
 This will start the following services in your local docker:
@@ -115,7 +117,7 @@ yarn test
 yarn dev
 ```
 
-and the backend API server will listen on <http://localhost:5010/api>
+and the backend API server will listen on <http://localhost:5010/api/v1>
 
 ## (Alternative) Development Environment To Run Inside Docker
 
@@ -127,7 +129,7 @@ docker-compose up --build -d
 
 After starting your dev server visit:
 
-- <http://localhost:5010/api> (API)
+- <http://localhost:5010/api/v1> (API)
 
 To shut down the dev server use:
 
@@ -250,6 +252,7 @@ yarn prisma migrate reset
 | Setting                   | Description                                  | Default value                                                               |
 | ------------------------- | -------------------------------------------- | --------------------------------------------------------------------------- |
 | `PORT`                    | The address on which the module binds.       | 5010                                                                        |
+| `GLOBAL_PREFIX`           | Registers a prefix for every HTTP route path | api/v1                                                                      |
 | `APP_VERSION`             | The version of the application               | "unknown"                                                                   |
 | `APP_ENV`                 | Application runtime environment              | development                                                                 |
 | `NODE_ENV`                | Node build environment                       | development                                                                 |
@@ -260,7 +263,7 @@ yarn prisma migrate reset
 | `S3_BUCKET`               | The S3 bucket to be used for storing files   | campaign-files                                                              |
 | `S3_ACCESS_KEY`           | The S3 access key.                           | \*\*\*\*\*\*                                                                |
 | `S3_SECRET_ACCESS_KEY`    | The S3 secret access key.                    | \*\*\*\*\*\*                                                                |
-| `KEYCLOAK_URL`            | Keycloak authentication url                  | <http://localhost:8180/auth>                                                |
+| `KEYCLOAK_URL`            | Keycloak authentication url                  | <http://localhost:8180>                                                     |
 | `KEYCLOAK_REALM`          | Keycloak Realm name                          | webapp                                                                      |
 | `KEYCLOAK_CLIENT_ID`      | Keycloak Client name                         | jwt-headless                                                                |
 | `KEYCLOAK_SECRET`         | Secret to reach Keycloak in headless mode    | DEV-KEYCLOAK-SECRET                                                         |

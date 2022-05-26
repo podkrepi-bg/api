@@ -9,7 +9,7 @@ import { setupExceptions } from './config/exceptions.config'
 import { setupValidation } from './config/validation.config'
 import { setupShutdownHooks } from './config/shutdown.config'
 
-const globalPrefix = 'api'
+const globalPrefix = process.env.GLOBAL_PREFIX ?? 'api/v1'
 const logLevels: LogLevel[] = ['error', 'log', 'warn']
 
 async function bootstrap() {
@@ -36,7 +36,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3310
   await app.listen(port, () => {
     Logger.debug(`Listening at http://localhost:${port}/${globalPrefix}`, 'bootstrap')
-    Logger.debug(`Swagger Docs at http://localhost:${port}/docs`, 'bootstrap')
+    Logger.debug(`Swagger Docs at http://localhost:${port}/swagger`, 'bootstrap')
   })
 }
 

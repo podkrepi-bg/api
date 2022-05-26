@@ -84,7 +84,7 @@ services:
   #####################
   keycloak:
     container_name: ${COMPOSE_PROJECT_NAME?}-keycloak
-    image: docker.io/bitnami/keycloak:15
+    image: docker.io/bitnami/keycloak:18
     profiles: ['local-keycloak']
     environment:
       - KEYCLOAK_USER=${KEYCLOAK_PASSWORD}
