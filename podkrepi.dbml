@@ -174,7 +174,7 @@ Table campaign_files {
   person Person [not null]
 }
 
-Table ReportFile {
+Table report_files {
   id String [pk]
   filename String [not null]
   mimetype String [not null]
