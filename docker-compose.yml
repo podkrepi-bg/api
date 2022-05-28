@@ -71,6 +71,7 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME?}-keycloak-db
     image: docker.io/bitnami/postgresql:13
     profiles: ['local-keycloak']
+    restart: always
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
       - POSTGRESQL_USERNAME=bn_keycloak
@@ -86,6 +87,7 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME?}-keycloak
     image: docker.io/bitnami/keycloak:18
     profiles: ['local-keycloak']
+    restart: always
     environment:
       - KEYCLOAK_USER=${KEYCLOAK_PASSWORD}
       - KEYCLOAK_PASSWORD=${KEYCLOAK_PASSWORD}
