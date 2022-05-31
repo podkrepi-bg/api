@@ -38,5 +38,5 @@ export class Campaign {
   vaults?: Vault[]
   withdrawals?: Withdrawal[]
   campaignFiles?: CampaignFile[]
-  CampaignReport?: CampaignReport[]
+  campaignReport?: CampaignReport[]
 }

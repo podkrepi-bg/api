@@ -12,6 +12,7 @@ import { Transfer } from '../../transfer/entities/transfer.entity'
 import { Withdrawal } from '../../withdrawal/entities/withdrawal.entity'
 import { CampaignFile } from '../../campaignFile/entities/campaignFile.entity'
 import { CampaignReport } from '../../campaignReport/entities/campaignReport.entity'
+import { ReportFile } from '../../reportFile/entities/reportFile.entity'
 
 export class Person {
   id: string
@@ -44,4 +45,5 @@ export class Person {
   withdrawals?: Withdrawal[]
   campaignFiles?: CampaignFile[]
   reports?: CampaignReport[]
+  reportFiles?: ReportFile[]
 }
