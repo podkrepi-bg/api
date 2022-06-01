@@ -8,6 +8,7 @@ import { CreateCampaignFileDto } from './dto/create-campaign-file.dto'
 
 @Injectable()
 export class CampaignFileService {
+  private readonly bucketName: string = 'campaign-files'
   constructor(private prisma: PrismaService, private s3: S3Service) {}
 
   async create(
@@ -16,7 +17,7 @@ export class CampaignFileService {
     mimetype: string,
     filename: string,
     person: Person,
-    buf: Buffer,
+    buffer: Buffer,
   ): Promise<string> {
     const file: CreateCampaignFileDto = {
       filename,
@@ -27,8 +28,18 @@ export class CampaignFileService {
     }
     const dbFile = await this.prisma.campaignFile.create({ data: file })
 
-    // Use the DB primary key as the S3 key. This will make sure if is always unique.
-    await this.s3.uploadObject(dbFile, mimetype, buf)
+    // Use the DB primary key as the S3 key. This will make sure it is always unique.
+    await this.s3.uploadObject(
+      this.bucketName,
+      dbFile.id,
+      filename,
+      mimetype,
+      buffer,
+      'Campaign',
+      campaignId,
+      person.id,
+    )
+
     return dbFile.id
   }
 
@@ -45,12 +56,12 @@ export class CampaignFileService {
     return {
       filename: file.filename,
       mimetype: file.mimetype,
-      stream: await this.s3.streamFile(id),
+      stream: await this.s3.streamFile(this.bucketName, id),
     }
   }
 
   async remove(id: string) {
-    await this.s3.deleteObject(id)
+    await this.s3.deleteObject(this.bucketName, id)
     return await this.prisma.campaignFile.delete({ where: { id } })
   }
 }

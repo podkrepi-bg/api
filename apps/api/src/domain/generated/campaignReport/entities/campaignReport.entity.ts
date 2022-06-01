@@ -1,4 +1,4 @@
-import { ReportStatus, ReportReason,  NotifierType } from '@prisma/client'
+import { ReportStatus, ReportReason, NotifierType } from '@prisma/client'
 import { Campaign } from '../../campaign/entities/campaign.entity'
 import { Person } from '../../person/entities/person.entity'
 import { ReportFile } from '../../reportFile/entities/reportFile.entity'
