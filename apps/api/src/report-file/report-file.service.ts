@@ -8,6 +8,8 @@ import { CreateReportFileDto } from './dto/create-report-file.dto'
 
 @Injectable()
 export class ReportFileService {
+  private readonly bucketName: string = 'irregularity-files'
+
   constructor(private prisma: PrismaService, private s3: S3Service) {}
 
   async create(
@@ -15,7 +17,7 @@ export class ReportFileService {
     mimetype: string,
     filename: string,
     uploadedBy: Person,
-    buf: Buffer,
+    buffer: Buffer,
   ): Promise<string> {
     const file: CreateReportFileDto = {
       filename,
@@ -25,8 +27,18 @@ export class ReportFileService {
     }
     const dbFile = await this.prisma.reportFile.create({ data: file })
 
-    // Use the DB primary key as the S3 key. This will make sure if is always unique.
-    await this.s3.uploadReportFileObject(dbFile, mimetype, buf)
+    // Use the DB primary key as the S3 key. This will make sure iт is always unique.
+    await this.s3.uploadObject(
+      this.bucketName,
+      dbFile.id,
+      filename,
+      mimetype,
+      buffer,
+      'Irregularity',
+      campaignReportId,
+      uploadedBy.id,
+    )
+
     return dbFile.id
   }
 
@@ -43,7 +55,7 @@ export class ReportFileService {
     return {
       filename: file.filename,
       mimetype: file.mimetype,
-      stream: await this.s3.streamFile(id),
+      stream: await this.s3.streamFile(this.bucketName, id),
     }
   }
 
@@ -55,7 +67,7 @@ export class ReportFileService {
   }
 
   async remove(id: string) {
-    await this.s3.deleteObject(id)
+    await this.s3.deleteObject(this.bucketName, id)
     console.log('deleted s3')
     return await this.prisma.reportFile.delete({ where: { id } })
   }
