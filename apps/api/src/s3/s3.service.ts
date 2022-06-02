@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { CampaignFile, ReportFile } from '@prisma/client'
 import { S3, Endpoint, config } from 'aws-sdk'
 import { Readable } from 'stream'
 

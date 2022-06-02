@@ -62,8 +62,8 @@ model Person {
   transfers          Transfer[]
   withdrawals        Withdrawal[]
   campaignFiles      CampaignFile[]
-  reports            CampaignReport[]
-  reportFiles        ReportFile[]
+  irregularities     Irregularity[]
+  irregularityFiles  IrregularityFile[]
   @@index([keycloakId], map: "keycloak_id_idx")
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
   @@map("people")
@@ -179,24 +179,24 @@ model Campaign {
   vaults                  Vault[]
   withdrawals             Withdrawal[]
   campaignFiles           CampaignFile[]
-  campaignReport          CampaignReport[]
+  irregularities          Irregularity[]
   @@map("campaigns")
 }
 
-model CampaignReport {
-  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  campaignId    String       @map("campaign_id") @db.Uuid
-  personId      String       @map("person_id") @db.Uuid
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime?    @updatedAt @map("updated_at") @db.Timestamptz(6)
-  status        ReportStatus @default(initial)
-  reason        ReportReason
-  notifierType  NotifierType @default(other)
-  reportContent String       @map("report_content")
-  campaign      Campaign     @relation(fields: [campaignId], references: [id])
-  person        Person       @relation(fields: [personId], references: [id])
-  reportFiles   ReportFile[]
-  @@map("campaign_reports")
+model Irregularity {
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId    String              @map("campaign_id") @db.Uuid
+  personId      String              @map("person_id") @db.Uuid
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  status        IrregularityStatus  @default(initial)
+  reason        IrregularityReason  @default(other)
+  notifierType  NotifierType        @default(other)
+  description   String              @map("description")
+  campaign      Campaign            @relation(fields: [campaignId], references: [id])
+  person        Person              @relation(fields: [personId], references: [id])
+  files         IrregularityFile[]
+  @@map("irregularities")
 }
 
 model CampaignFile {
@@ -211,15 +211,15 @@ model CampaignFile {
   @@map("campaign_files")
 }
 
-model ReportFile {
-  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  filename         String         @db.VarChar(200)
-  mimetype         String         @db.VarChar(50)
-  campaignReportId String         @map("campaign_report_id") @db.Uuid
-  uploadedById     String         @map("uploaded_by_id") @db.Uuid 
-  campaignReport   CampaignReport @relation(fields: [campaignReportId], references: [id])
-  uploadedBy       Person         @relation(fields: [uploadedById], references: [id])
-  @@map("report_files")
+model IrregularityFile {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename        String       @db.VarChar(200)
+  mimetype        String       @db.VarChar(50)
+  irregularityId  String       @map("irregularity_id") @db.Uuid
+  uploaderId      String       @map("uploader_id") @db.Uuid 
+  irregularity    Irregularity @relation(fields: [irregularityId], references: [id])
+  uploadedBy      Person       @relation(fields: [uploaderId], references: [id])
+  @@map("irregularity_files")
 }
 
 model InfoRequest {
@@ -648,15 +648,14 @@ enum CampaignFileRole {
   @@map("campaign_file_role")
 }
 
-enum ReportStatus {
+enum IrregularityStatus {
   initial
   confirmed
   declined
-  @@map("report_status")
+  @@map("irregularity_status")
 }
 
-enum ReportReason {
-  none
+enum IrregularityReason {
   duplicate
   inappropriate
   illegalActivity
@@ -669,7 +668,7 @@ enum ReportReason {
   explicitContent
   fraud
   other
-  @@map("report_reason")
+  @@map("irregularity_reason")
 }
 
 enum NotifierType {
