@@ -28,7 +28,7 @@ export class S3Service {
     parentEntityName: string,
     parentEntityId: string,
     personId: string,
-    metadata?: {},
+    metadata?: Record<string, string>,
   ): Promise<string> {
     return await this.s3
       .upload({
