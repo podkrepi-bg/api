@@ -69,11 +69,10 @@ export class IrregularityFileController {
   }
 
   @Get(':id')
-  @Public()
-  // @Roles({
-  //   roles: [RealmViewContactRequests.role, ViewContactRequests.role],
-  //   mode: RoleMatchingMode.ANY,
-  // })
+  @Roles({
+    roles: [RealmViewContactRequests.role, ViewContactRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async findOne(
     @Param('id') id: string,
     @Response({ passthrough: true }) res,
