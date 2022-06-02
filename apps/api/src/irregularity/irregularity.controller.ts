@@ -18,41 +18,37 @@ export class IrregularityController {
   //TODO: define custom admin role for campaign reports
 
   @Get('list')
-  // @Roles({
-  //   roles: [RealmViewContactRequests.role, ViewContactRequests.role],
-  //   mode: RoleMatchingMode.ANY,
-  // })
-  @Public()
+  @Roles({
+    roles: [RealmViewContactRequests.role, ViewContactRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async findAll() {
     return await this.irregularityService.listIrregularities()
   }
 
   @Get(':id')
-  @Public()
-  // @Roles({
-  //   roles: [RealmViewContactRequests.role, ViewContactRequests.role],
-  //   mode: RoleMatchingMode.ANY,
-  // })
+  @Roles({
+    roles: [RealmViewContactRequests.role, ViewContactRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async findOne(@Param('id') id: string) {
     return await this.irregularityService.getIrregularityById(id)
   }
 
   @Put(':id')
-  @Public()
-  // @Roles({
-  //   roles: [RealmViewContactRequests.role, ViewContactRequests.role],
-  //   mode: RoleMatchingMode.ANY,
-  // })
+  @Roles({
+    roles: [RealmViewContactRequests.role, ViewContactRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async update(@Param('id') id: string, @Body() updateIrregularityDto: UpdateIrregularityDto) {
     return await this.irregularityService.update(id, updateIrregularityDto)
   }
 
   @Delete(':id')
-  @Public()
-  // @Roles({
-  //   roles: [RealmViewContactRequests.role, ViewContactRequests.role],
-  //   mode: RoleMatchingMode.ANY,
-  // })
+  @Roles({
+    roles: [RealmViewContactRequests.role, ViewContactRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async remove(@Param('id') id: string) {
     return await this.irregularityService.removeIrregularityById(id)
   }
