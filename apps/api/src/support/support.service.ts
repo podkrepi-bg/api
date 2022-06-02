@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { InfoRequest, Supporter, CampaignReport } from '.prisma/client'
+import { InfoRequest, Supporter, Irregularity } from '.prisma/client'
 
 import {
   InquiryReceivedEmailDto,
@@ -12,7 +12,7 @@ import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateInquiryDto } from './dto/create-inquiry.dto'
 import { CreateRequestDto } from './dto/create-request.dto'
-import { CreateCampaignReportDto } from './dto/create-campagin-report.dto'
+import { CreateIrregularityDto } from './dto/create-irregularity.dto'
 
 @Injectable()
 export class SupportService {
@@ -55,14 +55,14 @@ export class SupportService {
     }
   }
 
-  async createCampaignReport(
-    inputDto: CreateCampaignReportDto,
-  ): Promise<Pick<CampaignReport, 'id' | 'personId'>> {
-    const report = await this.prisma.campaignReport.create({ data: inputDto.toEntity() })
+  async createIrregularity(
+    inputDto: CreateIrregularityDto,
+  ): Promise<Pick<Irregularity, 'id' | 'personId'>> {
+    const irregularity = await this.prisma.irregularity.create({ data: inputDto.toEntity() })
 
     return {
-      id: report.id,
-      personId: report.personId,
+      id: irregularity.id,
+      personId: irregularity.personId,
     }
   }
 
