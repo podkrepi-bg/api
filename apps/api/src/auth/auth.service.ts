@@ -21,6 +21,7 @@ import { RegisterDto } from './dto/register.dto'
 import { RefreshDto } from './dto/refresh.dto'
 import { KeycloakTokenParsed } from './keycloak'
 import { ProviderDto } from './dto/provider.dto'
+import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation'
 
 type ErrorResponse = { error: string; data: unknown }
 type KeycloakErrorResponse = { error: string; error_description: string }
@@ -219,5 +220,44 @@ export class AuthService {
       update: { keycloakId },
       where: { email: registerDto.email },
     })
+  }
+
+  async updateKeycloakUser(id: string, updateDto: UserRepresentation) {
+    await this.authenticateAdmin()
+    return await this.admin.users.update(
+      { id },
+      {
+        username: updateDto.email,
+        email: updateDto.email,
+        firstName: updateDto.firstName,
+        lastName: updateDto.lastName,
+        emailVerified: true,
+        requiredActions: [],
+        enabled: true,
+      },
+    )
+  }
+
+  async updateKeycloakUserPassword(id: string, credentialsDto) {
+    await this.authenticateAdmin()
+    await this.admin.users.resetPassword({
+      id,
+      credential: {
+        temporary: false,
+        type: 'password',
+        value: credentialsDto.password,
+      },
+    })
+    return true
+  }
+
+  async disableKeycloakUser(id: string) {
+    await this.authenticateAdmin()
+    return await this.admin.users.update(
+      { id },
+      {
+        enabled: false,
+      },
+    )
   }
 }

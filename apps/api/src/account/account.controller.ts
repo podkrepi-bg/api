@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Put, Logger } from '@nestjs/common'
+import CredentialRepresentation from '@keycloak/keycloak-admin-client/lib/defs/credentialRepresentation'
+import { Body, Controller, Get, Put, Logger, Delete } from '@nestjs/common'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
@@ -34,7 +35,45 @@ export class AccountController {
     @AuthenticatedUser() user: KeycloakTokenParsed,
     @Body() data: UpdatePersonDto,
   ) {
-    return await this.accountService.updateUserProfile(user.sub as string, data)
+    let person: Person | null = null
+    try {
+      person = await this.accountService.updateUserProfile(user, data)
+    } catch (err) {
+      Logger.warn(`Failed to update user with keycloakId ${user.sub}`)
+      throw err
+    }
+
+    return {
+      user: person,
+    }
+  }
+
+  @Put('me/credentials')
+  async updatePassword(
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+    @Body() data: CredentialRepresentation,
+  ) {
+    let hasSucceeded = false
+    try {
+      hasSucceeded = await this.accountService.updateUserPassword(user, data)
+    } catch (err) {
+      Logger.warn(`Failed to update user with keycloakId ${user.sub}`)
+    }
+
+    return {
+      updated: hasSucceeded,
+    }
+  }
+
+  @Delete('me')
+  async disableUser(
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    try {
+      return await this.accountService.disableUser(user)
+    } catch (err) {
+      Logger.warn(`Failed to disable user with keycloakId ${user.sub}`)
+    }
   }
 
   @Get('new')
