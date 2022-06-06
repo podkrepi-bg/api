@@ -22,5 +22,6 @@ import { ProviderLoginController } from './provider-login.controller'
       imports: [AppConfigModule],
     }),
   ],
+  exports: [AuthService],
 })
 export class AuthModule {}
