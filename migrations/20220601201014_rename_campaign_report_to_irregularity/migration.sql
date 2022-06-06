@@ -1,9 +1,5 @@
 /*
-  Warnings:
-
-  - You are about to drop the `campaign_reports` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `report_files` table. If the table is not empty, all the data it contains will be lost.
-
+The below migration is written by hand because the default migration drops and recreates tables
 */
 -- RenameEnum
 ALTER TYPE "report_status" RENAME TO "irregularity_status";
