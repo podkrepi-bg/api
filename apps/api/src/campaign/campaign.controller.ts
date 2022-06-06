@@ -55,13 +55,18 @@ export class CampaignController {
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
     if (!isAdmin(user)) {
-      Logger.warn('The campaign creator is not admin. User name is: ' + user.name)
+      Logger.warn('The campaign creator is not in admin role. User name is: ' + user.name)
     }
 
-    const person = await this.personService.findOneByKeycloakId(user.sub as string)
-    if (!person) {
-      Logger.error('No person found in database for logged user: ' + user.name)
-      throw new NotFoundException('No person found for logged user: ' + user.name)
+    let person
+    if (!createDto.coordinatorId) {
+      //Find the creator personId and make him a coordinator
+      person = await this.personService.findOneByKeycloakId(user.sub as string)
+
+      if (!person) {
+        Logger.error('No person found in database for logged user: ' + user.name)
+        throw new NotFoundException('No person found for logged user: ' + user.name)
+      }
     }
 
     return await this.campaignService.createCampaign(createDto, person?.id)

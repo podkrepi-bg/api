@@ -21,12 +21,28 @@ describe('CampaignController', () => {
       return { id: personIdMock }
     }),
   }
+
   const mockCreateCampaign = {
     slug: 'test-slug',
     title: 'Test name',
     description: 'Test description',
     essence: 'test',
     coordinatorId: 'testCoordinatorId',
+    beneficiaryId: 'testBeneficiaryId',
+    campaignTypeId: 'testCampaignTypeId',
+    targetAmount: 1000,
+    reachedAmount: 0,
+    startDate: null,
+    endDate: null,
+    currency: Currency.BGN,
+    toEntity: new CreateCampaignDto().toEntity,
+  } as CreateCampaignDto
+
+  const mockCreateCampaignEmptyCoordinator = {
+    slug: 'test-slug',
+    title: 'Test name',
+    description: 'Test description',
+    essence: 'test',
     beneficiaryId: 'testBeneficiaryId',
     campaignTypeId: 'testCampaignTypeId',
     targetAmount: 1000,
@@ -54,6 +70,7 @@ describe('CampaignController', () => {
       vaults: [{ donations: [{ amount: 100 }, { amount: 10 }] }, { donations: [] }],
     },
   }
+
   const personIdMock = 'testPersonId'
 
   beforeEach(async () => {
@@ -179,26 +196,24 @@ describe('CampaignController', () => {
       .spyOn(paymentReferenceGenerator, 'getPaymentReference')
       .mockReturnValue(paymentReferenceMock)
 
-    it('should call create without coordinator if user is admin', async () => {
+    it('should call create with coordinator id', async () => {
       const mockObject = jest.fn().mockResolvedValue(mockCampaign)
       jest.spyOn(prismaService.campaign, 'create').mockImplementation(mockObject)
 
-      expect(
-        await controller.create(mockCreateCampaign, {
-          ...mockUser,
-          ...{ resource_access: { account: { roles: ['account-view-supporters'] } } },
-        }),
-      ).toEqual(mockCampaign)
+      expect(await controller.create(mockCreateCampaign, mockUser)).toEqual(mockCampaign)
       expect(personServiceMock.findOneByKeycloakId).not.toHaveBeenCalled()
       expect(prismaService.campaign.create).toHaveBeenCalledWith({
         data: { ...mockCreateCampaign.toEntity(), ...{ paymentReference: paymentReferenceMock } },
       })
     })
-    it('should call create with coordinator', async () => {
+
+    it('calling without coordinator id should make the creator a coordinator', async () => {
       const mockObject = jest.fn().mockResolvedValue(mockCampaign)
       jest.spyOn(prismaService.campaign, 'create').mockImplementation(mockObject)
 
-      expect(await controller.create(mockCreateCampaign, mockUser)).toEqual(mockCampaign)
+      expect(await controller.create(mockCreateCampaignEmptyCoordinator, mockUser)).toEqual(
+        mockCampaign,
+      )
       expect(personServiceMock.findOneByKeycloakId).toHaveBeenCalledWith(mockUser.sub)
       expect(prismaService.campaign.create).toHaveBeenCalledWith({
         data: {
