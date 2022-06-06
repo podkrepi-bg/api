@@ -11,7 +11,8 @@ import { Supporter } from '../../supporter/entities/supporter.entity'
 import { Transfer } from '../../transfer/entities/transfer.entity'
 import { Withdrawal } from '../../withdrawal/entities/withdrawal.entity'
 import { CampaignFile } from '../../campaignFile/entities/campaignFile.entity'
-import { CampaignReport } from '../../campaignReport/entities/campaignReport.entity'
+import { Irregularity } from '../../irregularity/entities/irregularity.entity'
+import { IrregularityFile } from '../../irregularityFile/entities/irregularityFile.entity'
 
 export class Person {
   id: string
@@ -43,5 +44,6 @@ export class Person {
   transfers?: Transfer[]
   withdrawals?: Withdrawal[]
   campaignFiles?: CampaignFile[]
-  reports?: CampaignReport[]
+  irregularities?: Irregularity[]
+  irregularityFiles?: IrregularityFile[]
 }

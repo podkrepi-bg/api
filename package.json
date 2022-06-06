@@ -8,7 +8,7 @@
     "dev": "yarn nx serve --watch",
     "dev-all": "yarn nx run-many --target serve --watch --all --parallel",
     "start": "yarn nx serve",
-    "build": "yarn nx build",
+    "build": "yarn nx lint api && yarn nx build",
     "build-all": "yarn nx run-many --target build --all --parallel",
     "test": "yarn prisma generate && yarn jest",
     "test:ci": "yarn prisma generate && yarn jest",
@@ -20,7 +20,8 @@
     "studio": "yarn prisma studio",
     "release": "./manifests/release.sh",
     "release:patch": "./manifests/release.sh patch",
-    "postversion": "./manifests/postrelease.sh v$npm_package_version"
+    "postversion": "./manifests/postrelease.sh v$npm_package_version",
+    "lint": "yarn nx lint api"
   },
   "dependencies": {
     "@golevelup/nestjs-stripe": "0.3.3",

@@ -43,6 +43,8 @@ import { WithdrawalModule } from '../withdrawal/withdrawal.module'
 import { CampaignTypesModule } from '../campaign-types/campaign-types.module'
 import { RecurringDonationModule } from '../recurring-donation/recurring-donation.module'
 import { TransferModule } from '../transfer/transfer.module'
+import { IrregularityFileModule } from '../irregularity-file/irregularity-file.module'
+import { IrregularityModule } from '../irregularity/irregularity.module'
 
 @Module({
   imports: [
@@ -84,6 +86,8 @@ import { TransferModule } from '../transfer/transfer.module'
     CampaignTypesModule,
     RecurringDonationModule,
     TransferModule,
+    IrregularityFileModule,
+    IrregularityModule,
   ],
   controllers: [AppController],
   providers: [

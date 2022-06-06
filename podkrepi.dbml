@@ -38,7 +38,8 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   transfers Transfer [not null]
   withdrawals Withdrawal [not null]
   campaignFiles CampaignFile [not null]
-  reports CampaignReport [not null]
+  irregularities Irregularity [not null]
+  irregularityFiles IrregularityFile [not null]
 
   Note: 'Generic person object'
 }
@@ -144,20 +145,22 @@ Table campaigns {
   vaults Vault [not null]
   withdrawals Withdrawal [not null]
   campaignFiles CampaignFile [not null]
-  CampaignReport CampaignReport [not null]
+  irregularities Irregularity [not null]
 }
 
-Table campaign_reports {
+Table irregularities {
   id String [pk]
   campaignId String [not null]
   personId String [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
-  status ReportStatus [not null, default: 'initial']
-  reason ReportReason [not null]
-  reportContent String [not null]
+  status IrregularityStatus [not null, default: 'initial']
+  reason IrregularityReason [not null, default: 'other']
+  notifierType NotifierType [not null, default: 'other']
+  description String [not null]
   campaign Campaign [not null]
   person Person [not null]
+  files IrregularityFile [not null]
 }
 
 Table campaign_files {
@@ -169,6 +172,16 @@ Table campaign_files {
   role CampaignFileRole [not null]
   campaign Campaign [not null]
   person Person [not null]
+}
+
+Table irregularity_files {
+  id String [pk]
+  filename String [not null]
+  mimetype String [not null]
+  irregularityId String [not null]
+  uploaderId String [not null]
+  irregularity Irregularity [not null]
+  uploadedBy Person [not null]
 }
 
 Table info_requests {
@@ -544,14 +557,13 @@ Enum CampaignFileRole {
   beneficiaryPhoto
 }
 
-Enum ReportStatus {
+Enum IrregularityStatus {
   initial
   confirmed
   declined
 }
 
-Enum ReportReason {
-  none
+Enum IrregularityReason {
   duplicate
   inappropriate
   illegalActivity
@@ -563,6 +575,11 @@ Enum ReportReason {
   discrimination
   explicitContent
   fraud
+  other
+}
+
+Enum NotifierType {
+  benefactor
   other
 }
 
@@ -588,13 +605,17 @@ Ref: Campaign.campaignTypeId > CampaignType.id [delete: Cascade]
 
 Ref: Campaign.coordinatorId > Coordinator.id
 
-Ref: CampaignReport.campaignId > Campaign.id
+Ref: Irregularity.campaignId > Campaign.id
 
-Ref: CampaignReport.personId > Person.id
+Ref: Irregularity.personId > Person.id
 
 Ref: CampaignFile.campaignId > Campaign.id
 
 Ref: CampaignFile.personId > Person.id
+
+Ref: IrregularityFile.irregularityId > Irregularity.id
+
+Ref: IrregularityFile.uploaderId > Person.id
 
 Ref: InfoRequest.personId > Person.id
 

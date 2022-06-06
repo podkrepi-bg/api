@@ -62,8 +62,8 @@ model Person {
   transfers          Transfer[]
   withdrawals        Withdrawal[]
   campaignFiles      CampaignFile[]
-  reports            CampaignReport[]
-
+  irregularities     Irregularity[]
+  irregularityFiles  IrregularityFile[]
   @@index([keycloakId], map: "keycloak_id_idx")
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
   @@map("people")
@@ -81,7 +81,6 @@ model Company {
   createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
   beneficiaries   Beneficiary[]
-
   @@map("companies")
 }
 
@@ -95,7 +94,6 @@ model Coordinator {
   person        Person        @relation(fields: [personId], references: [id])
   beneficiaries Beneficiary[]
   campaigns     Campaign[]
-
   @@unique([personId])
   @@map("coordinators")
 }
@@ -110,7 +108,6 @@ model Benefactor {
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   person        Person    @relation(fields: [personId], references: [id])
-
   @@map("benefactors")
 }
 
@@ -137,7 +134,6 @@ model Beneficiary {
   coordinator         Coordinator     @relation(fields: [coordinatorId], references: [id])
   person              Person?         @relation(fields: [personId], references: [id])
   campaigns           Campaign[]
-
   @@map("beneficiaries")
 }
 
@@ -151,7 +147,6 @@ model CampaignType {
   parent      CampaignType?        @relation("ParentCategory", fields: [parentId], references: [id])
   children    CampaignType[]       @relation("ParentCategory")
   campaigns   Campaign[]
-
   @@map("campaign_types")
 }
 
@@ -184,24 +179,24 @@ model Campaign {
   vaults                  Vault[]
   withdrawals             Withdrawal[]
   campaignFiles           CampaignFile[]
-  CampaignReport          CampaignReport[]
-
+  irregularities          Irregularity[]
   @@map("campaigns")
 }
 
-model CampaignReport {
-  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  campaignId    String       @map("campaign_id") @db.Uuid
-  personId      String       @map("person_id") @db.Uuid
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime?    @updatedAt @map("updated_at") @db.Timestamptz(6)
-  status        ReportStatus @default(initial)
-  reason        ReportReason
-  reportContent String       @map("report_content")
-  campaign      Campaign     @relation(fields: [campaignId], references: [id])
-  person        Person       @relation(fields: [personId], references: [id])
-
-  @@map("campaign_reports")
+model Irregularity {
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId    String              @map("campaign_id") @db.Uuid
+  personId      String              @map("person_id") @db.Uuid
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  status        IrregularityStatus  @default(initial)
+  reason        IrregularityReason  @default(other)
+  notifierType  NotifierType        @default(other)
+  description   String              @map("description")
+  campaign      Campaign            @relation(fields: [campaignId], references: [id])
+  person        Person              @relation(fields: [personId], references: [id])
+  files         IrregularityFile[]
+  @@map("irregularities")
 }
 
 model CampaignFile {
@@ -213,9 +208,18 @@ model CampaignFile {
   role       CampaignFileRole
   campaign   Campaign         @relation(fields: [campaignId], references: [id])
   person     Person           @relation(fields: [personId], references: [id])
-
-
   @@map("campaign_files")
+}
+
+model IrregularityFile {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename        String       @db.VarChar(200)
+  mimetype        String       @db.VarChar(50)
+  irregularityId  String       @map("irregularity_id") @db.Uuid
+  uploaderId      String       @map("uploader_id") @db.Uuid 
+  irregularity    Irregularity @relation(fields: [irregularityId], references: [id])
+  uploadedBy      Person       @relation(fields: [uploaderId], references: [id])
+  @@map("irregularity_files")
 }
 
 model InfoRequest {
@@ -226,7 +230,6 @@ model InfoRequest {
   updatedAt DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
   person    Person    @relation(fields: [personId], references: [id])
-
   @@map("info_requests")
 }
 
@@ -262,7 +265,6 @@ model Supporter {
   volunteerQa                  Boolean   @default(false) @map("volunteer_qa")
   volunteerSecurity            Boolean   @default(false) @map("volunteer_security")
   person                       Person    @relation(fields: [personId], references: [id])
-
   @@map("supporters")
 }
 
@@ -273,7 +275,6 @@ model City {
   countryId     String        @map("country_id") @db.Uuid
   countryCode   Country       @relation(fields: [countryId], references: [id])
   beneficiaries Beneficiary[]
-
   @@map("cities")
 }
 
@@ -282,7 +283,6 @@ model Country {
   name        String @db.VarChar(100)
   countryCode String @unique @map("country_code") @db.Citext
   cities      City[]
-
   @@map("countries")
 }
 
@@ -301,7 +301,6 @@ model Vault {
   sourceTransfers    Transfer[]          @relation("source_vault")
   targetTransfers    Transfer[]          @relation("target_vault")
   withdraws          Withdrawal[]
-
   @@map("vaults")
 }
 
@@ -324,7 +323,6 @@ model Donation {
   personId           String?         @map("person_id") @db.Uuid
   person             Person?         @relation(fields: [personId], references: [id])
   targetVault        Vault           @relation(fields: [targetVaultId], references: [id])
-
   @@map("donations")
 }
 
@@ -344,7 +342,6 @@ model RecurringDonation {
   currency          Currency                @default(BGN)
   person            Person                  @relation(fields: [personId], references: [id])
   sourceVault       Vault                   @relation(fields: [vaultId], references: [id])
-
   @@map("recurring_donations")
 }
 
@@ -371,7 +368,6 @@ model Transfer {
   sourceVault      Vault          @relation("source_vault", fields: [sourceVaultId], references: [id])
   targetCampaign   Campaign       @relation("target_campaign", fields: [targetCampaignId], references: [id])
   targetVault      Vault          @relation("target_vault", fields: [targetVaultId], references: [id])
-
   @@map("transfers")
 }
 
@@ -396,7 +392,6 @@ model Withdrawal {
   bankAccount      BankAccount    @relation(fields: [bankAccountId], references: [id])
   sourceCampaign   Campaign       @relation(fields: [sourceCampaignId], references: [id])
   sourceVault      Vault          @relation(fields: [sourceVaultId], references: [id])
-
   @@map("withdrawals")
 }
 
@@ -417,7 +412,6 @@ model BankAccount {
   createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
   withdraws         Withdrawal[]
-
   @@map("bank_accounts")
 }
 
@@ -436,7 +430,6 @@ model Expense {
   vault        Vault         @relation(fields: [vaultId], references: [id])
   approvedBy   Person?       @relation(fields: [approvedById], references: [id])
   document     Document?     @relation(fields: [documentId], references: [id])
-
   @@map("expenses")
 }
 
@@ -453,14 +446,12 @@ model Document {
   ownerId     String       @map("owner_id") @db.Uuid
   owner       Person       @relation(fields: [ownerId], references: [id])
   expenses    Expense[]
-
   @@map("documents")
 }
 
 enum BeneficiaryType {
   individual
   company
-
   @@map("beneficiary_type")
 }
 
@@ -483,7 +474,6 @@ enum PersonRelation {
   colleague
   myself
   myorg
-
   @@map("person_relation")
 }
 
@@ -500,7 +490,6 @@ enum CampaignState {
   disabled
   error
   deleted
-
   @@map("campaign_state")
 }
 
@@ -508,7 +497,6 @@ enum Currency {
   BGN
   EUR
   USD
-
   @@map("currency")
 }
 
@@ -535,7 +523,6 @@ enum ExpenseType {
   bank
   advertising
   other
-
   @@map("expense_type")
 }
 
@@ -546,7 +533,6 @@ enum PaymentProvider {
   epay
   bank
   cash
-
   @@map("payment_provider")
 }
 
@@ -555,13 +541,11 @@ enum DocumentType {
   receipt
   medical_record
   other
-
   @@map("document_type")
 }
 
 enum DonationType {
   donation
-
   @@map("donation_type")
 }
 
@@ -576,7 +560,6 @@ enum DonationStatus {
   deleted
   refund
   paymentRequested
-
   @@map("donation_status")
 }
 
@@ -588,7 +571,6 @@ enum RecurringDonationStatus {
   incompleteExpired
   pastDue
   unpaid
-
   @@map("recurring_donation_status")
 }
 
@@ -599,7 +581,6 @@ enum WithdrawStatus {
   declined
   cancelled
   succeeded
-
   @@map("withdraw_status")
 }
 
@@ -610,14 +591,12 @@ enum TransferStatus {
   declined
   cancelled
   succeeded
-
   @@map("transfer_status")
 }
 
 enum AccountHolderType {
   individual
   company
-
   @@map("account_holder_type")
 }
 
@@ -639,7 +618,6 @@ enum BankAccountStatus {
   verified
   verification_failed
   errored
-
   @@map("bank_account_status")
 }
 
@@ -655,7 +633,6 @@ enum CampaignTypeCategory {
   nature
   animals
   others
-
   @@map("campaign_type_category")
 }
 
@@ -668,20 +645,17 @@ enum CampaignFileRole {
   profilePhoto
   campaignListPhoto
   beneficiaryPhoto
-
   @@map("campaign_file_role")
 }
 
-enum ReportStatus {
+enum IrregularityStatus {
   initial
   confirmed
   declined
-
-  @@map("report_status")
+  @@map("irregularity_status")
 }
 
-enum ReportReason {
-  none
+enum IrregularityReason {
   duplicate
   inappropriate
   illegalActivity
@@ -694,6 +668,11 @@ enum ReportReason {
   explicitContent
   fraud
   other
+  @@map("irregularity_reason")
+}
 
-  @@map("report_reason")
+enum NotifierType {
+  benefactor
+  other
+  @@map("notifier_type")
 }

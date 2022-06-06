@@ -1,11 +1,11 @@
-import { Prisma, ReportReason, ReportStatus } from '.prisma/client'
+import { Prisma, IrregularityReason, IrregularityStatus } from '.prisma/client'
 import { Expose, Type } from 'class-transformer'
 import { IsEnum, IsNotEmpty, IsObject, IsString, IsUUID, ValidateNested } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 import { CreatePersonDto } from '@podkrepi-bg/podkrepi-types'
 
 @Expose()
-export class CreateCampaignReportDto {
+export class CreateIrregularityDto {
   @ApiProperty()
   @IsNotEmpty()
   @Expose()
@@ -23,18 +23,18 @@ export class CreateCampaignReportDto {
   @ApiProperty()
   @Expose()
   @IsString()
-  public readonly reportContent: string
+  public readonly description: string
 
   @Expose()
-  @ApiProperty({ enum: ReportReason })
-  @IsEnum(ReportReason, { context: ReportReason })
-  public readonly reason: ReportReason
+  @ApiProperty({ enum: IrregularityReason })
+  @IsEnum(IrregularityReason, { context: IrregularityReason })
+  public readonly reason: IrregularityReason
 
-  public toEntity(): Prisma.CampaignReportCreateInput {
+  public toEntity(): Prisma.IrregularityCreateInput {
     return {
       reason: this.reason,
-      status: ReportStatus.initial,
-      reportContent: this.reportContent,
+      status: IrregularityStatus.initial,
+      description: this.description,
       campaign: { connect: { id: this.campaignId } },
       person: {
         connectOrCreate: {
