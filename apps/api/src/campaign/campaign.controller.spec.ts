@@ -11,7 +11,7 @@ import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { ConfigService } from '@nestjs/config'
 import { PersonService } from '../person/person.service'
-import * as hashGenerator from './hash-generator'
+import * as paymentReferenceGenerator from './helpers/payment-reference'
 
 describe('CampaignController', () => {
   let controller: CampaignController
@@ -37,7 +37,7 @@ describe('CampaignController', () => {
     toEntity: new CreateCampaignDto().toEntity,
   } as CreateCampaignDto
 
-  const bankHashMock = 'A1B2C'
+  const paymentReferenceMock = 'NY5P-KVO4-DNBZ'
   const mockCampaign = {
     ...mockCreateCampaign,
     ...{
@@ -50,7 +50,7 @@ describe('CampaignController', () => {
       beneficiary: {},
       coordinator: {},
       campaignFiles: [],
-      bankHash: bankHashMock,
+      paymentReference: paymentReferenceMock,
       vaults: [{ donations: [{ amount: 100 }, { amount: 10 }] }, { donations: [] }],
     },
   }
@@ -175,7 +175,9 @@ describe('CampaignController', () => {
       resource_access: { account: { roles: [] } },
       'allowed-origins': [],
     } as KeycloakTokenParsed
-    jest.spyOn(hashGenerator, 'getBankHash').mockReturnValue(bankHashMock)
+    jest
+      .spyOn(paymentReferenceGenerator, 'getPaymentReference')
+      .mockReturnValue(paymentReferenceMock)
 
     it('should call create without coordinator if user is admin', async () => {
       const mockObject = jest.fn().mockResolvedValue(mockCampaign)
@@ -189,7 +191,7 @@ describe('CampaignController', () => {
       ).toEqual(mockCampaign)
       expect(personServiceMock.findOneByKeycloakId).not.toHaveBeenCalled()
       expect(prismaService.campaign.create).toHaveBeenCalledWith({
-        data: {...mockCreateCampaign.toEntity(), ...{bankHash: bankHashMock}},
+        data: { ...mockCreateCampaign.toEntity(), ...{ paymentReference: paymentReferenceMock } },
       })
     })
     it('should call create with coordinator', async () => {
@@ -209,7 +211,7 @@ describe('CampaignController', () => {
               },
             },
           },
-          ...{ bankHash: bankHashMock },
+          ...{ paymentReference: paymentReferenceMock },
         },
         include: { coordinator: true },
       })

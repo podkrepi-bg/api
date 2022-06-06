@@ -2,7 +2,7 @@ export class CreateCampaignDto {
   slug: string
   title: string
   essence: string
-  bankHash: string
+  paymentReference: string
   description?: string
   targetAmount?: number
   startDate?: Date
