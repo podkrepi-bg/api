@@ -5,6 +5,12 @@ import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { AccountController } from './account.controller'
 import { AccountService } from './account.service'
 import { KeycloakTokenParsed } from '../auth/keycloak'
+import { AuthService } from '../auth/auth.service'
+import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
+import { HttpService } from '@nestjs/axios'
+import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
+import KeycloakConnect from 'keycloak-connect'
+import { mock, mockDeep } from 'jest-mock-extended'
 
 describe('AccountController', () => {
   let controller: AccountController
@@ -21,7 +27,36 @@ describe('AccountController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AccountController],
-      providers: [AccountService, PersonService, MockPrismaService, ConfigService],
+      providers: [
+        AccountService,
+        PersonService,
+        MockPrismaService,
+        ConfigService,
+        AuthService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              if (key === 'keycloak.clientId') return 'realm-a12345'
+              if (key === 'keycloak.secret') return 'a12345'
+              return null
+            }),
+          },
+        },
+        {
+          provide: KeycloakAdminClient,
+          useValue: mockDeep<KeycloakAdminClient>(),
+        },
+        {
+          provide: HttpService,
+          useValue: mockDeep<HttpService>(),
+        },
+        MockPrismaService,
+        {
+          provide: KEYCLOAK_INSTANCE,
+          useValue: mock<KeycloakConnect.Keycloak>(),
+        },
+      ],
     })
       .overrideProvider(ConfigService)
       .useValue({
