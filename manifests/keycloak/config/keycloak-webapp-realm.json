@@ -526,6 +526,7 @@
       "groups": []
     },
     {
+      "id":"81d93c73-db28-4402-8ec0-a5b1709ed1cf", 
       "username": "coordinator@podkrepi.bg",
       "email": "coordinator@podkrepi.bg",
       "firstName": "Coordinator",
@@ -547,6 +548,7 @@
       ]
     },
     {
+      "id":"190486ff-7f0e-4e28-94ca-b624726b5389",
       "username": "giver@podkrepi.bg",
       "email": "giver@podkrepi.bg",
       "firstName": "Giver",
@@ -567,6 +569,7 @@
       ]
     },
     {
+      "id":"6c688460-73ec-414c-8252-986b0658002b",
       "username": "receiver@podkrepi.bg",
       "email": "receiver@podkrepi.bg",
       "firstName": "Receiver",
@@ -587,6 +590,7 @@
       ]
     },
     {
+      "id":"36bec201-b203-46ad-a8c3-43a0128c73e1",
       "username": "reviewer@podkrepi.bg",
       "email": "reviewer@podkrepi.bg",
       "firstName": "Reviewer",
@@ -609,6 +613,7 @@
       ]
     },
     {
+      "id": "6892fe15-d116-4aec-a417-82ebd990b63a",
       "username": "admin@podkrepi.bg",
       "email": "admin@podkrepi.bg",
       "firstName": "Admin",

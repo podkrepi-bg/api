@@ -85,7 +85,7 @@ services:
   #####################
   keycloak:
     container_name: ${COMPOSE_PROJECT_NAME?}-keycloak
-    image: docker.io/bitnami/keycloak:18
+    image: docker.io/bitnami/keycloak:17
     profiles: ['local-keycloak']
     restart: always
     environment:
