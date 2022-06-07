@@ -55,7 +55,7 @@ export class CampaignController {
     @Body() createDto: CreateCampaignDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
-    if (createDto.state != CampaignState.draft) {
+    if (createDto.state && createDto.state != CampaignState.draft) {
       const message =
         "Can't create campaign in state different than draft. Not allowed state value received: " +
         createDto.state
