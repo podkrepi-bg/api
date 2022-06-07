@@ -21,9 +21,7 @@ export async function campaignSeed() {
     throw new Error('No coordinator')
   }
 
-  const beneficiaryFromDb = await prisma.beneficiary.findFirst({
-    where: { person: { email: 'receiver@podkrepi.bg' } },
-  })
+  const beneficiaryFromDb = await prisma.beneficiary.findFirst()
   console.log(beneficiaryFromDb)
 
   if (!beneficiaryFromDb) {
@@ -38,18 +36,18 @@ export async function campaignSeed() {
   }
 
   const insert = await prisma.campaign.createMany({
-    data: [...Array(12).keys()].map(() => {
-      const title = faker.lorem.sentence(3)
+    data: [...Array(20).keys()].map(() => {
+      const title = faker.lorem.sentence()
       const randomType = campaignTypeFromDb[Math.floor(Math.random() * campaignTypeFromDb.length)]
       return {
-        state: faker.random.objectElement<CampaignState>(CampaignState),
+        state: CampaignState.active,
         slug: faker.helpers.slugify(title).replace('.', '').toLowerCase(),
         title,
         essence: faker.company.catchPhrase(),
         coordinatorId: coordinatorFromDb.id,
         beneficiaryId: beneficiaryFromDb.id,
         campaignTypeId: randomType.id,
-        description: faker.lorem.paragraphs(1),
+        description: faker.lorem.paragraphs(4),
         targetAmount: parseInt(faker.finance.amount(2000, 200000)),
         currency: Currency.BGN,
         paymentReference: getPaymentReference(),
