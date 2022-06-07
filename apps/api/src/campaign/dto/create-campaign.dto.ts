@@ -12,7 +12,7 @@ import {
 } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose, Type } from 'class-transformer'
-import { Currency, Prisma } from '.prisma/client'
+import { CampaignState, Currency, Prisma } from '.prisma/client'
 import { getPaymentReference } from '../helpers/payment-reference'
 
 @Expose()
@@ -98,6 +98,13 @@ export class CreateCampaignDto {
   @Type(() => Date)
   endDate: Date | null
 
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  @IsString()
+  @IsEnum(CampaignState)
+  state: CampaignState | undefined
+
   public toEntity(): Prisma.CampaignCreateInput {
     return {
       title: this.title,
@@ -110,6 +117,7 @@ export class CreateCampaignDto {
       allowDonationOnComplete: this.allowDonationOnComplete,
       startDate: this.startDate,
       endDate: this.endDate,
+      state: this.state,
       vaults: { create: { currency: this.currency, name: this.title } },
       campaignType: { connect: { id: this.campaignTypeId } },
       beneficiary: { connect: { id: this.beneficiaryId } },
