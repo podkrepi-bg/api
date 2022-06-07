@@ -10,7 +10,7 @@
     "start": "yarn nx serve",
     "build": "yarn nx lint api && yarn nx build",
     "build-all": "yarn nx run-many --target build --all --parallel",
-    "test": "yarn prisma generate && yarn jest",
+    "test": "yarn prisma generate && yarn format && yarn jest",
     "test:ci": "yarn prisma generate && yarn jest",
     "test:changed": "yarn jest --onlyChanged",
     "stripe:listen-webhook": "stripe listen --forward-to localhost:5010/api/v1/stripe/webhook",
@@ -51,7 +51,7 @@
     "nest-keycloak-connect": "^1.8.3",
     "reflect-metadata": "0.1.13",
     "rxjs": "7.5.5",
-    "short-unique-id": "^4.4.4",
+    "nanoid": "^3.3.4",
     "stripe": "^9.1.0",
     "swagger-ui-express": "^4.4.0",
     "tslib": "2.4.0"

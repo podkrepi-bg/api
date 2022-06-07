@@ -11,7 +11,7 @@ import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { ConfigService } from '@nestjs/config'
 import { PersonService } from '../person/person.service'
-import * as hashGenerator from './hash-generator'
+import * as paymentReferenceGenerator from './helpers/payment-reference'
 
 describe('CampaignController', () => {
   let controller: CampaignController
@@ -21,6 +21,7 @@ describe('CampaignController', () => {
       return { id: personIdMock }
     }),
   }
+
   const mockCreateCampaign = {
     slug: 'test-slug',
     title: 'Test name',
@@ -37,7 +38,22 @@ describe('CampaignController', () => {
     toEntity: new CreateCampaignDto().toEntity,
   } as CreateCampaignDto
 
-  const bankHashMock = 'A1B2C'
+  const mockCreateCampaignEmptyCoordinator = {
+    slug: 'test-slug',
+    title: 'Test name',
+    description: 'Test description',
+    essence: 'test',
+    beneficiaryId: 'testBeneficiaryId',
+    campaignTypeId: 'testCampaignTypeId',
+    targetAmount: 1000,
+    reachedAmount: 0,
+    startDate: null,
+    endDate: null,
+    currency: Currency.BGN,
+    toEntity: new CreateCampaignDto().toEntity,
+  } as CreateCampaignDto
+
+  const paymentReferenceMock = 'NY5P-KVO4-DNBZ'
   const mockCampaign = {
     ...mockCreateCampaign,
     ...{
@@ -50,10 +66,11 @@ describe('CampaignController', () => {
       beneficiary: {},
       coordinator: {},
       campaignFiles: [],
-      bankHash: bankHashMock,
+      paymentReference: paymentReferenceMock,
       vaults: [{ donations: [{ amount: 100 }, { amount: 10 }] }, { donations: [] }],
     },
   }
+
   const personIdMock = 'testPersonId'
 
   beforeEach(async () => {
@@ -175,28 +192,28 @@ describe('CampaignController', () => {
       resource_access: { account: { roles: [] } },
       'allowed-origins': [],
     } as KeycloakTokenParsed
-    jest.spyOn(hashGenerator, 'getBankHash').mockReturnValue(bankHashMock)
+    jest
+      .spyOn(paymentReferenceGenerator, 'getPaymentReference')
+      .mockReturnValue(paymentReferenceMock)
 
-    it('should call create without coordinator if user is admin', async () => {
-      const mockObject = jest.fn().mockResolvedValue(mockCampaign)
-      jest.spyOn(prismaService.campaign, 'create').mockImplementation(mockObject)
-
-      expect(
-        await controller.create(mockCreateCampaign, {
-          ...mockUser,
-          ...{ resource_access: { account: { roles: ['account-view-supporters'] } } },
-        }),
-      ).toEqual(mockCampaign)
-      expect(personServiceMock.findOneByKeycloakId).not.toHaveBeenCalled()
-      expect(prismaService.campaign.create).toHaveBeenCalledWith({
-        data: {...mockCreateCampaign.toEntity(), ...{bankHash: bankHashMock}},
-      })
-    })
-    it('should call create with coordinator', async () => {
+    it('should call create with coordinator id', async () => {
       const mockObject = jest.fn().mockResolvedValue(mockCampaign)
       jest.spyOn(prismaService.campaign, 'create').mockImplementation(mockObject)
 
       expect(await controller.create(mockCreateCampaign, mockUser)).toEqual(mockCampaign)
+      expect(personServiceMock.findOneByKeycloakId).not.toHaveBeenCalled()
+      expect(prismaService.campaign.create).toHaveBeenCalledWith({
+        data: { ...mockCreateCampaign.toEntity(), ...{ paymentReference: paymentReferenceMock } },
+      })
+    })
+
+    it('calling without coordinator id should make the creator a coordinator', async () => {
+      const mockObject = jest.fn().mockResolvedValue(mockCampaign)
+      jest.spyOn(prismaService.campaign, 'create').mockImplementation(mockObject)
+
+      expect(await controller.create(mockCreateCampaignEmptyCoordinator, mockUser)).toEqual(
+        mockCampaign,
+      )
       expect(personServiceMock.findOneByKeycloakId).toHaveBeenCalledWith(mockUser.sub)
       expect(prismaService.campaign.create).toHaveBeenCalledWith({
         data: {
@@ -209,7 +226,7 @@ describe('CampaignController', () => {
               },
             },
           },
-          ...{ bankHash: bankHashMock },
+          ...{ paymentReference: paymentReferenceMock },
         },
         include: { coordinator: true },
       })

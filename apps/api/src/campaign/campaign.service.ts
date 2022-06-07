@@ -35,6 +35,9 @@ export class CampaignService {
 
   async listCampaigns(): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({
+      orderBy: {
+        endDate: 'asc',
+      },
       where: { state: { in: [CampaignState.active, CampaignState.complete] } },
       include: {
         campaignType: { select: { category: true } },
@@ -55,6 +58,9 @@ export class CampaignService {
 
   async listAllCampaigns(): Promise<Campaign[]> {
     return await this.prisma.campaign.findMany({
+      orderBy: {
+        endDate: 'asc',
+      },
       include: {
         campaignType: { select: { name: true } },
         beneficiary: { select: { person: { select: { firstName: true, lastName: true } } } },

@@ -156,7 +156,7 @@ model Campaign {
   slug                    String           @unique @db.VarChar(250)
   title                   String           @db.VarChar(200)
   essence                 String           @db.VarChar(500)
-  bankHash                String           @map("bank_hash") @db.VarChar(5)
+  paymentReference        String           @map("payment_reference") @unique @db.VarChar(15)
   coordinatorId           String           @map("coordinator_id") @db.Uuid
   beneficiaryId           String           @map("beneficiary_id") @db.Uuid
   campaignTypeId          String           @map("campaign_type_id") @db.Uuid
