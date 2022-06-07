@@ -1,4 +1,4 @@
-import { Campaign } from '.prisma/client'
+import { Campaign, CampaignState } from '.prisma/client'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import {
@@ -13,6 +13,7 @@ import {
   forwardRef,
   Inject,
   Logger,
+  BadRequestException,
 } from '@nestjs/common'
 
 import { CampaignService } from './campaign.service'
@@ -54,6 +55,14 @@ export class CampaignController {
     @Body() createDto: CreateCampaignDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
+    if (createDto.state != CampaignState.draft) {
+      const message =
+        "Can't create campaign in state different than draft. Not allowed state value received: " +
+        createDto.state
+      Logger.error(message)
+      throw new BadRequestException(message)
+    }
+
     if (!isAdmin(user)) {
       Logger.warn('The campaign creator is not in admin role. User name is: ' + user.name)
     }
