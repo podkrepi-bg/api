@@ -122,7 +122,7 @@ Table campaigns {
   slug String [unique, not null]
   title String [not null]
   essence String [not null]
-  bankHash String [not null]
+  paymentReference String [unique, not null]
   coordinatorId String [not null]
   beneficiaryId String [not null]
   campaignTypeId String [not null]

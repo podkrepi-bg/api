@@ -15,7 +15,7 @@ export class Campaign {
   slug: string
   title: string
   essence: string
-  bankHash: string
+  paymentReference: string
   coordinatorId: string
   beneficiaryId: string
   campaignTypeId: string

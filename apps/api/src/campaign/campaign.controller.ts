@@ -1,4 +1,4 @@
-import { Campaign } from '.prisma/client'
+import { Campaign, CampaignState } from '.prisma/client'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import {
@@ -12,6 +12,8 @@ import {
   NotFoundException,
   forwardRef,
   Inject,
+  Logger,
+  BadRequestException,
 } from '@nestjs/common'
 
 import { CampaignService } from './campaign.service'
@@ -19,7 +21,6 @@ import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from '../campaign/dto/update-campaign.dto'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { PersonService } from '../person/person.service'
-
 @Controller('campaign')
 export class CampaignController {
   constructor(
@@ -54,11 +55,26 @@ export class CampaignController {
     @Body() createDto: CreateCampaignDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
-    let person
+    if (createDto.state && createDto.state != CampaignState.draft) {
+      const message =
+        "Can't create campaign in state different than draft. Not allowed state value received: " +
+        createDto.state
+      Logger.error(message)
+      throw new BadRequestException(message)
+    }
+
     if (!isAdmin(user)) {
+      Logger.warn('The campaign creator is not in admin role. User name is: ' + user.name)
+    }
+
+    let person
+    if (!createDto.coordinatorId) {
+      //Find the creator personId and make him a coordinator
       person = await this.personService.findOneByKeycloakId(user.sub as string)
+
       if (!person) {
-        throw new NotFoundException('No person found for logged user')
+        Logger.error('No person found in database for logged user: ' + user.name)
+        throw new NotFoundException('No person found for logged user: ' + user.name)
       }
     }
 
