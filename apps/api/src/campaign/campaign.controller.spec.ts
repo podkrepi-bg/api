@@ -58,7 +58,7 @@ describe('CampaignController', () => {
     ...mockCreateCampaign,
     ...{
       id: 'testId',
-      state: CampaignState.active,
+      state: CampaignState.draft,
       createdAt: new Date('2022-04-08T06:36:33.661Z'),
       updatedAt: new Date('2022-04-08T06:36:33.662Z'),
       deletedAt: null,
@@ -115,7 +115,7 @@ describe('CampaignController', () => {
         ...mockCreateCampaign,
         ...{
           id: 'testId',
-          state: CampaignState.active,
+          state: CampaignState.draft,
           createdAt: new Date('2022-04-08T06:36:33.661Z'),
           updatedAt: new Date('2022-04-08T06:36:33.662Z'),
           deletedAt: null,
