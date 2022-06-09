@@ -448,6 +448,14 @@ model Document {
   expenses    Expense[]
   @@map("documents")
 }
+model BankTransactionsFile {
+  id         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename   String           @db.VarChar(200)
+  mimetype   String           @db.VarChar(50)
+  bankTransactionsFileId String           @map("bank_transactions_file_id")  @db.VarChar(50)
+  role       BankTransactionsFileRole
+  @@map("bank_transactions_files")
+}
 
 enum BeneficiaryType {
   individual
@@ -676,14 +684,7 @@ enum NotifierType {
   other
   @@map("notifier_type")
 }
-model BankTransactionsFile {
-  id         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  filename   String           @db.VarChar(200)
-  mimetype   String           @db.VarChar(50)
-  bankTransactionsFileId String           @map("bank_transactions_file_id")  @db.VarChar(50)
-  role       BankTransactionsFileRole
-  @@map("bank_transactions_files")
-}
+
 enum BankTransactionsFileRole {
   xml
   other
