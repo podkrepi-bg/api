@@ -45,7 +45,7 @@ import { RecurringDonationModule } from '../recurring-donation/recurring-donatio
 import { TransferModule } from '../transfer/transfer.module'
 import { IrregularityFileModule } from '../irregularity-file/irregularity-file.module'
 import { IrregularityModule } from '../irregularity/irregularity.module'
-import { BankTransactionsFile } from '../bank-transactions-file/entities/bank-transactions-file.entity'
+import { BankTransactionsFileModule } from '../bank-transactions-file/bank-transactions-file.module'
 
 @Module({
   imports: [
@@ -89,7 +89,8 @@ import { BankTransactionsFile } from '../bank-transactions-file/entities/bank-tr
     TransferModule,
     IrregularityFileModule,
     IrregularityModule,
-    BankTransactionsFile
+    BankTransactionsFileModule,
+
   ],
   controllers: [AppController],
   providers: [
