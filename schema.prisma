@@ -216,7 +216,7 @@ model IrregularityFile {
   filename        String       @db.VarChar(200)
   mimetype        String       @db.VarChar(50)
   irregularityId  String       @map("irregularity_id") @db.Uuid
-  uploaderId      String       @map("uploader_id") @db.Uuid 
+  uploaderId      String       @map("uploader_id") @db.Uuid
   irregularity    Irregularity @relation(fields: [irregularityId], references: [id])
   uploadedBy      Person       @relation(fields: [uploaderId], references: [id])
   @@map("irregularity_files")
@@ -675,4 +675,18 @@ enum NotifierType {
   benefactor
   other
   @@map("notifier_type")
+}
+model BankTransactionsFile {
+  id         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename   String           @db.VarChar(200)
+  mimetype   String           @db.VarChar(50)
+  bankTransactionsFileId String           @map("bank_transactions_file_id")  @db.VarChar(50)
+  role       BankTransactionsFileRole
+  @@map("bank_transactions_files")
+}
+enum BankTransactionsFileRole {
+  xml
+  other
+
+  @@map("bank_transactions_file_role")
 }
