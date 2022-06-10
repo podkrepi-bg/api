@@ -5,4 +5,5 @@ export class CreateBankTransactionsFileDto {
   mimetype: string
   bankTransactionsFileId: string
   role: BankTransactionsFileRole
+  personId: string
 }
