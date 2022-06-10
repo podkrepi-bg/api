@@ -21,7 +21,7 @@ import { RegisterDto } from './dto/register.dto'
 import { RefreshDto } from './dto/refresh.dto'
 import { KeycloakTokenParsed } from './keycloak'
 import { ProviderDto } from './dto/provider.dto'
-import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation'
+import { UpdatePersonDto } from '../person/dto/update-person.dto'
 
 type ErrorResponse = { error: string; data: unknown }
 type KeycloakErrorResponse = { error: string; error_description: string }
@@ -222,9 +222,9 @@ export class AuthService {
     })
   }
 
-  async updateKeycloakUser(id: string, updateDto: UserRepresentation) {
+  async updateUser(id: string, updateDto: UpdatePersonDto) {
     await this.authenticateAdmin()
-    return await this.admin.users.update(
+    await this.admin.users.update(
       { id },
       {
         username: updateDto.email,
@@ -236,9 +236,18 @@ export class AuthService {
         enabled: true,
       },
     )
+    return await this.prismaService.person.update({
+      where: { keycloakId: id },
+      data: {
+        firstName: updateDto.firstName,
+        lastName: updateDto.lastName,
+        email: updateDto.email,
+        birthday: updateDto.birthday,
+      },
+    })
   }
 
-  async updateKeycloakUserPassword(id: string, credentialsDto) {
+  async updateUserPassword(id: string, credentialsDto) {
     await this.authenticateAdmin()
     await this.admin.users.resetPassword({
       id,
@@ -251,7 +260,7 @@ export class AuthService {
     return true
   }
 
-  async disableKeycloakUser(id: string) {
+  async disableUser(id: string) {
     await this.authenticateAdmin()
     return await this.admin.users.update(
       { id },
