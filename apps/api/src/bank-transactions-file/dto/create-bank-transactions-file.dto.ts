@@ -1,9 +1,9 @@
-import { BankTransactionsFileRole } from "@prisma/client"
+import { BankTransactionsFileType } from '@prisma/client'
 
 export class CreateBankTransactionsFileDto {
   filename: string
   mimetype: string
   bankTransactionsFileId: string
-  role: BankTransactionsFileRole
+  type: BankTransactionsFileType
   personId: string
 }

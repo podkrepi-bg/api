@@ -1,9 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { BankTransactionsFile, BankTransactionsFileRole, Person } from '@prisma/client';
-import { Readable } from 'stream';
-import { PrismaService } from '../prisma/prisma.service';
-import { S3Service } from '../s3/s3.service';
-import { CreateBankTransactionsFileDto } from './dto/create-bank-transactions-file.dto';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { BankTransactionsFile, BankTransactionsFileType, Person } from '@prisma/client'
+import { Readable } from 'stream'
+import { PrismaService } from '../prisma/prisma.service'
+import { S3Service } from '../s3/s3.service'
+import { CreateBankTransactionsFileDto } from './dto/create-bank-transactions-file.dto'
 
 @Injectable()
 export class BankTransactionsFileService {
@@ -11,34 +11,35 @@ export class BankTransactionsFileService {
   constructor(private prisma: PrismaService, private s3: S3Service) {}
 
   async create(
-    role: BankTransactionsFileRole,
+    type: BankTransactionsFileType,
     filename: string,
     mimetype: string,
-    bankTransactionsFileId : string,
+    bankTransactionsFileId: string,
     person: Person,
     buffer: Buffer,
   ): Promise<string> {
-    const file: CreateBankTransactionsFileDto= {
+    const file: CreateBankTransactionsFileDto = {
       bankTransactionsFileId,
       mimetype,
       filename,
-      role,
+      type,
       personId: person.id,
     }
     const dbFile = await this.prisma.bankTransactionsFile.create({ data: file })
-     // Use the DB primary key as the S3 key. This will make sure if is always unique.
+    // Use the DB primary key as the S3 key. This will make sure if is always unique.
 
-      await this.s3.uploadObject(
-        this.bucketName,
-        dbFile.id,
-        filename,
-        mimetype,
-        buffer,
-        'BankTransactionsFile',
-        bankTransactionsFileId,
-        person.id,) // need key from s3 access
+    await this.s3.uploadObject(
+      this.bucketName,
+      dbFile.id,
+      filename,
+      mimetype,
+      buffer,
+      'BankTransactionsFile',
+      bankTransactionsFileId,
+      person.id,
+    ) // need key from s3 access
 
-     return dbFile.id
+    return dbFile.id
   }
 
   async findAll() {
@@ -62,7 +63,6 @@ export class BankTransactionsFileService {
       stream: await this.s3.streamFile(this.bucketName, id),
     }
   }
-
 
   async remove(id: string) {
     await this.s3.deleteObject(this.bucketName, id)

@@ -90,7 +90,6 @@ import { BankTransactionsFileModule } from '../bank-transactions-file/bank-trans
     IrregularityFileModule,
     IrregularityModule,
     BankTransactionsFileModule,
-
   ],
   controllers: [AppController],
   providers: [
