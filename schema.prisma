@@ -453,6 +453,7 @@ model BankTransactionsFile {
   filename   String           @db.VarChar(200)
   mimetype   String           @db.VarChar(50)
   bankTransactionsFileId String           @map("bank_transactions_file_id")  @db.VarChar(50)
+  personId   String           @map("person_id") @db.Uuid
   type       BankTransactionsFileType
   @@map("bank_transactions_files")
 }
