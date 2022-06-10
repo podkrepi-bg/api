@@ -392,7 +392,7 @@ Table bank_transactions_files {
   filename String [not null]
   mimetype String [not null]
   bankTransactionsFileId String [not null]
-  role BankTransactionsFileRole [not null]
+  type BankTransactionsFileType [not null]
 }
 
 Enum BeneficiaryType {
@@ -591,7 +591,7 @@ Enum NotifierType {
   other
 }
 
-Enum BankTransactionsFileRole {
+Enum BankTransactionsFileType {
   xml
   other
 }
