@@ -56,7 +56,7 @@ export class CampaignFileService {
     return {
       filename: file.filename,
       mimetype: file.mimetype,
-    stream: await this.s3.streamFile(this.bucketName, id),
+      stream: await this.s3.streamFile(this.bucketName, id),
     }
   }
 

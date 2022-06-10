@@ -21,14 +21,13 @@ import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types
 import { FilesTypesDto } from './dto/files-type.dto'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { PersonService } from '../person/person.service'
-import { DonationsService } from '../donations/donations.service'
+
 
 @Controller('bank-transactions-file')
 export class BankTransactionsFileController {
   constructor(
     private readonly bankTransactionsFileService: BankTransactionsFileService,
     @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
-    private readonly DonationsService: DonationsService,
   ) {}
 
   @Post(':bank_transactions_file_id')

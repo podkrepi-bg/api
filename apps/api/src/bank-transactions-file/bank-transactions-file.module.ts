@@ -4,10 +4,15 @@ import { BankTransactionsFileController } from './bank-transactions-file.control
 import { PrismaService } from '../prisma/prisma.service'
 import { S3Service } from '../s3/s3.service'
 import { PersonService } from '../person/person.service'
-import { DonationsService } from '../donations/donations.service'
+
 
 @Module({
   controllers: [BankTransactionsFileController],
-  providers: [BankTransactionsFileService, PrismaService, S3Service,PersonService, DonationsService],
+  providers: [
+    BankTransactionsFileService,
+    PrismaService,
+    S3Service,
+    PersonService,
+  ],
 })
 export class BankTransactionsFileModule {}
