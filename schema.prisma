@@ -453,7 +453,7 @@ model BankTransactionsFile {
   filename   String           @db.VarChar(200)
   mimetype   String           @db.VarChar(50)
   bankTransactionsFileId String           @map("bank_transactions_file_id")  @db.VarChar(50)
-  role       BankTransactionsFileRole
+  type       BankTransactionsFileType
   @@map("bank_transactions_files")
 }
 
@@ -685,9 +685,8 @@ enum NotifierType {
   @@map("notifier_type")
 }
 
-enum BankTransactionsFileRole {
+enum BankTransactionsFileType {
   xml
   other
-
-  @@map("bank_transactions_file_role")
+  @@map("bank_transactions_file_type")
 }
