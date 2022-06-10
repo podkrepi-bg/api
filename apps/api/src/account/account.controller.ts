@@ -39,7 +39,7 @@ export class AccountController {
     try {
       person = await this.accountService.updateUserProfile(user, data)
     } catch (err) {
-      Logger.warn(`Failed to update user with keycloakId ${user.sub}`)
+      Logger.error(`Failed to update user with keycloakId ${user.sub}`)
       throw err
     }
 
@@ -57,7 +57,8 @@ export class AccountController {
     try {
       hasSucceeded = await this.accountService.updateUserPassword(user, data)
     } catch (err) {
-      Logger.warn(`Failed to update user with keycloakId ${user.sub}`)
+      Logger.error(`Failed to update user with keycloakId ${user.sub}`)
+      throw err
     }
 
     return {
@@ -72,7 +73,8 @@ export class AccountController {
     try {
       return await this.accountService.disableUser(user)
     } catch (err) {
-      Logger.warn(`Failed to disable user with keycloakId ${user.sub}`)
+      Logger.error(`Failed to disable user with keycloakId ${user.sub}`)
+      throw err
     }
   }
 
