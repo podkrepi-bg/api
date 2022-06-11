@@ -50,18 +50,23 @@ export class BankTransactionsFileController {
 
     return await Promise.all(
       files.map((file, key) => {
-        parseString(file.buffer, function (err, result) {
-          console.log(result)
-          for (const key in result) {
-            console.log(result[key])
+        parseString(file.buffer, function (err, items) {
+          for (const object in items) {
+            for (const movement in items[object].AccountMovement) {
+              console.log('-------------------------------------')
+              console.log(items[object].AccountMovement[movement]);
+
+            }
           }
         })
+
+
         const filesType = body.types
         return this.bankTransactionsFileService.create(
           Array.isArray(filesType) ? filesType[key] : filesType,
-          bankTransactionsFileId,
-          file.mimetype,
           file.originalname,
+          file.mimetype,
+          bankTransactionsFileId,
           person,
           file.buffer,
         )
