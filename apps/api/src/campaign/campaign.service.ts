@@ -70,7 +70,10 @@ export class CampaignService {
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
-    const campaign = await this.prisma.campaign.findFirst({ where: { id: campaignId } })
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: campaignId },
+      include: { campaignFiles: true },
+    })
     if (!campaign) {
       Logger.warn('No campaign record with ID: ' + campaignId)
       throw new NotFoundException('No campaign record with ID: ' + campaignId)
