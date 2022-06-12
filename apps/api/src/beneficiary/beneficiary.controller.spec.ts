@@ -23,12 +23,13 @@ const mockData = [
     description: '',
     privateData: '',
     publicData: '',
-    companyId: null,
+    companyId: '',
   },
   {
+    //company
     id: '159c3d7b-f752-43e9-870b-f05e5b7c313c',
-    type: BeneficiaryType.individual,
-    personId: 'e08d9539-f830-456f-9510-a0f3ef6f93ec',
+    type: BeneficiaryType.company,
+    personId: '',
     coordinatorId: 'da2980b0-86ea-41bd-a7f9-78c49da04e32',
     countryCode: 'BG',
     cityId: 'a7ba19e5-c23b-40d6-bcb0-cf2f4acfb0f5',
@@ -38,7 +39,7 @@ const mockData = [
     description: '',
     privateData: '',
     publicData: '',
-    companyId: null,
+    companyId: 'e08d9539-f830-456f-9510-a0f3ef6f93ec',
   },
   {
     id: '160e2ec4-d012-432b-b439-22402a074085',
@@ -53,7 +54,7 @@ const mockData = [
     description: '',
     privateData: '',
     publicData: '',
-    companyId: null,
+    companyId: '',
   },
 ]
 
@@ -117,6 +118,7 @@ describe('BeneficiaryController', () => {
     const createDto: CreateBeneficiaryDto = {
       type: BeneficiaryType.individual,
       personId: beneficiary.personId,
+      companyId: '',
       coordinatorId: beneficiary.coordinatorId,
       countryCode: beneficiary.countryCode,
       cityId: beneficiary.cityId,
@@ -133,6 +135,7 @@ describe('BeneficiaryController', () => {
 
   it('it should update beneficiary', async () => {
     const beneficiary = mockData[0]
+    beneficiary.description = 'Updated Description'
     prismaMock.beneficiary.update.mockResolvedValue(beneficiary)
 
     const result = await controller.editById(beneficiary.id, beneficiary)
@@ -142,6 +145,7 @@ describe('BeneficiaryController', () => {
       data: beneficiary,
     })
   })
+
   it('should remove one item', async () => {
     const beneficiary = mockData[0]
     prismaMock.beneficiary.delete.mockResolvedValue(beneficiary)
@@ -149,5 +153,17 @@ describe('BeneficiaryController', () => {
     const result = await controller.deleteById(beneficiary.id)
     expect(result).toEqual(beneficiary)
     expect(prismaMock.beneficiary.delete).toHaveBeenCalledWith({ where: { id: beneficiary.id } })
+  })
+
+  it('it should create beneficiary as company', async () => {
+    const beneficiary = mockData[1]
+    prismaMock.beneficiary.update.mockResolvedValue(beneficiary)
+
+    const result = await controller.editById(beneficiary.id, beneficiary)
+    expect(result).toEqual(beneficiary)
+    expect(prismaMock.beneficiary.update).toHaveBeenCalledWith({
+      where: { id: beneficiary.id },
+      data: beneficiary,
+    })
   })
 })
