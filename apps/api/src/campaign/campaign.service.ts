@@ -132,7 +132,8 @@ export class CampaignService {
     return this.addReachedAmountAndDonors(campaign)
   }
   async getCampaignByPaymentReference(paymentReference: string): Promise<Campaign> {
-    const campaign = await this.prisma.campaign.findFirst({ where: { paymentReference: paymentReference } })
+    const campaign = await this.prisma.campaign.findFirst({ where: { paymentReference: paymentReference },
+    })
     if (!campaign) {
       Logger.warn('No campaign record with Payment Reference: ' + paymentReference)
       throw new NotFoundException('No campaign record with Payment Reference: ' + paymentReference)
@@ -179,7 +180,11 @@ export class CampaignService {
     const campaign = await this.prisma.campaign.findFirst({
       where: { id: campaignId },
       include: {
-        vaults: true,
+        vaults: {
+          select :{
+            id : true
+          }
+        }
       },
     })
 
