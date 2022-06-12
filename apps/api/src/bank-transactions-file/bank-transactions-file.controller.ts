@@ -66,7 +66,7 @@ export class BankTransactionsFileController {
 
     const promises = await Promise.all(
       files.map((file, key) => {
-        accountMovementsForAfile=(parseBankTransactionsFile(file.buffer))
+        accountMovementsForAfile = parseBankTransactionsFile(file.buffer)
         accountMovements.push(accountMovementsForAfile)
         const filesType = body.types
         return this.bankTransactionsFileService.create(
@@ -79,20 +79,22 @@ export class BankTransactionsFileController {
         )
       }),
     )
-    for (const fileOfBankTransactions of accountMovements) {
-    for await (const movement of fileOfBankTransactions) {
-      const campaign = await this.campaignService.getCampaignByPaymentReference(movement.paymentRef)
-      if (!campaign) {
-        Logger.warn('No campaign with payment reference: ' + movement.paymentRef)
-        throw new NotFoundException('No person record with keycloak ID: ' + keycloakId)
+    for (const fileOfBankMovements of accountMovements) {
+      for await (const movement of fileOfBankMovements) {
+        const campaign = await this.campaignService.getCampaignByPaymentReference(
+          movement.paymentRef,
+        )
+        if (!campaign) {
+          Logger.warn('No campaign with payment reference: ' + movement.paymentRef)
+          throw new NotFoundException('No person record with keycloak ID: ' + keycloakId)
+        }
+        const vault = await this.vaultService.findByCampaignId(campaign.id)
+        movement.payment.extPaymentMethodId = 'imported file bank payment'
+        movement.payment.targetVaultId = vault[0].id
+        movement.payment.personsEmail = person.email
+        const donation = await this.donationsService.createBankPayment(movement.payment)
       }
-      const vault = await this.vaultService.findByCampaignId(campaign.id)
-      movement.payment.extPaymentMethodId = 'imported file bank payment'
-      movement.payment.targetVaultId = vault[0].id
-      movement.payment.personsEmail = person.email
-      const donation = await this.donationsService.createBankPayment(movement.payment)
     }
-  }
     return promises
   }
 
