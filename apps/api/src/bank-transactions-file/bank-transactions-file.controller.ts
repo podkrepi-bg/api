@@ -21,12 +21,18 @@ import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types
 import { FilesTypesDto } from './dto/files-type.dto'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { PersonService } from '../person/person.service'
+import { VaultService } from '../vault/vault.service'
+import { CampaignService } from '../campaign/campaign.service'
+import { DonationsService } from '../donations/donations.service'
 
 
 @Controller('bank-transactions-file')
 export class BankTransactionsFileController {
   constructor(
     private readonly bankTransactionsFileService: BankTransactionsFileService,
+    @Inject(forwardRef(() => VaultService)) private vaultService: VaultService,
+    private readonly donationsService: DonationsService,
+    private readonly campaignService: CampaignService,
     @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
   ) {}
 
@@ -48,19 +54,49 @@ export class BankTransactionsFileController {
     const parseString = require('xml2js').parseString
     const xml = '<root>Hello xml2js!</root>'
 
-    return await Promise.all(
+    const accountMovements : {
+      amount : number, currency : string, firstName : string,
+      lastName : string, paymentRef: string, extCustomerId : string,
+      extPaymentMethodId : string, extPaymentIntentId: string
+      }[] = []
+    const promises =  await Promise.all(
+
       files.map((file, key) => {
         parseString(file.buffer, function (err, items) {
           for (const object in items) {
             for (const movement in items[object].AccountMovement) {
-              console.log('-------------------------------------')
-              console.log(items[object].AccountMovement[movement]);
-
+              if(items[object].AccountMovement[movement].MovementType[0] === "Credit"){
+                const AccountMovement : {
+                  amount : number, currency : string, firstName : string,
+                  lastName : string, paymentRef: string, extCustomerId : string,
+                  extPaymentMethodId : string, extPaymentIntentId: string
+                  } = {
+                  amount : 0,
+                  currency : '',
+                  paymentRef:'',
+                  extCustomerId:'',
+                  extPaymentIntentId:'',
+                  extPaymentMethodId : 'bank payment',
+                  firstName : '',
+                  lastName : '',
+                }
+                AccountMovement.amount  = Number(items[object].AccountMovement[movement].Amount[0]) * 100
+                AccountMovement.currency  = items[object].AccountMovement[movement].CCY[0]
+                AccountMovement.paymentRef  = items[object].AccountMovement[movement].Reason[0]
+                AccountMovement.extCustomerId  = items[object].AccountMovement[movement].Account[0].BankClientID[0]
+                AccountMovement.extPaymentIntentId  = items[object].AccountMovement[movement].DocumentReference[0]
+                const [firstName,middleName,lastName] = items[object].AccountMovement[movement].OppositeSideName[0].split(' ')
+                AccountMovement.firstName = firstName
+                AccountMovement.lastName = lastName
+                accountMovements.push(AccountMovement)
+              }
             }
           }
         })
+
+
 // reason -> paymentRef -> finding campaign -> get campaign -> get vaultById /firstOne/-> get ID
-// the amount have to multiplied by 100 to be accurate
+// the amount have to multiplied by 100 in order to be accurate
 // extPaymentMethodId -> bank payment
 // DocumentReference -> extPaymentIntentId
 // BankClientID -> extCustomerId
@@ -74,7 +110,17 @@ export class BankTransactionsFileController {
           file.buffer,
         )
       }),
-    )
+      )
+      console.log(accountMovements);
+
+      for await (const movement of accountMovements){
+        const campaign = await this.campaignService.getCampaignByPaymentReference(movement.paymentRef)
+        console.log(campaign);
+        campaign.
+
+      }
+
+      return promises
   }
 
   @Get()
