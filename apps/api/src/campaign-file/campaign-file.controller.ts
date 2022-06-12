@@ -48,9 +48,14 @@ export class CampaignFileController {
     }
 
     if (!isAdmin(user)) {
-      const campaign = await this.campaignService.getCampaignByIdAndPersonId(campaignId, person.id)
+      const campaign = await this.campaignService.getCampaignByIdAndCoordinatorId(
+        campaignId,
+        person.id,
+      )
       if (!campaign) {
-        throw new NotFoundException('No campaign found for logged user')
+        throw new NotFoundException(
+          'User ' + user.name + 'is not admin or coordinator of campaign with id: ' + campaignId,
+        )
       }
     }
 
