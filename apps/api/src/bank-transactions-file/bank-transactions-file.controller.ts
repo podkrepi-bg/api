@@ -61,11 +61,13 @@ export class BankTransactionsFileController {
       }
     })
 
-    let accountMovements: { payment: CreateBankPaymentDto; paymentRef: string }[] = []
+    const accountMovements: { payment: CreateBankPaymentDto; paymentRef: string }[][] = []
+    let accountMovementsForAfile: { payment: CreateBankPaymentDto; paymentRef: string }[] = []
 
     const promises = await Promise.all(
       files.map((file, key) => {
-        accountMovements=(parseBankTransactionsFile(file.buffer))
+        accountMovementsForAfile=(parseBankTransactionsFile(file.buffer))
+        accountMovements.push(accountMovementsForAfile)
         const filesType = body.types
         return this.bankTransactionsFileService.create(
           Array.isArray(filesType) ? filesType[key] : filesType,
@@ -77,14 +79,20 @@ export class BankTransactionsFileController {
         )
       }),
     )
-    for await (const movement of accountMovements) {
+    for (const fileOfBankTransactions of accountMovements) {
+    for await (const movement of fileOfBankTransactions) {
       const campaign = await this.campaignService.getCampaignByPaymentReference(movement.paymentRef)
+      if (!campaign) {
+        Logger.warn('No campaign with payment reference: ' + movement.paymentRef)
+        throw new NotFoundException('No person record with keycloak ID: ' + keycloakId)
+      }
       const vault = await this.vaultService.findByCampaignId(campaign.id)
       movement.payment.extPaymentMethodId = 'imported file bank payment'
       movement.payment.targetVaultId = vault[0].id
       movement.payment.personsEmail = person.email
       const donation = await this.donationsService.createBankPayment(movement.payment)
     }
+  }
     return promises
   }
 
