@@ -61,13 +61,12 @@ export class BankTransactionsFileController {
       }
     })
 
-    const accountMovements: { payment: CreateBankPaymentDto; paymentRef: string }[][] = []
-    let accountMovementsForAfile: { payment: CreateBankPaymentDto; paymentRef: string }[] = []
-
+    const allMovements: { payment: CreateBankPaymentDto; paymentRef: string }[][] = []
+    let accountMovementsForAFile: { payment: CreateBankPaymentDto; paymentRef: string }[] = []
     const promises = await Promise.all(
       files.map((file, key) => {
-        accountMovementsForAfile = parseBankTransactionsFile(file.buffer)
-        accountMovements.push(accountMovementsForAfile)
+        accountMovementsForAFile = parseBankTransactionsFile(file.buffer)
+        allMovements.push(accountMovementsForAFile)
         const filesType = body.types
         return this.bankTransactionsFileService.create(
           Array.isArray(filesType) ? filesType[key] : filesType,
@@ -79,7 +78,7 @@ export class BankTransactionsFileController {
         )
       }),
     )
-    for (const fileOfBankMovements of accountMovements) {
+    for (const fileOfBankMovements of allMovements) {
       for await (const movement of fileOfBankMovements) {
         const campaign = await this.campaignService.getCampaignByPaymentReference(
           movement.paymentRef,
