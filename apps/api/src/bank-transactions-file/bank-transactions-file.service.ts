@@ -7,7 +7,8 @@ import { CreateBankTransactionsFileDto } from './dto/create-bank-transactions-fi
 
 @Injectable()
 export class BankTransactionsFileService {
-  private readonly bucketName: string = 'banktransactions-files'
+  // private readonly bucketName: string = 'banktransactions-files'
+   private readonly bucketName: string = 'test'
   constructor(private prisma: PrismaService, private s3: S3Service) {}
 
   async create(

@@ -59,8 +59,11 @@ export class BankTransactionsFileController {
             }
           }
         })
-
-
+// reason -> paymentRef -> finding campaign -> get campaign -> get vaultById /firstOne/-> get ID
+// the amount have to multiplied by 100 to be accurate
+// extPaymentMethodId -> bank payment
+// DocumentReference -> extPaymentIntentId
+// BankClientID -> extCustomerId
         const filesType = body.types
         return this.bankTransactionsFileService.create(
           Array.isArray(filesType) ? filesType[key] : filesType,
