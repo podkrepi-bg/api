@@ -11,7 +11,7 @@ describe('BankTransactionsFileController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [BankTransactionsFileController],
-      providers: [BankTransactionsFileService,DonationsService,VaultService,CampaignService],
+      providers: [BankTransactionsFileService, DonationsService, VaultService, CampaignService],
     }).compile()
 
     controller = module.get<BankTransactionsFileController>(BankTransactionsFileController)

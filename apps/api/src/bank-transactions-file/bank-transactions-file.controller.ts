@@ -24,10 +24,8 @@ import { PersonService } from '../person/person.service'
 import { VaultService } from '../vault/vault.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { DonationsService } from '../donations/donations.service'
-import { CreatePaymentDto } from '../donations/dto/create-payment.dto'
 import { CreateBankPaymentDto } from '../donations/dto/create-bank-payment.dto'
-import { Currency } from '@prisma/client'
-
+import { parseBankTransactionsFile, parseString } from './helpers/parser'
 
 @Controller('bank-transactions-file')
 export class BankTransactionsFileController {
@@ -54,40 +52,20 @@ export class BankTransactionsFileController {
       throw new NotFoundException('No person record with keycloak ID: ' + keycloakId)
     }
 
-  //checking for file size
+    //checking for file size
 
-  files.forEach(file=>{
-    if(file.size > 1048576){
-    Logger.error('File bigger than 1MB' + file.filename)
-    throw new NotFoundException('File bigger than 1MB' + file.filename)
-    }
-  })
+    files.forEach((file) => {
+      if (file.size > 1048576) {
+        Logger.error('File bigger than 1MB' + file.filename)
+        throw new NotFoundException('File bigger than 1MB' + file.filename)
+      }
+    })
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const parseString = require('xml2js').parseString
+    let accountMovements: { payment: CreateBankPaymentDto; paymentRef: string }[] = []
 
-    const accountMovements : {payment:CreateBankPaymentDto, paymentRef : string}[] = []
-    const promises =  await Promise.all(
-
+    const promises = await Promise.all(
       files.map((file, key) => {
-        parseString(file.buffer, function (err, items) {
-          for (const object in items) {
-            for (const movement in items[object].AccountMovement) {
-              if(items[object].AccountMovement[movement].MovementType[0] === "Credit"){
-                const payment = new CreateBankPaymentDto()
-                const paymentRef = items[object].AccountMovement[movement].Reason[0]
-                payment.amount  = Number(items[object].AccountMovement[movement].Amount[0]) * 100
-                payment.currency  = items[object].AccountMovement[movement].CCY[0]
-                payment.extCustomerId  = items[object].AccountMovement[movement].Account[0].BankClientID[0]
-                payment.extPaymentIntentId  = items[object].AccountMovement[movement].DocumentReference[0]
-                const [firstName,middleName,lastName] = items[object].AccountMovement[movement].OppositeSideName[0].split(' ')
-                payment.personsFirstName = firstName
-                payment.personsLastName = lastName
-                accountMovements.push({payment , paymentRef})
-              }
-            }
-          }
-        })
+        accountMovements=(parseBankTransactionsFile(file.buffer))
         const filesType = body.types
         return this.bankTransactionsFileService.create(
           Array.isArray(filesType) ? filesType[key] : filesType,
@@ -98,19 +76,16 @@ export class BankTransactionsFileController {
           file.buffer,
         )
       }),
-      )
-
-
-      for await (const movement of accountMovements){
-        const campaign = await this.campaignService.getCampaignByPaymentReference(movement.paymentRef)
-        const vault = await this.vaultService.findByCampaignId(campaign.id)
-        movement.payment.extPaymentMethodId = 'imported file bank payment'
-        movement.payment.targetVaultId=vault[0].id
-        movement.payment.personsEmail=person.email
-        const donation = await this.donationsService.createBankPayment(movement.payment)
-      }
-
-      return promises
+    )
+    for await (const movement of accountMovements) {
+      const campaign = await this.campaignService.getCampaignByPaymentReference(movement.paymentRef)
+      const vault = await this.vaultService.findByCampaignId(campaign.id)
+      movement.payment.extPaymentMethodId = 'imported file bank payment'
+      movement.payment.targetVaultId = vault[0].id
+      movement.payment.personsEmail = person.email
+      const donation = await this.donationsService.createBankPayment(movement.payment)
+    }
+    return promises
   }
 
   @Get()

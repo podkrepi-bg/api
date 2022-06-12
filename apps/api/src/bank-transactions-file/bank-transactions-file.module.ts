@@ -14,26 +14,25 @@ import { ConfigService } from '@nestjs/config'
 import { StripeModule } from '@golevelup/nestjs-stripe'
 import { Public } from 'nest-keycloak-connect'
 
-
-
-@Module({ imports: [
-  StripeModule.forRootAsync(StripeModule, {
-    inject: [ConfigService],
-    useFactory: async (config: ConfigService) => ({
-      apiKey: config.get('stripe.secretKey', ''),
-      webhookConfig: {
-        stripeWebhookSecret: config.get('stripe.webhookSecret', ''),
-        requestBodyProperty: 'body',
-        decorators: [
-          /**
-           * Avoid Keycloak @AuthGuard and @RoleGuard on Webhook controller
-           **/
-          Public(),
-        ],
-      },
+@Module({
+  imports: [
+    StripeModule.forRootAsync(StripeModule, {
+      inject: [ConfigService],
+      useFactory: async (config: ConfigService) => ({
+        apiKey: config.get('stripe.secretKey', ''),
+        webhookConfig: {
+          stripeWebhookSecret: config.get('stripe.webhookSecret', ''),
+          requestBodyProperty: 'body',
+          decorators: [
+            /**
+             * Avoid Keycloak @AuthGuard and @RoleGuard on Webhook controller
+             **/
+            Public(),
+          ],
+        },
+      }),
     }),
-  }),
-],
+  ],
   controllers: [BankTransactionsFileController],
   providers: [
     BankTransactionsFileService,
@@ -42,7 +41,7 @@ import { Public } from 'nest-keycloak-connect'
     PersonService,
     VaultService,
     CampaignService,
-    DonationsService
+    DonationsService,
   ],
 })
 export class BankTransactionsFileModule {}

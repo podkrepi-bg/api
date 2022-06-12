@@ -22,10 +22,10 @@ export class VaultService {
     return await this.prisma.vault.findMany()
   }
 
-  async findByCampaignId(campaignId:string): Promise<Vault[]> {
+  async findByCampaignId(campaignId: string): Promise<Vault[]> {
     return await this.prisma.vault.findMany({
       where: {
-        campaignId
+        campaignId,
       },
     })
   }
