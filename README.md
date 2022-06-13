@@ -301,3 +301,37 @@ GRANT ALL PRIVILEGES ON SCHEMA api TO postgres;
 docker build -f Dockerfile.migrations .
 docker run  --env-file .env --network host <image-id>
 ```
+
+## Resolution of migration errors
+
+Overall procedure:
+
+1. Ensure connection to the k8s cluster
+1. Start a new `migrate-database` container manually in the proper namespace (`podkrepibg-dev` or `podkrepibg`)
+  ```shell
+  kubectl run manual-migrate-db \
+      -it --rm \
+      -n podkrepibg-dev \
+      --image=ghcr.io/podkrepi-bg/api/migrations:master \
+      -- /bin/sh
+  ```
+1. Check migration status with `yarn prisma migrate status`
+  ```
+  Following migration have failed: 20220605165716_rename_bank_hash_to_payment_reference
+  ```
+1. Rollback or apply migrations (suggested commands are printed from the status)
+  ```
+  The failed migration(s) can be marked as rolled back or applied:
+
+  - If you rolled back the migration(s) manually:
+  yarn prisma migrate resolve --rolled-back "20220605165716_rename_bank_hash_to_payment_reference"
+
+  - If you fixed the database manually (hotfix):
+  yarn prisma migrate resolve --applied "20220605165716_rename_bank_hash_to_payment_reference"
+  ```
+1. Run migration deployment
+  ```
+  yarn prisma migrate deploy
+  ```
+1. At this point you can re-deploy the `api-headless` deployment to trigger the standard flow of operation
+
