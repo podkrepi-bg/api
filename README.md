@@ -302,7 +302,7 @@ docker build -f Dockerfile.migrations .
 docker run  --env-file .env --network host <image-id>
 ```
 
-## Resolution of migration errors
+## Manual resolution of failed db migrations
 
 Overall procedure:
 
