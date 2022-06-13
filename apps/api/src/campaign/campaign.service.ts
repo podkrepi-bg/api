@@ -65,6 +65,7 @@ export class CampaignService {
         campaignType: { select: { name: true } },
         beneficiary: { select: { person: { select: { firstName: true, lastName: true } } } },
         coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
+        vaults: { select: { id: true, amount: true } },
       },
     })
   }
