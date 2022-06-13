@@ -8,7 +8,7 @@ describe('BankTransactionsFileService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [BankTransactionsFileService,PrismaService, S3Service],
+      providers: [BankTransactionsFileService, PrismaService, S3Service],
     }).compile()
 
     service = module.get<BankTransactionsFileService>(BankTransactionsFileService)

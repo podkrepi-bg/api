@@ -1,3 +1,5 @@
+import { STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
+import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignService } from '../campaign/campaign.service'
 import { DonationsService } from '../donations/donations.service'
@@ -10,18 +12,30 @@ import { BankTransactionsFileService } from './bank-transactions-file.service'
 
 describe('BankTransactionsFileController', () => {
   let controller: BankTransactionsFileController
-
+  const stripeMock = {
+    checkout: { sessions: { create: jest.fn() } },
+  }
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [BankTransactionsFileController],
       providers: [
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn(),
+          },
+        },
+        {
+          provide: STRIPE_CLIENT_TOKEN,
+          useValue: stripeMock,
+        },
         BankTransactionsFileService,
         DonationsService,
         VaultService,
         CampaignService,
         PersonService,
         PrismaService,
-        S3Service
+        S3Service,
       ],
     }).compile()
 
