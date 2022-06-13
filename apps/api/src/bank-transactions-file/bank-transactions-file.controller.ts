@@ -11,6 +11,7 @@ import {
   Inject,
   Logger,
   NotFoundException,
+  PayloadTooLargeException,
 } from '@nestjs/common'
 import { BankTransactionsFileService } from './bank-transactions-file.service'
 import 'multer'
@@ -25,7 +26,7 @@ import { VaultService } from '../vault/vault.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { DonationsService } from '../donations/donations.service'
 import { CreateBankPaymentDto } from '../donations/dto/create-bank-payment.dto'
-import { parseBankTransactionsFile, parseString } from './helpers/parser'
+import { parseBankTransactionsFile } from './helpers/parser'
 
 @Controller('bank-transactions-file')
 export class BankTransactionsFileController {
@@ -57,12 +58,13 @@ export class BankTransactionsFileController {
     files.forEach((file) => {
       if (file.size > 1048576) {
         Logger.error('File bigger than 1MB' + file.filename)
-        throw new NotFoundException('File bigger than 1MB' + file.filename)
+        throw new PayloadTooLargeException('File bigger than 1MB' + file.filename)
       }
     })
 
     const allMovements: { payment: CreateBankPaymentDto; paymentRef: string }[][] = []
     let accountMovementsForAFile: { payment: CreateBankPaymentDto; paymentRef: string }[] = []
+
     const promises = await Promise.all(
       files.map((file, key) => {
         accountMovementsForAFile = parseBankTransactionsFile(file.buffer)
