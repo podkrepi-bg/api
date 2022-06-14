@@ -123,6 +123,14 @@ describe('CampaignController', () => {
           beneficiary: { firstName: 'Test', lastName: 'Test' },
           coordinator: { firstName: 'Test', lastName: 'Test' },
           campaignType: { name: 'Test type' },
+          vaults: [
+            {
+              donations: [{ amount: 100 }, { amount: 10 }],
+            },
+            {
+              donations: [{ amount: 100 }, { amount: 100 }, { amount: 100 }],
+            },
+          ],
         },
       }
       const mockList = jest.fn().mockResolvedValue([mockAdminCampaign])

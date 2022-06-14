@@ -57,7 +57,7 @@ export class CampaignService {
   }
 
   async listAllCampaigns(): Promise<Campaign[]> {
-    return await this.prisma.campaign.findMany({
+    const campaigns = await this.prisma.campaign.findMany({
       orderBy: {
         endDate: 'asc',
       },
@@ -65,9 +65,19 @@ export class CampaignService {
         campaignType: { select: { name: true } },
         beneficiary: { select: { person: { select: { firstName: true, lastName: true } } } },
         coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
-        vaults: { select: { id: true, amount: true } },
+        vaults: { select: { donations: { select: { amount: true } } } },
       },
     })
+    for (const campaign of campaigns) {
+      let campaignAmountReached = 0
+      for (const vault of campaign.vaults) {
+        for (const donation of vault.donations) {
+          campaignAmountReached += donation.amount
+        }
+      }
+      campaign['reachedAmound'] = campaignAmountReached
+    }
+    return campaigns
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
