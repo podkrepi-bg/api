@@ -41,7 +41,7 @@ describe('CampaignFileController', () => {
         ConfigService,
         {
           provide: CampaignService,
-          useValue: { getCampaignByIdAndPersonId: jest.fn(() => null) },
+          useValue: { getCampaignByIdAndCoordinatorId: jest.fn(() => null) },
         },
         VaultService,
       ],
@@ -75,7 +75,7 @@ describe('CampaignFileController', () => {
     ).toEqual([fileId, fileId])
 
     expect(personService.findOneByKeycloakId).toHaveBeenCalledWith(userMock.sub)
-    expect(campaignService.getCampaignByIdAndPersonId).not.toHaveBeenCalled()
+    expect(campaignService.getCampaignByIdAndCoordinatorId).not.toHaveBeenCalled()
     expect(campaignFileService.create).toHaveBeenCalledTimes(2)
   })
 
@@ -85,14 +85,14 @@ describe('CampaignFileController', () => {
     await expect(controller.create(campaignId, { roles: [] }, [], userMock)).rejects.toThrowError()
 
     expect(personService.findOneByKeycloakId).toHaveBeenCalledWith(userMock.sub)
-    expect(campaignService.getCampaignByIdAndPersonId).not.toHaveBeenCalled()
+    expect(campaignService.getCampaignByIdAndCoordinatorId).not.toHaveBeenCalled()
   })
 
   it('should throw an error for user not owning updated campaign', async () => {
     await expect(controller.create(campaignId, { roles: [] }, [], userMock)).rejects.toThrowError()
 
     expect(personService.findOneByKeycloakId).toHaveBeenCalledWith(userMock.sub)
-    expect(campaignService.getCampaignByIdAndPersonId).toHaveBeenCalledWith(
+    expect(campaignService.getCampaignByIdAndCoordinatorId).toHaveBeenCalledWith(
       campaignId,
       personIdMock,
     )

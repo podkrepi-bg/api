@@ -16,7 +16,7 @@ export async function coordinatorSeed() {
   })
 
   const insert = await prisma.coordinator.createMany({
-    data: result,
+    data: result.slice(0, result.length / 2),
     skipDuplicates: true,
   })
   console.log({ insert })

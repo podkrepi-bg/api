@@ -1,11 +1,14 @@
+import { Logger } from '@nestjs/common'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 export function isAdmin(user: KeycloakTokenParsed): boolean {
-  if (!user.resource_access) {
+  Logger.debug('User info: ' + JSON.stringify(user))
+
+  if (!(user.resource_access || user.realm_access)) {
     return false
   }
 
-  const roles = [RealmViewSupporters.role, ViewSupporters.role].map((role) => {
+  const adminRoles = [RealmViewSupporters.role, ViewSupporters.role].map((role) => {
     const [key, roleName] = role.split(':')
     return {
       key,
@@ -13,9 +16,21 @@ export function isAdmin(user: KeycloakTokenParsed): boolean {
     }
   })
 
-  return roles.some((role) => {
-    const userRoles = (user.resource_access as KeycloakResourceAccess)[role.key]
-    return userRoles ? userRoles.roles.includes(role.value) : false
+  return adminRoles.some((role) => {
+    Logger.debug('checking for role: ' + role.value)
+
+    const isResourceAdminRole = user.resource_access?.account?.roles
+      ? user.resource_access.account.roles.includes(role.value)
+      : false
+    const isRealmAdminRole = user.realm_access?.roles
+      ? user.realm_access.roles.includes(role.value)
+      : false
+
+    if (isResourceAdminRole) Logger.debug('User is resource admin and matched role: ' + role.value)
+
+    if (isRealmAdminRole) Logger.debug('User is realm admin and matched role: ' + role.value)
+
+    return isResourceAdminRole || isRealmAdminRole
   })
 }
 

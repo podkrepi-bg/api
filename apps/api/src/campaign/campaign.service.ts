@@ -71,7 +71,10 @@ export class CampaignService {
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
-    const campaign = await this.prisma.campaign.findFirst({ where: { id: campaignId } })
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: campaignId },
+      include: { campaignFiles: true },
+    })
     if (!campaign) {
       Logger.warn('No campaign record with ID: ' + campaignId)
       throw new NotFoundException('No campaign record with ID: ' + campaignId)
@@ -79,9 +82,12 @@ export class CampaignService {
     return campaign
   }
 
-  async getCampaignByIdAndPersonId(campaignId: string, personId: string): Promise<Campaign | null> {
+  async getCampaignByIdAndCoordinatorId(
+    campaignId: string,
+    coordinatorId: string,
+  ): Promise<Campaign | null> {
     const campaign = await this.prisma.campaign.findFirst({
-      where: { id: campaignId, coordinator: { personId } },
+      where: { id: campaignId, coordinator: { personId: coordinatorId } },
       include: { coordinator: true },
     })
     return campaign
@@ -392,7 +398,7 @@ export class CampaignService {
       throw new UnauthorizedException()
     }
 
-    const campaign = await this.getCampaignByIdAndPersonId(campaignId, person.id)
+    const campaign = await this.getCampaignByIdAndCoordinatorId(campaignId, person.id)
     if (!campaign) {
       throw new UnauthorizedException()
     }

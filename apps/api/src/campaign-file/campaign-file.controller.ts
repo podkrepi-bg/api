@@ -33,7 +33,7 @@ export class CampaignFileController {
   ) {}
 
   @Post(':campaign_id')
-  @UseInterceptors(FilesInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('file', 5, { limits: { fileSize: 10485760 } })) //limit uploaded files to 5 at once and 10MB each
   async create(
     @Param('campaign_id') campaignId: string,
     @Body() body: FilesRoleDto,
@@ -48,9 +48,14 @@ export class CampaignFileController {
     }
 
     if (!isAdmin(user)) {
-      const campaign = await this.campaignService.getCampaignByIdAndPersonId(campaignId, person.id)
+      const campaign = await this.campaignService.getCampaignByIdAndCoordinatorId(
+        campaignId,
+        person.id,
+      )
       if (!campaign) {
-        throw new NotFoundException('No campaign found for logged user')
+        throw new NotFoundException(
+          'User ' + user.name + 'is not admin or coordinator of campaign with id: ' + campaignId,
+        )
       }
     }
 

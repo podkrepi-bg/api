@@ -13,7 +13,10 @@ export class BeneficiaryService {
   }
 
   async listBeneficiaries(): Promise<Beneficiary[]> {
-    return await this.prisma.beneficiary.findMany({ include: { person: true } })
+    return await this.prisma.beneficiary.findMany({
+      include: { person: true },
+      orderBy: [{ person: { firstName: 'asc' } }],
+    })
   }
 
   async viewBeneficiary(id: string): Promise<Beneficiary | null | undefined> {
