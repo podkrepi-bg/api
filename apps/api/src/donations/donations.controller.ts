@@ -1,6 +1,6 @@
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
-import { Body, Controller, Get, Param, Patch, Post, UnauthorizedException } from '@nestjs/common'
+import { Body, Controller, Get, Param, Patch, Post, UnauthorizedException, Query } from '@nestjs/common'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
@@ -43,12 +43,13 @@ export class DonationsController {
   }
 
   @Get('list')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
-  findAll() {
-    return this.donationsService.listDonations()
+  // @Roles({
+  //   roles: [RealmViewSupporters.role, ViewSupporters.role],
+  //   mode: RoleMatchingMode.ANY,
+  // })
+  @Public()
+  findAll(@Query('campaign') campaignId: string) {
+    return this.donationsService.listDonations(campaignId)
   }
 
   @Get(':id')
