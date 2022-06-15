@@ -76,13 +76,14 @@ export class DonationsService {
     ]
   }
 
+  /**
+   * Lists all donations
+   * @param campaignId (Optional) Filter by campaign id
+   */
   async listDonations(campaignId?: string): Promise<Donation[]> {
     if (campaignId) {
       return await this.prisma.donation.findMany({
         where: { targetVault: {campaign: {id: campaignId}} },
-        include: {
-          targetVault: true,
-        },
         orderBy: [{ createdAt: 'desc' }],
       })
     } else {
