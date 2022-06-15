@@ -255,37 +255,38 @@ yarn prisma migrate reset
 
 ## Environment variables
 
-| Setting                   | Description                                  | Default value                                                               |
-| ------------------------- | -------------------------------------------- | --------------------------------------------------------------------------- |
-| `PORT`                    | The address on which the module binds.       | 5010                                                                        |
-| `GLOBAL_PREFIX`           | Registers a prefix for every HTTP route path | api/v1                                                                      |
-| `APP_VERSION`             | The version of the application               | "unknown"                                                                   |
-| `APP_ENV`                 | Application runtime environment              | development                                                                 |
-| `NODE_ENV`                | Node build environment                       | development                                                                 |
-| `TARGET_ENV`              | Docker multi-stage target                    | development                                                                 |
-| `TARGET_APP`              | Run specific application from the image.     | api                                                                         |
-| `DATABASE_URL`            | Database connection string.                  | postgres://postgres:postgrespass@localhost:5432/postgres?schema=api         |
-| `S3_ENDPOINT`             | Endpoint for S3 interface.                   | <https://cdn-dev.podkrepi.bg>                                               |
-| `S3_BUCKET`               | The S3 bucket to be used for storing files   | campaign-files                                                              |
-| `S3_ACCESS_KEY`           | The S3 access key.                           | \*\*\*\*\*\*                                                                |
-| `S3_SECRET_ACCESS_KEY`    | The S3 secret access key.                    | \*\*\*\*\*\*                                                                |
-| `KEYCLOAK_URL`            | Keycloak authentication url                  | <http://localhost:8180>                                                     |
-| `KEYCLOAK_REALM`          | Keycloak Realm name                          | webapp                                                                      |
-| `KEYCLOAK_CLIENT_ID`      | Keycloak Client name                         | jwt-headless                                                                |
-| `KEYCLOAK_SECRET`         | Secret to reach Keycloak in headless mode    | DEV-KEYCLOAK-SECRET                                                         |
-| `KEYCLOAK_USER`           | Master user for Keycloak Server              | admin                                                                       |
-| `KEYCLOAK_PASSWORD`       | Master user's password for Keycloak Server   | admin                                                                       |
-| `STRIPE_SECRET_KEY`       | Stripe secret key                            | \*\*\*\*\*\*                                                                |
-| `STRIPE_WEBHOOK_SECRET`   | Stripe webhook secret key                    | \*\*\*\*\*\*                                                                |
-| `SENTRY_DSN`              | Sentry Data Source Name                      | <https://58b71cdea21f45c0bcbe5c1b49317973@o540074.ingest.sentry.io/5707518> |
-| `SENTRY_ORG`              | Sentry organization                          | podkrepibg                                                                  |
-| `SENTRY_PROJECT`          | Sentry project                               | rest-api                                                                    |
-| `SENTRY_AUTH_TOKEN`       | Sentry build auth token                      | \*\*\*\*\*\*                                                                |
-| `SENTRY_SERVER_ROOT_DIR`  | App directory inside the docker image        | /app                                                                        |
-| `SENDGRID_API_KEY`        | SendGrid API key                             | `""` - emails disabled if not set                                           |
-| `SENDGRID_SENDER_EMAIL`   | SendGrid sender email                        | info@podkrepi.bg                                                            |
-| `SENDGRID_INTERNAL_EMAIL` | Internal notifications email                 | info@podkrepi.bg (Prod), qa@podkrepi.bg (Staging), dev@podkrepi.bg (Dev)    |
-| `SENDGRID_CONTACTS_URL`   | Endpoint to receive newsletter subscriptions | /v3/marketing/contacts                                                      |
+| Setting                      | Description                                      | Default value                                                               |
+| ---------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
+| `PORT`                       | The address on which the module binds.           | 5010                                                                        |
+| `GLOBAL_PREFIX`              | Registers a prefix for every HTTP route path     | api/v1                                                                      |
+| `APP_VERSION`                | The version of the application                   | "unknown"                                                                   |
+| `APP_ENV`                    | Application runtime environment                  | development                                                                 |
+| `NODE_ENV`                   | Node build environment                           | development                                                                 |
+| `TARGET_ENV`                 | Docker multi-stage target                        | development                                                                 |
+| `TARGET_APP`                 | Run specific application from the image.         | api                                                                         |
+| `DATABASE_URL`               | Database connection string.                      | postgres://postgres:postgrespass@localhost:5432/postgres?schema=api         |
+| `S3_ENDPOINT`                | Endpoint for S3 interface.                       | <https://cdn-dev.podkrepi.bg>                                               |
+| `S3_BUCKET`                  | The S3 bucket for storing files                  | campaign-files                                                              |
+| `S3_BUCKET_BANK_TRANSACTION` | The S3 bucket for storing bank transaction files | banktransactions-files                                                      |
+| `S3_ACCESS_KEY`              | The S3 access key.                               | \*\*\*\*\*\*                                                                |
+| `S3_SECRET_ACCESS_KEY`       | The S3 secret access key.                        | \*\*\*\*\*\*                                                                |
+| `KEYCLOAK_URL`               | Keycloak authentication url                      | <http://localhost:8180>                                                     |
+| `KEYCLOAK_REALM`             | Keycloak Realm name                              | webapp                                                                      |
+| `KEYCLOAK_CLIENT_ID`         | Keycloak Client name                             | jwt-headless                                                                |
+| `KEYCLOAK_SECRET`            | Secret to reach Keycloak in headless mode        | DEV-KEYCLOAK-SECRET                                                         |
+| `KEYCLOAK_USER`              | Master user for Keycloak Server                  | admin                                                                       |
+| `KEYCLOAK_PASSWORD`          | Master user's password for Keycloak Server       | admin                                                                       |
+| `STRIPE_SECRET_KEY`          | Stripe secret key                                | \*\*\*\*\*\*                                                                |
+| `STRIPE_WEBHOOK_SECRET`      | Stripe webhook secret key                        | \*\*\*\*\*\*                                                                |
+| `SENTRY_DSN`                 | Sentry Data Source Name                          | <https://58b71cdea21f45c0bcbe5c1b49317973@o540074.ingest.sentry.io/5707518> |
+| `SENTRY_ORG`                 | Sentry organization                              | podkrepibg                                                                  |
+| `SENTRY_PROJECT`             | Sentry project                                   | rest-api                                                                    |
+| `SENTRY_AUTH_TOKEN`          | Sentry build auth token                          | \*\*\*\*\*\*                                                                |
+| `SENTRY_SERVER_ROOT_DIR`     | App directory inside the docker image            | /app                                                                        |
+| `SENDGRID_API_KEY`           | SendGrid API key                                 | `""` - emails disabled if not set                                           |
+| `SENDGRID_SENDER_EMAIL`      | SendGrid sender email                            | info@podkrepi.bg                                                            |
+| `SENDGRID_INTERNAL_EMAIL`    | Internal notifications email                     | info@podkrepi.bg (Prod), qa@podkrepi.bg (Staging), dev@podkrepi.bg (Dev)    |
+| `SENDGRID_CONTACTS_URL`      | Endpoint to receive newsletter subscriptions     | /v3/marketing/contacts                                                      |
 
 ## Deployment
 

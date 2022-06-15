@@ -26,4 +26,7 @@ export default () => ({
     secretKey: process.env.STRIPE_SECRET_KEY,
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
   },
+  storage: {
+    bankTransactionBucket: process.env.S3_BUCKET_BANK_TRANSACTION,
+  },
 })

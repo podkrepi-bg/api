@@ -65,6 +65,8 @@ spec:
                   key: url
             - name: S3_BUCKET
               value: campaign-files
+            - name: S3_BUCKET_BANK_TRANSACTION
+              value: banktransactions-files
             - name: KEYCLOAK_URL
               valueFrom:
                 configMapKeyRef:

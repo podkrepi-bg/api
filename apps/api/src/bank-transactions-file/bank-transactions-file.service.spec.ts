@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { PrismaService } from '../prisma/prisma.service'
 import { S3Service } from '../s3/s3.service'
@@ -8,7 +9,15 @@ describe('BankTransactionsFileService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [BankTransactionsFileService, PrismaService, S3Service],
+      providers: [
+        BankTransactionsFileService,
+        PrismaService,
+        S3Service,
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn() },
+        },
+      ],
     }).compile()
 
     service = module.get<BankTransactionsFileService>(BankTransactionsFileService)

@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { BankTransactionsFile, BankTransactionsFileType, Person } from '@prisma/client'
 import { Readable } from 'stream'
 import { PrismaService } from '../prisma/prisma.service'
@@ -7,9 +8,11 @@ import { CreateBankTransactionsFileDto } from './dto/create-bank-transactions-fi
 
 @Injectable()
 export class BankTransactionsFileService {
-  // private readonly bucketName: string = 'banktransactions-files'
-  private readonly bucketName: string = 'test'
-  constructor(private prisma: PrismaService, private s3: S3Service) {}
+  constructor(
+    private prisma: PrismaService,
+    private s3: S3Service,
+    private config: ConfigService,
+  ) {}
 
   async create(
     type: BankTransactionsFileType,
@@ -68,5 +71,9 @@ export class BankTransactionsFileService {
   async remove(id: string) {
     await this.s3.deleteObject(this.bucketName, id)
     return await this.prisma.bankTransactionsFile.delete({ where: { id } })
+  }
+
+  get bucketName(): string {
+    return this.config.get<string>('storage.bankTransactionBucket') ?? 'test'
   }
 }

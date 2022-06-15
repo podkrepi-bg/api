@@ -5,5 +5,6 @@ export class BankTransactionsFile {
   filename: string
   mimetype: string
   bankTransactionsFileId: string
+  personId: string
   type: BankTransactionsFileType
 }
