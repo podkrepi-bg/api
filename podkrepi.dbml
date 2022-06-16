@@ -393,7 +393,7 @@ Table bank_transactions_files {
   mimetype String [not null]
   bankTransactionsFileId String [not null]
   personId String [not null]
-  type BankTransactionsFileType [not null]
+  type BankTransactionsFileType [not null, default: 'xml']
 }
 
 Enum BeneficiaryType {

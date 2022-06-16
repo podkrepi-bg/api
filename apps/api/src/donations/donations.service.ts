@@ -14,6 +14,7 @@ import { CreatePaymentDto } from './dto/create-payment.dto'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
+import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
 
 @Injectable()
 export class DonationsService {
@@ -99,7 +100,7 @@ export class DonationsService {
   async getUserDonationById(
     id: string,
     keycloakId: string,
-  ): Promise<Donation & { person: Person | null } | null> {
+  ): Promise<(Donation & { person: Person | null }) | null> {
     return await this.prisma.donation.findFirst({
       where: { id, person: { keycloakId }, status: DonationStatus.succeeded },
       include: { person: true },
@@ -126,6 +127,20 @@ export class DonationsService {
     await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
 
     return donation
+  }
+  async createManyBankPayments(
+    DonationsDto: CreateManyBankPaymentsDto[],
+  ): Promise<Prisma.BatchPayload> {
+    const donations = await this.prisma.donation.createMany({ data: DonationsDto })
+
+    // Donation status check is not needed, because bank payments are only added by admins if the bank transfer was successful.
+    const updateManyVaults = Promise.all(
+      DonationsDto.map((donation) => {
+        this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
+      }),
+    )
+
+    return donations
   }
 
   async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Donation> {

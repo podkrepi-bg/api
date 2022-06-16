@@ -104,12 +104,12 @@ export class VaultService {
     }
 
     const vault = await this.prisma.vault.update({
+      where: { id: vaultId },
       data: {
         amount: {
           increment: amount,
         },
       },
-      where: { id: vaultId },
     })
 
     await this.campaignService.updateCampaignStatusIfTargetReached(vault.campaignId)

@@ -11,7 +11,7 @@ import {
   Inject,
   Logger,
   NotFoundException,
-  PayloadTooLargeException,
+
 } from '@nestjs/common'
 import { BankTransactionsFileService } from './bank-transactions-file.service'
 import 'multer'
@@ -25,8 +25,9 @@ import { PersonService } from '../person/person.service'
 import { VaultService } from '../vault/vault.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { DonationsService } from '../donations/donations.service'
-import { CreateBankPaymentDto } from '../donations/dto/create-bank-payment.dto'
 import { parseBankTransactionsFile } from './helpers/parser'
+import { DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
+import { CreateManyBankPaymentsDto } from '../donations/dto/create-many-bank-payments.dto'
 
 @Controller('bank-transactions-file')
 export class BankTransactionsFileController {
@@ -39,7 +40,7 @@ export class BankTransactionsFileController {
   ) {}
 
   @Post(':bank_transactions_file_id')
-  @UseInterceptors(FilesInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('file', 5, { limits: { fileSize: 10485760 } }))
   async create(
     @Param('bank_transactions_file_id') bankTransactionsFileId: string,
     @Body() body: FilesTypesDto,
@@ -53,17 +54,8 @@ export class BankTransactionsFileController {
       throw new NotFoundException('No person record with keycloak ID: ' + keycloakId)
     }
 
-    //checking for file size
-
-    files.forEach((file) => {
-      if (file.size > 1048576) {
-        Logger.error('File bigger than 1MB' + file.filename)
-        throw new PayloadTooLargeException('File bigger than 1MB' + file.filename)
-      }
-    })
-
-    const allMovements: { payment: CreateBankPaymentDto; paymentRef: string }[][] = []
-    let accountMovementsForAFile: { payment: CreateBankPaymentDto; paymentRef: string }[] = []
+    const allMovements: { payment: CreateManyBankPaymentsDto; paymentRef: string }[][] = []
+    let accountMovementsForAFile: { payment: CreateManyBankPaymentsDto; paymentRef: string }[] = []
 
     const promises = await Promise.all(
       files.map((file, key) => {
@@ -80,6 +72,7 @@ export class BankTransactionsFileController {
         )
       }),
     )
+    const donations: CreateManyBankPaymentsDto[] = []
     for (const fileOfBankMovements of allMovements) {
       for await (const movement of fileOfBankMovements) {
         const campaign = await this.campaignService.getCampaignByPaymentReference(
@@ -87,15 +80,21 @@ export class BankTransactionsFileController {
         )
         if (!campaign) {
           Logger.warn('No campaign with payment reference: ' + movement.paymentRef)
-          throw new NotFoundException('No person record with keycloak ID: ' + keycloakId)
+          throw new NotFoundException('No campaign with payment reference: ' + movement.paymentRef)
         }
         const vault = await this.vaultService.findByCampaignId(campaign.id)
         movement.payment.extPaymentMethodId = 'imported file bank payment'
         movement.payment.targetVaultId = vault[0].id
-        movement.payment.personsEmail = person.email
-        const donation = await this.donationsService.createBankPayment(movement.payment)
+        movement.payment.personId = person.id
+        movement.payment.targetVaultId = vault[0].id
+        ;(movement.payment.type = DonationType.donation),
+          (movement.payment.status = DonationStatus.succeeded),
+          (movement.payment.provider = PaymentProvider.bank),
+          donations.push(movement.payment)
       }
     }
+    await this.donationsService.createManyBankPayments(donations)
+
     return promises
   }
 
