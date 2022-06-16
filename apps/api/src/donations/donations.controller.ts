@@ -39,7 +39,7 @@ export class DonationsController {
 
   @Get('user-donations')
   async userDonations(@AuthenticatedUser() user: KeycloakTokenParsed) {
-    return await this.donationsService.getDonationsByUser(user.sub as string)
+    return await this.donationsService.getDonationsByUser(user.sub)
   }
 
   @Get('list')
@@ -59,7 +59,7 @@ export class DonationsController {
 
   @Get('user/:id')
   userDonationById(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
-    return this.donationsService.getUserDonationById(id, user.sub as string)
+    return this.donationsService.getUserDonationById(id, user.sub)
   }
 
   @Post('create-payment')

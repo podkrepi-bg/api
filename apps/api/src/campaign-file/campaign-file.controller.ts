@@ -40,7 +40,7 @@ export class CampaignFileController {
     @UploadedFiles() files: Express.Multer.File[],
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
-    const keycloakId = user.sub as string
+    const keycloakId = user.sub
     const person = await this.personService.findOneByKeycloakId(keycloakId)
     if (!person) {
       Logger.warn('No person record with keycloak ID: ' + keycloakId)

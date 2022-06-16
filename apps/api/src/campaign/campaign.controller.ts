@@ -70,7 +70,7 @@ export class CampaignController {
     let person
     if (!createDto.coordinatorId) {
       //Find the creator personId and make him a coordinator
-      person = await this.personService.findOneByKeycloakId(user.sub as string)
+      person = await this.personService.findOneByKeycloakId(user.sub)
 
       if (!person) {
         Logger.error('No person found in database for logged user: ' + user.name)
