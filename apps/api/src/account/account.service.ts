@@ -14,17 +14,17 @@ export class AccountService {
     user: KeycloakTokenParsed,
     data: UpdatePersonDto,
   ): Promise<Person | null> {
-    return await this.authService.updateUser(user.sub as string, data)
+    return await this.authService.updateUser(user.sub, data)
   }
 
   async updateUserPassword(
     user: KeycloakTokenParsed,
     data: CredentialRepresentation,
   ): Promise<boolean> {
-    return await this.authService.updateUserPassword(user.sub as string, data)
+    return await this.authService.updateUserPassword(user.sub, data)
   }
 
   async disableUser(user: KeycloakTokenParsed) {
-    return await this.authService.disableUser(user.sub as string)
+    return await this.authService.disableUser(user.sub)
   }
 }
