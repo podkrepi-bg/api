@@ -65,7 +65,9 @@ export class CampaignService {
         campaignType: { select: { name: true } },
         beneficiary: { select: { person: { select: { firstName: true, lastName: true } } } },
         coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
-        vaults: { select: { donations: { select: { amount: true } } } },
+        vaults: { select: { donations: { select: { amount: true } }, amount: true } },
+        incomingTransfers: { select: { amount: true } },
+        outgoingTransfers: { select: { amount: true } },
       },
     })
     for (const campaign of campaigns) {
@@ -75,7 +77,7 @@ export class CampaignService {
           campaignAmountReached += donation.amount
         }
       }
-      campaign['reachedAmound'] = campaignAmountReached
+      campaign['reachedAmount'] = campaignAmountReached
     }
     return campaigns
   }
