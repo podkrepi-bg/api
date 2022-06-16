@@ -24,7 +24,7 @@ export class AccountController {
   ) {
     if (user) {
       return {
-        user: await this.personService.findOneByKeycloakId(user.sub as string),
+        user: await this.personService.findOneByKeycloakId(user.sub),
       }
     }
     return { status: 'unauthenticated' }
@@ -39,7 +39,7 @@ export class AccountController {
     try {
       person = await this.accountService.updateUserProfile(user, data)
     } catch (err) {
-      Logger.error(`Failed to update user with keycloakId ${user.sub}`)
+      Logger.error(`Failed to update user with keycloakId ${user.sub}. Error is: ${err}`)
       throw err
     }
 
@@ -57,7 +57,7 @@ export class AccountController {
     try {
       hasSucceeded = await this.accountService.updateUserPassword(user, data)
     } catch (err) {
-      Logger.error(`Failed to update user with keycloakId ${user.sub}`)
+      Logger.error(`Failed to update user with keycloakId ${user.sub}. Error is: ${err}`)
       throw err
     }
 
@@ -67,13 +67,11 @@ export class AccountController {
   }
 
   @Delete('me')
-  async disableUser(
-    @AuthenticatedUser() user: KeycloakTokenParsed,
-  ) {
+  async disableUser(@AuthenticatedUser() user: KeycloakTokenParsed) {
     try {
       return await this.accountService.disableUser(user)
     } catch (err) {
-      Logger.error(`Failed to disable user with keycloakId ${user.sub}`)
+      Logger.error(`Failed to disable user with keycloakId ${user.sub}. Error is: ${err}`)
       throw err
     }
   }
