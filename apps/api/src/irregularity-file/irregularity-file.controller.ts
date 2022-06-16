@@ -11,6 +11,7 @@ import {
   NotFoundException,
   StreamableFile,
 } from '@nestjs/common'
+
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'
 import { Roles, RoleMatchingMode, Public } from 'nest-keycloak-connect'
@@ -30,7 +31,7 @@ export class IrregularityFileController {
 
   @Post(':irregularity_id')
   @Public()
-  @UseInterceptors(FilesInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('file', 5, { limits: { fileSize: 10485760 } })) //limit uploaded files to 5 at once and 10MB each
   async create(
     @Param('irregularity_id') irregularityId: string,
     @UploadedFiles() files: Express.Multer.File[],
