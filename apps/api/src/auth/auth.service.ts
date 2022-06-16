@@ -222,10 +222,10 @@ export class AuthService {
     })
   }
 
-  async updateUser(id: string, updateDto: UpdatePersonDto) {
+  async updateUser(keycloakId: string, updateDto: UpdatePersonDto) {
     await this.authenticateAdmin()
     await this.admin.users.update(
-      { id },
+      { id: keycloakId },
       {
         username: updateDto.email,
         email: updateDto.email,
@@ -237,7 +237,7 @@ export class AuthService {
       },
     )
     return await this.prismaService.person.update({
-      where: { keycloakId: id },
+      where: { keycloakId },
       data: {
         firstName: updateDto.firstName,
         lastName: updateDto.lastName,
@@ -247,10 +247,10 @@ export class AuthService {
     })
   }
 
-  async updateUserPassword(id: string, credentialsDto) {
+  async updateUserPassword(keycloakId: string, credentialsDto) {
     await this.authenticateAdmin()
     await this.admin.users.resetPassword({
-      id,
+      id: keycloakId,
       credential: {
         temporary: false,
         type: 'password',
@@ -260,10 +260,10 @@ export class AuthService {
     return true
   }
 
-  async disableUser(id: string) {
+  async disableUser(keycloakId: string) {
     await this.authenticateAdmin()
     return await this.admin.users.update(
-      { id },
+      { id: keycloakId },
       {
         enabled: false,
       },
