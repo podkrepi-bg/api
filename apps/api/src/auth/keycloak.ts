@@ -40,7 +40,7 @@ export interface KeycloakTokenParsed extends KeycloakProfile {
   auth_time?: number
   jti?: string
   iss?: string
-  sub?: string
+  sub: string
   typ?: string
   azp?: string
   acr?: string
