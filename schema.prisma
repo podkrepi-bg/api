@@ -454,7 +454,7 @@ model BankTransactionsFile {
   mimetype   String           @db.VarChar(50)
   bankTransactionsFileId String           @map("bank_transactions_file_id")  @db.VarChar(50)
   personId   String           @map("person_id") @db.Uuid
-  type       BankTransactionsFileType
+  type       BankTransactionsFileType @default(xml)
   @@map("bank_transactions_files")
 }
 
