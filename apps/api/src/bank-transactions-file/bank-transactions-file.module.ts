@@ -9,25 +9,13 @@ import { VaultService } from '../vault/vault.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { ConfigService } from '@nestjs/config'
 import { StripeModule } from '@golevelup/nestjs-stripe'
-import { Public } from 'nest-keycloak-connect'
+import { useFactoryService } from './helpers/use-factory-service'
 
 @Module({
   imports: [
     StripeModule.forRootAsync(StripeModule, {
       inject: [ConfigService],
-      useFactory: async (config: ConfigService) => ({
-        apiKey: config.get('stripe.secretKey', ''),
-        webhookConfig: {
-          stripeWebhookSecret: config.get('stripe.webhookSecret', ''),
-          requestBodyProperty: 'body',
-          decorators: [
-            /**
-             * Avoid Keycloak @AuthGuard and @RoleGuard on Webhook controller
-             **/
-            Public(),
-          ],
-        },
-      }),
+      useFactory:useFactoryService.useFactory
     }),
   ],
   controllers: [BankTransactionsFileController],

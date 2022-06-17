@@ -1,7 +1,7 @@
 import Stripe from 'stripe'
 import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { Campaign, Donation, DonationStatus, Prisma } from '@prisma/client'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
@@ -131,16 +131,24 @@ export class DonationsService {
   async createManyBankPayments(
     DonationsDto: CreateManyBankPaymentsDto[],
   ): Promise<Prisma.BatchPayload> {
-    const donations = await this.prisma.donation.createMany({ data: DonationsDto })
+    try {
 
-    // Donation status check is not needed, because bank payments are only added by admins if the bank transfer was successful.
-    const updateManyVaults = Promise.all(
-      DonationsDto.map((donation) => {
-        this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
-      }),
-    )
+      const donations = await this.prisma.donation.createMany({ data: DonationsDto })
 
-    return donations
+      // Donation status check is not needed, because bank payments are only added by admins if the bank transfer was successful.
+      //TODO functionality for updating multiple donations
+      const updateManyVaults = Promise.all(
+        DonationsDto.map((donation) => {
+          this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
+        }),
+      )
+      return donations
+    } catch (error) {
+      Logger.warn(error)
+      throw new BadRequestException(error)
+    }
+
+
   }
 
   async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Donation> {
