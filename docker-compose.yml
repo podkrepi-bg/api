@@ -91,7 +91,7 @@ services:
     environment:
       - KEYCLOAK_USER=${KEYCLOAK_PASSWORD}
       - KEYCLOAK_PASSWORD=${KEYCLOAK_PASSWORD}
-      - KEYCLOAK_EXTRA_ARGS=-Dkeycloak.import=/opt/bitnami/keycloak/config/keycloak-webapp-realm.json
+      - KEYCLOAK_EXTRA_ARGS="-Dkeycloak.import=/opt/bitnami/keycloak/config/keycloak-webapp-realm.json -Dkeycloak.profile.feature.token_exchange=enabled -Dkeycloak.profile.feature.admin_fine_grained_authz=enabled"
       - DEBUG=true
       - DEBUG_PORT='*:8787'
       - DB_VENDOR=POSTGRES
