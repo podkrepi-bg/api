@@ -70,16 +70,9 @@ export class CampaignService {
         outgoingTransfers: { select: { amount: true } },
       },
     })
-    for (const campaign of campaigns) {
-      let campaignAmountReached = 0
-      for (const vault of campaign.vaults) {
-        for (const donation of vault.donations) {
-          campaignAmountReached += donation.amount
-        }
-      }
-      campaign['reachedAmount'] = campaignAmountReached
-    }
-    return campaigns
+
+    //TODO: remove this when Prisma starts supporting nested groupbys
+    return campaigns.map(this.addReachedAmountAndDonors)
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {

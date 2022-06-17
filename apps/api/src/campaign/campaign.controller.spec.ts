@@ -125,10 +125,17 @@ describe('CampaignController', () => {
           campaignType: { name: 'Test type' },
           vaults: [
             {
-              donations: [{ amount: 100 }, { amount: 10 }],
+              donations: [
+                { amount: 100, personId: 'donorId1' },
+                { amount: 10, personId: null },
+              ],
             },
             {
-              donations: [{ amount: 100 }, { amount: 100 }, { amount: 100 }],
+              donations: [
+                { amount: 100, personId: 'donorId1' },
+                { amount: 100, personId: 'donorId2' },
+                { amount: 100, personId: null },
+              ],
             },
           ],
         },
@@ -136,7 +143,12 @@ describe('CampaignController', () => {
       const mockList = jest.fn().mockResolvedValue([mockAdminCampaign])
       jest.spyOn(prismaService.campaign, 'findMany').mockImplementation(mockList)
 
-      expect(await controller.getAdminList()).toEqual([mockAdminCampaign])
+      expect(await controller.getAdminList()).toEqual([
+        {
+          ...mockAdminCampaign,
+          ...{ summary: [{ reachedAmount: 410, donors: 4 }], vaults: [] },
+        },
+      ])
       expect(prismaService.campaign.findMany).toHaveBeenCalled()
     })
   })
