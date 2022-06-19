@@ -76,10 +76,21 @@ export class DonationsService {
     ]
   }
 
-  async listDonations(): Promise<Donation[]> {
-    return await this.prisma.donation.findMany({
-      orderBy: [{ person: { firstName: 'asc' } }, { createdAt: 'desc' }],
-    })
+  /**
+   * Lists all donations
+   * @param campaignId (Optional) Filter by campaign id
+   */
+  async listDonations(campaignId?: string): Promise<Donation[]> {
+    if (campaignId) {
+      return await this.prisma.donation.findMany({
+        where: { targetVault: {campaign: {id: campaignId}} },
+        orderBy: [{ createdAt: 'desc' }],
+      })
+    } else {
+      return await this.prisma.donation.findMany({
+        orderBy: [{ createdAt: 'desc' }],
+      })
+    }
   }
 
   async getDonationById(id: string): Promise<Donation> {

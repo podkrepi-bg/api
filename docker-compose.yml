@@ -49,7 +49,7 @@ services:
       - pg-db-data:/bitnami/postgresql
 
     ports:
-      - 5432:5432
+      - '${DB_PORT?}:5432'
 
     environment:
       ## https://github.com/bitnami/bitnami-docker-postgresql/blob/master/README.md
