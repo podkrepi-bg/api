@@ -2,6 +2,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
@@ -73,9 +74,12 @@ export class AuthService {
         })),
         catchError(({ response }: { response: AxiosResponse<KeycloakErrorResponse> }) => {
           const error = response.data
+          Logger.error("Couldn't get authentication from keycloak. Error: " + JSON.stringify(error))
+
           if (error.error === 'invalid_grant') {
             throw new UnauthorizedException(error['error_description'])
           }
+
           throw new InternalServerErrorException('CannotIssueTokenError')
         }),
       )
@@ -138,7 +142,7 @@ export class AuthService {
         expires: grant.expires_in,
       }
     } catch (error) {
-      console.error(error)
+      Logger.error(error)
       if (error.message === '401:Unauthorized') {
         throw new UnauthorizedException(error.message, error?.response?.data)
       }
@@ -158,7 +162,7 @@ export class AuthService {
         error: error.message,
         data: error?.response?.data,
       }
-      console.error(response)
+      Logger.error(response)
       return response
     }
   }

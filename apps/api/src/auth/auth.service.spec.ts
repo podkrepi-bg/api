@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { HttpService } from '@nestjs/axios'
 import { plainToClass } from 'class-transformer'
 import { Test, TestingModule } from '@nestjs/testing'
-import { UnauthorizedException } from '@nestjs/common'
+import { Logger, UnauthorizedException } from '@nestjs/common'
 import KeycloakConnect, { Grant } from 'keycloak-connect'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
@@ -181,7 +181,7 @@ describe('AuthService', () => {
         .mockRejectedValue(new Error('401:Unauthorized'))
       const loginDto = plainToClass(LoginDto, { email, password })
       const loginSpy = jest.spyOn(service, 'login')
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+      const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation()
       const issueGrantSpy = jest.spyOn(service, 'issueGrant')
 
       try {
@@ -194,8 +194,8 @@ describe('AuthService', () => {
       expect(loginSpy).toHaveBeenCalledWith(loginDto)
       expect(issueGrantSpy).toHaveBeenCalledWith(email, password)
       expect(keycloakSpy).toHaveBeenCalledWith(email, password)
-      expect(consoleSpy).toBeCalled()
-      consoleSpy.mockRestore()
+      expect(loggerSpy).toBeCalled()
+      loggerSpy.mockRestore()
     })
   })
 
@@ -274,7 +274,7 @@ describe('AuthService', () => {
       admin.accessToken = 't23456'
       const registerDto = plainToClass(RegisterDto, { email, password, firstName, lastName })
       const createUserSpy = jest.spyOn(service, 'createUser')
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+      const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation()
       const adminSpy = jest.spyOn(admin.users, 'create').mockRejectedValue({
         message: 'Request failed with status code 409',
         response: {
@@ -292,8 +292,8 @@ describe('AuthService', () => {
       })
       expect(createUserSpy).toHaveBeenCalledWith(registerDto)
       expect(adminSpy).toHaveBeenCalled()
-      expect(consoleSpy).toBeCalled()
-      consoleSpy.mockRestore()
+      expect(loggerSpy).toBeCalled()
+      loggerSpy.mockRestore()
     })
   })
 })
