@@ -57,7 +57,7 @@ export class CampaignService {
   }
 
   async listAllCampaigns(): Promise<Campaign[]> {
-    return await this.prisma.campaign.findMany({
+    const campaigns = await this.prisma.campaign.findMany({
       orderBy: {
         endDate: 'asc',
       },
@@ -65,9 +65,14 @@ export class CampaignService {
         campaignType: { select: { name: true } },
         beneficiary: { select: { person: { select: { firstName: true, lastName: true } } } },
         coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
-        vaults: { select: { id: true, amount: true } },
+        vaults: { select: { donations: { select: { amount: true } }, amount: true } },
+        incomingTransfers: { select: { amount: true } },
+        outgoingTransfers: { select: { amount: true } },
       },
     })
+
+    //TODO: remove this when Prisma starts supporting nested groupbys
+    return campaigns.map(this.addReachedAmountAndDonors)
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
