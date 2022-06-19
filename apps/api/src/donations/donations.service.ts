@@ -1,7 +1,7 @@
 import Stripe from 'stripe'
 import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { Campaign, Donation, DonationStatus, Prisma } from '@prisma/client'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
@@ -14,6 +14,7 @@ import { CreatePaymentDto } from './dto/create-payment.dto'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
+import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
 
 @Injectable()
 export class DonationsService {
@@ -110,7 +111,7 @@ export class DonationsService {
   async getUserDonationById(
     id: string,
     keycloakId: string,
-  ): Promise<Donation & { person: Person | null } | null> {
+  ): Promise<(Donation & { person: Person | null }) | null> {
     return await this.prisma.donation.findFirst({
       where: { id, person: { keycloakId }, status: DonationStatus.succeeded },
       include: { person: true },
@@ -137,6 +138,28 @@ export class DonationsService {
     await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
 
     return donation
+  }
+  async createManyBankPayments(
+    DonationsDto: CreateManyBankPaymentsDto[],
+  ): Promise<Prisma.BatchPayload> {
+    try {
+
+      const donations = await this.prisma.donation.createMany({ data: DonationsDto })
+
+      // Donation status check is not needed, because bank payments are only added by admins if the bank transfer was successful.
+      //TODO functionality for updating multiple donations
+      const updateManyVaults = Promise.all(
+        DonationsDto.map((donation) => {
+          this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
+        }),
+      )
+      return donations
+    } catch (error) {
+      Logger.warn(error)
+      throw new BadRequestException(error)
+    }
+
+
   }
 
   async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Donation> {

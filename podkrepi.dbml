@@ -387,6 +387,15 @@ Table documents {
   expenses Expense [not null]
 }
 
+Table bank_transactions_files {
+  id String [pk]
+  filename String [not null]
+  mimetype String [not null]
+  bankTransactionsFileId String [not null]
+  personId String [not null]
+  type BankTransactionsFileType [not null, default: 'xml']
+}
+
 Enum BeneficiaryType {
   individual
   company
@@ -580,6 +589,11 @@ Enum IrregularityReason {
 
 Enum NotifierType {
   benefactor
+  other
+}
+
+Enum BankTransactionsFileType {
+  xml
   other
 }
 

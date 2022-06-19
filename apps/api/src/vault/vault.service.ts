@@ -22,6 +22,13 @@ export class VaultService {
     return await this.prisma.vault.findMany()
   }
 
+  async findByCampaignId(campaignId: string): Promise<Vault[]> {
+    return await this.prisma.vault.findMany({
+      where: {
+        campaignId,
+      },
+    })
+  }
   async findOne(id: string): Promise<Vault> {
     try {
       return await this.prisma.vault.findFirst({
@@ -97,12 +104,12 @@ export class VaultService {
     }
 
     const vault = await this.prisma.vault.update({
+      where: { id: vaultId },
       data: {
         amount: {
           increment: amount,
         },
       },
-      where: { id: vaultId },
     })
 
     await this.campaignService.updateCampaignStatusIfTargetReached(vault.campaignId)
