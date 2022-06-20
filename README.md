@@ -251,6 +251,26 @@ If things go bad, there is a way to reset your database to the original state. T
 yarn prisma migrate reset
 ```
 
+# File Upload to S3
+
+We use S3 for storing the uploaded files in buckets. The code expects the buckets to be created on prod or dev environment. We are hosting S3 ourselves using ceph https://ceph.io/en/discover/technology/.
+
+The creation of the buckets can happen using s3cmd client https://s3tools.org/s3cmd or any other S3 client and using the S3 secrets for the respective environment.
+
+To configure S3cmd run 's3cmd --configure'. All settings are self descriptive, however pay attention to these:
+
+- The default region is not a Country code but "object-store-dev" for development and "object-store" for prod
+- S3 endpoint: cdn-dev.podkrepi.bg
+- When asked for DNS-style bucket use: cdn-dev.podkrepi.bg
+
+Then bucket creation is like this:
+
+```shell
+s3cmd ls
+s3cmd mb s3://bucket-name
+s3cmd ls
+```
+
 # Production environment
 
 ## Environment variables
@@ -308,30 +328,37 @@ Overall procedure:
 
 1. Ensure a local connection to the k8s cluster
 2. Start a new `migrate-database` container manually in the proper namespace (`podkrepibg-dev` or `podkrepibg`).
-  ```shell
-  kubectl run manual-migrate-db \
-      -it --rm \
-      -n podkrepibg-dev \
-      --image=ghcr.io/podkrepi-bg/api/migrations:master \
-      -- /bin/sh
-  ```
+
+```shell
+kubectl run manual-migrate-db \
+    -it --rm \
+    -n podkrepibg-dev \
+    --image=ghcr.io/podkrepi-bg/api/migrations:master \
+    -- /bin/sh
+```
+
 3. Check migration status with `yarn prisma migrate status`
-  ```shell
-  Following migration have failed: 20220605165716_rename_bank_hash_to_payment_reference
-  ```
+
+```shell
+Following migration have failed: 20220605165716_rename_bank_hash_to_payment_reference
+```
+
 4. Rollback or apply migrations (suggested commands are printed from the status)
-  ```shell
-  The failed migration(s) can be marked as rolled back or applied:
 
-  - If you rolled back the migration(s) manually:
-  yarn prisma migrate resolve --rolled-back "20220605165716_rename_bank_hash_to_payment_reference"
+```shell
+The failed migration(s) can be marked as rolled back or applied:
 
-  - If you fixed the database manually (hotfix):
-  yarn prisma migrate resolve --applied "20220605165716_rename_bank_hash_to_payment_reference"
-  ```
+- If you rolled back the migration(s) manually:
+yarn prisma migrate resolve --rolled-back "20220605165716_rename_bank_hash_to_payment_reference"
+
+- If you fixed the database manually (hotfix):
+yarn prisma migrate resolve --applied "20220605165716_rename_bank_hash_to_payment_reference"
+```
+
 5. Run migration deployment
-  ```shell
-  yarn prisma migrate deploy
-  ```
-6. At this point you can re-deploy the `api-headless` deployment to trigger the standard flow of operation
 
+```shell
+yarn prisma migrate deploy
+```
+
+6. At this point you can re-deploy the `api-headless` deployment to trigger the standard flow of operation
