@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common'
 import { Withdrawal } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateWithdrawalDto } from './dto/create-withdrawal.dto'
@@ -8,8 +8,24 @@ import { UpdateWithdrawalDto } from './dto/update-withdrawal.dto'
 export class WithdrawalService {
   constructor(private prisma: PrismaService) {}
 
-  async create(CreateWithdrawalDto: CreateWithdrawalDto): Promise<Withdrawal> {
-    return await this.prisma.withdrawal.create({ data: CreateWithdrawalDto })
+  async create(createWithdrawalDto: CreateWithdrawalDto): Promise<Withdrawal> {
+    const vault = await this.prisma.vault.findFirst({
+      where: {
+        id: createWithdrawalDto.sourceVaultId,
+      },
+      rejectOnNotFound: true,
+    })
+    if (vault.amount - vault.blockedAmount - createWithdrawalDto.amount <= 0) {
+      throw new BadRequestException("Insufficient amount in vault.");
+    }
+
+    const writeWth = this.prisma.withdrawal.create({ data: createWithdrawalDto });
+    const writeVault = this.prisma.vault.update({
+      where: { id: vault.id },
+      data: { blockedAmount: createWithdrawalDto.amount }
+    });
+    const [result] = await this.prisma.$transaction([writeWth, writeVault]);
+    return result;
   }
 
   async findAll(): Promise<Withdrawal[]> {

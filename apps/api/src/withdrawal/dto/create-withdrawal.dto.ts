@@ -41,10 +41,10 @@ export class CreateWithdrawalDto {
   @ApiProperty()
   @IsUUID()
   @Expose()
-  documentId: string
+  documentId?: string
 
   @ApiProperty()
   @IsUUID()
   @Expose()
-  approvedById: string
+  approvedById?: string
 }
