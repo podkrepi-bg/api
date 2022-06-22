@@ -107,7 +107,11 @@ describe('WithdrawalController', () => {
   describe('create and update data', () => {
     it('should create a withdrawal', async () => {
       const withdrawal = mockData[0]
+      const vault = { id: "vaultId", name: "vault1", currency: Currency.BGN, campaignId: "123", createdAt: new Date(), updatedAt: new Date(), amount: 200, blockedAmount: 0 }
       prismaMock.withdrawal.create.mockResolvedValue(withdrawal)
+      prismaMock.vault.update.mockResolvedValue(vault)
+      prismaMock.vault.findFirst.mockResolvedValue(vault)
+      prismaMock.$transaction.mockResolvedValue([withdrawal, vault])
 
       const createDto: CreateWithdrawalDto = {
         status: WithdrawStatus.initial,
@@ -123,7 +127,33 @@ describe('WithdrawalController', () => {
       const result = await controller.create(createDto)
       expect(result).toEqual(withdrawal)
       expect(prismaMock.withdrawal.create).toHaveBeenCalledWith({ data: createDto })
+      expect(prismaMock.vault.update).toHaveBeenCalledWith({ where: { id: "vaultId" }, data: { blockedAmount: 150 } })
     })
+
+    it('should not create a withdrawal with insufficient balance', async () => {
+      const withdrawal = mockData[0]
+      const vault = { id: "vaultId", name: "vault1", currency: Currency.BGN, campaignId: "123", createdAt: new Date(), updatedAt: new Date(), amount: 200, blockedAmount: 100 }
+      prismaMock.withdrawal.create.mockResolvedValue(withdrawal)
+      prismaMock.vault.update.mockResolvedValue(vault)
+      prismaMock.vault.findFirst.mockResolvedValue(vault)
+      prismaMock.$transaction.mockResolvedValue([withdrawal, vault])
+
+      const createDto: CreateWithdrawalDto = {
+        status: WithdrawStatus.initial,
+        currency: Currency.BGN,
+        amount: 150,
+        reason: 'noreason',
+        sourceVaultId: '00000000-0000-0000-0000-000000000016',
+        sourceCampaignId: '00000000-0000-0000-0000-000000000015',
+        bankAccountId: '00000000-0000-0000-0000-000000000014',
+        documentId: '00000000-0000-0000-0000-000000000013',
+        approvedById: '00000000-0000-0000-0000-000000000012',
+      }
+      await expect(controller.create(createDto)).rejects.toThrow()
+      expect(prismaMock.withdrawal.create).not.toHaveBeenCalled()
+      expect(prismaMock.vault.update).not.toHaveBeenCalled()
+    })
+
     it('should update a withdrawal', async () => {
       const withdrawal = mockData[0]
       prismaMock.withdrawal.update.mockResolvedValue(withdrawal)

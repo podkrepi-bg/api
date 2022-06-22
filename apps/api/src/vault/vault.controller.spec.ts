@@ -109,7 +109,9 @@ describe('VaultController', () => {
     expect(prismaMock.vault.update).not.toHaveBeenCalled()
   })
 
-  it('should call remove', async () => {
+  it('should call remove on empty vaults', async () => {
+    prismaMock.vault.findFirst.mockResolvedValue({ id: vaultId, name: "vault1", currency: "BGN", campaignId: "123", createdAt: new Date(), updatedAt: new Date(), amount: 0, blockedAmount: 0 })
+
     await controller.remove(userMock, vaultId)
 
     expect(personServiceMock.findOneByKeycloakId).toHaveBeenCalledWith(userMock.sub)
@@ -122,6 +124,19 @@ describe('VaultController', () => {
         id: vaultId,
       },
     })
+  })
+
+  it('should not call remove on non-empty vaults', async () => {
+    prismaMock.vault.findFirst.mockResolvedValue({ id: vaultId, name: "vault1", currency: "BGN", campaignId: "123", createdAt: new Date(), updatedAt: new Date(), amount: 20, blockedAmount: 0 })
+
+    await expect(controller.remove(userMock, vaultId)).rejects.toThrowError()
+
+    expect(personServiceMock.findOneByKeycloakId).toHaveBeenCalledWith(userMock.sub)
+    expect(campaignService.getCampaignByVaultIdAndPersonId).toHaveBeenCalledWith(
+      vaultId,
+      'testPersonId',
+    )
+    expect(prismaMock.vault.delete).not.toHaveBeenCalled()
   })
 
   it('should not call remove in user is not owner', async () => {

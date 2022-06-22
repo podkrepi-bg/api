@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 
 import { Transfer } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
@@ -11,11 +11,24 @@ export class TransferService {
   constructor(private prisma: PrismaService) {}
 
   async create(createTransferDto: CreateTransferDto): Promise<Transfer | undefined> {
-    try {
-      return await this.prisma.transfer.create({ data: createTransferDto })
-    } catch (error) {
-      throw new NotFoundException(error)
+    const sourceVault = await this.prisma.vault.findFirst({
+      where: {
+        id: createTransferDto.sourceVaultId,
+      },
+      rejectOnNotFound: true,
+    })
+
+    if (sourceVault.amount - sourceVault.blockedAmount - createTransferDto.amount <= 0) {
+      throw new BadRequestException("Insufficient amount in vault.");
     }
+
+    const writeTransfer = this.prisma.transfer.create({ data: createTransferDto })
+    const writeVault = this.prisma.vault.update({
+      where: { id: sourceVault.id },
+      data: { blockedAmount: sourceVault.blockedAmount + createTransferDto.amount }
+    });
+    const [result] = await this.prisma.$transaction([writeTransfer, writeVault]);
+    return result;
   }
 
   async findAll(): Promise<Transfer[]> {

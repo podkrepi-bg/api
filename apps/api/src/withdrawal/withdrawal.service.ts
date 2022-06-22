@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common'
-import { Withdrawal } from '@prisma/client'
+import { Withdrawal, WithdrawStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateWithdrawalDto } from './dto/create-withdrawal.dto'
 import { UpdateWithdrawalDto } from './dto/update-withdrawal.dto'
@@ -22,7 +22,7 @@ export class WithdrawalService {
     const writeWth = this.prisma.withdrawal.create({ data: createWithdrawalDto });
     const writeVault = this.prisma.vault.update({
       where: { id: vault.id },
-      data: { blockedAmount: createWithdrawalDto.amount }
+      data: { blockedAmount: vault.blockedAmount + createWithdrawalDto.amount }
     });
     const [result] = await this.prisma.$transaction([writeWth, writeVault]);
     return result;
@@ -47,12 +47,46 @@ export class WithdrawalService {
   }
 
   async update(id: string, updateWithdrawalDto: UpdateWithdrawalDto): Promise<Withdrawal | null> {
-    const result = await this.prisma.withdrawal.update({
+    const vault = await this.prisma.vault.findFirst({
+      where: {
+        id: updateWithdrawalDto.sourceVaultId,
+      },
+      rejectOnNotFound: true,
+    })
+    const withdrawal = await this.prisma.withdrawal.findFirst({
+      where: { id: id },
+      rejectOnNotFound: true
+    })
+
+    // TODO: status check for pending -> complete or pending -> rejected
+
+    let writeVault = this.prisma.vault.update({
+      where: { id: vault.id },
+      data: vault
+    });
+    // in case of completion: complete transaction, unblock and debit the amount
+    if (updateWithdrawalDto.status === WithdrawStatus.succeeded) {
+      writeVault =  this.prisma.vault.update({
+        where: { id: vault.id },
+        data: {blockedAmount: vault.blockedAmount - withdrawal.amount, amount: vault.amount - withdrawal.amount}
+      });
+    }
+    else if (updateWithdrawalDto.status === WithdrawStatus.declined || updateWithdrawalDto.status === WithdrawStatus.cancelled) {
+      // in case of rejection: unblock amount
+      writeVault =  this.prisma.vault.update({
+        where: { id: vault.id },
+        data: {blockedAmount: vault.blockedAmount - withdrawal.amount}
+      });
+    }
+
+    // in all other cases - only status update
+    const writeWth = this.prisma.withdrawal.update({
       where: { id: id },
       data: updateWithdrawalDto,
     })
-    if (!result) throw new NotFoundException('Not found')
-    return result
+
+    const [result] = await this.prisma.$transaction([writeWth, writeVault]);
+    return result;
   }
 
   async remove(id: string): Promise<Withdrawal | null> {
