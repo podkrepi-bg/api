@@ -114,7 +114,7 @@ export class CampaignService {
       where: { slug },
       include: {
         campaignType: {
-          select: { name: true}
+          select: { name: true },
         },
         beneficiary: {
           select: {
