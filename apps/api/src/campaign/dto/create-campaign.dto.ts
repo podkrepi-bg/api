@@ -59,7 +59,6 @@ export class CreateCampaignDto {
   @Expose()
   @IsNumber()
   @IsPositive()
-  @Max(500000)
   targetAmount: number
 
   @ApiProperty()
@@ -72,7 +71,6 @@ export class CreateCampaignDto {
   @Expose()
   @IsNumber()
   @IsPositive()
-  @Max(500000)
   reachedAmount: number
 
   @ApiProperty()
