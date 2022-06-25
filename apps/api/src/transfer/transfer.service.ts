@@ -19,16 +19,16 @@ export class TransferService {
     })
 
     if (sourceVault.amount - sourceVault.blockedAmount - createTransferDto.amount <= 0) {
-      throw new BadRequestException("Insufficient amount in vault.");
+      throw new BadRequestException('Insufficient amount in vault.')
     }
 
     const writeTransfer = this.prisma.transfer.create({ data: createTransferDto })
     const writeVault = this.prisma.vault.update({
       where: { id: sourceVault.id },
-      data: { blockedAmount: sourceVault.blockedAmount + createTransferDto.amount }
-    });
-    const [result] = await this.prisma.$transaction([writeTransfer, writeVault]);
-    return result;
+      data: { blockedAmount: sourceVault.blockedAmount + createTransferDto.amount },
+    })
+    const [result] = await this.prisma.$transaction([writeTransfer, writeVault])
+    return result
   }
 
   async findAll(): Promise<Transfer[]> {

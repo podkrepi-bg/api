@@ -107,7 +107,16 @@ describe('WithdrawalController', () => {
   describe('create and update data', () => {
     it('should create a withdrawal', async () => {
       const withdrawal = mockData[0]
-      const vault = { id: "vaultId", name: "vault1", currency: Currency.BGN, campaignId: "123", createdAt: new Date(), updatedAt: new Date(), amount: 200, blockedAmount: 0 }
+      const vault = {
+        id: 'vaultId',
+        name: 'vault1',
+        currency: Currency.BGN,
+        campaignId: '123',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        amount: 200,
+        blockedAmount: 0,
+      }
       prismaMock.withdrawal.create.mockResolvedValue(withdrawal)
       prismaMock.vault.update.mockResolvedValue(vault)
       prismaMock.vault.findFirst.mockResolvedValue(vault)
@@ -127,12 +136,24 @@ describe('WithdrawalController', () => {
       const result = await controller.create(createDto)
       expect(result).toEqual(withdrawal)
       expect(prismaMock.withdrawal.create).toHaveBeenCalledWith({ data: createDto })
-      expect(prismaMock.vault.update).toHaveBeenCalledWith({ where: { id: "vaultId" }, data: { blockedAmount: 150 } })
+      expect(prismaMock.vault.update).toHaveBeenCalledWith({
+        where: { id: 'vaultId' },
+        data: { blockedAmount: 150 },
+      })
     })
 
     it('should not create a withdrawal with insufficient balance', async () => {
       const withdrawal = mockData[0]
-      const vault = { id: "vaultId", name: "vault1", currency: Currency.BGN, campaignId: "123", createdAt: new Date(), updatedAt: new Date(), amount: 200, blockedAmount: 100 }
+      const vault = {
+        id: 'vaultId',
+        name: 'vault1',
+        currency: Currency.BGN,
+        campaignId: '123',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        amount: 200,
+        blockedAmount: 100,
+      }
       prismaMock.withdrawal.create.mockResolvedValue(withdrawal)
       prismaMock.vault.update.mockResolvedValue(vault)
       prismaMock.vault.findFirst.mockResolvedValue(vault)
