@@ -84,7 +84,7 @@ export class DonationsService {
   async listDonations(campaignId?: string): Promise<Donation[]> {
     if (campaignId) {
       return await this.prisma.donation.findMany({
-        where: { targetVault: {campaign: {id: campaignId}} },
+        where: { targetVault: { campaign: { id: campaignId } } },
         orderBy: [{ createdAt: 'desc' }],
       })
     } else {
@@ -143,7 +143,6 @@ export class DonationsService {
     DonationsDto: CreateManyBankPaymentsDto[],
   ): Promise<Prisma.BatchPayload> {
     try {
-
       const donations = await this.prisma.donation.createMany({ data: DonationsDto })
 
       // Donation status check is not needed, because bank payments are only added by admins if the bank transfer was successful.
@@ -158,8 +157,6 @@ export class DonationsService {
       Logger.warn(error)
       throw new BadRequestException(error)
     }
-
-
   }
 
   async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Donation> {
@@ -215,7 +212,7 @@ export class DonationsService {
     const donations = await this.prisma.donation.findMany({
       include: {
         targetVault: {
-          include: { campaign: true },
+          include: { campaign: { select: { title: true } } },
         },
       },
       where: { person: { keycloakId } },
