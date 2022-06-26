@@ -1,4 +1,10 @@
-import { CampaignState, Currency, PrismaClient } from '@prisma/client'
+import {
+  CampaignState,
+  Currency,
+  PrismaClient,
+  PaymentProvider,
+  DonationStatus,
+} from '@prisma/client'
 import faker from 'faker'
 const prisma = new PrismaClient()
 
@@ -27,6 +33,8 @@ export async function donationsSeed() {
         extCustomerId: 'cus_' + faker.random.alphaNumeric(8),
         extPaymentIntentId: 'pi_' + faker.random.alphaNumeric(8),
         extPaymentMethodId: 'pm_' + faker.random.alphaNumeric(8),
+        provider: PaymentProvider.stripe,
+        status: DonationStatus.succeeded,
       },
       {
         type: 'donation',
@@ -37,6 +45,8 @@ export async function donationsSeed() {
         extCustomerId: 'cus_' + faker.random.alphaNumeric(8),
         extPaymentIntentId: 'pi_' + faker.random.alphaNumeric(8),
         extPaymentMethodId: 'pm_' + faker.random.alphaNumeric(8),
+        provider: PaymentProvider.bank,
+        status: DonationStatus.initial,
       },
       {
         type: 'donation',
@@ -47,6 +57,8 @@ export async function donationsSeed() {
         extCustomerId: 'cus_' + faker.random.alphaNumeric(8),
         extPaymentIntentId: 'pi_' + faker.random.alphaNumeric(8),
         extPaymentMethodId: 'pm_' + faker.random.alphaNumeric(8),
+        provider: PaymentProvider.stripe,
+        status: DonationStatus.declined,
       },
     ],
     skipDuplicates: true,
