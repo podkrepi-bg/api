@@ -271,6 +271,16 @@ s3cmd mb s3://bucket-name
 s3cmd ls
 ```
 
+# Configuring Google Sign-in with Keycloak
+For enabling sign-in with existing gmail account we use the token-exchange feature of Keycloak as per the great description in: https://medium.com/@souringhosh/keycloak-token-exchange-usage-with-google-sign-in-cd9127ebc96d 
+
+The logic is the following:
+1. The frontend acquires a token from Google Sign-in
+2. The frontend sends the token to the backend API requesting a login with external provider (see: auth.service.ts issueTokenFromProvider)
+3. The backend sends the token-exchange request to Keycloak passing the Google Token for Permission to Login
+4. Keycloak server grants permission and returns the access token
+5. Backend creates the new user in the database and returns the access token for use from Frontend
+
 # Production environment
 
 ## Environment variables
