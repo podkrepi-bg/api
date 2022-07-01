@@ -68,7 +68,7 @@ export class WithdrawalService {
       rejectOnNotFound: true,
     })
 
-    if (withdrawal.status in [WithdrawStatus.succeeded, WithdrawStatus.cancelled, WithdrawStatus.declined] && withdrawal.status !== updateWithdrawalDto.status) {
+    if ([WithdrawStatus.succeeded.valueOf(), WithdrawStatus.cancelled.valueOf(), WithdrawStatus.declined.valueOf()].includes(withdrawal.status.valueOf())) {
       throw new BadRequestException("Withdrawal has already been finilized and cannot be updated.")
     }
 

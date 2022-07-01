@@ -87,7 +87,7 @@ export class TransferService {
       rejectOnNotFound: true,
     })
 
-    if (transfer.status in [TransferStatus.succeeded, TransferStatus.cancelled, TransferStatus.declined] && transfer.status !== updateTransferDto.status) {
+    if ([TransferStatus.succeeded.valueOf(), TransferStatus.cancelled.valueOf(), TransferStatus.declined.valueOf()].includes(transfer.status.valueOf())) {
       throw new BadRequestException("Transfer has already been finilized and cannot be updated")
     }
 
