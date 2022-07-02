@@ -24,7 +24,7 @@ export class ExpensesService {
     const writeExpense = this.prisma.expense.create({ data: createExpenseDto })
     const writeVault = this.prisma.vault.update({
       where: { id: sourceVault.id },
-      data: { blockedAmount: sourceVault.blockedAmount + createExpenseDto.amount },
+      data: { blockedAmount: { increment: createExpenseDto.amount} },
     })
     const [result] = await this.prisma.$transaction([writeExpense, writeVault])
     return result
@@ -83,15 +83,15 @@ export class ExpensesService {
       writeVault = this.prisma.vault.update({
         where: { id: vault.id },
         data: {
-          blockedAmount: vault.blockedAmount - expense.amount,
-          amount: vault.amount - expense.amount,
+          blockedAmount: { decrement: expense.amount },
+          amount: { decrement: expense.amount },
         },
       })
     } else if (dto.status === ExpenseStatus.canceled) {
       // in case of rejection: unblock amount
       writeVault = this.prisma.vault.update({
         where: { id: vault.id },
-        data: { blockedAmount: vault.blockedAmount - expense.amount },
+        data: { blockedAmount: { decrement: expense.amount } },
       })
     }
 

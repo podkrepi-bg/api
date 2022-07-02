@@ -141,7 +141,7 @@ describe('WithdrawalController', () => {
       expect(prismaMock.withdrawal.create).toHaveBeenCalledWith({ data: createDto })
       expect(prismaMock.vault.update).toHaveBeenCalledWith({
         where: { id: 'vaultId' },
-        data: { blockedAmount: 150 },
+        data: { blockedAmount: {"increment": 150} },
       })
     })
 
@@ -221,8 +221,8 @@ describe('WithdrawalController', () => {
       expect(prismaMock.vault.update).toHaveBeenCalledWith({
         where: { id: '00000000-0000-0000-0000-000000000016' },
         data: {
-          blockedAmount: 200, // vault blocked amount - withdraw amount
-          amount: 850 // vault amount - withdraw amount
+          blockedAmount: {"decrement": 150},
+          amount: {"decrement": 150}
         },
       })
     })
@@ -270,7 +270,7 @@ describe('WithdrawalController', () => {
       expect(prismaMock.vault.update).toHaveBeenCalledWith({
         where: { id: '00000000-0000-0000-0000-000000000016' },
         data: {
-          blockedAmount: 200, // vault blocked amount - withdraw amount
+          blockedAmount: {"decrement": 150}
         },
       })
     })

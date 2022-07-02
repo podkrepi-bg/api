@@ -28,7 +28,7 @@ export class TransferService {
     const writeTransfer = this.prisma.transfer.create({ data: createTransferDto })
     const writeVault = this.prisma.vault.update({
       where: { id: sourceVault.id },
-      data: { blockedAmount: sourceVault.blockedAmount + createTransferDto.amount },
+      data: { blockedAmount: {increment: createTransferDto.amount}},
     })
     const [result] = await this.prisma.$transaction([writeTransfer, writeVault])
     return result
@@ -107,14 +107,14 @@ export class TransferService {
       writeSrcVault = this.prisma.vault.update({
         where: { id: srcVault.id },
         data: {
-          blockedAmount: srcVault.blockedAmount - transfer.amount,
-          amount: srcVault.amount - transfer.amount,
+          blockedAmount: {decrement: transfer.amount},
+          amount: {decrement: transfer.amount},
         }
       })
       writeTargetVault = this.prisma.vault.update({
         where: { id: targetVault.id },
         data: {
-          amount: targetVault.amount + transfer.amount,
+          amount: {increment: transfer.amount},
         }
       })
     } else if (
@@ -124,7 +124,7 @@ export class TransferService {
       // in case of rejection: unblock amount
       writeSrcVault = this.prisma.vault.update({
         where: { id: srcVault.id },
-        data: { blockedAmount: srcVault.blockedAmount - transfer.amount },
+        data: { blockedAmount: {decrement: transfer.amount} },
       })
     }
 

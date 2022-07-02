@@ -25,7 +25,7 @@ export class WithdrawalService {
     const writeWth = this.prisma.withdrawal.create({ data: createWithdrawalDto })
     const writeVault = this.prisma.vault.update({
       where: { id: vault.id },
-      data: { blockedAmount: vault.blockedAmount + createWithdrawalDto.amount },
+      data: { blockedAmount: {increment: createWithdrawalDto.amount} },
     })
     const [result] = await this.prisma.$transaction([writeWth, writeVault])
     return result
@@ -84,8 +84,8 @@ export class WithdrawalService {
       writeVault = this.prisma.vault.update({
         where: { id: vault.id },
         data: {
-          blockedAmount: vault.blockedAmount - withdrawal.amount,
-          amount: vault.amount - withdrawal.amount,
+          blockedAmount: {decrement: withdrawal.amount},
+          amount: {decrement: withdrawal.amount},
         },
       })
     } else if (
@@ -95,7 +95,7 @@ export class WithdrawalService {
       // in case of rejection: unblock amount
       writeVault = this.prisma.vault.update({
         where: { id: vault.id },
-        data: { blockedAmount: vault.blockedAmount - withdrawal.amount },
+        data: { blockedAmount: {decrement: withdrawal.amount} },
       })
     }
 
