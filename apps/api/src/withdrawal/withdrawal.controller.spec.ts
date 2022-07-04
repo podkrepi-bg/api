@@ -109,7 +109,7 @@ describe('WithdrawalController', () => {
     it('should create a withdrawal', async () => {
       const withdrawal = mockData[0]
       const vault = {
-        id: 'vaultId',
+        id: '00000000-0000-0000-0000-000000000016',
         name: 'vault1',
         currency: Currency.BGN,
         campaignId: '123',
@@ -140,7 +140,7 @@ describe('WithdrawalController', () => {
       expect(result).toEqual(withdrawal)
       expect(prismaMock.withdrawal.create).toHaveBeenCalledWith({ data: createDto })
       expect(prismaMock.vault.update).toHaveBeenCalledWith({
-        where: { id: 'vaultId' },
+        where: { id: '00000000-0000-0000-0000-000000000016' },
         data: { blockedAmount: {"increment": 150} },
       })
     })
@@ -148,7 +148,7 @@ describe('WithdrawalController', () => {
     it('should not create a withdrawal with insufficient balance', async () => {
       const withdrawal = mockData[0]
       const vault = {
-        id: 'vaultId',
+        id: '00000000-0000-0000-0000-000000000016',
         name: 'vault1',
         currency: Currency.BGN,
         campaignId: '123',
@@ -360,7 +360,7 @@ describe('WithdrawalController', () => {
   })
 
   describe('removeData', () => {
-    it('should remove 1 withdrawal', async () => {
+    it('should not remove withdrawals', async () => {
       const withdrawal = mockData[0]
       await expect(controller.remove(withdrawal.id)).rejects.toThrow(new ForbiddenException())
     })
