@@ -28,6 +28,7 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   benefactors Benefactor [not null]
   beneficiaries Beneficiary [not null]
   campaigns Campaign [not null]
+  organizer Organizer [not null]
   coordinators Coordinator [not null]
   documents Document [not null]
   Donation Donation [not null]
@@ -57,6 +58,17 @@ https://psc.egov.bg/en/psc-starting-a-business-bulstat']
   beneficiaries Beneficiary [not null]
 }
 
+Table organizers {
+  id String [pk]
+  personId String [unique, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  person Person [not null]
+  campaigns Campaign [not null]
+
+  Note: 'Organizer is the person who manages the campaign on behalf of the Beneficiary'
+}
+
 Table coordinators {
   id String [pk]
   personId String [unique, not null]
@@ -66,8 +78,7 @@ Table coordinators {
   beneficiaries Beneficiary [not null]
   campaigns Campaign [not null]
 
-  Note: 'Coordinator is the person who manages the campaign on behalf of the Beneficiary
-Alias: Organizer'
+  Note: 'Coordinator is the person who manages the campaign on behalf of Podkrepi.bg'
 }
 
 Table benefactors {
@@ -123,6 +134,7 @@ Table campaigns {
   title String [not null]
   essence String [not null]
   paymentReference String [unique, not null]
+  organizerId String [not null]
   coordinatorId String [not null]
   beneficiaryId String [not null]
   campaignTypeId String [not null]
@@ -137,6 +149,7 @@ Table campaigns {
   approvedById String
   currency Currency [not null, default: 'BGN']
   approvedBy Person
+  organizer Organizer [not null]
   beneficiary Beneficiary [not null]
   campaignType CampaignType [not null]
   coordinator Coordinator [not null]
@@ -597,6 +610,8 @@ Enum BankTransactionsFileType {
   other
 }
 
+Ref: Organizer.personId > Person.id
+
 Ref: Coordinator.personId > Person.id
 
 Ref: Benefactor.personId > Person.id
@@ -612,6 +627,8 @@ Ref: Beneficiary.personId > Person.id
 Ref: CampaignType.parentId - CampaignType.id
 
 Ref: Campaign.approvedById > Person.id
+
+Ref: Campaign.organizerId > Organizer.id
 
 Ref: Campaign.beneficiaryId > Beneficiary.id
 
