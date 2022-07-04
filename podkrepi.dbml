@@ -134,7 +134,7 @@ Table campaigns {
   title String [not null]
   essence String [not null]
   paymentReference String [unique, not null]
-  organizerId String [not null]
+  organizerId String
   coordinatorId String [not null]
   beneficiaryId String [not null]
   campaignTypeId String [not null]
@@ -149,7 +149,7 @@ Table campaigns {
   approvedById String
   currency Currency [not null, default: 'BGN']
   approvedBy Person
-  organizer Organizer [not null]
+  organizer Organizer
   beneficiary Beneficiary [not null]
   campaignType CampaignType [not null]
   coordinator Coordinator [not null]

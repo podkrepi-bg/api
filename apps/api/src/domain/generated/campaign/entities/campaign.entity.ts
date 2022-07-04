@@ -17,7 +17,7 @@ export class Campaign {
   title: string
   essence: string
   paymentReference: string
-  organizerId: string
+  organizerId: string | null
   coordinatorId: string
   beneficiaryId: string
   campaignTypeId: string
@@ -32,7 +32,7 @@ export class Campaign {
   approvedById: string | null
   currency: Currency
   approvedBy?: Person | null
-  organizer?: Organizer
+  organizer?: Organizer | null
   beneficiary?: Beneficiary
   campaignType?: CampaignType
   coordinator?: Coordinator
