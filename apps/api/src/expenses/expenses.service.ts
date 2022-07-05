@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common'
 import { Expense, ExpenseStatus } from '@prisma/client'
 
 import { PrismaService } from '../prisma/prisma.service'
@@ -44,6 +44,7 @@ export class ExpensesService {
   }
 
   async remove(id: string) {
+    throw new ForbiddenException()
     try {
       return await this.prisma.expense.delete({ where: { id } })
     } catch (error) {
