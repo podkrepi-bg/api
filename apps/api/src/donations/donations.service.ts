@@ -78,20 +78,42 @@ export class DonationsService {
   }
 
   /**
-   * Lists all donations
+   * Lists all donations without confidential fields
    * @param campaignId (Optional) Filter by campaign id
+   * @param status (Optional) Filter by campaign status
    */
-  async listDonations(campaignId?: string): Promise<Donation[]> {
-    if (campaignId) {
-      return await this.prisma.donation.findMany({
-        where: { targetVault: { campaign: { id: campaignId } } },
-        orderBy: [{ createdAt: 'desc' }],
-      })
-    } else {
-      return await this.prisma.donation.findMany({
-        orderBy: [{ createdAt: 'desc' }],
-      })
-    }
+  async listDonationsPublic(
+    campaignId?: string,
+    status?: DonationStatus,
+  ): Promise<(
+    Omit<Donation, 'personId'|'targetVaultId'|'extCustomerId'|'extPaymentIntentId'|'extPaymentMethodId'> ) []> {
+    return await this.prisma.donation.findMany({
+      where: { status, targetVault: { campaign: { id: campaignId } } },
+      orderBy: [{ createdAt: 'desc' }],
+      select: {
+        id: true,
+        type: true,
+        status: true,
+        provider: true,
+        createdAt: true,
+        updatedAt: true,
+        amount: true,
+        currency: true,
+        person: {select: { firstName: true, lastName:true}}
+      }
+    })
+  }
+
+  /**
+   * Lists all donations with all fields only for admin roles
+   * @param campaignId (Optional) Filter by campaign id
+   * @param status (Optional) Filter by campaign status
+   */
+  async listDonations(campaignId?: string, status?: DonationStatus): Promise<Donation[]> {
+    return await this.prisma.donation.findMany({
+      where: { status, targetVault: { campaign: { id: campaignId } } },
+      orderBy: [{ createdAt: 'desc' }],
+    })
   }
 
   async getDonationById(id: string): Promise<Donation> {
