@@ -38,7 +38,7 @@ jobs:
           targets: lint,build
           projects: api
       - name: Jest coverage report
-        uses: ArtiomTr/jest-coverage-report-action@v2.0.5
+        uses: ArtiomTr/jest-coverage-report-action@v2.0.8
         with:
           package-manager: yarn
           test-script: yarn test:ci
