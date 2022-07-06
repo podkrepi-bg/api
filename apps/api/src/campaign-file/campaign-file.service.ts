@@ -32,7 +32,7 @@ export class CampaignFileService {
     await this.s3.uploadObject(
       this.bucketName,
       dbFile.id,
-      filename,
+      encodeURIComponent(filename),
       mimetype,
       buffer,
       'Campaign',
@@ -54,7 +54,7 @@ export class CampaignFileService {
       throw new NotFoundException('No campaign file record with ID: ' + id)
     }
     return {
-      filename: file.filename,
+      filename: encodeURIComponent(file.filename),
       mimetype: file.mimetype,
       stream: await this.s3.streamFile(this.bucketName, id),
     }

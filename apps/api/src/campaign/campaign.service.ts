@@ -78,7 +78,11 @@ export class CampaignService {
   async getCampaignById(campaignId: string): Promise<Campaign> {
     const campaign = await this.prisma.campaign.findFirst({
       where: { id: campaignId },
-      include: { campaignFiles: true },
+      include: {
+        campaignFiles: true,
+        vaults: { select: { donations: { select: { amount: true } }, amount: true } },
+        incomingTransfers: { select: { amount: true } },
+      },
     })
     if (!campaign) {
       Logger.warn('No campaign record with ID: ' + campaignId)
@@ -113,6 +117,9 @@ export class CampaignService {
     const campaign = await this.prisma.campaign.findFirst({
       where: { slug },
       include: {
+        campaignType: {
+          select: { name: true },
+        },
         beneficiary: {
           select: {
             id: true,
