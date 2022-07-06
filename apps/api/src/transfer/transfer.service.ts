@@ -62,18 +62,23 @@ export class TransferService {
   }
 
   /**
-   * Updates a transfer, where status changes to completed/declined state will finilize the transfer and perform vault transaction.
+   * Updates a transfer, where status changes to completed/declined state will finilize the transfer and perform vault transaction between source and target.
    */
   async update(id: string, updateTransferDto: UpdateTransferDto): Promise<Transfer | null> {
     const transfer = await this.prisma.transfer.findFirst({
       where: { id: id },
       rejectOnNotFound: true,
     })
-    // TODO: might need to check target vault because it doesn't make sense to update it, although it will be ok
-    if (transfer.sourceVaultId !== updateTransferDto.sourceVaultId) {
-      throw new BadRequestException("Vault cannot be changed, please decline the withdrawal instead.")
+
+    if ([TransferStatus.succeeded.valueOf(), TransferStatus.cancelled.valueOf(), TransferStatus.declined.valueOf()].includes(transfer.status.valueOf())) {
+      throw new BadRequestException("Transfer has already been finilized and cannot be updated")
+    }
+    // TODO: might need to check target vault because it doesn't make sense to update it, although it will be ok because no previous interaction has been performed
+    if (transfer.sourceVaultId !== updateTransferDto.sourceVaultId || transfer.amount !== updateTransferDto.amount) {
+      throw new BadRequestException("Vault or amount cannot be changed, please decline the withdrawal instead.")
     }
 
+    // TODO: figure out how to initialize empty vault promise
     const srcVault = await this.prisma.vault.findFirst({
       where: {
         id: transfer.sourceVaultId,
@@ -86,10 +91,6 @@ export class TransferService {
       },
       rejectOnNotFound: true,
     })
-
-    if ([TransferStatus.succeeded.valueOf(), TransferStatus.cancelled.valueOf(), TransferStatus.declined.valueOf()].includes(transfer.status.valueOf())) {
-      throw new BadRequestException("Transfer has already been finilized and cannot be updated")
-    }
 
     let writeSrcVault = this.prisma.vault.update({
       where: { id: srcVault.id },
@@ -138,6 +139,7 @@ export class TransferService {
     return result
   }
 
+  // Functionality will be reworked soon
   async remove(id: string): Promise<Transfer | null> {
     throw new ForbiddenException()
     const result = await this.prisma.transfer.delete({ where: { id: id } })

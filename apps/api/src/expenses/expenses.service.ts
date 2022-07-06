@@ -9,6 +9,9 @@ import { UpdateExpenseDto } from './dto/update-expense.dto'
 export class ExpensesService {
   constructor(private prisma: PrismaService) {}
 
+  /**
+   * Creates an expense, while blocking the corresponding amount in the source vault.
+   */
   async createExpense(createExpenseDto: CreateExpenseDto) {
     const sourceVault = await this.prisma.vault.findFirst({
       where: {
@@ -43,6 +46,7 @@ export class ExpensesService {
     }
   }
 
+  // Functionality will be reworked soon
   async remove(id: string) {
     throw new ForbiddenException()
     try {
@@ -52,13 +56,19 @@ export class ExpensesService {
     }
   }
 
+  /**
+   * Updates an expense, where status changes to approved/canceled state will finilize the expense and perform vault transaction.
+   */
   async update(id: string, dto: UpdateExpenseDto) {
     const expense = await this.prisma.expense.findFirst({
       where: { id: id },
       rejectOnNotFound: true,
     })
-    if (expense.vaultId !== dto.vaultId) {
-      throw new BadRequestException("Vault cannot be changed, please decline the withdrawal instead.")
+    if ([ExpenseStatus.approved.valueOf(), ExpenseStatus.canceled.valueOf()].includes(expense.status.valueOf())) {
+      throw new BadRequestException("Expense has already been finilized and cannot be updated.")
+    }
+    if (expense.vaultId !== dto.vaultId || expense.amount !== dto.amount) {
+      throw new BadRequestException("Vault or amount cannot be changed, please decline the withdrawal instead.")
     }
 
     const vault = await this.prisma.vault.findFirst({
@@ -68,10 +78,7 @@ export class ExpensesService {
       rejectOnNotFound: true,
     })
 
-    if ([ExpenseStatus.approved.valueOf(), ExpenseStatus.canceled.valueOf()].includes(expense.status.valueOf())) {
-      throw new BadRequestException("Expense has already been finilized and cannot be updated.")
-    }
-
+    // TODO: figure out how to initialize empty vault promise
     let writeVault = this.prisma.vault.update({
       where: { id: vault.id },
       data: vault,

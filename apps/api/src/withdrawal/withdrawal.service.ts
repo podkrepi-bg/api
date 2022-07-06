@@ -57,8 +57,12 @@ export class WithdrawalService {
       where: { id: id },
       rejectOnNotFound: true,
     })
-    if (withdrawal.sourceVaultId !== updateWithdrawalDto.sourceVaultId) {
-      throw new BadRequestException("Vault cannot be changed, please decline the withdrawal instead.")
+
+    if ([WithdrawStatus.succeeded.valueOf(), WithdrawStatus.cancelled.valueOf(), WithdrawStatus.declined.valueOf()].includes(withdrawal.status.valueOf())) {
+      throw new BadRequestException("Withdrawal has already been finilized and cannot be updated.")
+    }
+    if (withdrawal.sourceVaultId !== updateWithdrawalDto.sourceVaultId || withdrawal.amount !== updateWithdrawalDto.amount) {
+      throw new BadRequestException("Vault or amount cannot be changed, please decline the withdrawal instead.")
     }
 
     const vault = await this.prisma.vault.findFirst({
@@ -68,10 +72,7 @@ export class WithdrawalService {
       rejectOnNotFound: true,
     })
 
-    if ([WithdrawStatus.succeeded.valueOf(), WithdrawStatus.cancelled.valueOf(), WithdrawStatus.declined.valueOf()].includes(withdrawal.status.valueOf())) {
-      throw new BadRequestException("Withdrawal has already been finilized and cannot be updated.")
-    }
-
+    // TODO: figure out how to initialize empty vault promise
     let writeVault = this.prisma.vault.update({
       where: { id: vault.id },
       data: vault,
@@ -109,6 +110,7 @@ export class WithdrawalService {
     return result
   }
 
+  // Functionality will be reworked soon
   async remove(id: string): Promise<Withdrawal | null> {
     throw new ForbiddenException()
     const result = await this.prisma.withdrawal.delete({ where: { id: id } })
