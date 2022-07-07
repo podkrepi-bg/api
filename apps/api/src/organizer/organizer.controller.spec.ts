@@ -9,7 +9,7 @@ describe('OrganizerController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [OrganizerController],
-      providers: [OrganizerService,MockPrismaService],
+      providers: [OrganizerService, MockPrismaService],
     }).compile()
 
     controller = module.get<OrganizerController>(OrganizerController)

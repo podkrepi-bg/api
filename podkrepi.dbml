@@ -577,6 +577,7 @@ Enum CampaignFileRole {
   profilePhoto
   campaignListPhoto
   beneficiaryPhoto
+  organizerPhoto
 }
 
 Enum IrregularityStatus {

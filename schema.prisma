@@ -708,6 +708,7 @@ enum CampaignFileRole {
   profilePhoto
   campaignListPhoto
   beneficiaryPhoto
+  organizerPhoto
 
   @@map("campaign_file_role")
 }
