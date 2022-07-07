@@ -1,6 +1,15 @@
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
-import { Body, Controller, Get, Param, Patch, Post, UnauthorizedException, Query } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UnauthorizedException,
+  Query,
+} from '@nestjs/common'
 import { ApiQuery } from '@nestjs/swagger'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
@@ -9,6 +18,7 @@ import { CreateSessionDto } from './dto/create-session.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
+import { DonationStatus } from '@prisma/client'
 
 @Controller('donation')
 export class DonationsController {
@@ -43,6 +53,25 @@ export class DonationsController {
     return await this.donationsService.getDonationsByUser(user.sub)
   }
 
+  @Get('listPublic')
+  @Public()
+  @ApiQuery({
+    name: 'campaignId',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: DonationStatus,
+  })
+  findAllPublic(
+    @Query('campaignId') campaignId?: string,
+    @Query('status') status?: DonationStatus,
+  ) {
+    return this.donationsService.listDonationsPublic(campaignId, status)
+  }
+
   @Get('list')
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],
@@ -51,10 +80,15 @@ export class DonationsController {
   @ApiQuery({
     name: 'campaignId',
     required: false,
-    type: String
+    type: String,
   })
-  findAll(@Query('campaignId') campaignId?: string) {
-    return this.donationsService.listDonations(campaignId)
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: DonationStatus,
+  })
+  findAll(@Query('campaignId') campaignId?: string, @Query('status') status?: DonationStatus) {
+    return this.donationsService.listDonations(campaignId, status)
   }
 
   @Get(':id')

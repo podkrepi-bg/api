@@ -46,7 +46,7 @@ export class CampaignService {
         organizer: { select: { person: true } },
         vaults: {
           select: {
-            donations: { select: { amount: true } },
+            donations: { where: { status: DonationStatus.succeeded }, select: { amount: true } },
           },
         },
         campaignFiles: true,
@@ -150,7 +150,10 @@ export class CampaignService {
         campaignFiles: true,
         vaults: {
           select: {
-            donations: { select: { amount: true, personId: true } },
+            donations: {
+              where: { status: DonationStatus.succeeded },
+              select: { amount: true, personId: true },
+            },
           },
         },
       },

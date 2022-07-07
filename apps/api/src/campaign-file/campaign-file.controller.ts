@@ -33,7 +33,7 @@ export class CampaignFileController {
   ) {}
 
   @Post(':campaign_id')
-  @UseInterceptors(FilesInterceptor('file', 5, { limits: { fileSize: 10485760 } })) //limit uploaded files to 5 at once and 10MB each
+  @UseInterceptors(FilesInterceptor('file', 10, { limits: { fileSize: 20485760 } })) //limit uploaded files to 5 at once and 10MB each
   async create(
     @Param('campaign_id') campaignId: string,
     @Body() body: FilesRoleDto,
