@@ -29,6 +29,7 @@ describe('CampaignController', () => {
     essence: 'test',
     coordinatorId: 'testCoordinatorId',
     beneficiaryId: 'testBeneficiaryId',
+    organizerId: 'testOrganizerId',
     campaignTypeId: 'testCampaignTypeId',
     targetAmount: 1000,
     reachedAmount: 0,
@@ -44,6 +45,7 @@ describe('CampaignController', () => {
     description: 'Test description',
     essence: 'test',
     beneficiaryId: 'testBeneficiaryId',
+    organizerId: 'testOrganizerId',
     campaignTypeId: 'testCampaignTypeId',
     targetAmount: 1000,
     reachedAmount: 0,
@@ -65,6 +67,7 @@ describe('CampaignController', () => {
       approvedById: null,
       beneficiary: {},
       coordinator: {},
+      organizer: {},
       campaignFiles: [],
       paymentReference: paymentReferenceMock,
       vaults: [{ donations: [{ amount: 100 }, { amount: 10 }] }, { donations: [] }],
@@ -122,6 +125,7 @@ describe('CampaignController', () => {
           approvedById: null,
           beneficiary: { firstName: 'Test', lastName: 'Test' },
           coordinator: { firstName: 'Test', lastName: 'Test' },
+          organizer: { firstName: 'Test', lastName: 'Test' },
           campaignType: { name: 'Test type' },
           vaults: [
             {
