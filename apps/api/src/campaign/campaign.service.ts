@@ -67,7 +67,12 @@ export class CampaignService {
         beneficiary: { select: { person: { select: { firstName: true, lastName: true } } } },
         coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
         organizer: { select: { person: { select: { firstName: true, lastName: true } } } },
-        vaults: { select: { donations: { select: { amount: true } }, amount: true } },
+        vaults: {
+          select: {
+            donations: { where: { status: DonationStatus.succeeded }, select: { amount: true } },
+            amount: true,
+          },
+        },
         incomingTransfers: { select: { amount: true } },
         outgoingTransfers: { select: { amount: true } },
       },
