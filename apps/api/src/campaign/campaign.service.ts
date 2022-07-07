@@ -43,6 +43,7 @@ export class CampaignService {
         campaignType: { select: { category: true } },
         beneficiary: { select: { person: true } },
         coordinator: { select: { person: true } },
+        organizer: { select: { person: true } },
         vaults: {
           select: {
             donations: { select: { amount: true } },
@@ -65,6 +66,7 @@ export class CampaignService {
         campaignType: { select: { name: true } },
         beneficiary: { select: { person: { select: { firstName: true, lastName: true } } } },
         coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
+        organizer: { select: { person: { select: { firstName: true, lastName: true } } } },
         vaults: { select: { donations: { select: { amount: true } }, amount: true } },
         incomingTransfers: { select: { amount: true } },
         outgoingTransfers: { select: { amount: true } },
@@ -129,6 +131,12 @@ export class CampaignService {
           },
         },
         coordinator: {
+          select: {
+            id: true,
+            person: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
+        organizer: {
           select: {
             id: true,
             person: { select: { id: true, firstName: true, lastName: true } },
