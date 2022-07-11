@@ -251,6 +251,7 @@ export class CampaignService {
   async createDraftDonation(
     campaign: Campaign,
     paymentIntent: Stripe.PaymentIntent,
+    status?: DonationStatus,
   ): Promise<Donation> {
     const campaignId = campaign.id
     const { currency } = campaign
@@ -277,7 +278,7 @@ export class CampaignService {
         targetVault,
         provider: PaymentProvider.stripe,
         type: DonationType.donation,
-        status: DonationStatus.waiting,
+        status: status ? status : DonationStatus.waiting,
         extCustomerId: this.getCustomerId(paymentIntent),
         extPaymentIntentId: paymentIntent.id,
         extPaymentMethodId: this.getPaymentMehtodId(paymentIntent),

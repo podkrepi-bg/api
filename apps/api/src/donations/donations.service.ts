@@ -50,6 +50,10 @@ export class DonationsService {
       cancel_url: sessionDto.cancelUrl ?? `${appUrl}/canceled`,
       tax_id_collection: { enabled: true },
     })
+    const paymentIntent: Stripe.PaymentIntent = await this.stripeClient.paymentIntents.retrieve(
+      session.payment_intent as string,
+    )
+    await this.campaignService.createDraftDonation(campaign, paymentIntent, 'initial')
     return { session }
   }
 
@@ -85,8 +89,12 @@ export class DonationsService {
   async listDonationsPublic(
     campaignId?: string,
     status?: DonationStatus,
-  ): Promise<(
-    Omit<Donation, 'personId'|'targetVaultId'|'extCustomerId'|'extPaymentIntentId'|'extPaymentMethodId'> ) []> {
+  ): Promise<
+    Omit<
+      Donation,
+      'personId' | 'targetVaultId' | 'extCustomerId' | 'extPaymentIntentId' | 'extPaymentMethodId'
+    >[]
+  > {
     return await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
       orderBy: [{ createdAt: 'desc' }],
@@ -99,8 +107,8 @@ export class DonationsService {
         updatedAt: true,
         amount: true,
         currency: true,
-        person: {select: { firstName: true, lastName:true}}
-      }
+        person: { select: { firstName: true, lastName: true } },
+      },
     })
   }
 
