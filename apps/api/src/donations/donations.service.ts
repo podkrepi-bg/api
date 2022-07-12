@@ -85,8 +85,12 @@ export class DonationsService {
   async listDonationsPublic(
     campaignId?: string,
     status?: DonationStatus,
-  ): Promise<(
-    Omit<Donation, 'personId'|'targetVaultId'|'extCustomerId'|'extPaymentIntentId'|'extPaymentMethodId'> ) []> {
+  ): Promise<
+    Omit<
+      Donation,
+      'personId' | 'targetVaultId' | 'extCustomerId' | 'extPaymentIntentId' | 'extPaymentMethodId'
+    >[]
+  > {
     return await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
       orderBy: [{ createdAt: 'desc' }],
@@ -99,8 +103,8 @@ export class DonationsService {
         updatedAt: true,
         amount: true,
         currency: true,
-        person: {select: { firstName: true, lastName:true}}
-      }
+        person: { select: { firstName: true, lastName: true } },
+      },
     })
   }
 
@@ -113,6 +117,9 @@ export class DonationsService {
     return await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
       orderBy: [{ createdAt: 'desc' }],
+      include: {
+        person: { select: { firstName: true, lastName: true } },
+      },
     })
   }
 
