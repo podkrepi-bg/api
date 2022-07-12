@@ -320,6 +320,7 @@ model Vault {
   name               String              @default("") @db.VarChar(100)
   currency           Currency            @default(BGN)
   amount             Int                 @default(0)
+  blockedAmount      Int                 @default(0)
   campaignId         String              @map("campaign_id") @db.Uuid
   createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)

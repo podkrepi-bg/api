@@ -262,6 +262,7 @@ Table vaults {
   name String [not null, default: '']
   currency Currency [not null, default: 'BGN']
   amount Int [not null, default: 0]
+  blockedAmount Int [not null, default: 0]
   campaignId String [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
