@@ -182,6 +182,9 @@ export class DonationsService {
     return await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
       orderBy: [{ createdAt: 'desc' }],
+      include: {
+        person: { select: { firstName: true, lastName: true } },
+      },
     })
   }
 
