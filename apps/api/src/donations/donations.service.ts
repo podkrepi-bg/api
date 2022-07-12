@@ -49,6 +49,7 @@ export class DonationsService {
 
     const session = await this.stripeClient.checkout.sessions.create({
       mode,
+      customer_email: sessionDto.personEmail,
       line_items: this.prepareSessionItems(sessionDto, campaign),
       payment_method_types: ['card'],
       payment_intent_data: mode === 'payment' ? { metadata } : undefined,
@@ -64,12 +65,6 @@ export class DonationsService {
 
     const vault = await this.campaignService.getCampaignVault(campaign.id)
 
-    const user = {
-      firsName: 'Ivaylo',
-      lastName: 'Stoychev',
-      email: 'ivo90@mail.bg',
-      phone: '0877595926',
-    }
     /**
      * Create donation object
      */
@@ -89,13 +84,13 @@ export class DonationsService {
         person: {
           connectOrCreate: {
             where: {
-              email: user.email,
+              email: sessionDto.personEmail as string,
             },
             create: {
-              firstName: user.firsName,
-              lastName: user.lastName,
-              email: user.email,
-              phone: user.phone,
+              firstName: sessionDto.firstName ?? 'Anonymous',
+              lastName: sessionDto.lastName ?? 'Donor',
+              email: sessionDto.personEmail as string,
+              phone: sessionDto.phone,
             },
           },
         },
