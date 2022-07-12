@@ -25,7 +25,7 @@ export class ExpensesService {
       rejectOnNotFound: true,
     })
 
-    if (sourceVault.amount - sourceVault.blockedAmount - createExpenseDto.amount <= 0) {
+    if (sourceVault.amount - sourceVault.blockedAmount - createExpenseDto.amount < 0) {
       throw new BadRequestException('Insufficient amount in vault.')
     }
 
@@ -91,7 +91,7 @@ export class ExpensesService {
     // TODO: figure out how to initialize empty vault promise
     let writeVault = this.prisma.vault.update({
       where: { id: vault.id },
-      data: vault,
+      data: {},
     })
     // in case of completion: complete transaction, unblock and debit the amount
     if (dto.status === ExpenseStatus.approved) {

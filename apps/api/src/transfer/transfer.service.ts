@@ -26,7 +26,7 @@ export class TransferService {
       rejectOnNotFound: true,
     })
 
-    if (sourceVault.amount - sourceVault.blockedAmount - createTransferDto.amount <= 0) {
+    if (sourceVault.amount - sourceVault.blockedAmount - createTransferDto.amount < 0) {
       throw new BadRequestException('Insufficient amount in vault.')
     }
 
@@ -106,11 +106,11 @@ export class TransferService {
 
     let writeSrcVault = this.prisma.vault.update({
       where: { id: srcVault.id },
-      data: srcVault,
+      data: {},
     })
     let writeTargetVault = this.prisma.vault.update({
       where: { id: targetVault.id },
-      data: targetVault,
+      data: {},
     })
     // in case of completion: complete transaction, unblock and debit the amount to the source vault and credit the amount in the target vault
     if (updateTransferDto.status === TransferStatus.succeeded) {
