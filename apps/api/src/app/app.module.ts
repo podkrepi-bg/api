@@ -46,6 +46,7 @@ import { TransferModule } from '../transfer/transfer.module'
 import { IrregularityFileModule } from '../irregularity-file/irregularity-file.module'
 import { IrregularityModule } from '../irregularity/irregularity.module'
 import { BankTransactionsFileModule } from '../bank-transactions-file/bank-transactions-file.module'
+import { OrganizerModule } from '../organizer/organizer.module'
 
 @Module({
   imports: [
@@ -90,6 +91,7 @@ import { BankTransactionsFileModule } from '../bank-transactions-file/bank-trans
     IrregularityFileModule,
     IrregularityModule,
     BankTransactionsFileModule,
+    OrganizerModule,
   ],
   controllers: [AppController],
   providers: [

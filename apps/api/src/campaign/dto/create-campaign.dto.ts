@@ -6,12 +6,11 @@ import {
   IsPositive,
   IsString,
   IsUUID,
-  Max,
   MaxLength,
   MinLength,
 } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
-import { Expose, Type } from 'class-transformer'
+import { Expose, Transform, Type } from 'class-transformer'
 import { CampaignState, Currency, Prisma } from '.prisma/client'
 import { getPaymentReference } from '../helpers/payment-reference'
 
@@ -31,6 +30,12 @@ export class CreateCampaignDto {
   @Expose()
   @IsString()
   essence: string
+
+  @ApiProperty()
+  @IsOptional()
+  @Expose()
+  @IsUUID()
+  organizerId: string
 
   @ApiProperty()
   @IsOptional()
@@ -92,8 +97,8 @@ export class CreateCampaignDto {
   @ApiProperty()
   @Expose()
   @IsOptional()
+  @Transform((field) => (field.value != '' ? new Date(field.value) : null))
   @IsDate()
-  @Type(() => Date)
   endDate: Date | null
 
   @ApiProperty()
@@ -120,6 +125,7 @@ export class CreateCampaignDto {
       campaignType: { connect: { id: this.campaignTypeId } },
       beneficiary: { connect: { id: this.beneficiaryId } },
       coordinator: { connect: { id: this.coordinatorId } },
+      organizer: { connect: { id: this.organizerId } },
     }
   }
 }
