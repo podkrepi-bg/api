@@ -146,7 +146,7 @@ describe('TransferController', () => {
       expect(prismaMock.transfer.create).toHaveBeenCalledWith({ data: createDto })
       expect(prismaMock.vault.update).toHaveBeenCalledWith({
         where: { id: '00000000-0000-0000-0000-000000000016' },
-        data: { blockedAmount: {"increment": 100} },
+        data: { blockedAmount: { increment: 100 } },
       })
     })
 
@@ -206,7 +206,11 @@ describe('TransferController', () => {
       prismaMock.vault.update.mockResolvedValueOnce(dstVault)
       prismaMock.$transaction.mockResolvedValue([transfer, srcVault, dstVault])
 
-      const updateDto: UpdateTransferDto = { ...transfer, reason: 'random', status: TransferStatus.succeeded }
+      const updateDto: UpdateTransferDto = {
+        ...transfer,
+        reason: 'random',
+        status: TransferStatus.succeeded,
+      }
       const result = await controller.update(transfer.id, updateDto)
 
       expect(result).toEqual(transfer)
@@ -217,14 +221,14 @@ describe('TransferController', () => {
       expect(prismaMock.vault.update).toHaveBeenCalledWith({
         where: { id: '00000000-0000-0000-0000-000000000016' },
         data: {
-          blockedAmount: {"decrement": 100},
-          amount: {"decrement": 100}
+          blockedAmount: { decrement: 100 },
+          amount: { decrement: 100 },
         },
       })
       expect(prismaMock.vault.update).toHaveBeenCalledWith({
         where: { id: '00000000-0000-0000-0000-000000000017' },
         data: {
-          amount: {"increment": 100}
+          amount: { increment: 100 },
         },
       })
     })
@@ -260,7 +264,11 @@ describe('TransferController', () => {
       prismaMock.vault.update.mockResolvedValueOnce(dstVault)
       prismaMock.$transaction.mockResolvedValue([transfer, srcVault, dstVault])
 
-      const updateDto: UpdateTransferDto = { ...transfer, reason: 'random', status: TransferStatus.declined }
+      const updateDto: UpdateTransferDto = {
+        ...transfer,
+        reason: 'random',
+        status: TransferStatus.declined,
+      }
       const result = await controller.update(transfer.id, updateDto)
 
       expect(result).toEqual(transfer)
@@ -271,13 +279,13 @@ describe('TransferController', () => {
       expect(prismaMock.vault.update).toHaveBeenCalledWith({
         where: { id: '00000000-0000-0000-0000-000000000016' },
         data: {
-          blockedAmount: {"decrement": 100}
+          blockedAmount: { decrement: 100 },
         },
       })
       expect(prismaMock.vault.update).not.toHaveBeenCalledWith({
         where: { id: '00000000-0000-0000-0000-000000000017' },
         data: {
-          amount: {"increment": 100}
+          amount: { increment: 100 },
         },
       })
     })
@@ -285,15 +293,15 @@ describe('TransferController', () => {
     it('should not update a transfer, when it is already approved/declined/cancelled', async () => {
       const approvedTransfer = {
         ...mockData[0],
-        status: TransferStatus.succeeded
+        status: TransferStatus.succeeded,
       }
       const declinedTransfer = {
         ...mockData[0],
-        status: TransferStatus.declined
+        status: TransferStatus.declined,
       }
       const cancelledTransfer = {
         ...mockData[0],
-        status: TransferStatus.cancelled
+        status: TransferStatus.cancelled,
       }
 
       const srcVault = {
@@ -322,7 +330,11 @@ describe('TransferController', () => {
       prismaMock.transfer.findFirst.mockResolvedValueOnce(declinedTransfer)
       prismaMock.transfer.findFirst.mockResolvedValueOnce(cancelledTransfer)
 
-      const updateDto: UpdateTransferDto = { ...approvedTransfer, reason: 'random', status: TransferStatus.succeeded }
+      const updateDto: UpdateTransferDto = {
+        ...approvedTransfer,
+        reason: 'random',
+        status: TransferStatus.succeeded,
+      }
 
       // assert
       await expect(controller.update(approvedTransfer.id, updateDto)).rejects.toThrow()
@@ -348,7 +360,12 @@ describe('TransferController', () => {
       prismaMock.vault.findFirst.mockResolvedValue(vault)
       prismaMock.transfer.findFirst.mockResolvedValueOnce(transfer)
 
-      const updateDto: UpdateTransferDto = { ...transfer, reason: 'random', status: TransferStatus.succeeded, sourceVaultId: '00000000-0000-0000-0000-000000000020' }
+      const updateDto: UpdateTransferDto = {
+        ...transfer,
+        reason: 'random',
+        status: TransferStatus.succeeded,
+        sourceVaultId: '00000000-0000-0000-0000-000000000020',
+      }
 
       // assert
       await expect(controller.update(transfer.id, updateDto)).rejects.toThrow()

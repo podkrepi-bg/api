@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common'
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common'
 
 import { Transfer, TransferStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
@@ -28,7 +33,7 @@ export class TransferService {
     const writeTransfer = this.prisma.transfer.create({ data: createTransferDto })
     const writeVault = this.prisma.vault.update({
       where: { id: sourceVault.id },
-      data: { blockedAmount: {increment: createTransferDto.amount}},
+      data: { blockedAmount: { increment: createTransferDto.amount } },
     })
     const [result] = await this.prisma.$transaction([writeTransfer, writeVault])
     return result
@@ -70,12 +75,19 @@ export class TransferService {
       rejectOnNotFound: true,
     })
 
-    if ([TransferStatus.succeeded.valueOf(), TransferStatus.cancelled.valueOf(), TransferStatus.declined.valueOf()].includes(transfer.status.valueOf())) {
-      throw new BadRequestException("Transfer has already been finilized and cannot be updated")
+    if (
+      [ TransferStatus.succeeded.valueOf(), TransferStatus.cancelled.valueOf(), TransferStatus.declined.valueOf()].includes(transfer.status.valueOf())
+    ) {
+      throw new BadRequestException('Transfer has already been finilized and cannot be updated')
     }
     // TODO: might need to check target vault because it doesn't make sense to update it, although it will be ok because no previous interaction has been performed
-    if (transfer.sourceVaultId !== updateTransferDto.sourceVaultId || transfer.amount !== updateTransferDto.amount) {
-      throw new BadRequestException("Vault or amount cannot be changed, please decline the withdrawal instead.")
+    if (
+      transfer.sourceVaultId !== updateTransferDto.sourceVaultId ||
+      transfer.amount !== updateTransferDto.amount
+    ) {
+      throw new BadRequestException(
+        'Vault or amount cannot be changed, please decline the withdrawal instead.',
+      )
     }
 
     // TODO: figure out how to initialize empty vault promise
@@ -103,20 +115,20 @@ export class TransferService {
     // in case of completion: complete transaction, unblock and debit the amount to the source vault and credit the amount in the target vault
     if (updateTransferDto.status === TransferStatus.succeeded) {
       if (!updateTransferDto.approvedById) {
-        throw new BadRequestException("Transfer needs to be approved by an authorized person.")
+        throw new BadRequestException('Transfer needs to be approved by an authorized person.')
       }
       writeSrcVault = this.prisma.vault.update({
         where: { id: srcVault.id },
         data: {
-          blockedAmount: {decrement: transfer.amount},
-          amount: {decrement: transfer.amount},
-        }
+          blockedAmount: { decrement: transfer.amount },
+          amount: { decrement: transfer.amount },
+        },
       })
       writeTargetVault = this.prisma.vault.update({
         where: { id: targetVault.id },
         data: {
-          amount: {increment: transfer.amount},
-        }
+          amount: { increment: transfer.amount },
+        },
       })
     } else if (
       updateTransferDto.status === TransferStatus.declined ||
@@ -125,7 +137,7 @@ export class TransferService {
       // in case of rejection: unblock amount
       writeSrcVault = this.prisma.vault.update({
         where: { id: srcVault.id },
-        data: { blockedAmount: {decrement: transfer.amount} },
+        data: { blockedAmount: { decrement: transfer.amount } },
       })
     }
 
@@ -135,7 +147,11 @@ export class TransferService {
       data: updateTransferDto,
     })
 
-    const [result] = await this.prisma.$transaction([writeTransfer, writeSrcVault, writeTargetVault])
+    const [result] = await this.prisma.$transaction([
+      writeTransfer,
+      writeSrcVault,
+      writeTargetVault,
+    ])
     return result
   }
 

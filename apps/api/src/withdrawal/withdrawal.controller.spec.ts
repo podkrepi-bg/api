@@ -141,7 +141,7 @@ describe('WithdrawalController', () => {
       expect(prismaMock.withdrawal.create).toHaveBeenCalledWith({ data: createDto })
       expect(prismaMock.vault.update).toHaveBeenCalledWith({
         where: { id: '00000000-0000-0000-0000-000000000016' },
-        data: { blockedAmount: {"increment": 150} },
+        data: { blockedAmount: { increment: 150 } },
       })
     })
 
@@ -221,8 +221,8 @@ describe('WithdrawalController', () => {
       expect(prismaMock.vault.update).toHaveBeenCalledWith({
         where: { id: '00000000-0000-0000-0000-000000000016' },
         data: {
-          blockedAmount: {"decrement": 150},
-          amount: {"decrement": 150}
+          blockedAmount: { decrement: 150 },
+          amount: { decrement: 150 },
         },
       })
     })
@@ -270,7 +270,7 @@ describe('WithdrawalController', () => {
       expect(prismaMock.vault.update).toHaveBeenCalledWith({
         where: { id: '00000000-0000-0000-0000-000000000016' },
         data: {
-          blockedAmount: {"decrement": 150}
+          blockedAmount: { decrement: 150 },
         },
       })
     })
@@ -278,15 +278,15 @@ describe('WithdrawalController', () => {
     it('should not update a withdrawal, when it is already approved/declined/cancelled', async () => {
       const approvedWithdrawal = {
         ...mockData[0],
-        status: WithdrawStatus.succeeded
+        status: WithdrawStatus.succeeded,
       }
       const declinedWithdrawal = {
         ...mockData[0],
-        status: WithdrawStatus.declined
+        status: WithdrawStatus.declined,
       }
       const cancelledWithdrawal = {
         ...mockData[0],
-        status: WithdrawStatus.cancelled
+        status: WithdrawStatus.cancelled,
       }
 
       const vault = {
@@ -345,7 +345,7 @@ describe('WithdrawalController', () => {
         currency: Currency.BGN,
         amount: 150,
         reason: 'noreason',
-        sourceVaultId: '00000000-0000-0000-0000-000000000020',  // from xxx16 to xxxx20
+        sourceVaultId: '00000000-0000-0000-0000-000000000020', // from xxx16 to xxxx20
         sourceCampaignId: '00000000-0000-0000-0000-000000000015',
         bankAccountId: '00000000-0000-0000-0000-000000000014',
         documentId: '00000000-0000-0000-0000-000000000013',

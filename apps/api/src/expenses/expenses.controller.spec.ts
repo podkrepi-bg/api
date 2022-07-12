@@ -22,7 +22,7 @@ const mockData = [
     approvedById: '00000000-0000-0000-0000-000000000012',
     createdAt: new Date('2022-04-2T09:12:13.511Z'),
     updatedAt: new Date('2022-04-2T09:12:13.511Z'),
-  }
+  },
 ]
 
 describe('ExpensesController', () => {
@@ -66,7 +66,7 @@ describe('ExpensesController', () => {
       prismaMock.vault.findFirst.mockResolvedValue(vault)
       prismaMock.$transaction.mockResolvedValue([expense, vault])
 
-      const createDto: CreateExpenseDto = {...expense}
+      const createDto: CreateExpenseDto = { ...expense }
 
       const result = await controller.create(createDto)
 
@@ -74,7 +74,7 @@ describe('ExpensesController', () => {
       expect(prismaMock.expense.create).toHaveBeenCalledWith({ data: createDto })
       expect(prismaMock.vault.update).toHaveBeenCalledWith({
         where: { id: '00000000-0000-0000-0000-000000000016' },
-        data: { blockedAmount: {"increment": 150} },
+        data: { blockedAmount: { increment: 150 } },
       })
     })
 
@@ -95,7 +95,7 @@ describe('ExpensesController', () => {
       prismaMock.vault.findFirst.mockResolvedValue(vault)
       prismaMock.$transaction.mockResolvedValue([expense, vault])
 
-      const createDto: CreateExpenseDto = {...expense}
+      const createDto: CreateExpenseDto = { ...expense }
 
       await expect(controller.create(createDto)).rejects.toThrow()
       expect(prismaMock.expense.create).not.toHaveBeenCalled()
@@ -121,7 +121,7 @@ describe('ExpensesController', () => {
       prismaMock.expense.update.mockResolvedValue(expense)
       prismaMock.$transaction.mockResolvedValue([expense, vault])
 
-      const updateDto: UpdateExpenseDto = {...expense, status: ExpenseStatus.approved }
+      const updateDto: UpdateExpenseDto = { ...expense, status: ExpenseStatus.approved }
 
       // act
       const result = await controller.update(expense.id, updateDto)
@@ -135,8 +135,8 @@ describe('ExpensesController', () => {
       expect(prismaMock.vault.update).toHaveBeenCalledWith({
         where: { id: '00000000-0000-0000-0000-000000000016' },
         data: {
-          blockedAmount: {"decrement": 150},
-          amount: {"decrement": 150}
+          blockedAmount: { decrement: 150 },
+          amount: { decrement: 150 },
         },
       })
     })
@@ -144,11 +144,11 @@ describe('ExpensesController', () => {
     it('should not update a withdrawal, when it is already approved/cancelled', async () => {
       const approvedExpense = {
         ...mockData[0],
-        status: ExpenseStatus.approved
+        status: ExpenseStatus.approved,
       }
       const cancelledExpense = {
         ...mockData[0],
-        status: ExpenseStatus.canceled
+        status: ExpenseStatus.canceled,
       }
       const vault = {
         id: '00000000-0000-0000-0000-000000000016',
@@ -164,7 +164,7 @@ describe('ExpensesController', () => {
       prismaMock.expense.findFirst.mockResolvedValueOnce(approvedExpense)
       prismaMock.expense.findFirst.mockResolvedValueOnce(cancelledExpense)
 
-      const updateDto: UpdateExpenseDto = {...approvedExpense, status: ExpenseStatus.approved}
+      const updateDto: UpdateExpenseDto = { ...approvedExpense, status: ExpenseStatus.approved }
 
       // assert
       await expect(controller.update(approvedExpense.id, updateDto)).rejects.toThrow()
@@ -189,7 +189,11 @@ describe('ExpensesController', () => {
       prismaMock.vault.findFirst.mockResolvedValue(vault)
       prismaMock.expense.findFirst.mockResolvedValueOnce(expense)
 
-      const updateDto: UpdateExpenseDto = {...expense, status: ExpenseStatus.approved, vaultId: '00000000-0000-0000-0000-000000000020'}
+      const updateDto: UpdateExpenseDto = {
+        ...expense,
+        status: ExpenseStatus.approved,
+        vaultId: '00000000-0000-0000-0000-000000000020',
+      }
 
       // assert
       await expect(controller.update(expense.id, updateDto)).rejects.toThrow()

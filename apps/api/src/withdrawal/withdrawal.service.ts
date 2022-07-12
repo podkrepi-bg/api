@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common'
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common'
 import { Withdrawal, WithdrawStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateWithdrawalDto } from './dto/create-withdrawal.dto'
@@ -25,7 +31,7 @@ export class WithdrawalService {
     const writeWth = this.prisma.withdrawal.create({ data: createWithdrawalDto })
     const writeVault = this.prisma.vault.update({
       where: { id: vault.id },
-      data: { blockedAmount: {increment: createWithdrawalDto.amount} },
+      data: { blockedAmount: { increment: createWithdrawalDto.amount } },
     })
     const [result] = await this.prisma.$transaction([writeWth, writeVault])
     return result
@@ -58,11 +64,19 @@ export class WithdrawalService {
       rejectOnNotFound: true,
     })
 
-    if ([WithdrawStatus.succeeded.valueOf(), WithdrawStatus.cancelled.valueOf(), WithdrawStatus.declined.valueOf()].includes(withdrawal.status.valueOf())) {
-      throw new BadRequestException("Withdrawal has already been finilized and cannot be updated.")
+    if (
+      [ WithdrawStatus.succeeded.valueOf(), WithdrawStatus.cancelled.valueOf(), WithdrawStatus.declined.valueOf()]
+        .includes(withdrawal.status.valueOf())
+    ) {
+      throw new BadRequestException('Withdrawal has already been finilized and cannot be updated.')
     }
-    if (withdrawal.sourceVaultId !== updateWithdrawalDto.sourceVaultId || withdrawal.amount !== updateWithdrawalDto.amount) {
-      throw new BadRequestException("Vault or amount cannot be changed, please decline the withdrawal instead.")
+    if (
+      withdrawal.sourceVaultId !== updateWithdrawalDto.sourceVaultId ||
+      withdrawal.amount !== updateWithdrawalDto.amount
+    ) {
+      throw new BadRequestException(
+        'Vault or amount cannot be changed, please decline the withdrawal instead.',
+      )
     }
 
     const vault = await this.prisma.vault.findFirst({
@@ -80,13 +94,13 @@ export class WithdrawalService {
     // in case of completion: complete transaction, unblock and debit the amount
     if (updateWithdrawalDto.status === WithdrawStatus.succeeded) {
       if (!updateWithdrawalDto.approvedById) {
-        throw new BadRequestException("Withdrawal needs to be approved by an authorized person.")
+        throw new BadRequestException('Withdrawal needs to be approved by an authorized person.')
       }
       writeVault = this.prisma.vault.update({
         where: { id: vault.id },
         data: {
-          blockedAmount: {decrement: withdrawal.amount},
-          amount: {decrement: withdrawal.amount},
+          blockedAmount: { decrement: withdrawal.amount },
+          amount: { decrement: withdrawal.amount },
         },
       })
     } else if (
@@ -96,7 +110,7 @@ export class WithdrawalService {
       // in case of rejection: unblock amount
       writeVault = this.prisma.vault.update({
         where: { id: vault.id },
-        data: { blockedAmount: {decrement: withdrawal.amount} },
+        data: { blockedAmount: { decrement: withdrawal.amount } },
       })
     }
 

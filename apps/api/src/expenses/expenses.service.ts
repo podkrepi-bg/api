@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common'
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common'
 import { Expense, ExpenseStatus } from '@prisma/client'
 
 import { PrismaService } from '../prisma/prisma.service'
@@ -27,7 +32,7 @@ export class ExpensesService {
     const writeExpense = this.prisma.expense.create({ data: createExpenseDto })
     const writeVault = this.prisma.vault.update({
       where: { id: sourceVault.id },
-      data: { blockedAmount: { increment: createExpenseDto.amount} },
+      data: { blockedAmount: { increment: createExpenseDto.amount } },
     })
     const [result] = await this.prisma.$transaction([writeExpense, writeVault])
     return result
@@ -64,11 +69,16 @@ export class ExpensesService {
       where: { id: id },
       rejectOnNotFound: true,
     })
-    if ([ExpenseStatus.approved.valueOf(), ExpenseStatus.canceled.valueOf()].includes(expense.status.valueOf())) {
-      throw new BadRequestException("Expense has already been finilized and cannot be updated.")
+    if (
+      [ExpenseStatus.approved.valueOf(), ExpenseStatus.canceled.valueOf()]
+      .includes(expense.status.valueOf())
+    ) {
+      throw new BadRequestException('Expense has already been finilized and cannot be updated.')
     }
     if (expense.vaultId !== dto.vaultId || expense.amount !== dto.amount) {
-      throw new BadRequestException("Vault or amount cannot be changed, please decline the withdrawal instead.")
+      throw new BadRequestException(
+        'Vault or amount cannot be changed, please decline the withdrawal instead.',
+      )
     }
 
     const vault = await this.prisma.vault.findFirst({
@@ -86,7 +96,7 @@ export class ExpensesService {
     // in case of completion: complete transaction, unblock and debit the amount
     if (dto.status === ExpenseStatus.approved) {
       if (!dto.approvedById) {
-        throw new BadRequestException("Expense needs to be approved by an authorized person.")
+        throw new BadRequestException('Expense needs to be approved by an authorized person.')
       }
       writeVault = this.prisma.vault.update({
         where: { id: vault.id },
