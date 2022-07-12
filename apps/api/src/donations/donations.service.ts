@@ -2,7 +2,14 @@ import Stripe from 'stripe'
 import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { Campaign, Donation, DonationStatus, Prisma } from '@prisma/client'
+import {
+  Campaign,
+  Donation,
+  DonationStatus,
+  DonationType,
+  PaymentProvider,
+  Prisma,
+} from '@prisma/client'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CampaignService } from '../campaign/campaign.service'
@@ -50,10 +57,55 @@ export class DonationsService {
       cancel_url: sessionDto.cancelUrl ?? `${appUrl}/canceled`,
       tax_id_collection: { enabled: true },
     })
-    const paymentIntent: Stripe.PaymentIntent = await this.stripeClient.paymentIntents.retrieve(
-      session.payment_intent as string,
-    )
-    await this.campaignService.createDraftDonation(campaign, paymentIntent, 'initial')
+
+    /**
+     * Create or connect campaign vault
+     */
+
+    const vault = await this.campaignService.getCampaignVault(campaign.id)
+
+    const user = {
+      firsName: 'Ivaylo',
+      lastName: 'Stoychev',
+      email: 'ivo90@mail.bg',
+      phone: '0877595926',
+    }
+    /**
+     * Create donation object
+     */
+
+    await this.prisma.donation.create({
+      data: {
+        amount: session.amount_total as number,
+        currency: campaign.currency,
+        targetVault: { connect: { id: vault!.id } },
+        provider: PaymentProvider.stripe,
+        type: DonationType.donation,
+        status: DonationStatus.initial,
+        extCustomerId:
+          typeof session.customer === 'string' ? session.customer : session.customer?.id ?? 'none',
+        extPaymentIntentId: session.payment_intent as string,
+        extPaymentMethodId: session.id,
+        person: {
+          connectOrCreate: {
+            where: {
+              email: user.email,
+            },
+            create: {
+              firstName: user.firsName,
+              lastName: user.lastName,
+              email: user.email,
+              phone: user.phone,
+            },
+          },
+        },
+      },
+    })
+
+    // const paymentIntent: Stripe.PaymentIntent = await this.stripeClient.paymentIntents.retrieve(
+    //   session.payment_intent as string,
+    // )
+    // await this.campaignService.createDraftDonation(campaign, paymentIntent, 'initial')
     return { session }
   }
 
