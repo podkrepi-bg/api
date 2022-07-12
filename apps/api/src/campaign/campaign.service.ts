@@ -63,7 +63,7 @@ export class CampaignService {
         endDate: 'asc',
       },
       include: {
-        campaignType: { select: { name: true } },
+        campaignType: { select: { name: true, slug: true } },
         beneficiary: { select: { person: { select: { firstName: true, lastName: true } } } },
         coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
         organizer: { select: { person: { select: { firstName: true, lastName: true } } } },
@@ -125,7 +125,7 @@ export class CampaignService {
       where: { slug },
       include: {
         campaignType: {
-          select: { name: true },
+          select: { name: true, slug: true, category: true },
         },
         beneficiary: {
           select: {
