@@ -46,7 +46,6 @@ export class DonationsService {
     sessionDto: CreateSessionDto,
     paymentIntent: string,
   ): Promise<Donation> {
-
     const campaignId = campaign.id
     const { currency } = campaign
     const amount = sessionDto.amount
@@ -97,7 +96,6 @@ export class DonationsService {
   async createCheckoutSession(
     sessionDto: CreateSessionDto,
   ): Promise<{ session: Stripe.Checkout.Session }> {
-
     const campaign = await this.campaignService.validateCampaignId(sessionDto.campaignId)
     const { mode } = sessionDto
     const appUrl = this.config.get<string>('APP_URL')
