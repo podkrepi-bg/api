@@ -38,11 +38,67 @@ export class DonationsService {
     return list.data
   }
 
+  /**
+   * Create initial donation object for tracking purposes
+   */
+  async createInitialDonation(
+    campaign: Campaign,
+    sessionDto: CreateSessionDto,
+    paymentIntent: string,
+  ): Promise<Donation> {
+
+    const campaignId = campaign.id
+    const { currency } = campaign
+    const amount = sessionDto.amount
+    Logger.log('[ CreateInitialDonation ]', { campaignId, amount })
+
+    /**
+     * Create or connect campaign vault
+     */
+    const vault = await this.prisma.vault.findFirst({ where: { campaignId } })
+    const targetVaultData = vault
+      ? // Connect the existing vault to this donation
+        { connect: { id: vault.id } }
+      : // Create new vault for the campaign
+        { create: { campaignId, currency, amount, name: campaign.title } }
+    /**
+     * Create initial donation object
+     */
+    const donation = await this.prisma.donation.create({
+      data: {
+        amount,
+        currency,
+        provider: PaymentProvider.stripe,
+        type: DonationType.donation,
+        status: DonationStatus.initial,
+        extCustomerId: sessionDto.personEmail ?? '',
+        extPaymentIntentId: paymentIntent,
+        extPaymentMethodId: '',
+        targetVault: targetVaultData,
+        person: {
+          connectOrCreate: {
+            where: {
+              email: sessionDto.personEmail ?? 'anonymous@podkrepi.bg',
+            },
+            create: {
+              firstName: sessionDto.firstName ?? 'Anonymous',
+              lastName: sessionDto.lastName ?? 'Donor',
+              email: sessionDto.personEmail ?? 'anonymous@podkrepi.bg',
+              phone: sessionDto.phone,
+            },
+          },
+        },
+      },
+    })
+
+    return donation
+  }
+
   async createCheckoutSession(
     sessionDto: CreateSessionDto,
   ): Promise<{ session: Stripe.Checkout.Session }> {
-    const campaign = await this.campaignService.validateCampaignId(sessionDto.campaignId)
 
+    const campaign = await this.campaignService.validateCampaignId(sessionDto.campaignId)
     const { mode } = sessionDto
     const appUrl = this.config.get<string>('APP_URL')
     const metadata: DonationMetadata = { campaignId: sessionDto.campaignId }
@@ -59,48 +115,8 @@ export class DonationsService {
       tax_id_collection: { enabled: true },
     })
 
-    /**
-     * Create or connect campaign vault
-     */
+    this.createInitialDonation(campaign, sessionDto, session.payment_intent as string)
 
-    const vault = await this.campaignService.getCampaignVault(campaign.id)
-
-    /**
-     * Create donation object
-     */
-
-    await this.prisma.donation.create({
-      data: {
-        amount: session.amount_total as number,
-        currency: campaign.currency,
-        targetVault: { connect: { id: vault!.id } },
-        provider: PaymentProvider.stripe,
-        type: DonationType.donation,
-        status: DonationStatus.initial,
-        extCustomerId:
-          typeof session.customer === 'string' ? session.customer : session.customer?.id ?? 'none',
-        extPaymentIntentId: session.payment_intent as string,
-        extPaymentMethodId: session.id,
-        person: {
-          connectOrCreate: {
-            where: {
-              email: sessionDto.personEmail as string,
-            },
-            create: {
-              firstName: sessionDto.firstName ?? 'Anonymous',
-              lastName: sessionDto.lastName ?? 'Donor',
-              email: sessionDto.personEmail as string,
-              phone: sessionDto.phone,
-            },
-          },
-        },
-      },
-    })
-
-    // const paymentIntent: Stripe.PaymentIntent = await this.stripeClient.paymentIntents.retrieve(
-    //   session.payment_intent as string,
-    // )
-    // await this.campaignService.createDraftDonation(campaign, paymentIntent, 'initial')
     return { session }
   }
 
