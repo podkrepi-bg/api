@@ -2,7 +2,14 @@ import Stripe from 'stripe'
 import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { Campaign, Donation, DonationStatus, Prisma } from '@prisma/client'
+import {
+  Campaign,
+  Donation,
+  DonationStatus,
+  DonationType,
+  PaymentProvider,
+  Prisma,
+} from '@prisma/client'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CampaignService } from '../campaign/campaign.service'
@@ -31,17 +38,72 @@ export class DonationsService {
     return list.data
   }
 
+  /**
+   * Create initial donation object for tracking purposes
+   */
+  async createInitialDonation(
+    campaign: Campaign,
+    sessionDto: CreateSessionDto,
+    paymentIntent: string,
+  ): Promise<Donation> {
+    const campaignId = campaign.id
+    const { currency } = campaign
+    const amount = sessionDto.amount
+    Logger.log('[ CreateInitialDonation ]', { campaignId, amount })
+
+    /**
+     * Create or connect campaign vault
+     */
+    const vault = await this.prisma.vault.findFirst({ where: { campaignId } })
+    const targetVaultData = vault
+      ? // Connect the existing vault to this donation
+        { connect: { id: vault.id } }
+      : // Create new vault for the campaign
+        { create: { campaignId, currency, amount, name: campaign.title } }
+    /**
+     * Create initial donation object
+     */
+    const donation = await this.prisma.donation.create({
+      data: {
+        amount,
+        currency,
+        provider: PaymentProvider.stripe,
+        type: DonationType.donation,
+        status: DonationStatus.initial,
+        extCustomerId: sessionDto.personEmail ?? '',
+        extPaymentIntentId: paymentIntent,
+        extPaymentMethodId: '',
+        targetVault: targetVaultData,
+        person: {
+          connectOrCreate: {
+            where: {
+              email: sessionDto.personEmail ?? 'anonymous@podkrepi.bg',
+            },
+            create: {
+              firstName: sessionDto.firstName ?? 'Anonymous',
+              lastName: sessionDto.lastName ?? 'Donor',
+              email: sessionDto.personEmail ?? 'anonymous@podkrepi.bg',
+              phone: sessionDto.phone,
+            },
+          },
+        },
+      },
+    })
+
+    return donation
+  }
+
   async createCheckoutSession(
     sessionDto: CreateSessionDto,
   ): Promise<{ session: Stripe.Checkout.Session }> {
     const campaign = await this.campaignService.validateCampaignId(sessionDto.campaignId)
-
     const { mode } = sessionDto
     const appUrl = this.config.get<string>('APP_URL')
     const metadata: DonationMetadata = { campaignId: sessionDto.campaignId }
 
     const session = await this.stripeClient.checkout.sessions.create({
       mode,
+      customer_email: sessionDto.personEmail,
       line_items: this.prepareSessionItems(sessionDto, campaign),
       payment_method_types: ['card'],
       payment_intent_data: mode === 'payment' ? { metadata } : undefined,
@@ -50,6 +112,9 @@ export class DonationsService {
       cancel_url: sessionDto.cancelUrl ?? `${appUrl}/canceled`,
       tax_id_collection: { enabled: true },
     })
+
+    this.createInitialDonation(campaign, sessionDto, session.payment_intent as string)
+
     return { session }
   }
 
@@ -85,8 +150,12 @@ export class DonationsService {
   async listDonationsPublic(
     campaignId?: string,
     status?: DonationStatus,
-  ): Promise<(
-    Omit<Donation, 'personId'|'targetVaultId'|'extCustomerId'|'extPaymentIntentId'|'extPaymentMethodId'> ) []> {
+  ): Promise<
+    Omit<
+      Donation,
+      'personId' | 'targetVaultId' | 'extCustomerId' | 'extPaymentIntentId' | 'extPaymentMethodId'
+    >[]
+  > {
     return await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
       orderBy: [{ createdAt: 'desc' }],
@@ -99,8 +168,8 @@ export class DonationsService {
         updatedAt: true,
         amount: true,
         currency: true,
-        person: {select: { firstName: true, lastName:true}}
-      }
+        person: { select: { firstName: true, lastName: true } },
+      },
     })
   }
 
