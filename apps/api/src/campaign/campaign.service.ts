@@ -71,15 +71,12 @@ export class CampaignService {
           select: {
             donations: { where: { status: DonationStatus.succeeded }, select: { amount: true } },
             amount: true,
+            blockedAmount: true,
           },
         },
-        incomingTransfers: { select: { amount: true } },
-        outgoingTransfers: { select: { amount: true } },
       },
     })
-
-    //TODO: remove this when Prisma starts supporting nested groupbys
-    return campaigns.map(this.addReachedAmountAndDonors)
+    return campaigns
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
