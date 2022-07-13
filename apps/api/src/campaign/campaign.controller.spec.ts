@@ -129,12 +129,16 @@ describe('CampaignController', () => {
           campaignType: { name: 'Test type' },
           vaults: [
             {
+              amount: 20,
+              blockedAmount: 0,
               donations: [
                 { amount: 100, personId: 'donorId1' },
                 { amount: 10, personId: null },
               ],
             },
             {
+              amount: 20,
+              blockedAmount: 0,
               donations: [
                 { amount: 100, personId: 'donorId1' },
                 { amount: 100, personId: 'donorId2' },
@@ -150,7 +154,6 @@ describe('CampaignController', () => {
       expect(await controller.getAdminList()).toEqual([
         {
           ...mockAdminCampaign,
-          ...{ summary: [{ reachedAmount: 410, donors: 4 }], vaults: [] },
         },
       ])
       expect(prismaService.campaign.findMany).toHaveBeenCalled()
