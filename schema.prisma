@@ -346,6 +346,8 @@ model Donation {
   extCustomerId      String          @map("ext_customer_id") @db.VarChar(50)
   extPaymentIntentId String          @unique @map("ext_payment_intent_id")
   extPaymentMethodId String          @map("ext_payment_method_id")
+  billingName        String?         @map("billing_name") @db.VarChar()
+  billingEmail       String?         @map("billing_email") @db.VarChar()
   ///
   createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)

@@ -1,5 +1,5 @@
-import { Person } from '../../person/entities'
-import { Campaign } from '../../campaign/entities'
+import { Person } from '../../person/entities/person.entity'
+import { Campaign } from '../../campaign/entities/campaign.entity'
 
 export class Organizer {
   id: string

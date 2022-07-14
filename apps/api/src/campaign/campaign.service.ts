@@ -6,24 +6,24 @@ import {
   DonationStatus,
   DonationType,
   PaymentProvider,
-  Person,
   Vault,
 } from '.prisma/client'
 import {
   forwardRef,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotAcceptableException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
-import Stripe from 'stripe'
 import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from './dto/update-campaign.dto'
+import { PaymentData } from '../donations/events/payment-intent-helpers'
 
 @Injectable()
 export class CampaignService {
@@ -211,7 +211,20 @@ export class CampaignService {
     return this.prisma.vault.findFirst({ where: { campaignId } })
   }
 
-  async getDonationsForCampaign(campaignId: string): Promise<Donation[]> {
+  async getDonationsForCampaign(
+    campaignId: string,
+  ): Promise<
+    Omit<
+      Donation,
+      | 'personId'
+      | 'targetVaultId'
+      | 'extCustomerId'
+      | 'extPaymentIntentId'
+      | 'extPaymentMethodId'
+      | 'billingName'
+      | 'billingEmail'
+    >[]
+  > {
     const campaign = await this.prisma.campaign.findFirst({
       where: { id: campaignId },
       include: {
@@ -236,7 +249,15 @@ export class CampaignService {
       where: {
         OR: whereVaultIds,
       },
-      include: {
+      select: {
+        id: true,
+        type: true,
+        status: true,
+        provider: true,
+        createdAt: true,
+        updatedAt: true,
+        amount: true,
+        currency: true,
         person: { select: { firstName: true, lastName: true } },
       },
     })
@@ -248,91 +269,76 @@ export class CampaignService {
     return this.prisma.donation.findFirst({ where: { extPaymentIntentId: paymentIntentId } })
   }
 
-  async createDraftDonation(
+  async updateDonationPayment(
     campaign: Campaign,
-    paymentIntent: Stripe.PaymentIntent,
-    status?: DonationStatus,
-  ): Promise<Donation> {
+    paymentData: PaymentData,
+    donationStatus: DonationStatus,
+  ) {
     const campaignId = campaign.id
-    const { currency } = campaign
-    const { amount } = paymentIntent
-    Logger.log('[ CreateDraftDonation ]', { campaignId, amount })
+    Logger.debug('[Stripe webhook] Update donation from state initial to waiting', {
+      campaignId,
+      paymentIntentId: paymentData.paymentIntentId,
+    })
 
     /**
      * Create or connect campaign vault
      */
-    const vault = await this.getCampaignVault(campaignId)
-    const targetVault = vault
+    const vault = await this.prisma.vault.findFirst({ where: { campaignId } })
+    const targetVaultData = vault
       ? // Connect the existing vault to this donation
         { connect: { id: vault.id } }
       : // Create new vault for the campaign
-        { create: { campaignId, currency, amount, name: campaign.title } }
+        { create: { campaignId, currency: campaign.currency, name: campaign.title } }
 
     /**
-     * Create donation object
+     * Update status of donation from initial to waiting
      */
-    const donation = await this.prisma.donation.create({
-      data: {
-        amount,
-        currency,
-        targetVault,
-        provider: PaymentProvider.stripe,
-        type: DonationType.donation,
-        status: status ? status : DonationStatus.waiting,
-        extCustomerId: this.getCustomerId(paymentIntent),
-        extPaymentIntentId: paymentIntent.id,
-        extPaymentMethodId: this.getPaymentMehtodId(paymentIntent),
-      },
-    })
-
-    return donation
+    try {
+      await this.prisma.donation.upsert({
+        where: { extPaymentIntentId: paymentData.paymentIntentId },
+        update: {
+          status: donationStatus,
+          amount: paymentData.amount,
+          extCustomerId: paymentData.stripeCustomerId,
+          extPaymentMethodId: paymentData.paymentMethodId,
+          billingName: paymentData.billingName,
+          billingEmail: paymentData.billingEmail,
+        },
+        create: {
+          amount: paymentData.amount,
+          currency: campaign.currency,
+          targetVault: targetVaultData,
+          provider: PaymentProvider.stripe,
+          type: DonationType.donation,
+          status: DonationStatus.waiting,
+          extCustomerId: paymentData.stripeCustomerId ?? '',
+          extPaymentIntentId: paymentData.paymentIntentId,
+          extPaymentMethodId: paymentData.paymentMethodId ?? '',
+          billingName: paymentData.billingName,
+          billingEmail: paymentData.billingEmail,
+        },
+      })
+    } catch (error) {
+      Logger.error(
+        `[Stripe webhook] Error wile updating donation with paymentIntentId: ${paymentData.paymentIntentId} in database. Error is: ${error}`,
+      )
+      throw new InternalServerErrorException(error)
+    }
   }
 
-  async donateToCampaign(
-    campaign: Campaign,
-    paymentIntent: Stripe.PaymentIntent,
-  ): Promise<Donation> {
-    const campaignId = campaign.id
-    const { amount, customer } = paymentIntent
-    Logger.log('[ DonateToCampaign ]', { campaignId, customer, amount })
-
-    const vault = await this.getCampaignVault(campaignId)
-
-    /**
-     * Find or create a donation record by payment intent id
-     */
-    let donation: Donation | null = await this.getDonationByIntentId(paymentIntent.id)
-    if (!donation) {
-      donation = await this.createDraftDonation(campaign, paymentIntent)
-    }
-
-    const person = this.extractPersonFromIntent(paymentIntent)
-
-    /**
-     * Update status of donation
-     * Connect the donation to a person (by email)
-     * Person is created if not found
-     */
-    await this.prisma.donation.update({
-      data: {
-        status: DonationStatus.succeeded,
-        extCustomerId: this.getCustomerId(paymentIntent),
-        extPaymentMethodId: this.getPaymentMehtodId(paymentIntent),
-        person: {
-          connectOrCreate: {
-            create: person,
-            where: { email: person.email },
-          },
-        },
-      },
-      where: { id: donation.id },
+  async donateToCampaign(campaign: Campaign, paymentData: PaymentData) {
+    Logger.debug('[Stripe webhook] update amounts with successful donation', {
+      campaignId: campaign.id,
+      paymentIntentId: paymentData.paymentIntentId,
+      amount: paymentData.amount,
     })
 
-    if (vault) {
-      await this.vaultService.incrementVaultAmount(vault.id, amount)
-    }
+    this.updateDonationPayment(campaign, paymentData, DonationStatus.succeeded)
 
-    return donation
+    const vault = await this.getCampaignVault(campaign.id)
+    if (vault) {
+      await this.vaultService.incrementVaultAmount(vault.id, paymentData.amount)
+    }
   }
 
   async validateCampaignId(campaignId: string): Promise<Campaign> {
@@ -392,33 +398,6 @@ export class CampaignService {
         })
       }
     }
-  }
-
-  private extractPersonFromIntent(
-    paymentIntent: Stripe.PaymentIntent,
-  ): Pick<Person, 'firstName' | 'lastName' | 'email' | 'stripeCustomerId'> {
-    const billingDetails = paymentIntent.charges.data.find(() => true)?.billing_details
-    const names = billingDetails?.name?.split(' ')
-    return {
-      firstName: names?.slice(0, -1).join(' ') ?? '',
-      lastName: names?.slice(-1).join(' ') ?? '',
-      email: billingDetails?.email ?? paymentIntent.receipt_email ?? '',
-      stripeCustomerId: this.getCustomerId(paymentIntent),
-    }
-  }
-
-  private getCustomerId(paymentIntent: Stripe.PaymentIntent): string | 'none' {
-    if (typeof paymentIntent.customer === 'string') {
-      return paymentIntent.customer
-    }
-    return paymentIntent.customer?.id ?? 'none'
-  }
-
-  private getPaymentMehtodId(paymentIntent: Stripe.PaymentIntent): string | 'none' {
-    if (typeof paymentIntent.payment_method === 'string') {
-      return paymentIntent.payment_method
-    }
-    return paymentIntent.payment_method?.id ?? 'none'
   }
 
   async update(id: string, updateCampaignDto: UpdateCampaignDto): Promise<Campaign | null> {
