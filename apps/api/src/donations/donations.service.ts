@@ -184,6 +184,7 @@ export class DonationsService {
       orderBy: [{ createdAt: 'desc' }],
       include: {
         person: { select: { firstName: true, lastName: true } },
+        targetVault: { select: { name: true } },
       },
     })
   }
