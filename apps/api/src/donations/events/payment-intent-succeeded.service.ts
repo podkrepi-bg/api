@@ -4,6 +4,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 
 import { CampaignService } from '../../campaign/campaign.service'
 import { DonationMetadata } from '../dontation-metadata.interface'
+import { getPaymentData } from './payment-intent-helpers'
 
 @Injectable()
 export class PaymentSucceededService {
@@ -20,15 +21,24 @@ export class PaymentSucceededService {
 
     const metadata: DonationMetadata = paymentIntent.metadata as DonationMetadata
     if (!metadata.campaignId) {
-      throw new BadRequestException('Campaign not attached to payment intent')
+      throw new BadRequestException(
+        'Payment intent metadata does not contain target campaignId. Probably wrong session initiation. Payment intent is:  ' +
+          paymentIntent.id,
+      )
     }
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
 
     if (campaign.currency !== paymentIntent.currency.toUpperCase()) {
-      throw new BadRequestException('Donation in different currency is not allowed')
+      throw new BadRequestException(
+        `Donation in different currency is not allowed. Campaign currency ${
+          campaign.currency
+        } <> donation currency ${paymentIntent.currency.toUpperCase()}`,
+      )
     }
 
-    await this.campaignService.donateToCampaign(campaign, paymentIntent)
+    const billingData = getPaymentData(paymentIntent)
+
+    await this.campaignService.donateToCampaign(campaign, billingData)
   }
 }

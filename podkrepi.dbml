@@ -284,6 +284,8 @@ Table donations {
   extCustomerId String [not null, note: 'Payment provider attributes']
   extPaymentIntentId String [unique, not null]
   extPaymentMethodId String [not null]
+  billingName String
+  billingEmail String
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   amount Int [not null, default: 0]

@@ -44,12 +44,12 @@ export class DonationsService {
   async createInitialDonation(
     campaign: Campaign,
     sessionDto: CreateSessionDto,
-    paymentIntent: string,
+    paymentIntentId: string,
   ): Promise<Donation> {
     const campaignId = campaign.id
     const { currency } = campaign
     const amount = sessionDto.amount
-    Logger.log('[ CreateInitialDonation ]', { campaignId, amount })
+    Logger.log('[ CreateInitialDonation ]', { campaignId, amount, paymentIntentId })
 
     /**
      * Create or connect campaign vault
@@ -71,8 +71,8 @@ export class DonationsService {
         type: DonationType.donation,
         status: DonationStatus.initial,
         extCustomerId: sessionDto.personEmail ?? '',
-        extPaymentIntentId: paymentIntent,
-        extPaymentMethodId: '',
+        extPaymentIntentId: paymentIntentId,
+        extPaymentMethodId: 'card',
         targetVault: targetVaultData,
         person: {
           connectOrCreate: {
@@ -113,7 +113,7 @@ export class DonationsService {
       tax_id_collection: { enabled: true },
     })
 
-    this.createInitialDonation(campaign, sessionDto, session.payment_intent as string)
+    await this.createInitialDonation(campaign, sessionDto, session.payment_intent as string)
 
     return { session }
   }
@@ -153,7 +153,13 @@ export class DonationsService {
   ): Promise<
     Omit<
       Donation,
-      'personId' | 'targetVaultId' | 'extCustomerId' | 'extPaymentIntentId' | 'extPaymentMethodId'
+      | 'personId'
+      | 'targetVaultId'
+      | 'extCustomerId'
+      | 'extPaymentIntentId'
+      | 'extPaymentMethodId'
+      | 'billingName'
+      | 'billingEmail'
     >[]
   > {
     return await this.prisma.donation.findMany({
