@@ -138,7 +138,7 @@ export class CampaignService {
         coordinator: {
           select: {
             id: true,
-            person: { select: { id: true, firstName: true, lastName: true } },
+            person: { select: { id: true, firstName: true, lastName: true, email: true } },
           },
         },
         organizer: {
