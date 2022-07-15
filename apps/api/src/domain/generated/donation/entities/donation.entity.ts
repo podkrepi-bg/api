@@ -11,6 +11,8 @@ export class Donation {
   extCustomerId: string
   extPaymentIntentId: string
   extPaymentMethodId: string
+  billingName: string | null
+  billingEmail: string | null
   createdAt: Date
   updatedAt: Date | null
   amount: number
