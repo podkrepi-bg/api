@@ -259,6 +259,7 @@ export class CampaignService {
         amount: true,
         currency: true,
         person: { select: { firstName: true, lastName: true } },
+        targetVault: { select: { name: true } },
       },
     })
 
