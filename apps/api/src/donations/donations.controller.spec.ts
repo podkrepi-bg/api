@@ -24,6 +24,7 @@ describe('DonationsController', () => {
     campaignId: 'testCampaignId',
     successUrl: 'http://test.com',
     cancelUrl: 'http://test.com',
+    isAnonymous: true,
   } as CreateSessionDto
 
   beforeEach(async () => {
