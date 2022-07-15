@@ -92,7 +92,7 @@ describe('DonationsController', () => {
     } as Campaign)
 
     await expect(controller.createCheckoutSession(mockSession)).rejects.toThrow(
-      new NotAcceptableException('This campaign cannot accept donations'),
+      new NotAcceptableException('Campaign cannot accept donations in state: complete'),
     )
     expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
     expect(stripeMock.checkout.sessions.create).not.toHaveBeenCalled()
