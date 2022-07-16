@@ -1,10 +1,17 @@
 import Stripe from 'stripe'
 
-function getPaymentMethodId(paymentIntent: Stripe.PaymentIntent): string | 'none' {
+function getPaymentMethodId(paymentIntent: Stripe.PaymentIntent): string | undefined {
   if (typeof paymentIntent.payment_method === 'string') {
     return paymentIntent.payment_method
   }
-  return paymentIntent.payment_method?.id ?? 'none'
+  return paymentIntent.payment_method?.id ?? undefined
+}
+
+function getPaymentCustomerId(paymentIntent: Stripe.PaymentIntent): string | undefined {
+  if (typeof paymentIntent.customer === 'string') {
+    return paymentIntent.customer
+  }
+  return paymentIntent.customer?.id ?? undefined
 }
 
 export type PaymentData = {
@@ -27,6 +34,6 @@ export function getPaymentData(paymentIntent: Stripe.PaymentIntent): PaymentData
     billingName: billingDetails?.name ?? undefined,
     billingEmail: billingDetails?.email ?? paymentIntent.receipt_email ?? undefined,
     paymentMethodId: getPaymentMethodId(paymentIntent),
-    stripeCustomerId: paymentIntent.customer as string | undefined,
+    stripeCustomerId: getPaymentCustomerId(paymentIntent),
   }
 }
