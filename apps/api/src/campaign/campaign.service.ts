@@ -135,7 +135,7 @@ export class CampaignService {
         coordinator: {
           select: {
             id: true,
-            person: { select: { id: true, firstName: true, lastName: true } },
+            person: { select: { id: true, firstName: true, lastName: true, email: true } },
           },
         },
         organizer: {
@@ -347,13 +347,15 @@ export class CampaignService {
   async validateCampaign(campaign: Campaign): Promise<Campaign> {
     const canAcceptDonation = await this.canAcceptDonations(campaign)
     if (!canAcceptDonation) {
-      throw new NotAcceptableException('This campaign cannot accept donations')
+      throw new NotAcceptableException(
+        'Campaign cannot accept donations in state: ' + campaign.state,
+      )
     }
     return campaign
   }
 
   async canAcceptDonations(campaign: Campaign): Promise<boolean> {
-    const validStates: CampaignState[] = [CampaignState.active]
+    const validStates: CampaignState[] = [CampaignState.active, CampaignState.approved]
     if (campaign.allowDonationOnComplete) {
       validStates.push(CampaignState.complete)
     }

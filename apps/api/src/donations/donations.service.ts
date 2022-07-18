@@ -73,22 +73,31 @@ export class DonationsService {
         extCustomerId: sessionDto.personEmail ?? '',
         extPaymentIntentId: paymentIntentId,
         extPaymentMethodId: 'card',
+        billingEmail: sessionDto.isAnonymous ? sessionDto.personEmail : null, //set the personal mail to billing which is not public field
         targetVault: targetVaultData,
-        person: {
-          connectOrCreate: {
-            where: {
-              email: sessionDto.personEmail ?? 'anonymous@podkrepi.bg',
-            },
-            create: {
-              firstName: sessionDto.firstName ?? 'Anonymous',
-              lastName: sessionDto.lastName ?? 'Donor',
-              email: sessionDto.personEmail ?? 'anonymous@podkrepi.bg',
-              phone: sessionDto.phone,
+      },
+    })
+
+    if (!sessionDto.isAnonymous) {
+      await this.prisma.donation.update({
+        where: { id: donation.id },
+        data: {
+          person: {
+            connectOrCreate: {
+              where: {
+                email: sessionDto.personEmail,
+              },
+              create: {
+                firstName: sessionDto.firstName ?? '',
+                lastName: sessionDto.lastName ?? '',
+                email: sessionDto.personEmail,
+                phone: sessionDto.phone,
+              },
             },
           },
         },
-      },
-    })
+      })
+    }
 
     return donation
   }

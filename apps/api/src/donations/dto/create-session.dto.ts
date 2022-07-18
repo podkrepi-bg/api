@@ -2,6 +2,7 @@ import Stripe from 'stripe'
 import { Expose } from 'class-transformer'
 import { ApiProperty } from '@nestjs/swagger'
 import {
+  IsBoolean,
   IsEmail,
   IsIn,
   IsNotEmpty,
@@ -68,6 +69,11 @@ export class CreateSessionDto {
   @IsOptional()
   @IsEmail()
   personEmail: string
+
+  @Expose()
+  @ApiProperty()
+  @IsBoolean()
+  isAnonymous: boolean
 
   @ApiProperty()
   @Expose()

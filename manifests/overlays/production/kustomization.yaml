@@ -13,11 +13,10 @@ patches:
 
 images:
   - name: ghcr.io/podkrepi-bg/api
-    newTag: v0.4.0
+    newTag: v0.4.2
   - name: ghcr.io/podkrepi-bg/api/migrations
-    newTag: v0.4.0
-
-secretGenerator:
+    newTag: v0.4.2
+#secretGenerator:
 #  - name: stripe-secret
 #    envs: [stripe.env]
 #  - name: keycloak-secret
