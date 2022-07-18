@@ -325,14 +325,13 @@ export class DonationsService {
           include: { campaign: { select: { title: true } } },
         },
       },
-      where: { person: { keycloakId } },
+      where: { person: { keycloakId }, status: DonationStatus.succeeded },
     })
 
     const total = donations.reduce((acc, current) => {
       acc += current.amount
       return acc
     }, 0)
-
     return { donations, total }
   }
 }
