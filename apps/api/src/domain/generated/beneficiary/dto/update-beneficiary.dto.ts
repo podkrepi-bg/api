@@ -1,10 +1,14 @@
-import { Prisma, BeneficiaryType } from '@prisma/client'
+import { Prisma, BeneficiaryType, PersonRelation } from '@prisma/client'
 import { ApiProperty } from '@nestjs/swagger'
 
 export class UpdateBeneficiaryDto {
   @ApiProperty({ enum: BeneficiaryType })
   type?: BeneficiaryType
   countryCode?: string
+  @ApiProperty({ enum: PersonRelation })
+  organizerRelation?: PersonRelation
+  @ApiProperty({ enum: PersonRelation })
+  coordinatorRelation?: PersonRelation
   description?: string
   privateData?: Prisma.InputJsonValue
   publicData?: Prisma.InputJsonValue
