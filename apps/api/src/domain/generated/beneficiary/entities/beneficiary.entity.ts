@@ -4,24 +4,28 @@ import { Company } from '../../company/entities/company.entity'
 import { Coordinator } from '../../coordinator/entities/coordinator.entity'
 import { Person } from '../../person/entities/person.entity'
 import { Campaign } from '../../campaign/entities/campaign.entity'
+import { Organizer } from '../../organizer/entities/organizer.entity'
 
 export class Beneficiary {
   id: string
   type: BeneficiaryType
   personId: string | null
-  coordinatorId: string
+  organizerId: string | null
   countryCode: string
   cityId: string
   createdAt: Date
   updatedAt: Date | null
-  coordinatorRelation: PersonRelation
+  organizerRelation: PersonRelation | null
+  coordinatorRelation: PersonRelation | null
   description: string | null
   privateData: Prisma.JsonValue | null
   publicData: Prisma.JsonValue | null
   companyId: string | null
+  coordinatorId: string | null
+  coordinator?: Coordinator | null
   city?: City
   company?: Company | null
-  coordinator?: Coordinator
+  organizer?: Organizer | null
   person?: Person | null
   campaigns?: Campaign[]
 }
