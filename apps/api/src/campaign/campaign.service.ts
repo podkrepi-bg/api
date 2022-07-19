@@ -24,6 +24,7 @@ import { VaultService } from '../vault/vault.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from './dto/update-campaign.dto'
 import { PaymentData } from '../donations/events/payment-intent-helpers'
+import { getAllowedPreviousStatus } from '../donations/events/donation-status-updates'
 
 @Injectable()
 export class CampaignService {
@@ -291,21 +292,23 @@ export class CampaignService {
       : // Create new vault for the campaign
         { create: { campaignId, currency: campaign.currency, name: campaign.title } }
 
-    /**
-     * Update status of donation from initial to waiting
-     */
-    try {
-      await this.prisma.donation.upsert({
-        where: { extPaymentIntentId: paymentData.paymentIntentId },
-        update: {
-          status: donationStatus,
-          amount: paymentData.amount,
-          extCustomerId: paymentData.stripeCustomerId,
-          extPaymentMethodId: paymentData.paymentMethodId,
-          billingName: paymentData.billingName,
-          billingEmail: paymentData.billingEmail,
-        },
-        create: {
+    // Find donation by extPaymentIntentId an update if status allows
+
+    const donation = await this.prisma.donation.findUnique({
+      where: { extPaymentIntentId: paymentData.paymentIntentId },
+      select: { id: true, status: true },
+    })
+
+    //if missing create the donation with the incoming status
+    if (!donation) {
+      Logger.error(
+        'No donation exists with extPaymentIntentId: ' +
+          paymentData.paymentIntentId +
+          ' Creating new donation with status: ' +
+          donationStatus,
+      )
+      this.prisma.donation.create({
+        data: {
           amount: paymentData.amount,
           currency: campaign.currency,
           targetVault: targetVaultData,
@@ -319,11 +322,41 @@ export class CampaignService {
           billingEmail: paymentData.billingEmail,
         },
       })
-    } catch (error) {
+
+      return
+    }
+    //donation exists, so check if it is safe to update it
+    else if (
+      donation?.status === donationStatus ||
+      donation?.status === getAllowedPreviousStatus(donationStatus)
+    ) {
+      try {
+        await this.prisma.donation.update({
+          where: {
+            id: donation.id,
+          },
+          data: {
+            status: donationStatus,
+            amount: paymentData.amount,
+            extCustomerId: paymentData.stripeCustomerId,
+            extPaymentMethodId: paymentData.paymentMethodId,
+            billingName: paymentData.billingName,
+            billingEmail: paymentData.billingEmail,
+          },
+        })
+      } catch (error) {
+        Logger.error(
+          `[Stripe webhook] Error wile updating donation with paymentIntentId: ${paymentData.paymentIntentId} in database. Error is: ${error}`,
+        )
+        throw new InternalServerErrorException(error)
+      }
+    }
+    //donation exists but we need to skip because previous status is from later event than the incoming
+    else {
       Logger.error(
-        `[Stripe webhook] Error wile updating donation with paymentIntentId: ${paymentData.paymentIntentId} in database. Error is: ${error}`,
+        `[Stripe webhook] Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId} 
+        and status: ${donationStatus} because the event comes after existing donation with status: ${donation.status}`,
       )
-      throw new InternalServerErrorException(error)
     }
   }
 
