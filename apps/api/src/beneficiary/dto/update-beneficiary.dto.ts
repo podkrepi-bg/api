@@ -44,12 +44,14 @@ export class UpdateBeneficiaryDto {
 
   @ApiProperty()
   @IsNotEmpty()
+  @IsOptional()
   @Expose()
   @IsUUID()
   public readonly coordinatorId: string
 
   @ApiProperty({ enum: PersonRelation })
   @Expose()
+  @IsOptional()
   @IsEnum(PersonRelation)
   coordinatorRelation: PersonRelation
 
