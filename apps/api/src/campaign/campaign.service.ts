@@ -274,7 +274,7 @@ export class CampaignService {
   async updateDonationPayment(
     campaign: Campaign,
     paymentData: PaymentData,
-    donationStatus: DonationStatus,
+    newDonationStatus: DonationStatus,
   ) {
     const campaignId = campaign.id
     Logger.debug('[Stripe webhook] Update donation from state initial to waiting', {
@@ -305,7 +305,7 @@ export class CampaignService {
         'No donation exists with extPaymentIntentId: ' +
           paymentData.paymentIntentId +
           ' Creating new donation with status: ' +
-          donationStatus,
+          newDonationStatus,
       )
       this.prisma.donation.create({
         data: {
@@ -314,7 +314,7 @@ export class CampaignService {
           targetVault: targetVaultData,
           provider: PaymentProvider.stripe,
           type: DonationType.donation,
-          status: DonationStatus.waiting,
+          status: newDonationStatus,
           extCustomerId: paymentData.stripeCustomerId ?? '',
           extPaymentIntentId: paymentData.paymentIntentId,
           extPaymentMethodId: paymentData.paymentMethodId ?? '',
@@ -327,8 +327,8 @@ export class CampaignService {
     }
     //donation exists, so check if it is safe to update it
     else if (
-      donation?.status === donationStatus ||
-      donation?.status === getAllowedPreviousStatus(donationStatus)
+      donation?.status === newDonationStatus ||
+      donation?.status === getAllowedPreviousStatus(newDonationStatus)
     ) {
       try {
         await this.prisma.donation.update({
@@ -336,7 +336,7 @@ export class CampaignService {
             id: donation.id,
           },
           data: {
-            status: donationStatus,
+            status: newDonationStatus,
             amount: paymentData.amount,
             extCustomerId: paymentData.stripeCustomerId,
             extPaymentMethodId: paymentData.paymentMethodId,
@@ -355,7 +355,7 @@ export class CampaignService {
     else {
       Logger.error(
         `[Stripe webhook] Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId} 
-        and status: ${donationStatus} because the event comes after existing donation with status: ${donation.status}`,
+        and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
       )
     }
   }
