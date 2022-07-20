@@ -32,6 +32,7 @@ export class CreatePersonDto {
 
   @ApiProperty()
   @Expose()
+  @IsString()
   @IsOptional()
   company?: string
 
