@@ -322,7 +322,7 @@ export class DonationsService {
     const donations = await this.prisma.donation.findMany({
       include: {
         targetVault: {
-          include: { campaign: { select: { title: true } } },
+          include: { campaign: { select: { title: true, slug: true } } },
         },
       },
       where: { person: { keycloakId } },
