@@ -320,12 +320,13 @@ export class DonationsService {
 
   async getDonationsByUser(keycloakId: string) {
     const donations = await this.prisma.donation.findMany({
+      where: { person: { keycloakId } },
+      orderBy: [{ createdAt: 'desc' }],
       include: {
         targetVault: {
           include: { campaign: { select: { title: true, slug: true } } },
         },
       },
-      where: { person: { keycloakId } },
     })
 
     const total = donations.reduce((acc, current) => {
