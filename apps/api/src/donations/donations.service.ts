@@ -155,10 +155,14 @@ export class DonationsService {
    * Lists all donations without confidential fields
    * @param campaignId (Optional) Filter by campaign id
    * @param status (Optional) Filter by campaign status
+   * @param pageIndex (Optional)
+   * @param pageSize (Optional)
    */
   async listDonationsPublic(
     campaignId?: string,
     status?: DonationStatus,
+    pageIndex?: number,
+    pageSize?: number,
   ): Promise<
     Omit<
       Donation,
@@ -185,6 +189,8 @@ export class DonationsService {
         currency: true,
         person: { select: { firstName: true, lastName: true } },
       },
+      skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
+      take: pageSize ? pageSize : undefined,
     })
   }
 
@@ -192,8 +198,15 @@ export class DonationsService {
    * Lists all donations with all fields only for admin roles
    * @param campaignId (Optional) Filter by campaign id
    * @param status (Optional) Filter by campaign status
+   * @param pageIndex (Optional)
+   * @param pageSize (Optional)
    */
-  async listDonations(campaignId?: string, status?: DonationStatus): Promise<Donation[]> {
+  async listDonations(
+    campaignId?: string,
+    status?: DonationStatus,
+    pageIndex?: number,
+    pageSize?: number,
+  ): Promise<Donation[]> {
     return await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
       orderBy: [{ createdAt: 'desc' }],
@@ -201,6 +214,8 @@ export class DonationsService {
         person: { select: { firstName: true, lastName: true } },
         targetVault: { select: { name: true } },
       },
+      skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
+      take: pageSize ? pageSize : undefined,
     })
   }
 

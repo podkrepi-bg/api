@@ -55,21 +55,17 @@ export class DonationsController {
 
   @Get('listPublic')
   @Public()
-  @ApiQuery({
-    name: 'campaignId',
-    required: false,
-    type: String,
-  })
-  @ApiQuery({
-    name: 'status',
-    required: false,
-    enum: DonationStatus,
-  })
+  @ApiQuery({ name: 'campaignId', required: false, type: String })
+  @ApiQuery({ name: 'status', required: false, enum: DonationStatus })
+  @ApiQuery({ name: 'pageindex', required: false, type: Number })
+  @ApiQuery({ name: 'pagesize', required: false, type: Number })
   findAllPublic(
     @Query('campaignId') campaignId?: string,
     @Query('status') status?: DonationStatus,
+    @Query('pageindex') pageIndex?: number,
+    @Query('pagesize') pageSize?: number,
   ) {
-    return this.donationsService.listDonationsPublic(campaignId, status)
+    return this.donationsService.listDonationsPublic(campaignId, status, pageIndex, pageSize)
   }
 
   @Get('list')
@@ -77,18 +73,17 @@ export class DonationsController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  @ApiQuery({
-    name: 'campaignId',
-    required: false,
-    type: String,
-  })
-  @ApiQuery({
-    name: 'status',
-    required: false,
-    enum: DonationStatus,
-  })
-  findAll(@Query('campaignId') campaignId?: string, @Query('status') status?: DonationStatus) {
-    return this.donationsService.listDonations(campaignId, status)
+  @ApiQuery({ name: 'campaignId', required: false, type: String })
+  @ApiQuery({ name: 'status', required: false, enum: DonationStatus })
+  @ApiQuery({ name: 'pageindex', required: false, type: Number })
+  @ApiQuery({ name: 'pagesize', required: false, type: Number })
+  findAll(
+    @Query('campaignId') campaignId?: string,
+    @Query('status') status?: DonationStatus,
+    @Query('pageindex') pageIndex?: number,
+    @Query('pagesize') pageSize?: number,
+  ) {
+    return this.donationsService.listDonations(campaignId, status, pageIndex, pageSize)
   }
 
   @Get(':id')
