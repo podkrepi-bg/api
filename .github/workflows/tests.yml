@@ -1,5 +1,11 @@
 name: API tests
 
+permissions:
+  # All other permissions are set to none
+  checks: write
+  contents: read
+  pull-requests: write
+
 on:
   workflow_dispatch:
   push:

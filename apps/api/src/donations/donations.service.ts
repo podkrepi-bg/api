@@ -2,7 +2,14 @@ import Stripe from 'stripe'
 import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { Campaign, Donation, DonationStatus, Prisma } from '@prisma/client'
+import {
+  Campaign,
+  Donation,
+  DonationStatus,
+  DonationType,
+  PaymentProvider,
+  Prisma,
+} from '@prisma/client'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CampaignService } from '../campaign/campaign.service'
@@ -31,17 +38,83 @@ export class DonationsService {
     return list.data
   }
 
+  /**
+   * Create initial donation object for tracking purposes
+   */
+  async createInitialDonation(
+    campaign: Campaign,
+    sessionDto: CreateSessionDto,
+    paymentIntentId: string,
+  ): Promise<Donation> {
+    Logger.log('[ CreateInitialDonation ]', {
+      campaignId: campaign.id,
+      amount: sessionDto.amount,
+      paymentIntentId,
+    })
+
+    /**
+     * Create or connect campaign vault
+     */
+    const vault = await this.prisma.vault.findFirst({ where: { campaignId: campaign.id } })
+    const targetVaultData = vault
+      ? // Connect the existing vault to this donation
+        { connect: { id: vault.id } }
+      : // Create new vault for the campaign
+        { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
+    /**
+     * Create initial donation object
+     */
+    const donation = await this.prisma.donation.create({
+      data: {
+        amount: 0, //this will be updated on successful payment event
+        chargedAmount: sessionDto.amount,
+        currency: campaign.currency,
+        provider: PaymentProvider.stripe,
+        type: DonationType.donation,
+        status: DonationStatus.initial,
+        extCustomerId: sessionDto.personEmail ?? '',
+        extPaymentIntentId: paymentIntentId,
+        extPaymentMethodId: 'card',
+        billingEmail: sessionDto.isAnonymous ? sessionDto.personEmail : null, //set the personal mail to billing which is not public field
+        targetVault: targetVaultData,
+      },
+    })
+
+    if (!sessionDto.isAnonymous) {
+      await this.prisma.donation.update({
+        where: { id: donation.id },
+        data: {
+          person: {
+            connectOrCreate: {
+              where: {
+                email: sessionDto.personEmail,
+              },
+              create: {
+                firstName: sessionDto.firstName ?? '',
+                lastName: sessionDto.lastName ?? '',
+                email: sessionDto.personEmail,
+                phone: sessionDto.phone,
+              },
+            },
+          },
+        },
+      })
+    }
+
+    return donation
+  }
+
   async createCheckoutSession(
     sessionDto: CreateSessionDto,
   ): Promise<{ session: Stripe.Checkout.Session }> {
     const campaign = await this.campaignService.validateCampaignId(sessionDto.campaignId)
-
     const { mode } = sessionDto
     const appUrl = this.config.get<string>('APP_URL')
     const metadata: DonationMetadata = { campaignId: sessionDto.campaignId }
 
     const session = await this.stripeClient.checkout.sessions.create({
       mode,
+      customer_email: sessionDto.personEmail,
       line_items: this.prepareSessionItems(sessionDto, campaign),
       payment_method_types: ['card'],
       payment_intent_data: mode === 'payment' ? { metadata } : undefined,
@@ -50,6 +123,9 @@ export class DonationsService {
       cancel_url: sessionDto.cancelUrl ?? `${appUrl}/canceled`,
       tax_id_collection: { enabled: true },
     })
+
+    await this.createInitialDonation(campaign, sessionDto, session.payment_intent as string)
+
     return { session }
   }
 
@@ -85,8 +161,18 @@ export class DonationsService {
   async listDonationsPublic(
     campaignId?: string,
     status?: DonationStatus,
-  ): Promise<(
-    Omit<Donation, 'personId'|'targetVaultId'|'extCustomerId'|'extPaymentIntentId'|'extPaymentMethodId'> ) []> {
+  ): Promise<
+    Omit<
+      Donation,
+      | 'personId'
+      | 'targetVaultId'
+      | 'extCustomerId'
+      | 'extPaymentIntentId'
+      | 'extPaymentMethodId'
+      | 'billingName'
+      | 'billingEmail'
+    >[]
+  > {
     return await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
       orderBy: [{ createdAt: 'desc' }],
@@ -98,9 +184,10 @@ export class DonationsService {
         createdAt: true,
         updatedAt: true,
         amount: true,
+        chargedAmount: true,
         currency: true,
-        person: {select: { firstName: true, lastName:true}}
-      }
+        person: { select: { firstName: true, lastName: true } },
+      },
     })
   }
 
@@ -113,6 +200,10 @@ export class DonationsService {
     return await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
       orderBy: [{ createdAt: 'desc' }],
+      include: {
+        person: { select: { firstName: true, lastName: true } },
+        targetVault: { select: { name: true } },
+      },
     })
   }
 
@@ -232,19 +323,21 @@ export class DonationsService {
 
   async getDonationsByUser(keycloakId: string) {
     const donations = await this.prisma.donation.findMany({
+      where: { person: { keycloakId } },
+      orderBy: [{ createdAt: 'desc' }],
       include: {
         targetVault: {
-          include: { campaign: { select: { title: true } } },
+          include: { campaign: { select: { title: true, slug: true } } },
         },
       },
-      where: { person: { keycloakId } },
     })
 
     const total = donations.reduce((acc, current) => {
-      acc += current.amount
+      if (current.status === DonationStatus.succeeded) {
+        acc += current.amount
+      }
       return acc
     }, 0)
-
     return { donations, total }
   }
 }
