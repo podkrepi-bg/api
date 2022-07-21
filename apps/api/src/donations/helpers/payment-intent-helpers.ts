@@ -29,7 +29,7 @@ export type PaymentData = {
 export function getPaymentData(paymentIntent: Stripe.PaymentIntent): PaymentData {
   const billingDetails = paymentIntent.charges.data.find(() => true)?.billing_details
   const charges: Stripe.Charge[] = paymentIntent.charges.data as Stripe.Charge[]
-  let country: string = ''
+  let country = ''
   if (charges.length === 1) {
     country = charges[0].payment_method_details?.card?.country ?? ''
   }
