@@ -52,7 +52,7 @@ describe('PaymentService', () => {
         has_more: false,
         url: '/v1/charges?payment_intent=pi_3LNwijKApGjVGa9t1F9QYd5s',
       },
-      client_secret: 'pi_3LNwijKApGjVGa9t1F9QYd5s_secret_jzUiho9wsoUGHIQLtmPb6Hxsd',
+      client_secret: 'xxx',
       confirmation_method: 'automatic',
       created: 1658399705,
       currency: 'bgn',
@@ -191,7 +191,7 @@ describe('PaymentService', () => {
             receipt_email: 'igoychev@gmail.com',
             receipt_number: null,
             receipt_url:
-              'https://pay.stripe.com/receipts/acct_1IRdsUKApGjVGa9t/ch_3LNwijKApGjVGa9t1tuRzvbL/rcpt_M691CdDekzigzPrzweBnW9Db2nRHHZl',
+              'https://pay.stripe.com/receipts/',
             refunded: false,
             refunds: {
               object: 'list',
@@ -213,7 +213,7 @@ describe('PaymentService', () => {
         has_more: false,
         url: '/v1/charges?payment_intent=pi_3LNwijKApGjVGa9t1F9QYd5s',
       },
-      client_secret: 'pi_3LNwijKApGjVGa9t1F9QYd5s_secret_jzUiho9wsoUGHIQLtmPb6Hxsd',
+      client_secret: 'xxx',
       confirmation_method: 'automatic',
       created: 1658399705,
       currency: 'bgn',
@@ -353,7 +353,7 @@ it('accept payment-intent.succeeded with BG tax not included in charge', async (
           receipt_email: 'igoychev@gmail.com',
           receipt_number: null,
           receipt_url:
-            'https://pay.stripe.com/receipts/acct_1IRdsUKApGjVGa9t/ch_3LNwkHKApGjVGa9t1bkp20zi/rcpt_M692vTcZd70YrFw4T5L2nXpOqtXNgMj',
+            'https://pay.stripe.com/receipts/',
           refunded: false,
           refunds: {
             object: 'list',
@@ -375,7 +375,7 @@ it('accept payment-intent.succeeded with BG tax not included in charge', async (
       has_more: false,
       url: '/v1/charges?payment_intent=pi_3LNwkHKApGjVGa9t1TLyVofD',
     },
-    client_secret: 'pi_3LNwkHKApGjVGa9t1TLyVofD_secret_ReaQ2jyYtUpC0zvQoPPi3Jo0p',
+    client_secret: 'xxx',
     confirmation_method: 'automatic',
     created: 1658399801,
     currency: 'bgn',
