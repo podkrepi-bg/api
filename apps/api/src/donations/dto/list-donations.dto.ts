@@ -37,7 +37,7 @@ export class DonationBaseDto {
 
   @ApiProperty()
   @Expose()
-  person: Object | null
+  person: { firstName: string, lastName: string} | null
 }
 
 export class ListDonationsDto<T> {
@@ -46,5 +46,4 @@ export class ListDonationsDto<T> {
 
   @ApiProperty()
   total: number
-};
-
+}

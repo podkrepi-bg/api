@@ -1,19 +1,31 @@
-import { Expose, Transform } from "class-transformer";
-import { IsInt, IsOptional, Max, Min } from "class-validator";
+import { Expose, Transform } from 'class-transformer'
+import { IsInt, IsOptional, Max, Min } from 'class-validator'
+
+interface ToNumberOptions {
+  min?: number;
+  max?: number;
+}
 
 export class PagingQueryDto {
   @Expose()
   @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Transform(({ value }) => Number.parseInt(value))
-  pageindex: number;
+  @Transform(({ value }) => toNumber(value))
+  pageindex?: number
 
   @Expose()
   @IsOptional()
-  @IsInt()
-  @Min(1)
-  @Max(50)
-  @Transform(({ value }) => Number.parseInt(value))
-  pagesize: number;
+  @Transform(({ value }) => toNumber(value))
+  pagesize?: number
+}
+
+function toNumber(value: string, opts: ToNumberOptions = {}): number | undefined {
+  if (Number.isNaN(value)) {
+    return undefined;
+  }
+  if (opts.min || opts.max) {
+    // TODO: figure out how to trigger custom validation
+  }
+
+  const newValue: number = Number.parseInt(value);
+  return newValue;
 }

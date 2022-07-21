@@ -22,7 +22,7 @@ import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
 import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
-import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto';
+import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
 
 @Injectable()
 export class DonationsService {
@@ -187,12 +187,12 @@ export class DonationsService {
     })
 
     const count = await this.prisma.donation.count({
-      where: { status, targetVault: { campaign: { id: campaignId } } }
+      where: { status, targetVault: { campaign: { id: campaignId } } },
     })
 
     const result = {
       items: data,
-      total: count
+      total: count,
     }
     return result
   }
@@ -222,12 +222,12 @@ export class DonationsService {
     })
 
     const count = await this.prisma.donation.count({
-      where: { status, targetVault: { campaign: { id: campaignId } } }
+      where: { status, targetVault: { campaign: { id: campaignId } } },
     })
 
     const result = {
       items: data,
-      total: count
+      total: count,
     }
     return result
   }
