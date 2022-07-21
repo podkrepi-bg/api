@@ -62,7 +62,7 @@ export function stripeFeeCalculator(chargedAmount: number, region: CardRegion) {
 }
 
 export function getCountryRegion(country: string) {
-  if (country as countriesEU) return CardRegion.EU
+  if (country in countriesEU) return CardRegion.EU
 
   if (country === 'UK' || country === 'GB') return CardRegion.UK
 
