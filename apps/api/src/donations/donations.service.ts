@@ -22,6 +22,7 @@ import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
 import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
+import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto';
 
 @Injectable()
 export class DonationsService {
@@ -163,19 +164,8 @@ export class DonationsService {
     status?: DonationStatus,
     pageIndex?: number,
     pageSize?: number,
-  ): Promise<
-    Omit<
-      Donation,
-      | 'personId'
-      | 'targetVaultId'
-      | 'extCustomerId'
-      | 'extPaymentIntentId'
-      | 'extPaymentMethodId'
-      | 'billingName'
-      | 'billingEmail'
-    >[]
-  > {
-    return await this.prisma.donation.findMany({
+  ): Promise<ListDonationsDto<DonationBaseDto>> {
+    const data = await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
       orderBy: [{ createdAt: 'desc' }],
       select: {
@@ -192,6 +182,16 @@ export class DonationsService {
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
     })
+
+    const count = await this.prisma.donation.count({
+      where: { status, targetVault: { campaign: { id: campaignId } } }
+    })
+
+    const result = {
+      items: data,
+      total: count
+    }
+    return result
   }
 
   /**
@@ -206,8 +206,8 @@ export class DonationsService {
     status?: DonationStatus,
     pageIndex?: number,
     pageSize?: number,
-  ): Promise<Donation[]> {
-    return await this.prisma.donation.findMany({
+  ): Promise<ListDonationsDto<Donation>> {
+    const data = await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
       orderBy: [{ createdAt: 'desc' }],
       include: {
@@ -217,6 +217,16 @@ export class DonationsService {
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
     })
+
+    const count = await this.prisma.donation.count({
+      where: { status, targetVault: { campaign: { id: campaignId } } }
+    })
+
+    const result = {
+      items: data,
+      total: count
+    }
+    return result
   }
 
   async getDonationById(id: string): Promise<Donation> {
