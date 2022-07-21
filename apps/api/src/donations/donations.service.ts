@@ -46,27 +46,29 @@ export class DonationsService {
     sessionDto: CreateSessionDto,
     paymentIntentId: string,
   ): Promise<Donation> {
-    const campaignId = campaign.id
-    const { currency } = campaign
-    const amount = sessionDto.amount
-    Logger.log('[ CreateInitialDonation ]', { campaignId, amount, paymentIntentId })
+    Logger.log('[ CreateInitialDonation ]', {
+      campaignId: campaign.id,
+      amount: sessionDto.amount,
+      paymentIntentId,
+    })
 
     /**
      * Create or connect campaign vault
      */
-    const vault = await this.prisma.vault.findFirst({ where: { campaignId } })
+    const vault = await this.prisma.vault.findFirst({ where: { campaignId: campaign.id } })
     const targetVaultData = vault
       ? // Connect the existing vault to this donation
         { connect: { id: vault.id } }
       : // Create new vault for the campaign
-        { create: { campaignId, currency, amount, name: campaign.title } }
+        { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
     /**
      * Create initial donation object
      */
     const donation = await this.prisma.donation.create({
       data: {
-        amount,
-        currency,
+        amount: 0, //this will be updated on successful payment event
+        chargedAmount: sessionDto.amount,
+        currency: campaign.currency,
         provider: PaymentProvider.stripe,
         type: DonationType.donation,
         status: DonationStatus.initial,
@@ -182,6 +184,7 @@ export class DonationsService {
         createdAt: true,
         updatedAt: true,
         amount: true,
+        chargedAmount: true,
         currency: true,
         person: { select: { firstName: true, lastName: true } },
       },

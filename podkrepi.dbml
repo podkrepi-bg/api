@@ -289,6 +289,7 @@ Table donations {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   amount Int [not null, default: 0]
+  chargedAmount Int [not null, default: 0]
   currency Currency [not null, default: 'BGN']
   personId String
   person Person

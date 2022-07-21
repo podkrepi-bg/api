@@ -4,7 +4,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 
 import { CampaignService } from '../../campaign/campaign.service'
 import { DonationMetadata } from '../dontation-metadata.interface'
-import { getPaymentData } from './payment-intent-helpers'
+import { getPaymentData } from '../helpers/payment-intent-helpers'
 
 @Injectable()
 export class PaymentSucceededService {
