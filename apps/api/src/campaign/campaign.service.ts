@@ -23,8 +23,8 @@ import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from './dto/update-campaign.dto'
-import { PaymentData } from '../donations/events/payment-intent-helpers'
-import { getAllowedPreviousStatus } from '../donations/events/donation-status-updates'
+import { PaymentData } from '../donations/helpers/payment-intent-helpers'
+import { getAllowedPreviousStatus } from '../donations/helpers/donation-status-updates'
 
 @Injectable()
 export class CampaignService {
@@ -258,6 +258,7 @@ export class CampaignService {
         createdAt: true,
         updatedAt: true,
         amount: true,
+        chargedAmount: true,
         currency: true,
         person: { select: { firstName: true, lastName: true } },
         targetVault: { select: { name: true } },
@@ -309,7 +310,8 @@ export class CampaignService {
       )
       this.prisma.donation.create({
         data: {
-          amount: paymentData.amount,
+          amount: paymentData.netAmount,
+          chargedAmount: paymentData.chargedAmount,
           currency: campaign.currency,
           targetVault: targetVaultData,
           provider: PaymentProvider.stripe,
@@ -337,7 +339,7 @@ export class CampaignService {
           },
           data: {
             status: newDonationStatus,
-            amount: paymentData.amount,
+            amount: paymentData.netAmount,
             extCustomerId: paymentData.stripeCustomerId,
             extPaymentMethodId: paymentData.paymentMethodId,
             billingName: paymentData.billingName,
@@ -364,14 +366,15 @@ export class CampaignService {
     Logger.debug('[Stripe webhook] update amounts with successful donation', {
       campaignId: campaign.id,
       paymentIntentId: paymentData.paymentIntentId,
-      amount: paymentData.amount,
+      netAmount: paymentData.netAmount,
+      chargedAmount: paymentData.chargedAmount,
     })
 
     this.updateDonationPayment(campaign, paymentData, DonationStatus.succeeded)
 
     const vault = await this.getCampaignVault(campaign.id)
     if (vault) {
-      await this.vaultService.incrementVaultAmount(vault.id, paymentData.amount)
+      await this.vaultService.incrementVaultAmount(vault.id, paymentData.netAmount)
     }
   }
 

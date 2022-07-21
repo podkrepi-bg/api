@@ -16,6 +16,7 @@ export class Donation {
   createdAt: Date
   updatedAt: Date | null
   amount: number
+  chargedAmount: number
   currency: Currency
   personId: string | null
   person?: Person | null
