@@ -1,6 +1,6 @@
 {
   "name": "podkrepi-bg-api",
-  "version": "0.3.5",
+  "version": "0.4.2",
   "license": "MIT",
   "repository": "https://github.com/orgs/podkrepi-bg",
   "scripts": {
@@ -24,8 +24,8 @@
     "lint": "yarn nx lint api"
   },
   "dependencies": {
-    "@golevelup/nestjs-stripe": "0.3.3",
-    "@golevelup/nestjs-webhooks": "0.2.12",
+    "@golevelup/nestjs-stripe": "^0.3.4",
+    "@golevelup/nestjs-webhooks": "^0.2.13",
     "@keycloak/keycloak-admin-client": "18.0.0",
     "@nestjs/axios": "^0.0.7",
     "@nestjs/cli": "8.2.5",
@@ -52,7 +52,7 @@
     "nest-keycloak-connect": "^1.8.3",
     "reflect-metadata": "0.1.13",
     "rxjs": "7.5.5",
-    "stripe": "^9.1.0",
+    "stripe": "^9.14.0",
     "swagger-ui-express": "^4.4.0",
     "tslib": "2.4.0"
   },

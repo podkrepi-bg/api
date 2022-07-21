@@ -16,12 +16,15 @@ describe('DonationsController', () => {
   const stripeMock = {
     checkout: { sessions: { create: jest.fn() } },
   }
+  stripeMock.checkout.sessions.create.mockReturnValue({ payment_intent: 'unique-intent' })
+
   const mockSession = {
     mode: 'payment',
     priceId: 'testPriceId',
     campaignId: 'testCampaignId',
     successUrl: 'http://test.com',
     cancelUrl: 'http://test.com',
+    isAnonymous: true,
   } as CreateSessionDto
 
   beforeEach(async () => {
@@ -90,7 +93,7 @@ describe('DonationsController', () => {
     } as Campaign)
 
     await expect(controller.createCheckoutSession(mockSession)).rejects.toThrow(
-      new NotAcceptableException('This campaign cannot accept donations'),
+      new NotAcceptableException('Campaign cannot accept donations in state: complete'),
     )
     expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
     expect(stripeMock.checkout.sessions.create).not.toHaveBeenCalled()

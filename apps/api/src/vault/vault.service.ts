@@ -1,4 +1,11 @@
-import { forwardRef, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common'
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common'
 import { Vault } from '@prisma/client'
 import { CampaignService } from '../campaign/campaign.service'
 import { PersonService } from '../person/person.service'
@@ -64,6 +71,16 @@ export class VaultService {
   }
 
   async remove(id: string): Promise<Vault> {
+    const vault = await this.prisma.vault.findFirst({
+      where: {
+        id,
+      },
+      rejectOnNotFound: true,
+    })
+    if (vault.amount != 0 || vault.blockedAmount != 0) {
+      throw new BadRequestException('Cannot delete non-empty vaults!')
+    }
+
     try {
       return await this.prisma.vault.delete({
         where: {

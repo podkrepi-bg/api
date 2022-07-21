@@ -1,6 +1,7 @@
 import { Benefactor } from '../../benefactor/entities/benefactor.entity'
 import { Beneficiary } from '../../beneficiary/entities/beneficiary.entity'
 import { Campaign } from '../../campaign/entities/campaign.entity'
+import { Organizer } from '../../organizer/entities/organizer.entity'
 import { Coordinator } from '../../coordinator/entities/coordinator.entity'
 import { Document } from '../../document/entities/document.entity'
 import { Donation } from '../../donation/entities/donation.entity'
@@ -34,6 +35,7 @@ export class Person {
   benefactors?: Benefactor[]
   beneficiaries?: Beneficiary[]
   campaigns?: Campaign[]
+  organizer?: Organizer[]
   coordinators?: Coordinator[]
   documents?: Document[]
   Donation?: Donation[]
