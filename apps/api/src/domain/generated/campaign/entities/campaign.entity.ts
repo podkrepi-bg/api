@@ -1,5 +1,6 @@
 import { CampaignState, Currency } from '@prisma/client'
 import { Person } from '../../person/entities/person.entity'
+import { Organizer } from '../../organizer/entities/organizer.entity'
 import { Beneficiary } from '../../beneficiary/entities/beneficiary.entity'
 import { CampaignType } from '../../campaignType/entities/campaignType.entity'
 import { Coordinator } from '../../coordinator/entities/coordinator.entity'
@@ -16,6 +17,7 @@ export class Campaign {
   title: string
   essence: string
   paymentReference: string
+  organizerId: string | null
   coordinatorId: string
   beneficiaryId: string
   campaignTypeId: string
@@ -30,6 +32,7 @@ export class Campaign {
   approvedById: string | null
   currency: Currency
   approvedBy?: Person | null
+  organizer?: Organizer | null
   beneficiary?: Beneficiary
   campaignType?: CampaignType
   coordinator?: Coordinator

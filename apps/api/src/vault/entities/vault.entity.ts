@@ -13,6 +13,7 @@ export class Vault {
   name: string
   currency: Currency
   amount: number
+  blockedAmount: number
   campaignId: string
   createdAt: Date
   updatedAt: Date | null
