@@ -40,8 +40,10 @@ export function getPaymentData(paymentIntent: Stripe.PaymentIntent): PaymentData
     netAmount:
       charges.length === 0
         ? 0
-        : paymentIntent.amount -
-          stripeFeeCalculator(paymentIntent.amount, getCountryRegion(country)),
+        : Math.round(
+            paymentIntent.amount -
+              stripeFeeCalculator(paymentIntent.amount, getCountryRegion(country)),
+          ),
     chargedAmount: paymentIntent.amount,
     currency: paymentIntent.currency,
     billingName: billingDetails?.name ?? undefined,
