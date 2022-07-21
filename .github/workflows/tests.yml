@@ -1,11 +1,5 @@
 name: API tests
 
-permissions:
-  # All other permissions are set to none
-  checks: write
-  contents: read
-  pull-requests: write
-
 on:
   workflow_dispatch:
   push:
@@ -21,9 +15,13 @@ jobs:
   run-tests:
     name: Run API tests
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: write
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: '16'
           cache: 'yarn'
