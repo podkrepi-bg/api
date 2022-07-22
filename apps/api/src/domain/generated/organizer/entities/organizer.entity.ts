@@ -1,5 +1,6 @@
 import { Person } from '../../person/entities/person.entity'
 import { Campaign } from '../../campaign/entities/campaign.entity'
+import { Beneficiary } from '../../beneficiary/entities/beneficiary.entity'
 
 export class Organizer {
   id: string
@@ -8,4 +9,5 @@ export class Organizer {
   updatedAt: Date | null
   person?: Person
   campaigns?: Campaign[]
+  beneficiaries?: Beneficiary[]
 }

@@ -44,14 +44,29 @@ export class CreateBeneficiaryDto {
 
   @ApiProperty()
   @IsNotEmpty()
+  @IsOptional()
   @Expose()
   @IsUUID()
   public readonly coordinatorId: string
 
   @ApiProperty({ enum: PersonRelation })
   @Expose()
+  @IsOptional()
   @IsEnum(PersonRelation)
   coordinatorRelation: PersonRelation
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsOptional()
+  @Expose()
+  @IsUUID()
+  public readonly organizerId: string
+
+  @ApiProperty({ enum: PersonRelation })
+  @Expose()
+  @IsOptional()
+  @IsEnum(PersonRelation)
+  organizerRelation: PersonRelation
 
   @ApiProperty()
   @Expose()

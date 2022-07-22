@@ -4,7 +4,7 @@ import { StripeWebhookHandler } from '@golevelup/nestjs-stripe'
 
 import { DonationMetadata } from '../dontation-metadata.interface'
 import { CampaignService } from '../../campaign/campaign.service'
-import { getPaymentData } from './payment-intent-helpers'
+import { getPaymentData } from '../helpers/payment-intent-helpers'
 import { DonationStatus } from '@prisma/client'
 
 @Injectable()

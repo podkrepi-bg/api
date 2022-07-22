@@ -14,7 +14,7 @@ export class BeneficiaryService {
 
   async listBeneficiaries(): Promise<Beneficiary[]> {
     return await this.prisma.beneficiary.findMany({
-      include: { person: true },
+      include: { person: true, company: true },
       orderBy: [{ person: { firstName: 'asc' } }],
     })
   }
@@ -27,6 +27,7 @@ export class BeneficiaryService {
         city: { select: { name: true } },
         company: { select: { companyName: true } },
         coordinator: { select: { person: true } },
+        organizer: { select: { person: true } },
       },
     })
 
