@@ -65,6 +65,7 @@ Table organizers {
   updatedAt DateTime
   person Person [not null]
   campaigns Campaign [not null]
+  beneficiaries Beneficiary [not null]
 
   Note: 'Organizer is the person who manages the campaign on behalf of the Beneficiary'
 }
@@ -96,19 +97,22 @@ Table beneficiaries {
   id String [pk]
   type BeneficiaryType [not null]
   personId String [note: 'Person in need when type is `individual`']
-  coordinatorId String [not null, note: 'Coordinator for this beneficiary']
+  organizerId String [note: 'Organizer for this beneficiary']
   countryCode String [not null]
   cityId String [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
-  coordinatorRelation PersonRelation [not null, default: 'none']
+  organizerRelation PersonRelation [default: 'none']
+  coordinatorRelation PersonRelation [default: 'none']
   description String
   privateData Json
   publicData Json
   companyId String [note: 'Company in need when type is `company`']
+  coordinatorId String
+  coordinator Coordinator
   city City [not null]
   company Company
-  coordinator Coordinator [not null]
+  organizer Organizer
   person Person
   campaigns Campaign [not null]
 
@@ -289,6 +293,7 @@ Table donations {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   amount Int [not null, default: 0]
+  chargedAmount Int [not null, default: 0]
   currency Currency [not null, default: 'BGN']
   personId String
   person Person
@@ -620,11 +625,13 @@ Ref: Coordinator.personId > Person.id
 
 Ref: Benefactor.personId > Person.id
 
+Ref: Beneficiary.coordinatorId > Coordinator.id
+
 Ref: Beneficiary.cityId > City.id
 
 Ref: Beneficiary.companyId > Company.id
 
-Ref: Beneficiary.coordinatorId > Coordinator.id
+Ref: Beneficiary.organizerId > Organizer.id
 
 Ref: Beneficiary.personId > Person.id
 

@@ -89,12 +89,13 @@ model Company {
 
 /// Organizer is the person who manages the campaign on behalf of the Beneficiary
 model Organizer {
-  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  personId  String     @map("person_id") @db.Uuid
-  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime?  @updatedAt @map("updated_at") @db.Timestamptz(6)
-  person    Person     @relation(fields: [personId], references: [id])
-  campaigns Campaign[]
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  personId      String        @map("person_id") @db.Uuid
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  person        Person        @relation(fields: [personId], references: [id])
+  campaigns     Campaign[]
+  beneficiaries Beneficiary[]
 
   @@unique([personId])
   @@map("organizers")
@@ -134,21 +135,24 @@ model Beneficiary {
   type                BeneficiaryType
   /// Person in need when type is `individual`
   personId            String?         @map("person_id") @db.Uuid
-  /// Coordinator for this beneficiary
-  coordinatorId       String          @map("coordinator_id") @db.Uuid
+  /// Organizer for this beneficiary
+  organizerId         String?         @map("organizer_id") @db.Uuid
   countryCode         String          @map("country_code") @db.Citext
   cityId              String          @map("city_id") @db.Uuid
   createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
-  coordinatorRelation PersonRelation  @default(none) @map("coordinator_relation")
+  organizerRelation   PersonRelation? @default(none) @map("organizer_relation")
+  coordinatorRelation PersonRelation? @default(none) @map("coordinator_relation")
   description         String?
   privateData         Json?           @map("private_data")
   publicData          Json?           @map("public_data")
   /// Company in need when type is `company`
   companyId           String?         @map("company_id") @db.Uuid
+  coordinatorId       String?         @map("coordinator_id") @db.Uuid
+  coordinator         Coordinator?    @relation(fields: [coordinatorId], references: [id])
   city                City            @relation(fields: [cityId], references: [id])
   company             Company?        @relation(fields: [companyId], references: [id])
-  coordinator         Coordinator     @relation(fields: [coordinatorId], references: [id])
+  organizer           Organizer?      @relation(fields: [organizerId], references: [id])
   person              Person?         @relation(fields: [personId], references: [id])
   campaigns           Campaign[]
 
@@ -176,7 +180,7 @@ model Campaign {
   title                   String         @db.VarChar(200)
   essence                 String         @db.VarChar(500)
   paymentReference        String         @unique @map("payment_reference") @db.VarChar(15)
-  organizerId             String?         @map("organizer_id") @db.Uuid
+  organizerId             String?        @map("organizer_id") @db.Uuid
   coordinatorId           String         @map("coordinator_id") @db.Uuid
   beneficiaryId           String         @map("beneficiary_id") @db.Uuid
   campaignTypeId          String         @map("campaign_type_id") @db.Uuid
@@ -191,7 +195,7 @@ model Campaign {
   approvedById            String?        @map("approved_by_id") @db.Uuid
   currency                Currency       @default(BGN)
   approvedBy              Person?        @relation(fields: [approvedById], references: [id])
-  organizer               Organizer?      @relation(fields: [organizerId], references: [id])
+  organizer               Organizer?     @relation(fields: [organizerId], references: [id])
   beneficiary             Beneficiary    @relation(fields: [beneficiaryId], references: [id])
   campaignType            CampaignType   @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   coordinator             Coordinator    @relation(fields: [coordinatorId], references: [id])
@@ -352,6 +356,7 @@ model Donation {
   createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
   amount             Int             @default(0)
+  chargedAmount      Int             @default(0)
   currency           Currency        @default(BGN)
   personId           String?         @map("person_id") @db.Uuid
   person             Person?         @relation(fields: [personId], references: [id])
