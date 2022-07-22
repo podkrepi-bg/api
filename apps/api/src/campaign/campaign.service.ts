@@ -25,6 +25,7 @@ import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from './dto/update-campaign.dto'
 import { PaymentData } from '../donations/helpers/payment-intent-helpers'
 import { getAllowedPreviousStatus } from '../donations/helpers/donation-status-updates'
+import { Prisma } from '@prisma/client'
 
 @Injectable()
 export class CampaignService {
@@ -48,19 +49,9 @@ export class CampaignService {
         campaignFiles: true,
       },
     })
-    const campaignSums = await this.prisma.$queryRaw<{reached: number, currentamount: number, blockedamount: number, id: string}[]>`
-    SELECT
-    SUM(CASE when d.status = 'succeeded' THEN d.amount ELSE 0 END) as reached,
-    SUM(v.amount) as currentamount,
-    SUM(v."blockedAmount") as blockedamount,
-    v.campaign_id as id
-    FROM api.vaults v
-    LEFT JOIN api.donations d on d.target_vault_id = v.id
-    GROUP BY v.campaign_id
-    `
+    const campaignSums = await this.getCampaignSums()
 
-    //TODO: remove this when Prisma starts supporting nested groupbys
-    return campaigns.map(c => this.addVaultSumms(c, campaignSums))
+    return campaigns.map(c => this.addVaultSummariess(c, campaignSums))
   }
 
   async listAllCampaigns(): Promise<Campaign[]> {
@@ -77,19 +68,41 @@ export class CampaignService {
         outgoingTransfers: { select: { amount: true } },
       },
     })
-    const campaignSums = await this.prisma.$queryRaw<{reached: number, currentamount: number, blockedamount: number, id: string}[]>`
-    SELECT
-    SUM(CASE when d.status = 'succeeded' THEN d.amount ELSE 0 END) as reached,
-    SUM(v.amount) as currentamount,
-    SUM(v."blockedAmount") as blockedamount,
-    v.campaign_id as id
-    FROM api.vaults v
-    LEFT JOIN api.donations d on d.target_vault_id = v.id
-    GROUP BY v.campaign_id
-    `
+    const campaignSums = await this.getCampaignSums()
 
-    //TODO: remove this when Prisma starts supporting nested groupbys
-    return campaigns.map(c => this.addVaultSumms(c, campaignSums))
+    return campaigns.map(c => this.addVaultSummariess(c, campaignSums))
+  }
+
+  async getCampaignSums(campaignIds?: string[]) {
+    if (campaignIds && campaignIds.length > 0) {
+      return await this.prisma.$queryRaw<{reached: number, currentamount: number, blockedamount: number, donors: number, id: string}[]>
+      `
+        SELECT
+        SUM(CASE when d.status = 'succeeded' THEN d.amount ELSE 0 END) as reached,
+        SUM(v.amount) as currentamount,
+        SUM(v."blockedAmount") as blockedamount,
+        COUNT(distinct CASE when d.status = 'succeeded' THEN d.id END) as donors,
+        v.campaign_id as id
+        FROM api.vaults v
+        LEFT JOIN api.donations d on d.target_vault_id = v.id
+        GROUP BY v.campaign_id
+        HAVING v.campaign_id in (${Prisma.join(campaignIds)})
+      `
+    }
+
+    const campaignSums = await this.prisma.$queryRaw<{reached: number, currentamount: number, blockedamount: number, donors: number, id: string}[]>
+    `
+      SELECT
+      SUM(CASE when d.status = 'succeeded' THEN d.amount ELSE 0 END) as reached,
+      SUM(v.amount) as currentamount,
+      SUM(v."blockedAmount") as blockedamount,
+      COUNT(distinct CASE when d.status = 'succeeded' THEN d.id END) as donors,
+      v.campaign_id as id
+      FROM api.vaults v
+      LEFT JOIN api.donations d on d.target_vault_id = v.id
+      GROUP BY v.campaign_id
+    `
+    return campaignSums
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
@@ -97,7 +110,6 @@ export class CampaignService {
       where: { id: campaignId },
       include: {
         campaignFiles: true,
-        vaults: { select: { donations: { select: { amount: true } }, amount: true } },
         incomingTransfers: { select: { amount: true } },
       },
     })
@@ -105,7 +117,9 @@ export class CampaignService {
       Logger.warn('No campaign record with ID: ' + campaignId)
       throw new NotFoundException('No campaign record with ID: ' + campaignId)
     }
-    return campaign
+    const campaignSums = await this.getCampaignSums([campaign.id])
+
+    return this.addVaultSummariess(campaign, campaignSums)
   }
 
   async getCampaignByIdAndCoordinatorId(
@@ -166,19 +180,9 @@ export class CampaignService {
       throw new NotFoundException('No campaign record with slug: ' + slug)
     }
 
-    const campaignSums = await this.prisma.$queryRaw<{reached: number, currentamount: number, blockedamount: number, id: string}[]>`
-    SELECT
-    SUM(CASE when d.status = 'succeeded' THEN d.amount ELSE 0 END) as reached,
-    SUM(v.amount) as currentamount,
-    SUM(v."blockedAmount") as blockedamount,
-    v.campaign_id as id
-    FROM api.vaults v
-    LEFT JOIN api.donations d on d.target_vault_id = v.id
-    WHERE v.campaign_id = ${campaign.id}
-    GROUP BY v.campaign_id
-    `
+    const campaignSums = await this.getCampaignSums([campaign.id])
 
-    return this.addVaultSumms(campaign, campaignSums)
+    return this.addVaultSummariess(campaign, campaignSums)
   }
 
   async getCampaignByPaymentReference(paymentReference: string): Promise<Campaign> {
@@ -479,15 +483,16 @@ export class CampaignService {
     }
   }
 
-  private addVaultSumms(campaign: Campaign, campaignSums: { reached: number, currentamount: number, blockedamount: number, id: string }[]) {
+  private addVaultSummariess(campaign: Campaign, campaignSums: { reached: number, currentamount: number, blockedamount: number, donors: number, id: string }[]) {
     const csum = campaignSums.find(e => e.id === campaign.id)
     return {
       ...campaign,
       summary:
       {
-        reachedAmount: csum ? csum.reached : 0,
-        currentAmount: csum ? csum.currentamount : 0,
-        blockedAmount: csum ? csum.blockedamount : 0,
+        reachedAmount: csum?.reached,
+        currentAmount: csum?.currentamount,
+        blockedAmount: csum?.blockedamount,
+        donors: csum?.donors
       }
     }
   }
