@@ -214,6 +214,8 @@ export class CampaignService {
 
   async getDonationsForCampaign(
     campaignId: string,
+    pageIndex?: number,
+    pageSize?: number,
   ): Promise<
     Omit<
       Donation,
@@ -263,6 +265,8 @@ export class CampaignService {
         person: { select: { firstName: true, lastName: true } },
         targetVault: { select: { name: true } },
       },
+      skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
+      take: pageSize ? pageSize : undefined,
     })
 
     return donations
@@ -356,7 +360,7 @@ export class CampaignService {
     //donation exists but we need to skip because previous status is from later event than the incoming
     else {
       Logger.error(
-        `[Stripe webhook] Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId} 
+        `[Stripe webhook] Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId}
         and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
       )
     }
