@@ -60,7 +60,7 @@ export class CampaignService {
     `
 
     //TODO: remove this when Prisma starts supporting nested groupbys
-    return campaigns.map(c => this.addReachedAmountAndDonors(c, campaignSums))
+    return campaigns.map(c => this.addVaultSumms(c, campaignSums))
   }
 
   async listAllCampaigns(): Promise<Campaign[]> {
@@ -89,7 +89,7 @@ export class CampaignService {
     `
 
     //TODO: remove this when Prisma starts supporting nested groupbys
-    return campaigns.map(c => this.addReachedAmountAndDonors(c, campaignSums))
+    return campaigns.map(c => this.addVaultSumms(c, campaignSums))
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
@@ -178,7 +178,7 @@ export class CampaignService {
     GROUP BY v.campaign_id
     `
 
-    return this.addReachedAmountAndDonors(campaign, campaignSums)
+    return this.addVaultSumms(campaign, campaignSums)
   }
 
   async getCampaignByPaymentReference(paymentReference: string): Promise<Campaign> {
@@ -479,7 +479,7 @@ export class CampaignService {
     }
   }
 
-  private addReachedAmountAndDonors(campaign: Campaign, campaignSums: { reached: number, currentamount: number, blockedamount: number, id: string }[]) {
+  private addVaultSumms(campaign: Campaign, campaignSums: { reached: number, currentamount: number, blockedamount: number, id: string }[]) {
     const csum = campaignSums.find(e => e.id === campaign.id)
     return {
       ...campaign,
