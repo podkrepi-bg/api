@@ -47,7 +47,7 @@ import { IrregularityFileModule } from '../irregularity-file/irregularity-file.m
 import { IrregularityModule } from '../irregularity/irregularity.module'
 import { BankTransactionsFileModule } from '../bank-transactions-file/bank-transactions-file.module'
 import { OrganizerModule } from '../organizer/organizer.module'
-import { ApiLoggerMiddleware } from './middleware/apilogger.middleware';
+import { ApiLoggerMiddleware } from './middleware/apilogger.middleware'
 
 @Module({
   imports: [
@@ -138,8 +138,6 @@ export class AppModule implements NestModule {
       path: 'stripe/webhook',
     })
     // add HTTP request logging
-    consumer
-      .apply(ApiLoggerMiddleware)
-      .forRoutes('*');
+    consumer.apply(ApiLoggerMiddleware).forRoutes('*')
   }
 }
