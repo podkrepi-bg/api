@@ -45,17 +45,22 @@ export class CampaignService {
         beneficiary: { select: { person: true } },
         coordinator: { select: { person: true } },
         organizer: { select: { person: true } },
-        vaults: {
-          select: {
-            donations: { where: { status: DonationStatus.succeeded }, select: { amount: true } },
-          },
-        },
         campaignFiles: true,
       },
     })
+    const campaignSums = await this.prisma.$queryRaw<{reached: number, currentamount: number, blockedamount: number, id: string}[]>`
+    SELECT
+    SUM(CASE when d.status = 'succeeded' THEN d.amount ELSE 0 END) as reached,
+    SUM(v.amount) as currentamount,
+    SUM(v."blockedAmount") as blockedamount,
+    v.campaign_id as id
+    FROM api.vaults v
+    LEFT JOIN api.donations d on d.target_vault_id = v.id
+    GROUP BY v.campaign_id
+    `
 
     //TODO: remove this when Prisma starts supporting nested groupbys
-    return campaigns.map(this.addReachedAmountAndDonors)
+    return campaigns.map(c => this.addReachedAmountAndDonors(c, campaignSums))
   }
 
   async listAllCampaigns(): Promise<Campaign[]> {
@@ -68,19 +73,23 @@ export class CampaignService {
         beneficiary: { select: { person: { select: { firstName: true, lastName: true } } } },
         coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
         organizer: { select: { person: { select: { firstName: true, lastName: true } } } },
-        vaults: {
-          select: {
-            donations: { where: { status: DonationStatus.succeeded }, select: { amount: true } },
-            amount: true,
-          },
-        },
         incomingTransfers: { select: { amount: true } },
         outgoingTransfers: { select: { amount: true } },
       },
     })
+    const campaignSums = await this.prisma.$queryRaw<{reached: number, currentamount: number, blockedamount: number, id: string}[]>`
+    SELECT
+    SUM(CASE when d.status = 'succeeded' THEN d.amount ELSE 0 END) as reached,
+    SUM(v.amount) as currentamount,
+    SUM(v."blockedAmount") as blockedamount,
+    v.campaign_id as id
+    FROM api.vaults v
+    LEFT JOIN api.donations d on d.target_vault_id = v.id
+    GROUP BY v.campaign_id
+    `
 
     //TODO: remove this when Prisma starts supporting nested groupbys
-    return campaigns.map(this.addReachedAmountAndDonors)
+    return campaigns.map(c => this.addReachedAmountAndDonors(c, campaignSums))
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
@@ -149,14 +158,6 @@ export class CampaignService {
           },
         },
         campaignFiles: true,
-        vaults: {
-          select: {
-            donations: {
-              where: { status: DonationStatus.succeeded },
-              select: { amount: true, personId: true },
-            },
-          },
-        },
       },
     })
 
@@ -165,8 +166,21 @@ export class CampaignService {
       throw new NotFoundException('No campaign record with slug: ' + slug)
     }
 
-    return this.addReachedAmountAndDonors(campaign)
+    const campaignSums = await this.prisma.$queryRaw<{reached: number, currentamount: number, blockedamount: number, id: string}[]>`
+    SELECT
+    SUM(CASE when d.status = 'succeeded' THEN d.amount ELSE 0 END) as reached,
+    SUM(v.amount) as currentamount,
+    SUM(v."blockedAmount") as blockedamount,
+    v.campaign_id as id
+    FROM api.vaults v
+    LEFT JOIN api.donations d on d.target_vault_id = v.id
+    WHERE v.campaign_id = ${campaign.id}
+    GROUP BY v.campaign_id
+    `
+
+    return this.addReachedAmountAndDonors(campaign, campaignSums)
   }
+
   async getCampaignByPaymentReference(paymentReference: string): Promise<Campaign> {
     const campaign = await this.prisma.campaign.findFirst({
       where: { paymentReference: paymentReference },
@@ -354,7 +368,7 @@ export class CampaignService {
     //donation exists but we need to skip because previous status is from later event than the incoming
     else {
       Logger.error(
-        `[Stripe webhook] Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId} 
+        `[Stripe webhook] Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId}
         and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
       )
     }
@@ -462,42 +476,16 @@ export class CampaignService {
     }
   }
 
-  private addReachedAmountAndDonors(
-    campaign: Campaign & {
-      vaults: { donations: { amount: number; personId?: string | null }[] }[]
-    },
-  ) {
-    let campaignAmountReached = 0
-    const donors = new Set<string>()
-    let shouldAddDonors = false
-    let anonymousDonors = 0
-
-    for (const vault of campaign.vaults) {
-      for (const donation of vault.donations) {
-        campaignAmountReached += donation.amount
-
-        if (donation.personId !== undefined) {
-          shouldAddDonors = true
-          if (donation.personId === null) {
-            anonymousDonors++
-          } else {
-            donors.add(donation.personId)
-          }
-        }
-      }
-    }
-
+  private addReachedAmountAndDonors(campaign: Campaign, campaignSums: { reached: number, currentamount: number, blockedamount: number, id: string }[]) {
+    const csum = campaignSums.find(e => e.id === campaign.id)
     return {
       ...campaign,
-      ...{
-        summary: [
-          {
-            reachedAmount: campaignAmountReached,
-            donors: shouldAddDonors ? donors.size + anonymousDonors : undefined,
-          },
-        ],
-        vaults: [],
-      },
+      summary:
+      {
+        reachedAmount: csum ? csum.reached : 0,
+        currentAmount: csum ? csum.currentamount : 0,
+        blockedAmount: csum ? csum.blockedamount : 0,
+      }
     }
   }
 }
