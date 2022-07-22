@@ -23,7 +23,8 @@ import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from './dto/update-campaign.dto'
-import { PaymentData } from '../donations/events/payment-intent-helpers'
+import { PaymentData } from '../donations/helpers/payment-intent-helpers'
+import { getAllowedPreviousStatus } from '../donations/helpers/donation-status-updates'
 
 @Injectable()
 export class CampaignService {
@@ -254,6 +255,7 @@ export class CampaignService {
         createdAt: true,
         updatedAt: true,
         amount: true,
+        chargedAmount: true,
         currency: true,
         person: { select: { firstName: true, lastName: true } },
         targetVault: { select: { name: true } },
@@ -270,7 +272,7 @@ export class CampaignService {
   async updateDonationPayment(
     campaign: Campaign,
     paymentData: PaymentData,
-    donationStatus: DonationStatus,
+    newDonationStatus: DonationStatus,
   ) {
     const campaignId = campaign.id
     Logger.debug('[Stripe webhook] Update donation from state initial to waiting', {
@@ -288,27 +290,30 @@ export class CampaignService {
       : // Create new vault for the campaign
         { create: { campaignId, currency: campaign.currency, name: campaign.title } }
 
-    /**
-     * Update status of donation from initial to waiting
-     */
-    try {
-      await this.prisma.donation.upsert({
-        where: { extPaymentIntentId: paymentData.paymentIntentId },
-        update: {
-          status: donationStatus,
-          amount: paymentData.amount,
-          extCustomerId: paymentData.stripeCustomerId,
-          extPaymentMethodId: paymentData.paymentMethodId,
-          billingName: paymentData.billingName,
-          billingEmail: paymentData.billingEmail,
-        },
-        create: {
-          amount: paymentData.amount,
+    // Find donation by extPaymentIntentId an update if status allows
+
+    const donation = await this.prisma.donation.findUnique({
+      where: { extPaymentIntentId: paymentData.paymentIntentId },
+      select: { id: true, status: true },
+    })
+
+    //if missing create the donation with the incoming status
+    if (!donation) {
+      Logger.error(
+        'No donation exists with extPaymentIntentId: ' +
+          paymentData.paymentIntentId +
+          ' Creating new donation with status: ' +
+          newDonationStatus,
+      )
+      this.prisma.donation.create({
+        data: {
+          amount: paymentData.netAmount,
+          chargedAmount: paymentData.chargedAmount,
           currency: campaign.currency,
           targetVault: targetVaultData,
           provider: PaymentProvider.stripe,
           type: DonationType.donation,
-          status: DonationStatus.waiting,
+          status: newDonationStatus,
           extCustomerId: paymentData.stripeCustomerId ?? '',
           extPaymentIntentId: paymentData.paymentIntentId,
           extPaymentMethodId: paymentData.paymentMethodId ?? '',
@@ -316,11 +321,41 @@ export class CampaignService {
           billingEmail: paymentData.billingEmail,
         },
       })
-    } catch (error) {
+
+      return
+    }
+    //donation exists, so check if it is safe to update it
+    else if (
+      donation?.status === newDonationStatus ||
+      donation?.status === getAllowedPreviousStatus(newDonationStatus)
+    ) {
+      try {
+        await this.prisma.donation.update({
+          where: {
+            id: donation.id,
+          },
+          data: {
+            status: newDonationStatus,
+            amount: paymentData.netAmount,
+            extCustomerId: paymentData.stripeCustomerId,
+            extPaymentMethodId: paymentData.paymentMethodId,
+            billingName: paymentData.billingName,
+            billingEmail: paymentData.billingEmail,
+          },
+        })
+      } catch (error) {
+        Logger.error(
+          `[Stripe webhook] Error wile updating donation with paymentIntentId: ${paymentData.paymentIntentId} in database. Error is: ${error}`,
+        )
+        throw new InternalServerErrorException(error)
+      }
+    }
+    //donation exists but we need to skip because previous status is from later event than the incoming
+    else {
       Logger.error(
-        `[Stripe webhook] Error wile updating donation with paymentIntentId: ${paymentData.paymentIntentId} in database. Error is: ${error}`,
+        `[Stripe webhook] Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId} 
+        and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
       )
-      throw new InternalServerErrorException(error)
     }
   }
 
@@ -328,14 +363,15 @@ export class CampaignService {
     Logger.debug('[Stripe webhook] update amounts with successful donation', {
       campaignId: campaign.id,
       paymentIntentId: paymentData.paymentIntentId,
-      amount: paymentData.amount,
+      netAmount: paymentData.netAmount,
+      chargedAmount: paymentData.chargedAmount,
     })
 
     this.updateDonationPayment(campaign, paymentData, DonationStatus.succeeded)
 
     const vault = await this.getCampaignVault(campaign.id)
     if (vault) {
-      await this.vaultService.incrementVaultAmount(vault.id, paymentData.amount)
+      await this.vaultService.incrementVaultAmount(vault.id, paymentData.netAmount)
     }
   }
 

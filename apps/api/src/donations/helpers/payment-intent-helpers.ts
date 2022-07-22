@@ -1,4 +1,5 @@
 import Stripe from 'stripe'
+import { getCountryRegion, stripeFeeCalculator } from './stripe-fee-calculator'
 
 function getPaymentMethodId(paymentIntent: Stripe.PaymentIntent): string | undefined {
   if (typeof paymentIntent.payment_method === 'string') {
@@ -16,7 +17,8 @@ function getPaymentCustomerId(paymentIntent: Stripe.PaymentIntent): string | und
 
 export type PaymentData = {
   paymentIntentId: string
-  amount: number
+  netAmount: number
+  chargedAmount: number
   currency: string
   billingName?: string
   billingEmail?: string
@@ -26,10 +28,23 @@ export type PaymentData = {
 
 export function getPaymentData(paymentIntent: Stripe.PaymentIntent): PaymentData {
   const billingDetails = paymentIntent.charges.data.find(() => true)?.billing_details
+  const charges: Stripe.Charge[] = paymentIntent.charges.data as Stripe.Charge[]
+  let country = ''
+  if (charges.length === 1) {
+    country = charges[0].payment_method_details?.card?.country ?? ''
+  }
 
   return {
     paymentIntentId: paymentIntent.id,
-    amount: paymentIntent.amount,
+    //netAmount is 0 until we receive a payment_intent.successful event where charges array contains the card country
+    netAmount:
+      charges.length === 0
+        ? 0
+        : Math.round(
+            paymentIntent.amount -
+              stripeFeeCalculator(paymentIntent.amount, getCountryRegion(country)),
+          ),
+    chargedAmount: paymentIntent.amount,
     currency: paymentIntent.currency,
     billingName: billingDetails?.name ?? undefined,
     billingEmail: billingDetails?.email ?? paymentIntent.receipt_email ?? undefined,

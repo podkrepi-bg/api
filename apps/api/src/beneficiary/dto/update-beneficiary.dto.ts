@@ -1,4 +1,12 @@
-import { IsEnum, IsISO31661Alpha2, IsNotEmpty, IsUUID, IsString, IsOptional, ValidateIf } from 'class-validator'
+import {
+  IsEnum,
+  IsISO31661Alpha2,
+  IsNotEmpty,
+  IsUUID,
+  IsString,
+  IsOptional,
+  ValidateIf,
+} from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose } from 'class-transformer'
 import { BeneficiaryType, PersonRelation, Prisma } from '.prisma/client'
@@ -36,14 +44,29 @@ export class UpdateBeneficiaryDto {
 
   @ApiProperty()
   @IsNotEmpty()
+  @IsOptional()
   @Expose()
   @IsUUID()
   public readonly coordinatorId: string
 
   @ApiProperty({ enum: PersonRelation })
   @Expose()
+  @IsOptional()
   @IsEnum(PersonRelation)
   coordinatorRelation: PersonRelation
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsOptional()
+  @Expose()
+  @IsUUID()
+  public readonly organizerId: string
+
+  @ApiProperty({ enum: PersonRelation })
+  @Expose()
+  @IsOptional()
+  @IsEnum(PersonRelation)
+  organizerRelation: PersonRelation
 
   @ApiProperty()
   @Expose()
