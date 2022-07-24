@@ -20,7 +20,7 @@ class ApiLoggerMiddleware implements NestMiddleware {
         return this.logger.warn(message)
       }
 
-      return this.logger.log(message)
+      return this.logger.debug(message)
     })
 
     next()
