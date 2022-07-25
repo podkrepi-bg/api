@@ -124,8 +124,23 @@ export class DonationsService {
       tax_id_collection: { enabled: true },
     })
 
-    await this.createInitialDonation(campaign, sessionDto, session.payment_intent as string)
+    const initialDonation = await this.createInitialDonation(
+      campaign,
+      sessionDto,
+      session.payment_intent as string,
+    )
 
+    if (sessionDto.message) {
+      const donation = await this.prisma.donation.findUnique({ where: { id: initialDonation.id } })
+      await this.prisma.donationWish.create({
+        data: {
+          message: sessionDto.message,
+          donationId: donation?.id,
+          campaignId: sessionDto.campaignId,
+          personId: donation?.personId,
+        },
+      })
+    }
     return { session }
   }
 
