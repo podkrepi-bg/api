@@ -47,6 +47,7 @@ import { IrregularityFileModule } from '../irregularity-file/irregularity-file.m
 import { IrregularityModule } from '../irregularity/irregularity.module'
 import { BankTransactionsFileModule } from '../bank-transactions-file/bank-transactions-file.module'
 import { OrganizerModule } from '../organizer/organizer.module'
+import { DonationWishModule } from '../donation-wish/donation-wish.module'
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import { OrganizerModule } from '../organizer/organizer.module'
     IrregularityModule,
     BankTransactionsFileModule,
     OrganizerModule,
+    DonationWishModule,
   ],
   controllers: [AppController],
   providers: [
