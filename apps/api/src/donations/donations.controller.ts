@@ -10,7 +10,7 @@ import {
   UnauthorizedException,
   Query,
 } from '@nestjs/common'
-import { ApiQuery } from '@nestjs/swagger'
+import { ApiQuery, ApiOkResponse } from '@nestjs/swagger'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
@@ -19,6 +19,7 @@ import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { DonationStatus } from '@prisma/client'
+import { PagingQueryDto } from '../common/dto/paging-query-dto'
 
 @Controller('donation')
 export class DonationsController {
@@ -55,21 +56,22 @@ export class DonationsController {
 
   @Get('listPublic')
   @Public()
-  @ApiQuery({
-    name: 'campaignId',
-    required: false,
-    type: String,
-  })
-  @ApiQuery({
-    name: 'status',
-    required: false,
-    enum: DonationStatus,
-  })
+  @ApiQuery({ name: 'campaignId', required: false, type: String })
+  @ApiQuery({ name: 'status', required: false, enum: DonationStatus })
+  @ApiQuery({ name: 'pageindex', required: false, type: Number })
+  @ApiQuery({ name: 'pagesize', required: false, type: Number })
   findAllPublic(
     @Query('campaignId') campaignId?: string,
     @Query('status') status?: DonationStatus,
+    @Query() query?: PagingQueryDto,
   ) {
-    return this.donationsService.listDonationsPublic(campaignId, status)
+    console.log(query)
+    return this.donationsService.listDonationsPublic(
+      campaignId,
+      status,
+      query?.pageindex,
+      query?.pagesize,
+    )
   }
 
   @Get('list')
@@ -77,18 +79,21 @@ export class DonationsController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  @ApiQuery({
-    name: 'campaignId',
-    required: false,
-    type: String,
-  })
-  @ApiQuery({
-    name: 'status',
-    required: false,
-    enum: DonationStatus,
-  })
-  findAll(@Query('campaignId') campaignId?: string, @Query('status') status?: DonationStatus) {
-    return this.donationsService.listDonations(campaignId, status)
+  @ApiQuery({ name: 'campaignId', required: false, type: String })
+  @ApiQuery({ name: 'status', required: false, enum: DonationStatus })
+  @ApiQuery({ name: 'pageindex', required: false, type: Number })
+  @ApiQuery({ name: 'pagesize', required: false, type: Number })
+  findAll(
+    @Query('campaignId') campaignId?: string,
+    @Query('status') status?: DonationStatus,
+    @Query() query?: PagingQueryDto,
+  ) {
+    return this.donationsService.listDonations(
+      campaignId,
+      status,
+      query?.pageindex,
+      query?.pagesize,
+    )
   }
 
   @Get(':id')
