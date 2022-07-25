@@ -232,6 +232,8 @@ export class CampaignService {
 
   async getDonationsForCampaign(
     campaignId: string,
+    pageIndex?: number,
+    pageSize?: number,
   ): Promise<
     Omit<
       Donation,
@@ -281,6 +283,8 @@ export class CampaignService {
         person: { select: { firstName: true, lastName: true } },
         targetVault: { select: { name: true } },
       },
+      skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
+      take: pageSize ? pageSize : undefined,
     })
 
     return donations

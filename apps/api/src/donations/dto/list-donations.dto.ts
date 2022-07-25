@@ -37,7 +37,7 @@ export class DonationBaseDto {
 
   @ApiProperty()
   @Expose()
-  person: { firstName: string, lastName: string} | null
+  person: { firstName: string; lastName: string } | null
 }
 
 export class ListDonationsDto<T> {

@@ -4,6 +4,7 @@ kind: Deployment
 metadata:
   name: api-headless
 spec:
+  replicas: 3
   selector:
     matchLabels:
       app: api-headless

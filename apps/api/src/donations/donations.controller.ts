@@ -88,7 +88,12 @@ export class DonationsController {
     @Query('status') status?: DonationStatus,
     @Query() query?: PagingQueryDto,
   ) {
-    return this.donationsService.listDonations(campaignId, status, query?.pageindex, query?.pagesize)
+    return this.donationsService.listDonations(
+      campaignId,
+      status,
+      query?.pageindex,
+      query?.pagesize,
+    )
   }
 
   @Get(':id')
