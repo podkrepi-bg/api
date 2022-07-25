@@ -9,6 +9,7 @@ import { Vault } from '../../vault/entities/vault.entity'
 import { Withdrawal } from '../../withdrawal/entities/withdrawal.entity'
 import { CampaignFile } from '../../campaignFile/entities/campaignFile.entity'
 import { Irregularity } from '../../irregularity/entities/irregularity.entity'
+import { DonationWish } from '../../donationWish/entities/donationWish.entity'
 
 export class Campaign {
   id: string
@@ -42,4 +43,5 @@ export class Campaign {
   withdrawals?: Withdrawal[]
   campaignFiles?: CampaignFile[]
   irregularities?: Irregularity[]
+  donationWish?: DonationWish[]
 }
