@@ -102,6 +102,10 @@ export class DonationsService {
       })
     }
 
+    if (sessionDto.message) {
+      await this.createDonationWish(sessionDto.message, donation.id, campaign.id)
+    }
+
     return donation
   }
 
@@ -125,23 +129,8 @@ export class DonationsService {
       tax_id_collection: { enabled: true },
     })
 
-    const initialDonation = await this.createInitialDonation(
-      campaign,
-      sessionDto,
-      session.payment_intent as string,
-    )
+    await this.createInitialDonation(campaign, sessionDto, session.payment_intent as string)
 
-    if (sessionDto.message) {
-      const donation = await this.prisma.donation.findUnique({ where: { id: initialDonation.id } })
-      await this.prisma.donationWish.create({
-        data: {
-          message: sessionDto.message,
-          donationId: donation?.id,
-          campaignId: sessionDto.campaignId,
-          personId: donation?.personId,
-        },
-      })
-    }
     return { session }
   }
 
@@ -379,5 +368,17 @@ export class DonationsService {
       return acc
     }, 0)
     return { donations, total }
+  }
+
+  async createDonationWish(message: string, donationId: string, campaignId: string) {
+    const person = await this.prisma.donation.findUnique({ where: { id: donationId } }).person()
+    await this.prisma.donationWish.create({
+      data: {
+        message: message,
+        donationId,
+        campaignId,
+        personId: person?.id,
+      },
+    })
   }
 }
