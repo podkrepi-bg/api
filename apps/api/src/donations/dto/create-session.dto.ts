@@ -90,4 +90,10 @@ export class CreateSessionDto {
     require_tld: process.env.NODE_ENV !== 'development',
   })
   cancelUrl: string
+
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  @IsString()
+  message?: string
 }
