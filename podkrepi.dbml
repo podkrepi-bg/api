@@ -41,6 +41,7 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   campaignFiles CampaignFile [not null]
   irregularities Irregularity [not null]
   irregularityFiles IrregularityFile [not null]
+  donationWish DonationWish [not null]
 
   Note: 'Generic person object'
 }
@@ -163,6 +164,7 @@ Table campaigns {
   withdrawals Withdrawal [not null]
   campaignFiles CampaignFile [not null]
   irregularities Irregularity [not null]
+  donationWish DonationWish [not null]
 }
 
 Table irregularities {
@@ -298,6 +300,18 @@ Table donations {
   personId String
   person Person
   targetVault Vault [not null]
+}
+
+Table donation_wishes {
+  id String [pk]
+  message String [not null]
+  campaignId String [not null]
+  personId String
+  donationId String [unique]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  campaign Campaign [not null]
+  person Person
 }
 
 Table recurring_donations {
@@ -670,6 +684,10 @@ Ref: Vault.campaignId > Campaign.id
 Ref: Donation.personId > Person.id
 
 Ref: Donation.targetVaultId > Vault.id
+
+Ref: DonationWish.campaignId > Campaign.id
+
+Ref: DonationWish.personId > Person.id
 
 Ref: RecurringDonation.personId > Person.id
 

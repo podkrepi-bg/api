@@ -14,6 +14,7 @@ import { Withdrawal } from '../../withdrawal/entities/withdrawal.entity'
 import { CampaignFile } from '../../campaignFile/entities/campaignFile.entity'
 import { Irregularity } from '../../irregularity/entities/irregularity.entity'
 import { IrregularityFile } from '../../irregularityFile/entities/irregularityFile.entity'
+import { DonationWish } from '../../donationWish/entities/donationWish.entity'
 
 export class Person {
   id: string
@@ -48,4 +49,5 @@ export class Person {
   campaignFiles?: CampaignFile[]
   irregularities?: Irregularity[]
   irregularityFiles?: IrregularityFile[]
+  donationWish?: DonationWish[]
 }

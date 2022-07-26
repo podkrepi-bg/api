@@ -65,6 +65,7 @@ model Person {
   campaignFiles      CampaignFile[]
   irregularities     Irregularity[]
   irregularityFiles  IrregularityFile[]
+  donationWish       DonationWish[]
 
   @@index([keycloakId], map: "keycloak_id_idx")
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
@@ -205,6 +206,7 @@ model Campaign {
   withdrawals             Withdrawal[]
   campaignFiles           CampaignFile[]
   irregularities          Irregularity[]
+  donationWish            DonationWish[]
 
   @@map("campaigns")
 }
@@ -363,6 +365,21 @@ model Donation {
   targetVault        Vault           @relation(fields: [targetVaultId], references: [id])
 
   @@map("donations")
+}
+
+model DonationWish {
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  message    String  @map("message")
+  campaignId String  @map("campaign_id") @db.Uuid
+  personId   String? @map("person_id") @db.Uuid
+  donationId String? @map("donation_id") @unique @db.Uuid
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  campaign  Campaign  @relation(fields: [campaignId], references: [id])
+  person    Person?   @relation(fields: [personId], references: [id])
+
+  @@map("donation_wishes")
 }
 
 /// Donate on monthly basis
