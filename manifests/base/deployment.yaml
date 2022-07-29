@@ -15,10 +15,16 @@ spec:
         app: api-headless
     spec:
       automountServiceAccountToken: false
+      volumes:
+        - name: tmp
+          emptyDir: {}
       initContainers:
         - name: migrate-database
           image: ghcr.io/podkrepi-bg/api/migrations
           imagePullPolicy: Always
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           securityContext:
             runAsNonRoot: true
             readOnlyRootFilesystem: true
