@@ -30,11 +30,8 @@ export function parseBankTransactionsFile(
           if (matchedRef) {
             accountMovements.push({ payment, paymentRef: matchedRef[0] })
           } else {
-            Logger.warn('skipping record with paymentRef: ' + paymentRef)
+            Logger.warn('cannot recognize paymentRef from NarrativeI02 field: ' + paymentRef)
           }
-
-          Logger.log('ref: ' + paymentRef)
-          Logger.log('Status:' + items[item].AccountMovement[movement].Status[0].Context[0])
         }
       }
     }
