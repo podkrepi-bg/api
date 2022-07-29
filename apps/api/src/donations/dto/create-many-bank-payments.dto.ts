@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Currency, DonationStatus, DonationType, PaymentProvider, Prisma } from '@prisma/client'
+import { Currency, DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
+import { DateTime } from 'aws-sdk/clients/devicefarm'
 import { Expose } from 'class-transformer'
-import { IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator'
+import { IsDate, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator'
 
 @Expose()
 export class CreateManyBankPaymentsDto {
@@ -29,6 +30,11 @@ export class CreateManyBankPaymentsDto {
 
   @Expose()
   @ApiProperty()
+  @IsDate()
+  createdAt: DateTime
+
+  @Expose()
+  @ApiProperty()
   @IsString()
   extCustomerId: string
 
@@ -53,4 +59,7 @@ export class CreateManyBankPaymentsDto {
   @IsString()
   @IsOptional()
   personId: string | null
+
+  billingName?: string
+  billingEmail?: string
 }
