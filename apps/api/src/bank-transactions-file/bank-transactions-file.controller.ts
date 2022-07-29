@@ -11,7 +11,6 @@ import {
   Inject,
   Logger,
   NotFoundException,
-
 } from '@nestjs/common'
 import { BankTransactionsFileService } from './bank-transactions-file.service'
 import 'multer'
@@ -54,13 +53,15 @@ export class BankTransactionsFileController {
       throw new NotFoundException('No person record with keycloak ID: ' + keycloakId)
     }
 
-    const allMovements: { payment: CreateManyBankPaymentsDto; paymentRef: string }[][] = []
-    let accountMovementsForAFile: { payment: CreateManyBankPaymentsDto; paymentRef: string }[] = []
+    const allMovementsFromAllFiles: { payment: CreateManyBankPaymentsDto; paymentRef: string }[][] =
+      []
+    let accountMovementsFromFile: { payment: CreateManyBankPaymentsDto; paymentRef: string }[] = []
 
+    //parse files and save them to S3
     const promises = await Promise.all(
       files.map((file, key) => {
-        accountMovementsForAFile = parseBankTransactionsFile(file.buffer)
-        allMovements.push(accountMovementsForAFile)
+        accountMovementsFromFile = parseBankTransactionsFile(file.buffer)
+        allMovementsFromAllFiles.push(accountMovementsFromFile)
         const filesType = body.types
         return this.bankTransactionsFileService.create(
           Array.isArray(filesType) ? filesType[key] : filesType,
@@ -72,25 +73,27 @@ export class BankTransactionsFileController {
         )
       }),
     )
+
+    //now import the parsed donations
     const donations: CreateManyBankPaymentsDto[] = []
-    for (const fileOfBankMovements of allMovements) {
+    for (const fileOfBankMovements of allMovementsFromAllFiles) {
       for await (const movement of fileOfBankMovements) {
         const campaign = await this.campaignService.getCampaignByPaymentReference(
           movement.paymentRef,
         )
+
         if (!campaign) {
           Logger.warn('No campaign with payment reference: ' + movement.paymentRef)
           throw new NotFoundException('No campaign with payment reference: ' + movement.paymentRef)
         }
+
         const vault = await this.vaultService.findByCampaignId(campaign.id)
-        movement.payment.extPaymentMethodId = 'imported file bank payment'
+        movement.payment.extPaymentMethodId = 'imported bank payment'
         movement.payment.targetVaultId = vault[0].id
-        movement.payment.personId = person.id
-        movement.payment.targetVaultId = vault[0].id
-        ;(movement.payment.type = DonationType.donation),
-          (movement.payment.status = DonationStatus.succeeded),
-          (movement.payment.provider = PaymentProvider.bank),
-          donations.push(movement.payment)
+        movement.payment.type = DonationType.donation
+        movement.payment.status = DonationStatus.succeeded
+        movement.payment.provider = PaymentProvider.bank
+        donations.push(movement.payment)
       }
     }
     await this.donationsService.createManyBankPayments(donations)

@@ -167,6 +167,7 @@ export class CampaignService {
 
     return this.addReachedAmountAndDonors(campaign)
   }
+
   async getCampaignByPaymentReference(paymentReference: string): Promise<Campaign> {
     const campaign = await this.prisma.campaign.findFirst({
       where: { paymentReference: paymentReference },

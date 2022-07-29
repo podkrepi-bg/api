@@ -10,7 +10,7 @@ import {
   UnauthorizedException,
   Query,
 } from '@nestjs/common'
-import { ApiQuery, ApiOkResponse } from '@nestjs/swagger'
+import { ApiQuery } from '@nestjs/swagger'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
