@@ -29,7 +29,7 @@ jobs:
 
       - name: Get sha
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        run: echo "VERSION=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+        run: echo "VERSION=master-$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v3
@@ -40,8 +40,8 @@ jobs:
           push: true
           target: production
           build-args: |
-            APP_VERSION=master-${{ env.VERSION }}
-          tags: ghcr.io/podkrepi-bg/api:master-${{ env.VERSION }}
+            APP_VERSION=${{ env.VERSION }}
+          tags: ghcr.io/podkrepi-bg/api:${{ env.VERSION }}
 
   build-migrations-docker-image:
     name: Build migrations docker image
@@ -62,7 +62,7 @@ jobs:
 
       - name: Get sha
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        run: echo "VERSION=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+        run: echo "VERSION=master-$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v3
@@ -74,7 +74,7 @@ jobs:
           file: Dockerfile.migrations
           build-args: |
             APP_VERSION=${{ env.VERSION }}
-          tags: ghcr.io/podkrepi-bg/api/migrations:master-${{ env.VERSION }}
+          tags: ghcr.io/podkrepi-bg/api/migrations:${{ env.VERSION }}
 
   release-dev:
     name: Release to dev
@@ -95,13 +95,13 @@ jobs:
 
       - name: Get sha
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        run: echo "VERSION=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+        run: echo "VERSION=master-$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
 
       - name: Set container versions in manifests
         working-directory: manifests/overlays/automation
         run: |
-          kustomize edit set image ghcr.io/podkrepi-bg/api=ghcr.io/podkrepi-bg/api:master-$VERSION
-          kustomize edit set image ghcr.io/podkrepi-bg/api/migrations=ghcr.io/podkrepi-bg/api/migrations:master-$VERSION
+          kustomize edit set image ghcr.io/podkrepi-bg/api=ghcr.io/podkrepi-bg/api:$VERSION
+          kustomize edit set image ghcr.io/podkrepi-bg/api/migrations=ghcr.io/podkrepi-bg/api/migrations:$VERSION
 
       - name: Set kubeconfig
         run: echo ${{ secrets.K8S_DEV_CONFIG }} | base64 -d > config.yaml
