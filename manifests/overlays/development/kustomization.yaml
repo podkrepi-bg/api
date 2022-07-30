@@ -16,10 +16,10 @@ images:
   - name: ghcr.io/podkrepi-bg/api
     newTag: master
 
-secretGenerator:
-  - name: stripe-secret
-    envs: [stripe.env]
-  - name: keycloak-secret
-    envs: [keycloak-secret.env]
-  - name: sendgrid-secret
-    envs: [sendgrid-secret.env]
+#secretGenerator:
+#  - name: stripe-secret
+#    envs: [stripe.env]
+#  - name: keycloak-secret
+#    envs: [keycloak-secret.env]
+#  - name: sendgrid-secret
+#    envs: [sendgrid-secret.env]
