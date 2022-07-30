@@ -24,14 +24,12 @@ jobs:
           password: ${{ secrets.DEVOPS_PACKAGES_TOKEN }}
 
       - name: Get tag
-        id: vars
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        run: echo ::set-output name=version::${GITHUB_REF#refs/*/}
+        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
       - name: Get sha
-        id: vars
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        run: echo ::set-output name=version::${GITHUB_SHA}
+        run: echo "VERSION=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v3
@@ -42,8 +40,8 @@ jobs:
           push: true
           target: production
           build-args: |
-            APP_VERSION=${{ steps.vars.outputs.tag }}
-          tags: ghcr.io/podkrepi-bg/api:${{ steps.vars.outputs.version }}
+            APP_VERSION=master-${{ env.VERSION }}
+          tags: ghcr.io/podkrepi-bg/api:master-${{ env.VERSION }}
 
   build-migrations-docker-image:
     name: Build migrations docker image
@@ -59,14 +57,12 @@ jobs:
           password: ${{ secrets.DEVOPS_PACKAGES_TOKEN }}
 
       - name: Get tag
-        id: vars
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        run: echo ::set-output name=version::${GITHUB_REF#refs/*/}
+        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
       - name: Get sha
-        id: vars
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        run: echo ::set-output name=version::${GITHUB_SHA}
+        run: echo "VERSION=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v3
@@ -77,8 +73,8 @@ jobs:
           push: true
           file: Dockerfile.migrations
           build-args: |
-            APP_VERSION=${{ steps.vars.outputs.version }}
-          tags: ghcr.io/podkrepi-bg/api/migrations:${{ steps.vars.outputs.version }}
+            APP_VERSION=${{ env.VERSION }}
+          tags: ghcr.io/podkrepi-bg/api/migrations:master-${{ env.VERSION }}
 
   release-dev:
     name: Release to dev
@@ -94,26 +90,24 @@ jobs:
         uses: imranismail/setup-kustomize@v1
 
       - name: Get tag
-        id: vars
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        run: echo ::set-output name=version::${GITHUB_REF#refs/*/}
+        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
       - name: Get sha
-        id: vars
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        run: echo ::set-output name=version::${GITHUB_SHA}
+        run: echo "VERSION=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
 
       - name: Set container versions in manifests
         working-directory: manifests/overlays/automation
         run: |
-          kustomize edit set image api-headless=ghcr.io/podkrepi-bg/api:v0.6.0
-          kustomize edit set image migrate-database=ghcr.io/podkrepi-bg/api/migrations:v0.6.0
+          kustomize edit set image ghcr.io/podkrepi-bg/api=ghcr.io/podkrepi-bg/api:master-$VERSION
+          kustomize edit set image ghcr.io/podkrepi-bg/api/migrations=ghcr.io/podkrepi-bg/api/migrations:master-$VERSION
 
       - name: Set kubeconfig
-        run: echo ${{ secrets.K8S_DEV_CONFIG }} > config.yaml
+        run: echo ${{ secrets.K8S_DEV_CONFIG }} | base64 -d > config.yaml
 
       - name: Apply new manifests
-        run: kubectl apply -f manifests/overlays/automation
+        run: kubectl apply -k manifests/overlays/automation --kubeconfig config.yaml
 
       - name: Delete kubeconfig
         if: always()
