@@ -1,0 +1,120 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'
+    branches: [master]
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build-api-docker-image:
+    name: Build API docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to GitHub Packages Docker Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: devops-podkrepi-bg
+          password: ${{ secrets.DEVOPS_PACKAGES_TOKEN }}
+
+      - name: Get tag
+        id: vars
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        run: echo ::set-output name=version::${GITHUB_REF#refs/*/}
+
+      - name: Get sha
+        id: vars
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: echo ::set-output name=version::${GITHUB_SHA}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        env:
+          NODE_ENV: production
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        with:
+          push: true
+          target: production
+          build-args: |
+            APP_VERSION=${{ steps.vars.outputs.tag }}
+          tags: ghcr.io/podkrepi-bg/api:${{ steps.vars.outputs.version }}
+
+  build-migrations-docker-image:
+    name: Build migrations docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to GitHub Packages Docker Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: devops-podkrepi-bg
+          password: ${{ secrets.DEVOPS_PACKAGES_TOKEN }}
+
+      - name: Get tag
+        id: vars
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        run: echo ::set-output name=version::${GITHUB_REF#refs/*/}
+
+      - name: Get sha
+        id: vars
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: echo ::set-output name=version::${GITHUB_SHA}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        env:
+          NODE_ENV: production
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        with:
+          push: true
+          file: Dockerfile.migrations
+          build-args: |
+            APP_VERSION=${{ steps.vars.outputs.version }}
+          tags: ghcr.io/podkrepi-bg/api/migrations:${{ steps.vars.outputs.version }}
+
+  release-dev:
+    name: Release to dev
+    runs-on: ubuntu-latest
+    needs: [build-api-docker-image, build-migrations-docker-image]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Install kustomize
+        uses: imranismail/setup-kustomize@v1
+
+      - name: Get tag
+        id: vars
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        run: echo ::set-output name=version::${GITHUB_REF#refs/*/}
+
+      - name: Get sha
+        id: vars
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: echo ::set-output name=version::${GITHUB_SHA}
+
+      - name: Set container versions in manifests
+        working-directory: manifests/overlays/automation
+        run: |
+          kustomize edit set image api-headless=ghcr.io/podkrepi-bg/api:v0.6.0
+          kustomize edit set image migrate-database=ghcr.io/podkrepi-bg/api/migrations:v0.6.0
+
+      - name: Set kubeconfig
+        run: echo ${{ secrets.K8S_DEV_CONFIG }} > config.yaml
+
+      - name: Apply new manifests
+        run: kubectl apply -f manifests/overlays/automation
+
+      - name: Delete kubeconfig
+        if: always()
+        run: rm config.yaml
