@@ -82,7 +82,7 @@ jobs:
     needs: [build-api-docker-image, build-migrations-docker-image]
     environment:
       name: dev
-      url: https://dev.podkrepi.bg
+      url: https://dev.podkrepi.bg/swagger
     steps:
       - uses: actions/checkout@v3
 
