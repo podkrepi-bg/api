@@ -75,33 +75,45 @@ export class CampaignService {
   }
 
   async getCampaignSums(campaignIds?: string[]): Promise<CampaignSummaryDto[]> {
-    let campaignSums: CampaignSummaryDto[] = [];
+    let campaignSums: CampaignSummaryDto[] = []
 
     if (campaignIds && campaignIds.length > 0) {
       const result = await this.prisma.$queryRaw<CampaignSummaryDto[]>`
-        SELECT
-        SUM(CASE when d.status = 'succeeded' THEN d.amount ELSE 0 END) as "reachedAmount",
-        SUM(v.amount) as "currentAmount",
-        SUM(v."blockedAmount") as "blockedAmount",
-        COUNT(distinct CASE when d.status = 'succeeded' THEN d.id END) as donors,
-        v.campaign_id as id
-        FROM api.vaults v
-        LEFT JOIN api.donations d on d.target_vault_id = v.id
-        GROUP BY v.campaign_id
-        HAVING v.campaign_id in (${Prisma.join(campaignIds)})
+      SELECT
+      MAX(d.total) as "reachedAmount",
+      SUM(v.amount) as "currentAmount",
+      SUM(v."blockedAmount") as "blockedAmount",
+      MAX(d.donors) as donors,
+      v.campaign_id as id
+      FROM api.vaults v
+      LEFT join (
+          select target_vault_id, sum(amount) as total, count(id) as donors
+          from api.donations d
+          where status = 'succeeded'
+          group by target_vault_id
+        ) as d
+        on d.target_vault_id = v.id
+      GROUP BY v.campaign_id
+      HAVING v.campaign_id in (${Prisma.join(campaignIds)})
       `
       campaignSums = result || []
     } else {
       const result = await this.prisma.$queryRaw<CampaignSummaryDto[]>`
-        SELECT
-        SUM(CASE when d.status = 'succeeded' THEN d.amount ELSE 0 END) as "reachedAmount",
-        SUM(v.amount) as "currentAmount",
-        SUM(v."blockedAmount") as "blockedAmount",
-        COUNT(distinct CASE when d.status = 'succeeded' THEN d.id END) as donors,
-        v.campaign_id as id
-        FROM api.vaults v
-        LEFT JOIN api.donations d on d.target_vault_id = v.id
-        GROUP BY v.campaign_id
+      SELECT
+      MAX(d.total) as "reachedAmount",
+      SUM(v.amount) as "currentAmount",
+      SUM(v."blockedAmount") as "blockedAmount",
+      MAX(d.donors) as donors,
+      v.campaign_id as id
+      FROM api.vaults v
+      LEFT join (
+          select target_vault_id, sum(amount) as total, count(id) as donors
+          from api.donations d
+          where status = 'succeeded'
+          group by target_vault_id
+        ) as d
+        on d.target_vault_id = v.id
+      GROUP BY v.campaign_id
       `
       campaignSums = result || []
     }

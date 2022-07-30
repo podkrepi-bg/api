@@ -79,7 +79,7 @@ describe('CampaignController', () => {
     reachedAmount: 110,
     currentAmount: 0,
     blockedAmount: 0,
-    donors: 2
+    donors: 2,
   } as CampaignSummaryDto
 
   const personIdMock = 'testPersonId'
