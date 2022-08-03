@@ -9,7 +9,7 @@
 
 <p align="center">
 <a href="https://github.com/podkrepi-bg/api/actions/workflows/tests.yml"><img src="https://github.com/podkrepi-bg/api/actions/workflows/tests.yml/badge.svg" alt="API tests" style="max-width: 100%;"></a>
-<a href="https://github.com/podkrepi-bg/api/actions/workflows/docker-build-push.yml"><img src="https://github.com/podkrepi-bg/api/actions/workflows/docker-build-push.yml/badge.svg" alt="Build production image" style="max-width: 100%;"></a>
+<a href="https://github.com/podkrepi-bg/api/actions/workflows/docker-build-push.yml"><img src="https://github.com/podkrepi-bg/api/actions/workflows/release.yml/badge.svg" alt="Build production image" style="max-width: 100%;"></a>
 </p>
 
 ## Links
