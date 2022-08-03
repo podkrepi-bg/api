@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: podkrepibg
+
+bases:
+  - ../../../base
+
+patches:
+  - path: sendgrid-config.patch.yaml
+  - path: keycloak-config.patch.yaml
+  - path: deployment.patch.yaml
+
+images:
+  - name: ghcr.io/podkrepi-bg/api
+    newTag: v0.4.5
+  - name: ghcr.io/podkrepi-bg/api/migrations
+    newTag: v0.4.5
+#secretGenerator:
+#  - name: stripe-secret
+#    envs: [stripe.env]
+#  - name: keycloak-secret
+#    envs: [keycloak-secret.env]
+#  - name: sendgrid-secret
+#    envs: [sendgrid-secret.env]

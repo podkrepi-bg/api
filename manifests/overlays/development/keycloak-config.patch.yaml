@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: keycloak-config
-data:
-  url: https://keycloak-dev.podkrepi.bg
-  realm: webapp-dev
