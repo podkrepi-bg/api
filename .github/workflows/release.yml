@@ -1,4 +1,4 @@
-name: Release development
+name: Release
 
 on:
   workflow_dispatch:
@@ -101,7 +101,7 @@ jobs:
         run: echo "VERSION=master-$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
 
       - name: Set container versions in manifests
-        working-directory: manifests/overlays/automation
+        working-directory: manifests/overlays/development
         run: |
           kustomize edit set image ghcr.io/podkrepi-bg/api=ghcr.io/podkrepi-bg/api:$VERSION
           kustomize edit set image ghcr.io/podkrepi-bg/api/migrations=ghcr.io/podkrepi-bg/api/migrations:$VERSION
@@ -110,7 +110,7 @@ jobs:
         run: echo ${{ secrets.K8S_DEV_CONFIG }} | base64 -d > config.yaml
 
       - name: Apply new manifests
-        run: kubectl apply -k manifests/overlays/automation --kubeconfig config.yaml
+        run: kubectl apply -k manifests/overlays/development --kubeconfig config.yaml
 
       - name: Delete kubeconfig
         if: always()
@@ -150,7 +150,7 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
       - name: Set container versions in manifests
-        working-directory: manifests/overlays/automation
+        working-directory: manifests/overlays/production
         run: |
           kustomize edit set image ghcr.io/podkrepi-bg/api=ghcr.io/podkrepi-bg/api:$VERSION
           kustomize edit set image ghcr.io/podkrepi-bg/api/migrations=ghcr.io/podkrepi-bg/api/migrations:$VERSION
@@ -159,7 +159,7 @@ jobs:
         run: echo ${{ secrets.K8S_DEV_CONFIG }} | base64 -d > config.yaml
 
       - name: Apply new manifests
-        run: kubectl apply -k manifests/overlays/automation --kubeconfig config.yaml
+        run: kubectl apply -k manifests/overlays/production --kubeconfig config.yaml
 
       - name: Delete kubeconfig
         if: always()
