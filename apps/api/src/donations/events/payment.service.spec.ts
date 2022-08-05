@@ -1,21 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { CampaignService } from '../../campaign/campaign.service'
-import { PaymentSucceededService } from './payment-intent-succeeded.service'
+import { StripePaymentService } from './stripe-payment.service'
 import { getPaymentData } from '../helpers/payment-intent-helpers'
 import Stripe from 'stripe'
 import { VaultService } from '../../vault/vault.service'
 import { PersonService } from '../../person/person.service'
 import { MockPrismaService } from '../../prisma/prisma-client.mock'
 
-describe('PaymentService', () => {
-  let service: PaymentSucceededService
+describe('StripePaymentService', () => {
+  let service: StripePaymentService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ConfigService,
-        PaymentSucceededService,
+        StripePaymentService,
         CampaignService,
         MockPrismaService,
         VaultService,
@@ -23,7 +23,7 @@ describe('PaymentService', () => {
       ],
     }).compile()
 
-    service = module.get<PaymentSucceededService>(PaymentSucceededService)
+    service = module.get<StripePaymentService>(StripePaymentService)
   })
 
   it('should be defined', () => {
