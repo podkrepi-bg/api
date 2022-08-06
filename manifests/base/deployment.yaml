@@ -9,15 +9,37 @@ spec:
   selector:
     matchLabels:
       app: api-headless
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
   template:
     metadata:
       labels:
         app: api-headless
     spec:
+      automountServiceAccountToken: false
+      volumes:
+        - name: tmp
+          emptyDir: {}
       initContainers:
         - name: migrate-database
           image: ghcr.io/podkrepi-bg/api/migrations
           imagePullPolicy: Always
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+          resources:
+            limits:
+              memory: 200Mi
+              cpu: 200m
+            requests:
+              memory: 150Mi
+              cpu: 150m
           env:
             - name: NODE_ENV
               value: production
@@ -30,6 +52,9 @@ spec:
         - name: api-headless
           image: ghcr.io/podkrepi-bg/api
           imagePullPolicy: Always
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
           resources:
             limits:
               memory: 500Mi

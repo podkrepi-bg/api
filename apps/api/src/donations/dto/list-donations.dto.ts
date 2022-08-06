@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Currency, DonationStatus, DonationType, PaymentProvider, Donation } from '@prisma/client'
+import { Currency, DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
 import { Expose } from 'class-transformer'
 
 export class DonationBaseDto {

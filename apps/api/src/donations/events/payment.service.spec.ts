@@ -7,7 +7,6 @@ import Stripe from 'stripe'
 import { VaultService } from '../../vault/vault.service'
 import { PersonService } from '../../person/person.service'
 import { MockPrismaService } from '../../prisma/prisma-client.mock'
-import { getCountryRegion } from '../helpers/stripe-fee-calculator'
 
 describe('PaymentService', () => {
   let service: PaymentSucceededService
@@ -512,8 +511,7 @@ it('accept payment-intent.succeeded with US tax included in charge', async () =>
           },
           receipt_email: 'test@gmail.com',
           receipt_number: null,
-          receipt_url:
-            'https://pay.stripe.com/receipts/',
+          receipt_url: 'https://pay.stripe.com/receipts/',
           refunded: false,
           refunds: {
             object: 'list',
@@ -578,170 +576,161 @@ it('accept payment-intent.succeeded with US tax included in charge', async () =>
 })
 
 it('accept payment-intent.succeeded with GB tax included in charge', async () => {
-    const mockPaymentIntentCreated: Stripe.PaymentIntent = {
-        "id": "pi_3LO0M5KApGjVGa9t07SXIaeQ",
-        "object": "payment_intent",
-        "amount": 51333,
-        "amount_capturable": 0,
-        "amount_details": {
-          "tip": {
-          }
+  const mockPaymentIntentCreated: Stripe.PaymentIntent = {
+    id: 'pi_3LO0M5KApGjVGa9t07SXIaeQ',
+    object: 'payment_intent',
+    amount: 51333,
+    amount_capturable: 0,
+    amount_details: {
+      tip: {},
+    },
+    amount_received: 51333,
+    application: null,
+    application_fee_amount: null,
+    automatic_payment_methods: null,
+    canceled_at: null,
+    cancellation_reason: null,
+    capture_method: 'automatic',
+    charges: {
+      object: 'list',
+      data: [
+        {
+          id: 'ch_3LO0M5KApGjVGa9t0KGO6jEG',
+          object: 'charge',
+          amount: 51333,
+          amount_captured: 51333,
+          amount_refunded: 0,
+          application: null,
+          application_fee: null,
+          application_fee_amount: null,
+          balance_transaction: 'txn_3LO0M5KApGjVGa9t0nyzXKN6',
+          billing_details: {
+            address: {
+              city: null,
+              country: 'BG',
+              line1: null,
+              line2: null,
+              postal_code: null,
+              state: null,
+            },
+            email: 'test@gmail.com',
+            name: 'uk card',
+            phone: null,
+          },
+          calculated_statement_descriptor: 'PODKREPI.BG',
+          captured: true,
+          created: 1658413695,
+          currency: 'bgn',
+          customer: 'cus_M6ClvMHGb5Y4LI',
+          description: null,
+          destination: null,
+          dispute: null,
+          disputed: false,
+          failure_balance_transaction: null,
+          failure_code: null,
+          failure_message: null,
+          fraud_details: {},
+          invoice: null,
+          livemode: false,
+          metadata: {
+            campaignId: 'ef592bd8-edd8-42a0-95c0-0e97d26d8045',
+          },
+          on_behalf_of: null,
+          outcome: {
+            network_status: 'approved_by_network',
+            reason: null,
+            risk_level: 'normal',
+            risk_score: 13,
+            seller_message: 'Payment complete.',
+            type: 'authorized',
+          },
+          paid: true,
+          payment_intent: 'pi_3LO0M5KApGjVGa9t07SXIaeQ',
+          payment_method: 'pm_1LO0MLKApGjVGa9tT5zcUHVU',
+          payment_method_details: {
+            card: {
+              brand: 'visa',
+              checks: {
+                address_line1_check: null,
+                address_postal_code_check: null,
+                cvc_check: 'pass',
+              },
+              country: 'GB',
+              exp_month: 12,
+              exp_year: 2031,
+              fingerprint: '4rDyVIWfTHNh1yf5',
+              funding: 'debit',
+              installments: null,
+              last4: '0005',
+              mandate: null,
+              network: 'visa',
+              three_d_secure: null,
+              wallet: null,
+            },
+            type: 'card',
+          },
+          receipt_email: 'test@gmail.com',
+          receipt_number: null,
+          receipt_url: 'https://pay.stripe.com/receipts/',
+          refunded: false,
+          refunds: {
+            object: 'list',
+            data: [],
+            has_more: false,
+            url: '/v1/charges/ch_3LO0M5KApGjVGa9t0KGO6jEG/refunds',
+          },
+          review: null,
+          shipping: null,
+          source: null,
+          source_transfer: null,
+          statement_descriptor: null,
+          statement_descriptor_suffix: null,
+          status: 'succeeded',
+          transfer_data: null,
+          transfer_group: null,
         },
-        "amount_received": 51333,
-        "application": null,
-        "application_fee_amount": null,
-        "automatic_payment_methods": null,
-        "canceled_at": null,
-        "cancellation_reason": null,
-        "capture_method": "automatic",
-        "charges": {
-          "object": "list",
-          "data": [
-            {
-              "id": "ch_3LO0M5KApGjVGa9t0KGO6jEG",
-              "object": "charge",
-              "amount": 51333,
-              "amount_captured": 51333,
-              "amount_refunded": 0,
-              "application": null,
-              "application_fee": null,
-              "application_fee_amount": null,
-              "balance_transaction": "txn_3LO0M5KApGjVGa9t0nyzXKN6",
-              "billing_details": {
-                "address": {
-                  "city": null,
-                  "country": "BG",
-                  "line1": null,
-                  "line2": null,
-                  "postal_code": null,
-                  "state": null
-                },
-                "email": "test@gmail.com",
-                "name": "uk card",
-                "phone": null
-              },
-              "calculated_statement_descriptor": "PODKREPI.BG",
-              "captured": true,
-              "created": 1658413695,
-              "currency": "bgn",
-              "customer": "cus_M6ClvMHGb5Y4LI",
-              "description": null,
-              "destination": null,
-              "dispute": null,
-              "disputed": false,
-              "failure_balance_transaction": null,
-              "failure_code": null,
-              "failure_message": null,
-              "fraud_details": {
-              },
-              "invoice": null,
-              "livemode": false,
-              "metadata": {
-                "campaignId": "ef592bd8-edd8-42a0-95c0-0e97d26d8045"
-              },
-              "on_behalf_of": null,
-              "outcome": {
-                "network_status": "approved_by_network",
-                "reason": null,
-                "risk_level": "normal",
-                "risk_score": 13,
-                "seller_message": "Payment complete.",
-                "type": "authorized"
-              },
-              "paid": true,
-              "payment_intent": "pi_3LO0M5KApGjVGa9t07SXIaeQ",
-              "payment_method": "pm_1LO0MLKApGjVGa9tT5zcUHVU",
-              "payment_method_details": {
-                "card": {
-                  "brand": "visa",
-                  "checks": {
-                    "address_line1_check": null,
-                    "address_postal_code_check": null,
-                    "cvc_check": "pass"
-                  },
-                  "country": "GB",
-                  "exp_month": 12,
-                  "exp_year": 2031,
-                  "fingerprint": "4rDyVIWfTHNh1yf5",
-                  "funding": "debit",
-                  "installments": null,
-                  "last4": "0005",
-                  "mandate": null,
-                  "network": "visa",
-                  "three_d_secure": null,
-                  "wallet": null
-                },
-                "type": "card"
-              },
-              "receipt_email": "test@gmail.com",
-              "receipt_number": null,
-              "receipt_url": "https://pay.stripe.com/receipts/",
-              "refunded": false,
-              "refunds": {
-                "object": "list",
-                "data": [
-                ],
-                "has_more": false,
-                "url": "/v1/charges/ch_3LO0M5KApGjVGa9t0KGO6jEG/refunds"
-              },
-              "review": null,
-              "shipping": null,
-              "source": null,
-              "source_transfer": null,
-              "statement_descriptor": null,
-              "statement_descriptor_suffix": null,
-              "status": "succeeded",
-              "transfer_data": null,
-              "transfer_group": null
-            }
-          ],
-          "has_more": false,
-          "url": "/v1/charges?payment_intent=pi_3LO0M5KApGjVGa9t07SXIaeQ"
-        },
-        "client_secret": null,
-        "confirmation_method": "automatic",
-        "created": 1658413677,
-        "currency": "bgn",
-        "customer": "cus_M6ClvMHGb5Y4LI",
-        "description": null,
-        "invoice": null,
-        "last_payment_error": null,
-        "livemode": false,
-        "metadata": {
-          "campaignId": "ef592bd8-edd8-42a0-95c0-0e97d26d8045"
-        },
-        "next_action": null,
-        "on_behalf_of": null,
-        "payment_method": "pm_1LO0MLKApGjVGa9tT5zcUHVU",
-        "payment_method_options": {
-          "card": {
-            "installments": null,
-            "mandate_options": null,
-            "network": null,
-            "request_three_d_secure": "automatic"
-          }
-        },
-        "payment_method_types": [
-          "card"
-        ],
-        "processing": null,
-        "receipt_email": "test@gmail.com",
-        "review": null,
-        "setup_future_usage": null,
-        "shipping": null,
-        "source": null,
-        "statement_descriptor": null,
-        "statement_descriptor_suffix": null,
-        "status": "succeeded",
-        "transfer_data": null,
-        "transfer_group": null
-      }
-  
-    const billingDetails = getPaymentData(mockPaymentIntentCreated)
-    expect(billingDetails.netAmount).toEqual(50000)
-    expect(billingDetails.chargedAmount).toEqual(51333)
-  })
+      ],
+      has_more: false,
+      url: '/v1/charges?payment_intent=pi_3LO0M5KApGjVGa9t07SXIaeQ',
+    },
+    client_secret: null,
+    confirmation_method: 'automatic',
+    created: 1658413677,
+    currency: 'bgn',
+    customer: 'cus_M6ClvMHGb5Y4LI',
+    description: null,
+    invoice: null,
+    last_payment_error: null,
+    livemode: false,
+    metadata: {
+      campaignId: 'ef592bd8-edd8-42a0-95c0-0e97d26d8045',
+    },
+    next_action: null,
+    on_behalf_of: null,
+    payment_method: 'pm_1LO0MLKApGjVGa9tT5zcUHVU',
+    payment_method_options: {
+      card: {
+        installments: null,
+        mandate_options: null,
+        network: null,
+        request_three_d_secure: 'automatic',
+      },
+    },
+    payment_method_types: ['card'],
+    processing: null,
+    receipt_email: 'test@gmail.com',
+    review: null,
+    setup_future_usage: null,
+    shipping: null,
+    source: null,
+    statement_descriptor: null,
+    statement_descriptor_suffix: null,
+    status: 'succeeded',
+    transfer_data: null,
+    transfer_group: null,
+  }
 
-
-
-
+  const billingDetails = getPaymentData(mockPaymentIntentCreated)
+  expect(billingDetails.netAmount).toEqual(50000)
+  expect(billingDetails.chargedAmount).toEqual(51333)
+})
