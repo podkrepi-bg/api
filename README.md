@@ -76,7 +76,7 @@ docker-compose --profile local-keycloak up -d --build
 or with earlier versions of docker-compose:
 
 ```shell
-docker compose up --build -d pg-db keycloak keycloak-db
+docker compose up --build -d pg-db keycloak
 ```
 
 This will start the following services in your local docker:
