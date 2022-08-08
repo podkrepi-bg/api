@@ -35,12 +35,25 @@ services:
     restart: 'no'
     environment:
       DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
+    entrypoint: ["sh", "-c", "sleep 5 && yarn prisma migrate deploy"]
     depends_on:
       - pg-db
     networks:
       backend-net:
         aliases:
           - api.podkrepi.localhost
+
+  seed-db:
+    image: ghcr.io/podkrepi-bg/api/seed:master
+    container_name: ${COMPOSE_PROJECT_NAME?}-seed-db
+    restart: 'no'
+    environment:
+      DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
+    entrypoint: ["sh", "-c", "sleep 15 && yarn prisma generate && yarn prisma db seed"]
+    depends_on:
+      - pg-db
+    networks:
+      - backend-net
 
   ## Postgres Development ##
   ##########################
