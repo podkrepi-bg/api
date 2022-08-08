@@ -41,7 +41,7 @@ jobs:
           build-args: |
             APP_VERSION=${{ env.VERSION }}
           tags: |
-            ghcr.io/podkrepi-bg/api/migrations:master
+            ghcr.io/podkrepi-bg/api:master
             ghcr.io/podkrepi-bg/api:${{ env.VERSION }}
 
       - name: Scan with Mondoo
