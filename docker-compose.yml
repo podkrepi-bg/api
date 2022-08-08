@@ -82,7 +82,7 @@ services:
       - KEYCLOAK_USER=${KEYCLOAK_PASSWORD}
       - KEYCLOAK_PASSWORD=${KEYCLOAK_PASSWORD}
       - JAVA_OPTS_APPEND=-Dkeycloak.profile.feature.token_exchange=enabled -Dkeycloak.profile.feature.admin_fine_grained_authz=enabled
-      - KEYCLOAK_IMPORT=/opt/bitnami/keycloak/config/keycloak-webapp-realm.json
+      - KEYCLOAK_IMPORT=/opt/jboss/keycloak/config/keycloak-webapp-realm.json
       - DEBUG=true
       - DEBUG_PORT='*:8787'
       - DB_VENDOR=H2
@@ -91,8 +91,8 @@ services:
       - '8180:8080'
       - '8787:8787'
     volumes:
-      - './manifests/keycloak/theme_podkrepi:/opt/bitnami/keycloak/themes/theme_podkrepi'
-      - './manifests/keycloak/config:/opt/bitnami/keycloak/config'
+      - './manifests/keycloak/theme_podkrepi:/opt/jboss/keycloak/themes/theme_podkrepi'
+      - './manifests/keycloak/config:/opt/jboss/keycloak/config'
     networks:
       backend-net:
 
