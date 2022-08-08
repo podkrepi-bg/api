@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   api:
-    image: podkrepi-api
+    image: ghcr.io/podkrepi-bg/api:master
     profiles: ['api-docker']
     build:
       context: .
@@ -27,7 +27,7 @@ services:
 
   ## Postgres Development ##
   migrate-db:
-    image: podkrepi-api-migrations
+    image: ghcr.io/podkrepi-bg/api/migrations:master
     build:
       context: .
       dockerfile: ./Dockerfile.migrations
