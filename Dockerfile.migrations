@@ -8,6 +8,8 @@ WORKDIR /app
 RUN yarn add prisma
 COPY schema.prisma .
 COPY migrations migrations/
+COPY db/seed/ db/seed/
+COPY package.json package.json
 
 USER 1000:1001
 
