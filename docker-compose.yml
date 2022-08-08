@@ -18,6 +18,8 @@ services:
       - ./:/app
     ports:
       - '${API_PORT?}:${API_PORT?}'
+    depends_on:
+      - pg-db
     networks:
       backend-net:
         aliases:
@@ -25,12 +27,16 @@ services:
 
   ## Postgres Development ##
   migrate-db:
-    image: podkrepi-api
+    image: podkrepi-api-migrations
+    build:
+      context: .
+      dockerfile: ./Dockerfile.migrations
     container_name: ${COMPOSE_PROJECT_NAME?}-migrate-db
     restart: 'no'
     environment:
       DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
-    command: 'yarn migrate'
+    depends_on:
+      - pg-db
     networks:
       backend-net:
         aliases:
@@ -52,11 +58,11 @@ services:
       - '${DB_PORT?}:5432'
 
     environment:
-      ## https://github.com/bitnami/bitnami-docker-postgresql/blob/master/README.md
+      ## https://hub.docker.com/_/postgres/
       PGPASSWORD: ${DB_PASS?}
-      POSTGRESQL_USERNAME: ${DB_USER?}
-      POSTGRESQL_PASSWORD: ${DB_PASS?}
-      POSTGRESQL_DATABASE: ${DB_NAME?}
+      POSTGRES_USER: ${DB_USER?}
+      POSTGRES_PASSWORD: ${DB_PASS?}
+      POSTGRES_DB: ${DB_NAME?}
 
     networks:
       - backend-net
@@ -65,42 +71,22 @@ services:
   ## LOCAL IDENTITY PROVIDER - KEYCLOAK ##
   ########################################
 
-  ## Keycloak Database  ##
-  ########################
-  keycloak-db:
-    container_name: ${COMPOSE_PROJECT_NAME?}-keycloak-db
-    image: docker.io/bitnami/postgresql:13
-    profiles: ['local-keycloak']
-    restart: always
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-      - POSTGRESQL_USERNAME=bn_keycloak
-      - POSTGRESQL_DATABASE=bitnami_keycloak
-    volumes:
-      - 'keycloak-db-data:/bitnami/postgresql'
-    networks:
-      backend-net:
-
   ## Keycloak Server ##
   #####################
   keycloak:
     container_name: ${COMPOSE_PROJECT_NAME?}-keycloak
-    image: docker.io/bitnami/keycloak:17
+    image: quay.io/keycloak/keycloak:18.0.1-legacy
     profiles: ['local-keycloak']
     restart: always
     environment:
       - KEYCLOAK_USER=${KEYCLOAK_PASSWORD}
       - KEYCLOAK_PASSWORD=${KEYCLOAK_PASSWORD}
-      - KEYCLOAK_EXTRA_ARGS="-Dkeycloak.import=/opt/bitnami/keycloak/config/keycloak-webapp-realm.json -Dkeycloak.profile.feature.token_exchange=enabled -Dkeycloak.profile.feature.admin_fine_grained_authz=enabled"
+      - JAVA_OPTS_APPEND=-Dkeycloak.profile.feature.token_exchange=enabled -Dkeycloak.profile.feature.admin_fine_grained_authz=enabled
+      - KEYCLOAK_IMPORT=/opt/bitnami/keycloak/config/keycloak-webapp-realm.json
       - DEBUG=true
       - DEBUG_PORT='*:8787'
-      - DB_VENDOR=POSTGRES
-      - DB_ADDR=keycloak-db
-      - DB_DATABASE=bitnami_keycloak
-      - DB_USER=bn_keycloak
+      - DB_VENDOR=H2
       - TZ=Europe/Sofia
-    depends_on:
-      - keycloak-db
     ports:
       - '8180:8080'
       - '8787:8787'
