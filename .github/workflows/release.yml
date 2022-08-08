@@ -47,7 +47,7 @@ jobs:
         with:
           service_account_credentials: ${{ secrets.MONDOO_SECRET }}
           scan_type: docker_image
-          docker_image_name: ghcr.io/podkrepi-bg/frontend/api:${{ env.VERSION }}
+          docker_image_name: ghcr.io/podkrepi-bg/api:${{ env.VERSION }}
 
   build-migrations-docker-image:
     name: Build migrations docker image
@@ -86,7 +86,7 @@ jobs:
         with:
           service_account_credentials: ${{ secrets.MONDOO_SECRET }}
           scan_type: docker_image
-          docker_image_name: ghcr.io/podkrepi-bg/frontend/api/migrations:${{ env.VERSION }}
+          docker_image_name: ghcr.io/podkrepi-bg/api/migrations:${{ env.VERSION }}
 
   scan-manifests:
     name: Scan k8s manifests
