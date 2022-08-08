@@ -202,6 +202,15 @@ jobs:
       - name: Apply new manifests
         run: kubectl apply -k manifests/overlays/production --kubeconfig config.yaml
 
+      - uses: sarisia/actions-status-discord@v1
+        if: always()
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          title: 'deploy'
+          url: https://podkrepi.bg/swagger
+          description: Version ${{ env.VERSION }} of the API is deployed. The list of changes can be found at https://github.com/podkrepi-bg/api/releases/tag/${{ env.VERSION }}
+          color: 0x26A641
+
       - name: Delete kubeconfig
         if: always()
         run: rm config.yaml
