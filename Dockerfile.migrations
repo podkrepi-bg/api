@@ -6,12 +6,17 @@ WORKDIR /app
 # prisma generate command which in turn generates the Prisma Client code
 # into the default location `node_modules/.prisma/client`
 RUN yarn add prisma
-RUN yarn add ts-node
 COPY schema.prisma .
 COPY migrations migrations/
-COPY db/seed/ db/seed/
-COPY package.json package.json
 
 USER 1000:1001
 
 CMD yarn prisma migrate deploy
+
+FROM base AS seed
+COPY package.json yarn.lock .yarnrc ./
+COPY db/seed db/seed
+
+RUN yarn
+
+CMD yarn prisma db seed
