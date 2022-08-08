@@ -79,6 +79,7 @@ jobs:
         with:
           push: true
           file: Dockerfile.migrations
+          target: base
           build-args: |
             APP_VERSION=${{ env.VERSION }}
           tags: |
