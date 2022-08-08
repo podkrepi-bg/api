@@ -15,9 +15,8 @@ CMD yarn prisma migrate deploy
 
 FROM base AS seed
 USER 0
-COPY package.json yarn.lock .yarnrc ./
-COPY db/seed db/seed
+COPY . .
 
 RUN yarn
 
-CMD yarn prisma db seed
+CMD yarn prisma generate && yarn prisma db seed
