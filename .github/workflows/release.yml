@@ -40,7 +40,9 @@ jobs:
           target: production
           build-args: |
             APP_VERSION=${{ env.VERSION }}
-          tags: ghcr.io/podkrepi-bg/api:${{ env.VERSION }}
+          tags: |
+            ghcr.io/podkrepi-bg/api/migrations:master
+            ghcr.io/podkrepi-bg/api:${{ env.VERSION }}
 
       - name: Scan with Mondoo
         uses: mondoohq/actions@main
@@ -79,7 +81,9 @@ jobs:
           file: Dockerfile.migrations
           build-args: |
             APP_VERSION=${{ env.VERSION }}
-          tags: ghcr.io/podkrepi-bg/api/migrations:${{ env.VERSION }}
+          tags: |
+            ghcr.io/podkrepi-bg/api/migrations:master
+            ghcr.io/podkrepi-bg/api/migrations:${{ env.VERSION }}
 
       - name: Scan with Mondoo
         uses: mondoohq/actions@main
