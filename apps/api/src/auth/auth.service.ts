@@ -4,6 +4,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
@@ -320,8 +321,9 @@ export class AuthService {
         error: error.message,
         data: error?.response?.data,
       }
-      Logger.error(response)
-      return response
+      throw response.data
+        ? new NotFoundException(response.data)
+        : new BadRequestException('JWT is expired, request new link!')
     }
   }
 }
