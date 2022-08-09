@@ -3,10 +3,6 @@ services:
   api:
     image: ghcr.io/podkrepi-bg/api:master
     profiles: ['api-docker']
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-      target: ${TARGET_ENV?}
     container_name: ${COMPOSE_PROJECT_NAME?}-api
     restart: always
     environment:
