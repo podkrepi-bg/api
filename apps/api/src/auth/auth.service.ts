@@ -295,8 +295,8 @@ export class AuthService {
       secret: jtwSecret,
       expiresIn: '10m',
     })
-    const appUrl = this.config.get<string>('APP_URL')
-    const link = `http:/${appUrl}/change-password?token=${access_token}`
+    const appUrl = this.config.get<string>('APP_URL_LOCAL')
+    const link = `${appUrl}/change-password?token=${access_token}`
     const profile = {
       email: user.email,
       firstName: user.firstName,
