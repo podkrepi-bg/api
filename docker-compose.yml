@@ -28,9 +28,6 @@ services:
       SENDGRID_CONTACTS_URL: ${SENDGRID_CONTACTS_URL?}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY?}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET?}
-    volumes:
-      # Local:Container mounting points
-      - ./:/app
     ports:
       - '${API_PORT?}:${API_PORT?}'
     depends_on:
