@@ -20,8 +20,8 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: devops-podkrepi-bg
-          password: ${{ secrets.DEVOPS_PACKAGES_TOKEN }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get tag
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -35,13 +35,21 @@ jobs:
         uses: docker/build-push-action@v3
         env:
           NODE_ENV: production
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         with:
           push: true
           target: production
           build-args: |
             APP_VERSION=${{ env.VERSION }}
-          tags: ghcr.io/podkrepi-bg/api:${{ env.VERSION }}
+          tags: |
+            ghcr.io/podkrepi-bg/api:master
+            ghcr.io/podkrepi-bg/api:${{ env.VERSION }}
+
+      - name: Scan with Mondoo
+        uses: mondoohq/actions@main
+        with:
+          service_account_credentials: ${{ secrets.MONDOO_SECRET }}
+          scan_type: docker_image
+          docker_image_name: ghcr.io/podkrepi-bg/api:${{ env.VERSION }}
 
   build-migrations-docker-image:
     name: Build migrations docker image
@@ -53,8 +61,8 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: devops-podkrepi-bg
-          password: ${{ secrets.DEVOPS_PACKAGES_TOKEN }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get tag
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -68,18 +76,89 @@ jobs:
         uses: docker/build-push-action@v3
         env:
           NODE_ENV: production
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         with:
           push: true
           file: Dockerfile.migrations
+          target: base
           build-args: |
             APP_VERSION=${{ env.VERSION }}
-          tags: ghcr.io/podkrepi-bg/api/migrations:${{ env.VERSION }}
+          tags: |
+            ghcr.io/podkrepi-bg/api/migrations:master
+            ghcr.io/podkrepi-bg/api/migrations:${{ env.VERSION }}
+
+      - name: Scan with Mondoo
+        uses: mondoohq/actions@main
+        with:
+          service_account_credentials: ${{ secrets.MONDOO_SECRET }}
+          scan_type: docker_image
+          docker_image_name: ghcr.io/podkrepi-bg/api/migrations:${{ env.VERSION }}
+
+  build-seed-docker-image:
+    name: Build seed docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to GitHub Packages Docker Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get tag
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+      - name: Get sha
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: echo "VERSION=master-$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        env:
+          NODE_ENV: production
+        with:
+          push: true
+          file: Dockerfile.migrations
+          target: seed
+          tags: |
+            ghcr.io/podkrepi-bg/api/seed:master
+            ghcr.io/podkrepi-bg/api/seed:${{ env.VERSION }}
+
+  scan-manifests:
+    name: Scan k8s manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install kustomize
+        uses: imranismail/setup-kustomize@v1
+
+      - name: Build development manifests
+        run: kustomize build manifests/overlays/development > dev-manifests.yaml
+
+      - name: Scan development manifests with Mondoo
+        uses: mondoohq/actions@main
+        with:
+          service_account_credentials: ${{ secrets.MONDOO_SECRET }}
+          scan_type: k8s
+          path: dev-manifests.yaml
+
+      - name: Build production manifests
+        run: kustomize build manifests/overlays/production > prod-manifests.yaml
+
+      - name: Scan production manifests with Mondoo
+        uses: mondoohq/actions@main
+        with:
+          service_account_credentials: ${{ secrets.MONDOO_SECRET }}
+          scan_type: k8s
+          path: prod-manifests.yaml
 
   release-dev:
     name: Release to dev
     runs-on: ubuntu-latest
-    needs: [build-api-docker-image, build-migrations-docker-image]
+    needs: [build-api-docker-image, build-migrations-docker-image, scan-manifests]
     environment:
       name: dev
       url: https://dev.podkrepi.bg/swagger
@@ -160,6 +239,15 @@ jobs:
 
       - name: Apply new manifests
         run: kubectl apply -k manifests/overlays/production --kubeconfig config.yaml
+
+      - uses: sarisia/actions-status-discord@v1
+        if: always()
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          title: 'deploy'
+          url: https://podkrepi.bg/swagger
+          description: Version ${{ env.VERSION }} of the API is deployed. The list of changes can be found at https://github.com/podkrepi-bg/api/releases/tag/${{ env.VERSION }}
+          color: 0x26A641
 
       - name: Delete kubeconfig
         if: always()
