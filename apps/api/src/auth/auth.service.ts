@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -23,6 +24,11 @@ import { RefreshDto } from './dto/refresh.dto'
 import { KeycloakTokenParsed } from './keycloak'
 import { ProviderDto } from './dto/provider.dto'
 import { UpdatePersonDto } from '../person/dto/update-person.dto'
+import { ForgotPass } from './dto/forgot-password.dto'
+import { JwtService } from '@nestjs/jwt'
+import { EmailService } from '../email/email.service'
+import { ForgotPassDto } from '../email/template.interface'
+import { RecoveryPasswordDto } from './dto/recovery-password.dto'
 
 type ErrorResponse = { error: string; data: unknown }
 type KeycloakErrorResponse = { error: string; error_description: string }
@@ -50,6 +56,8 @@ export class AuthService {
     private readonly admin: KeycloakAdminClient,
     private readonly prismaService: PrismaService,
     private readonly httpService: HttpService,
+    private jwtService: JwtService,
+    private sendEmail: EmailService,
     @Inject(KEYCLOAK_INSTANCE) private keycloak: KeycloakConnect.Keycloak,
   ) {}
 
@@ -272,5 +280,48 @@ export class AuthService {
         enabled: false,
       },
     )
+  }
+
+  async forgotPass(forgotPasswordDto: ForgotPass) {
+    const user = await this.prismaService.person.findFirst({
+      where: { email: forgotPasswordDto.email },
+    })
+    if (!user) {
+      throw new BadRequestException('Invalid email')
+    }
+    const payload = { username: user.email, sub: user.keycloakId }
+    const jtwSecret = process.env.JWT_SECRET_KEY
+    const access_token = this.jwtService.sign(payload, {
+      secret: jtwSecret,
+      expiresIn: '10m',
+    })
+    const appUrl = this.config.get<string>('APP_URL')
+    const link = `http:/${appUrl}/change-password?token=${access_token}`
+    const profile = {
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      link: link,
+    }
+    const userEmail = { to: [user.email] }
+    const mail = new ForgotPassDto(profile)
+    await this.sendEmail.sendFromTemplate(mail, userEmail)
+  }
+
+  async recoveryPass(recoveryPasswordDto: RecoveryPasswordDto) {
+    const { token } = recoveryPasswordDto
+    const jtwSecret = process.env.JWT_SECRET_KEY
+
+    try {
+      const { sub: keycloakId } = this.jwtService.verify(token, { secret: jtwSecret })
+      return await this.updateUserPassword(keycloakId, recoveryPasswordDto)
+    } catch (error) {
+      const response = {
+        error: error.message,
+        data: error?.response?.data,
+      }
+      Logger.error(response)
+      return response
+    }
   }
 }

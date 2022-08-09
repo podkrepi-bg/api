@@ -10,10 +10,13 @@ import { KeycloakConfigService } from '../config/keycloak-config.service'
 import { RefreshController } from './refresh.controller'
 import { HttpModule } from '@nestjs/axios'
 import { ProviderLoginController } from './provider-login.controller'
+import { JwtService } from '@nestjs/jwt'
+import { EmailService } from '../email/email.service'
+import { TemplateService } from '../email/template.service'
 
 @Module({
   controllers: [LoginController, RegisterController, RefreshController, ProviderLoginController],
-  providers: [AuthService, PrismaService],
+  providers: [AuthService, PrismaService, EmailService, JwtService, TemplateService],
   imports: [
     AppConfigModule,
     HttpModule,
