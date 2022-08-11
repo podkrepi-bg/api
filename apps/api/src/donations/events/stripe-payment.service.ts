@@ -7,9 +7,9 @@ import { CampaignService } from '../../campaign/campaign.service'
 import { getPaymentData } from '../helpers/payment-intent-helpers'
 import { DonationStatus } from '@prisma/client'
 
-/** Testing Stripe on localhost is described here: 
+/** Testing Stripe on localhost is described here:
  * https://github.com/podkrepi-bg/api/blob/master/TESTING.md#testing-stripe
-*/
+ */
 @Injectable()
 export class StripePaymentService {
   constructor(private campaignService: CampaignService) {}

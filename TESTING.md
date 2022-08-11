@@ -28,4 +28,5 @@ In a third shell trigger individual stripe events on demand
 ```shell
 stripe trigger payment_intent.succeeded --override payment_intent:metadata.campaignId=e8bf74dd-6212-4a0e-b192-56e4eb19e1f2 --override payment_intent:currency=BGN
 ```
-Important - From the the Stripe CLI docs: Triggering some events like payment_intent.succeeded or payment_intent.canceled will also send you a payment_intent.created event for completeness. 
+
+Important - From the the Stripe CLI docs: Triggering some events like payment_intent.succeeded or payment_intent.canceled will also send you a payment_intent.created event for completeness.
