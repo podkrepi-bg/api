@@ -11,8 +11,7 @@ import { VaultModule } from '../vault/vault.module'
 import { VaultService } from '../vault/vault.service'
 import { DonationsController } from './donations.controller'
 import { DonationsService } from './donations.service'
-import { PaymentCreatedService } from './events/payment-created.service'
-import { PaymentSucceededService } from './events/payment-intent-succeeded.service'
+import { StripePaymentService } from './events/stripe-payment.service'
 
 @Module({
   imports: [
@@ -27,8 +26,7 @@ import { PaymentSucceededService } from './events/payment-intent-succeeded.servi
   controllers: [DonationsController],
   providers: [
     DonationsService,
-    PaymentCreatedService,
-    PaymentSucceededService,
+    StripePaymentService,
     CampaignService,
     PrismaService,
     VaultService,

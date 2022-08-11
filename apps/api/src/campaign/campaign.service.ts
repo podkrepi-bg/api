@@ -283,7 +283,7 @@ export class CampaignService {
     newDonationStatus: DonationStatus,
   ) {
     const campaignId = campaign.id
-    Logger.debug('[Stripe webhook] Update donation from state initial to waiting', {
+    Logger.debug('[Stripe webhook] Update donation to status: ' + newDonationStatus, {
       campaignId,
       paymentIntentId: paymentData.paymentIntentId,
     })
@@ -298,7 +298,7 @@ export class CampaignService {
       : // Create new vault for the campaign
         { create: { campaignId, currency: campaign.currency, name: campaign.title } }
 
-    // Find donation by extPaymentIntentId an update if status allows
+    // Find donation by extPaymentIntentId and update if status allows
 
     const donation = await this.prisma.donation.findUnique({
       where: { extPaymentIntentId: paymentData.paymentIntentId },
@@ -307,28 +307,36 @@ export class CampaignService {
 
     //if missing create the donation with the incoming status
     if (!donation) {
-      Logger.error(
+      Logger.debug(
         'No donation exists with extPaymentIntentId: ' +
           paymentData.paymentIntentId +
           ' Creating new donation with status: ' +
           newDonationStatus,
       )
-      this.prisma.donation.create({
-        data: {
-          amount: paymentData.netAmount,
-          chargedAmount: paymentData.chargedAmount,
-          currency: campaign.currency,
-          targetVault: targetVaultData,
-          provider: PaymentProvider.stripe,
-          type: DonationType.donation,
-          status: newDonationStatus,
-          extCustomerId: paymentData.stripeCustomerId ?? '',
-          extPaymentIntentId: paymentData.paymentIntentId,
-          extPaymentMethodId: paymentData.paymentMethodId ?? '',
-          billingName: paymentData.billingName,
-          billingEmail: paymentData.billingEmail,
-        },
-      })
+
+      try {
+        await this.prisma.donation.create({
+          data: {
+            amount: paymentData.netAmount,
+            chargedAmount: paymentData.chargedAmount,
+            currency: campaign.currency,
+            targetVault: targetVaultData,
+            provider: PaymentProvider.stripe,
+            type: DonationType.donation,
+            status: newDonationStatus,
+            extCustomerId: paymentData.stripeCustomerId ?? '',
+            extPaymentIntentId: paymentData.paymentIntentId,
+            extPaymentMethodId: paymentData.paymentMethodId ?? '',
+            billingName: paymentData.billingName,
+            billingEmail: paymentData.billingEmail,
+          },
+        })
+      } catch (error) {
+        Logger.error(
+          `[Stripe webhook] Error while creating donation with paymentIntentId: ${paymentData.paymentIntentId} and status: ${newDonationStatus} . Error is: ${error}`,
+        )
+        throw new InternalServerErrorException(error)
+      }
 
       return
     }
@@ -360,7 +368,7 @@ export class CampaignService {
     }
     //donation exists but we need to skip because previous status is from later event than the incoming
     else {
-      Logger.error(
+      Logger.warn(
         `[Stripe webhook] Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId}
         and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
       )
@@ -375,7 +383,7 @@ export class CampaignService {
       chargedAmount: paymentData.chargedAmount,
     })
 
-    this.updateDonationPayment(campaign, paymentData, DonationStatus.succeeded)
+    await this.updateDonationPayment(campaign, paymentData, DonationStatus.succeeded)
 
     const vault = await this.getCampaignVault(campaign.id)
     if (vault) {
