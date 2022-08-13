@@ -21,11 +21,11 @@ export class LoginController {
   @Post('/forgot-password')
   @Public()
   async forgotPassword(@Body() forgotPasswordDto: ForgotPass) {
-    return await this.authService.forgotPass(forgotPasswordDto)
+    return await this.authService.sendMailForPasswordChange(forgotPasswordDto)
   }
   @Post('/recovery-password')
   @Public()
   async recoveryPassword(@Body() RecoveryPasswordDto: RecoveryPasswordDto) {
-    return await this.authService.recoveryPass(RecoveryPasswordDto)
+    return await this.authService.updateForgottenPassword(RecoveryPasswordDto)
   }
 }

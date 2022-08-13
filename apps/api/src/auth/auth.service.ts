@@ -283,7 +283,7 @@ export class AuthService {
     )
   }
 
-  async forgotPass(forgotPasswordDto: ForgotPass) {
+  async sendMailForPasswordChange(forgotPasswordDto: ForgotPass) {
     const stage = this.config.get<string>('APP_ENV') === 'development' ? 'APP_URL_LOCAL' : 'APP_URL'
     const user = await this.prismaService.person.findFirst({
       where: { email: forgotPasswordDto.email },
@@ -311,7 +311,7 @@ export class AuthService {
     await this.sendEmail.sendFromTemplate(mail, userEmail)
   }
 
-  async recoveryPass(recoveryPasswordDto: RecoveryPasswordDto) {
+  async updateForgottenPassword(recoveryPasswordDto: RecoveryPasswordDto) {
     const { token } = recoveryPasswordDto
     const jtwSecret = process.env.JWT_SECRET_KEY
 
