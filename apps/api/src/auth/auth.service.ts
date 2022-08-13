@@ -25,11 +25,11 @@ import { RefreshDto } from './dto/refresh.dto'
 import { KeycloakTokenParsed } from './keycloak'
 import { ProviderDto } from './dto/provider.dto'
 import { UpdatePersonDto } from '../person/dto/update-person.dto'
-import { ForgotPass } from './dto/forgot-password.dto'
+import { ForgottenPasswordEmailDto } from './dto/forgot-password.dto'
 import { JwtService } from '@nestjs/jwt'
 import { EmailService } from '../email/email.service'
 import { ForgotPassDto } from '../email/template.interface'
-import { RecoveryPasswordDto } from './dto/recovery-password.dto'
+import { NewPasswordDto } from './dto/recovery-password.dto'
 
 type ErrorResponse = { error: string; data: unknown }
 type KeycloakErrorResponse = { error: string; error_description: string }
@@ -283,7 +283,7 @@ export class AuthService {
     )
   }
 
-  async sendMailForPasswordChange(forgotPasswordDto: ForgotPass) {
+  async sendMailForPasswordChange(forgotPasswordDto: ForgottenPasswordEmailDto) {
     const stage = this.config.get<string>('APP_ENV') === 'development' ? 'APP_URL_LOCAL' : 'APP_URL'
     const user = await this.prismaService.person.findFirst({
       where: { email: forgotPasswordDto.email },
@@ -311,12 +311,11 @@ export class AuthService {
     await this.sendEmail.sendFromTemplate(mail, userEmail)
   }
 
-  async updateForgottenPassword(recoveryPasswordDto: RecoveryPasswordDto) {
-    const { token } = recoveryPasswordDto
-    const jtwSecret = process.env.JWT_SECRET_KEY
-
+  async updateForgottenPassword(recoveryPasswordDto: NewPasswordDto) {
     try {
-      const { sub: keycloakId } = this.jwtService.verify(token, { secret: jtwSecret })
+      const { sub: keycloakId } = this.jwtService.verify(recoveryPasswordDto.token, {
+        secret: process.env.JWT_SECRET_KEY,
+      })
       return await this.updateUserPassword(keycloakId, recoveryPasswordDto)
     } catch (error) {
       const response = {

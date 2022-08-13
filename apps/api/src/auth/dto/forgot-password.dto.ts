@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger'
 import { Expose } from 'class-transformer'
 import { IsEmail, IsNotEmpty } from 'class-validator'
 
-export class ForgotPass {
+export class ForgottenPasswordEmailDto {
   @ApiProperty()
   @Expose()
   @IsNotEmpty()

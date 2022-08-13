@@ -1,4 +1,4 @@
-import { ForgotPass } from '../auth/dto/forgot-password.dto'
+import { ForgottenPasswordEmailDto } from '../auth/dto/forgot-password.dto'
 import { CreatePersonDto } from '../person/dto/create-person.dto'
 import { CreateInquiryDto } from '../support/dto/create-inquiry.dto'
 import { CreateRequestDto } from '../support/dto/create-request.dto'
