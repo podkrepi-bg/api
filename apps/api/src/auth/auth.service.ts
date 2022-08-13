@@ -288,13 +288,14 @@ export class AuthService {
       where: { email: forgotPasswordDto.email },
     })
     if (!user) {
-      throw new BadRequestException('Invalid email')
+      Logger.error('Invalid email')
+      return
     }
     const payload = { username: user.email, sub: user.keycloakId }
     const jtwSecret = process.env.JWT_SECRET_KEY
     const access_token = this.jwtService.sign(payload, {
       secret: jtwSecret,
-      expiresIn: '10m',
+      expiresIn: '60m',
     })
     const appUrl = this.config.get<string>('APP_URL_LOCAL')
     const link = `${appUrl}/change-password?token=${access_token}`
