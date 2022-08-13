@@ -53,15 +53,18 @@ export class BankTransactionsFileController {
       throw new NotFoundException('No person record with keycloak ID: ' + keycloakId)
     }
 
-    const allMovementsFromAllFiles: { payment: CreateManyBankPaymentsDto; paymentRef: string }[][] =
-      []
-    let accountMovementsFromFile: { payment: CreateManyBankPaymentsDto; paymentRef: string }[] = []
+    const allMovementsFromAllFiles: { payment: CreateManyBankPaymentsDto; paymentRef: string }[] = []
+    const allMovementsWithErrors: { payment: CreateManyBankPaymentsDto; paymentRef: string, refError?: string }[] = []
 
     //parse files and save them to S3
     const promises = await Promise.all(
       files.map((file, key) => {
-        accountMovementsFromFile = parseBankTransactionsFile(file.buffer)
-        allMovementsFromAllFiles.push(accountMovementsFromFile)
+        let accountMovementsFromFile: { payment: CreateManyBankPaymentsDto; paymentRef: string, refError?: string }[] = parseBankTransactionsFile(file.buffer)
+        const validMovements = accountMovementsFromFile.filter(m => !m.refError)
+        const invalidMovements = accountMovementsFromFile.filter(m => m.refError)
+
+        allMovementsFromAllFiles.push(...validMovements)
+        allMovementsWithErrors.push(...invalidMovements);
         const filesType = body.types
         return this.bankTransactionsFileService.create(
           Array.isArray(filesType) ? filesType[key] : filesType,
@@ -76,25 +79,25 @@ export class BankTransactionsFileController {
 
     //now import the parsed donations
     const donations: CreateManyBankPaymentsDto[] = []
-    for (const fileOfBankMovements of allMovementsFromAllFiles) {
-      for await (const movement of fileOfBankMovements) {
-        const campaign = await this.campaignService.getCampaignByPaymentReference(
-          movement.paymentRef,
-        )
-
-        if (!campaign) {
-          Logger.warn('No campaign with payment reference: ' + movement.paymentRef)
-          throw new NotFoundException('No campaign with payment reference: ' + movement.paymentRef)
-        }
-
-        const vault = await this.vaultService.findByCampaignId(campaign.id)
-        movement.payment.extPaymentMethodId = 'imported bank payment'
-        movement.payment.targetVaultId = vault[0].id
-        movement.payment.type = DonationType.donation
-        movement.payment.status = DonationStatus.succeeded
-        movement.payment.provider = PaymentProvider.bank
-        donations.push(movement.payment)
+    for (const movement of allMovementsFromAllFiles) {
+      let campaign = await this.campaignService.getCampaignByPaymentReference(movement.paymentRef)
+      if (!campaign) {
+        campaign = await this.campaignService.getCampaignBySlug(movement.paymentRef)
       }
+
+      if (!campaign) {
+        Logger.warn('No campaign with payment reference: ' + movement.paymentRef)
+        allMovementsWithErrors.push({...movement, refError: `No campaign with payment reference: ${movement.paymentRef}`})
+        continue;
+      }
+
+      const vault = await this.vaultService.findByCampaignId(campaign.id)
+      movement.payment.extPaymentMethodId = 'imported bank payment'
+      movement.payment.targetVaultId = vault[0].id
+      movement.payment.type = DonationType.donation
+      movement.payment.status = DonationStatus.succeeded
+      movement.payment.provider = PaymentProvider.bank
+      donations.push(movement.payment)
     }
     await this.donationsService.createManyBankPayments(donations)
 
