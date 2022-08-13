@@ -28,9 +28,9 @@ describe('AuthService', () => {
   let admin: KeycloakAdminClient
   let httpService: HttpService
   let keycloak: KeycloakConnect.Keycloak
-  let emailServivice = EmailService
-  let jwtService = JwtService
-  let templateService = TemplateService
+  const emailServivice = EmailService
+  const jwtService = JwtService
+  const templateService = TemplateService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
