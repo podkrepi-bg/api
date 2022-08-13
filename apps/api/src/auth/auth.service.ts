@@ -324,7 +324,9 @@ export class AuthService {
       }
       throw response.data
         ? new NotFoundException(response.data)
-        : new BadRequestException('JWT is expired, request new link!')
+        : new BadRequestException(
+            'The forgotten password link has expired, request a new link and try again!',
+          )
     }
   }
 }
