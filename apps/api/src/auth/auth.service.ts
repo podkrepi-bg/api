@@ -284,6 +284,7 @@ export class AuthService {
   }
 
   async forgotPass(forgotPasswordDto: ForgotPass) {
+    const stage = this.config.get<string>('APP_ENV') === 'development' ? 'APP_URL_LOCAL' : 'APP_URL'
     const user = await this.prismaService.person.findFirst({
       where: { email: forgotPasswordDto.email },
     })
@@ -297,7 +298,7 @@ export class AuthService {
       secret: jtwSecret,
       expiresIn: '60m',
     })
-    const appUrl = this.config.get<string>('APP_URL_LOCAL')
+    const appUrl = this.config.get<string>(stage)
     const link = `${appUrl}/change-password?token=${access_token}`
     const profile = {
       email: user.email,
