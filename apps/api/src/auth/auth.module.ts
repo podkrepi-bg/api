@@ -10,7 +10,7 @@ import { KeycloakConfigService } from '../config/keycloak-config.service'
 import { RefreshController } from './refresh.controller'
 import { HttpModule } from '@nestjs/axios'
 import { ProviderLoginController } from './provider-login.controller'
-import { JwtService } from '@nestjs/jwt'
+import { JwtModule, JwtService } from '@nestjs/jwt'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 
@@ -20,6 +20,7 @@ import { TemplateService } from '../email/template.service'
   imports: [
     AppConfigModule,
     HttpModule,
+    JwtModule,
     KeycloakConnectModule.registerAsync({
       useExisting: KeycloakConfigService,
       imports: [AppConfigModule],

@@ -1,11 +1,13 @@
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
+import { JwtService } from '@nestjs/jwt'
 import { Test, TestingModule } from '@nestjs/testing'
 import { mock, mockDeep } from 'jest-mock-extended'
 import KeycloakConnect from 'keycloak-connect'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import { AuthService } from '../auth/auth.service'
+import { EmailService } from '../email/email.service'
 import { PersonService } from '../person/person.service'
 import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { AccountService } from './account.service'
@@ -42,6 +44,14 @@ describe('AccountService', () => {
         {
           provide: KEYCLOAK_INSTANCE,
           useValue: mock<KeycloakConnect.Keycloak>(),
+        },
+        {
+          provide: JwtService,
+          useValue: mockDeep<JwtService>(),
+        },
+        {
+          provide: EmailService,
+          useValue: mockDeep<EmailService>(),
         },
       ],
     }).compile()

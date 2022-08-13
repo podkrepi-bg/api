@@ -11,6 +11,8 @@ import { HttpService } from '@nestjs/axios'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import KeycloakConnect from 'keycloak-connect'
 import { mock, mockDeep } from 'jest-mock-extended'
+import { JwtService } from '@nestjs/jwt'
+import { EmailService } from '../email/email.service'
 
 describe('AccountController', () => {
   let controller: AccountController
@@ -55,6 +57,14 @@ describe('AccountController', () => {
         {
           provide: KEYCLOAK_INSTANCE,
           useValue: mock<KeycloakConnect.Keycloak>(),
+        },
+        {
+          provide: JwtService,
+          useValue: mockDeep<JwtService>(),
+        },
+        {
+          provide: EmailService,
+          useValue: mockDeep<EmailService>(),
         },
       ],
     })
