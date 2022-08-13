@@ -1,4 +1,3 @@
-import { ForgottenPasswordEmailDto } from '../auth/dto/forgot-password.dto'
 import { CreatePersonDto } from '../person/dto/create-person.dto'
 import { CreateInquiryDto } from '../support/dto/create-inquiry.dto'
 import { CreateRequestDto } from '../support/dto/create-request.dto'
@@ -31,7 +30,7 @@ export abstract class EmailTemplate<C> {
   }
 }
 
-export class ForgotPassDto extends EmailTemplate<CreatePersonDto> {
+export class ForgottenPasswordMailDto extends EmailTemplate<CreatePersonDto> {
   name = TemplateType.forgotPass
 }
 

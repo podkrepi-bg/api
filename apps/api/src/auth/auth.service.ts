@@ -28,7 +28,7 @@ import { UpdatePersonDto } from '../person/dto/update-person.dto'
 import { ForgottenPasswordEmailDto } from './dto/forgot-password.dto'
 import { JwtService } from '@nestjs/jwt'
 import { EmailService } from '../email/email.service'
-import { ForgotPassDto } from '../email/template.interface'
+import { ForgottenPasswordMailDto } from '../email/template.interface'
 import { NewPasswordDto } from './dto/recovery-password.dto'
 
 type ErrorResponse = { error: string; data: unknown }
@@ -307,7 +307,7 @@ export class AuthService {
       link: link,
     }
     const userEmail = { to: [user.email] }
-    const mail = new ForgotPassDto(profile)
+    const mail = new ForgottenPasswordMailDto(profile)
     await this.sendEmail.sendFromTemplate(mail, userEmail)
   }
 
