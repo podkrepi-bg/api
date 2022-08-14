@@ -289,8 +289,7 @@ export class AuthService {
       where: { email: forgotPasswordDto.email },
     })
     if (!user) {
-      Logger.error('Invalid email')
-      return
+      throw new NotFoundException('Invalid email')
     }
     const payload = { username: user.email, sub: user.keycloakId }
     const jtwSecret = process.env.JWT_SECRET_KEY
