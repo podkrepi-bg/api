@@ -404,12 +404,12 @@ export const mockPaymentIntentCreated: Stripe.PaymentIntent = {
 export const mockPaymentIntentBGIncluded: Stripe.PaymentIntent = {
   id: 'pi_3LNwijKApGjVGa9t1F9QYd5s',
   object: 'payment_intent',
-  amount: 1065,
+  amount: 1063,
   amount_capturable: 0,
   amount_details: {
     tip: {},
   },
-  amount_received: 1065,
+  amount_received: 1063,
   application: null,
   application_fee_amount: null,
   automatic_payment_methods: null,
@@ -422,8 +422,8 @@ export const mockPaymentIntentBGIncluded: Stripe.PaymentIntent = {
       {
         id: 'ch_3LNwijKApGjVGa9t1tuRzvbL',
         object: 'charge',
-        amount: 1065,
-        amount_captured: 1065,
+        amount: 1063,
+        amount_captured: 1063,
         amount_refunded: 0,
         application: null,
         application_fee: null,
