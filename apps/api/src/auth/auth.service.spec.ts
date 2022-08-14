@@ -16,6 +16,9 @@ import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { RefreshDto } from './dto/refresh.dto'
 import { firstValueFrom, Observable } from 'rxjs'
 import { ProviderDto } from './dto/provider.dto'
+import { EmailService } from '../email/email.service'
+import { JwtService } from '@nestjs/jwt'
+import { TemplateService } from '../email/template.service'
 
 jest.mock('@keycloak/keycloak-admin-client')
 
@@ -25,6 +28,9 @@ describe('AuthService', () => {
   let admin: KeycloakAdminClient
   let httpService: HttpService
   let keycloak: KeycloakConnect.Keycloak
+  let sendEmail: EmailService
+  let jwtService: JwtService
+  let templateService: TemplateService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -53,6 +59,18 @@ describe('AuthService', () => {
           provide: KEYCLOAK_INSTANCE,
           useValue: mockDeep<KeycloakConnect.Keycloak>(),
         },
+        {
+          provide: JwtService,
+          useValue: mockDeep<JwtService>(),
+        },
+        {
+          provide: EmailService,
+          useValue: mockDeep<EmailService>(),
+        },
+        {
+          provide: TemplateService,
+          useValue: mockDeep<TemplateService>(),
+        },
       ],
     }).compile()
 
@@ -61,6 +79,9 @@ describe('AuthService', () => {
     admin = module.get<KeycloakAdminClient>(KeycloakAdminClient)
     keycloak = module.get<KeycloakConnect.Keycloak>(KEYCLOAK_INSTANCE)
     httpService = module.get<HttpService>(HttpService)
+    sendEmail = module.get<EmailService>(EmailService)
+    jwtService = module.get<JwtService>(JwtService)
+    templateService = module.get<TemplateService>(TemplateService)
   })
 
   it('should be defined', () => {

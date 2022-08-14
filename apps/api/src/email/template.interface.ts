@@ -1,3 +1,4 @@
+import { CreatePersonDto } from '../person/dto/create-person.dto'
 import { CreateInquiryDto } from '../support/dto/create-inquiry.dto'
 import { CreateRequestDto } from '../support/dto/create-request.dto'
 
@@ -6,6 +7,7 @@ export enum TemplateType {
   welcomeInternal = 'welcome-internal',
   inquiryReceived = 'inquiry-received',
   inquiryReceivedInternal = 'inquiry-received-internal',
+  forgotPass = 'forgot-password',
 }
 export type TemplateTypeKeys = keyof typeof TemplateType
 export type TemplateTypeValues = typeof TemplateType[TemplateTypeKeys]
@@ -26,6 +28,10 @@ export abstract class EmailTemplate<C> {
   get data(): C | unknown {
     return this.context
   }
+}
+
+export class ForgottenPasswordMailDto extends EmailTemplate<CreatePersonDto> {
+  name = TemplateType.forgotPass
 }
 
 export class WelcomeEmailDto extends EmailTemplate<CreateRequestDto> {

@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
@@ -23,6 +25,11 @@ import { RefreshDto } from './dto/refresh.dto'
 import { KeycloakTokenParsed } from './keycloak'
 import { ProviderDto } from './dto/provider.dto'
 import { UpdatePersonDto } from '../person/dto/update-person.dto'
+import { ForgottenPasswordEmailDto } from './dto/forgot-password.dto'
+import { JwtService } from '@nestjs/jwt'
+import { EmailService } from '../email/email.service'
+import { ForgottenPasswordMailDto } from '../email/template.interface'
+import { NewPasswordDto } from './dto/recovery-password.dto'
 
 type ErrorResponse = { error: string; data: unknown }
 type KeycloakErrorResponse = { error: string; error_description: string }
@@ -50,6 +57,8 @@ export class AuthService {
     private readonly admin: KeycloakAdminClient,
     private readonly prismaService: PrismaService,
     private readonly httpService: HttpService,
+    private jwtService: JwtService,
+    private sendEmail: EmailService,
     @Inject(KEYCLOAK_INSTANCE) private keycloak: KeycloakConnect.Keycloak,
   ) {}
 
@@ -272,5 +281,51 @@ export class AuthService {
         enabled: false,
       },
     )
+  }
+
+  async sendMailForPasswordChange(forgotPasswordDto: ForgottenPasswordEmailDto) {
+    const stage = this.config.get<string>('APP_ENV') === 'development' ? 'APP_URL_LOCAL' : 'APP_URL'
+    const user = await this.prismaService.person.findFirst({
+      where: { email: forgotPasswordDto.email },
+    })
+    if (!user) {
+      throw new NotFoundException('Invalid email')
+    }
+    const payload = { username: user.email, sub: user.keycloakId }
+    const jtwSecret = process.env.JWT_SECRET_KEY
+    const access_token = this.jwtService.sign(payload, {
+      secret: jtwSecret,
+      expiresIn: '60m',
+    })
+    const appUrl = this.config.get<string>(stage)
+    const link = `${appUrl}/change-password?token=${access_token}`
+    const profile = {
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      link: link,
+    }
+    const userEmail = { to: [user.email] }
+    const mail = new ForgottenPasswordMailDto(profile)
+    await this.sendEmail.sendFromTemplate(mail, userEmail)
+  }
+
+  async updateForgottenPassword(recoveryPasswordDto: NewPasswordDto) {
+    try {
+      const { sub: keycloakId } = this.jwtService.verify(recoveryPasswordDto.token, {
+        secret: process.env.JWT_SECRET_KEY,
+      })
+      return await this.updateUserPassword(keycloakId, recoveryPasswordDto)
+    } catch (error) {
+      const response = {
+        error: error.message,
+        data: error?.response?.data,
+      }
+      throw response.data
+        ? new NotFoundException(response.data)
+        : new BadRequestException(
+            'The forgotten password link has expired, request a new link and try again!',
+          )
+    }
   }
 }
