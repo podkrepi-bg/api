@@ -12,3 +12,13 @@ COPY migrations migrations/
 USER 1000:1001
 
 CMD yarn prisma migrate deploy
+
+FROM base AS seed
+USER 0
+COPY package.json yarn.lock .yarnrc ./
+
+RUN yarn
+
+COPY . .
+
+CMD yarn prisma generate && yarn prisma db seed

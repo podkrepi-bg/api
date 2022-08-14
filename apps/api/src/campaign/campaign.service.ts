@@ -25,6 +25,8 @@ import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from './dto/update-campaign.dto'
 import { PaymentData } from '../donations/helpers/payment-intent-helpers'
 import { getAllowedPreviousStatus } from '../donations/helpers/donation-status-updates'
+import { Prisma } from '@prisma/client'
+import { CampaignSummaryDto } from './dto/campaign-summary.dto'
 
 @Injectable()
 export class CampaignService {
@@ -45,17 +47,12 @@ export class CampaignService {
         beneficiary: { select: { person: true } },
         coordinator: { select: { person: true } },
         organizer: { select: { person: true } },
-        vaults: {
-          select: {
-            donations: { where: { status: DonationStatus.succeeded }, select: { amount: true } },
-          },
-        },
         campaignFiles: true,
       },
     })
+    const campaignSums = await this.getCampaignSums()
 
-    //TODO: remove this when Prisma starts supporting nested groupbys
-    return campaigns.map(this.addReachedAmountAndDonors)
+    return campaigns.map((c) => this.addVaultAndDonationSummaries(c, campaignSums))
   }
 
   async listAllCampaigns(): Promise<Campaign[]> {
@@ -68,19 +65,60 @@ export class CampaignService {
         beneficiary: { select: { person: { select: { firstName: true, lastName: true } } } },
         coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
         organizer: { select: { person: { select: { firstName: true, lastName: true } } } },
-        vaults: {
-          select: {
-            donations: { where: { status: DonationStatus.succeeded }, select: { amount: true } },
-            amount: true,
-          },
-        },
         incomingTransfers: { select: { amount: true } },
         outgoingTransfers: { select: { amount: true } },
       },
     })
+    const campaignSums = await this.getCampaignSums()
 
-    //TODO: remove this when Prisma starts supporting nested groupbys
-    return campaigns.map(this.addReachedAmountAndDonors)
+    return campaigns.map((c) => this.addVaultAndDonationSummaries(c, campaignSums))
+  }
+
+  async getCampaignSums(campaignIds?: string[]): Promise<CampaignSummaryDto[]> {
+    let campaignSums: CampaignSummaryDto[] = []
+
+    if (campaignIds && campaignIds.length > 0) {
+      const result = await this.prisma.$queryRaw<CampaignSummaryDto[]>`
+      SELECT
+      MAX(d.total) as "reachedAmount",
+      SUM(v.amount) as "currentAmount",
+      SUM(v."blockedAmount") as "blockedAmount",
+      MAX(d.donors) as donors,
+      v.campaign_id as id
+      FROM api.vaults v
+      LEFT join (
+          select target_vault_id, sum(amount) as total, count(id) as donors
+          from api.donations d
+          where status = 'succeeded'
+          group by target_vault_id
+        ) as d
+        on d.target_vault_id = v.id
+      GROUP BY v.campaign_id
+      HAVING v.campaign_id in (${Prisma.join(campaignIds)})
+      `
+      campaignSums = result || []
+    } else {
+      const result = await this.prisma.$queryRaw<CampaignSummaryDto[]>`
+      SELECT
+      MAX(d.total) as "reachedAmount",
+      SUM(v.amount) as "currentAmount",
+      SUM(v."blockedAmount") as "blockedAmount",
+      MAX(d.donors) as donors,
+      v.campaign_id as id
+      FROM api.vaults v
+      LEFT join (
+          select target_vault_id, sum(amount) as total, count(id) as donors
+          from api.donations d
+          where status = 'succeeded'
+          group by target_vault_id
+        ) as d
+        on d.target_vault_id = v.id
+      GROUP BY v.campaign_id
+      `
+      campaignSums = result || []
+    }
+
+    return campaignSums
   }
 
   async getCampaignById(campaignId: string): Promise<Campaign> {
@@ -88,7 +126,6 @@ export class CampaignService {
       where: { id: campaignId },
       include: {
         campaignFiles: true,
-        vaults: { select: { donations: { select: { amount: true } }, amount: true } },
         incomingTransfers: { select: { amount: true } },
       },
     })
@@ -96,7 +133,9 @@ export class CampaignService {
       Logger.warn('No campaign record with ID: ' + campaignId)
       throw new NotFoundException('No campaign record with ID: ' + campaignId)
     }
-    return campaign
+    const campaignSums = await this.getCampaignSums([campaign.id])
+
+    return this.addVaultAndDonationSummaries(campaign, campaignSums)
   }
 
   async getCampaignByIdAndCoordinatorId(
@@ -149,14 +188,6 @@ export class CampaignService {
           },
         },
         campaignFiles: true,
-        vaults: {
-          select: {
-            donations: {
-              where: { status: DonationStatus.succeeded },
-              select: { amount: true, personId: true },
-            },
-          },
-        },
       },
     })
 
@@ -165,7 +196,9 @@ export class CampaignService {
       throw new NotFoundException('No campaign record with slug: ' + slug)
     }
 
-    return this.addReachedAmountAndDonors(campaign)
+    const campaignSums = await this.getCampaignSums([campaign.id])
+
+    return this.addVaultAndDonationSummaries(campaign, campaignSums)
   }
 
   async getCampaignByPaymentReference(paymentReference: string): Promise<Campaign> {
@@ -283,7 +316,7 @@ export class CampaignService {
     newDonationStatus: DonationStatus,
   ) {
     const campaignId = campaign.id
-    Logger.debug('[Stripe webhook] Update donation from state initial to waiting', {
+    Logger.debug('[Stripe webhook] Update donation to status: ' + newDonationStatus, {
       campaignId,
       paymentIntentId: paymentData.paymentIntentId,
     })
@@ -298,7 +331,7 @@ export class CampaignService {
       : // Create new vault for the campaign
         { create: { campaignId, currency: campaign.currency, name: campaign.title } }
 
-    // Find donation by extPaymentIntentId an update if status allows
+    // Find donation by extPaymentIntentId and update if status allows
 
     const donation = await this.prisma.donation.findUnique({
       where: { extPaymentIntentId: paymentData.paymentIntentId },
@@ -307,28 +340,36 @@ export class CampaignService {
 
     //if missing create the donation with the incoming status
     if (!donation) {
-      Logger.error(
+      Logger.debug(
         'No donation exists with extPaymentIntentId: ' +
           paymentData.paymentIntentId +
           ' Creating new donation with status: ' +
           newDonationStatus,
       )
-      this.prisma.donation.create({
-        data: {
-          amount: paymentData.netAmount,
-          chargedAmount: paymentData.chargedAmount,
-          currency: campaign.currency,
-          targetVault: targetVaultData,
-          provider: PaymentProvider.stripe,
-          type: DonationType.donation,
-          status: newDonationStatus,
-          extCustomerId: paymentData.stripeCustomerId ?? '',
-          extPaymentIntentId: paymentData.paymentIntentId,
-          extPaymentMethodId: paymentData.paymentMethodId ?? '',
-          billingName: paymentData.billingName,
-          billingEmail: paymentData.billingEmail,
-        },
-      })
+
+      try {
+        await this.prisma.donation.create({
+          data: {
+            amount: paymentData.netAmount,
+            chargedAmount: paymentData.chargedAmount,
+            currency: campaign.currency,
+            targetVault: targetVaultData,
+            provider: PaymentProvider.stripe,
+            type: DonationType.donation,
+            status: newDonationStatus,
+            extCustomerId: paymentData.stripeCustomerId ?? '',
+            extPaymentIntentId: paymentData.paymentIntentId,
+            extPaymentMethodId: paymentData.paymentMethodId ?? '',
+            billingName: paymentData.billingName,
+            billingEmail: paymentData.billingEmail,
+          },
+        })
+      } catch (error) {
+        Logger.error(
+          `[Stripe webhook] Error while creating donation with paymentIntentId: ${paymentData.paymentIntentId} and status: ${newDonationStatus} . Error is: ${error}`,
+        )
+        throw new InternalServerErrorException(error)
+      }
 
       return
     }
@@ -360,7 +401,7 @@ export class CampaignService {
     }
     //donation exists but we need to skip because previous status is from later event than the incoming
     else {
-      Logger.error(
+      Logger.warn(
         `[Stripe webhook] Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId}
         and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
       )
@@ -375,7 +416,7 @@ export class CampaignService {
       chargedAmount: paymentData.chargedAmount,
     })
 
-    this.updateDonationPayment(campaign, paymentData, DonationStatus.succeeded)
+    await this.updateDonationPayment(campaign, paymentData, DonationStatus.succeeded)
 
     const vault = await this.getCampaignVault(campaign.id)
     if (vault) {
@@ -470,41 +511,15 @@ export class CampaignService {
     }
   }
 
-  private addReachedAmountAndDonors(
-    campaign: Campaign & {
-      vaults: { donations: { amount: number; personId?: string | null }[] }[]
-    },
-  ) {
-    let campaignAmountReached = 0
-    const donors = new Set<string>()
-    let shouldAddDonors = false
-    let anonymousDonors = 0
-
-    for (const vault of campaign.vaults) {
-      for (const donation of vault.donations) {
-        campaignAmountReached += donation.amount
-
-        if (donation.personId !== undefined) {
-          shouldAddDonors = true
-          if (donation.personId === null) {
-            anonymousDonors++
-          } else {
-            donors.add(donation.personId)
-          }
-        }
-      }
-    }
-
+  private addVaultAndDonationSummaries(campaign: Campaign, campaignSums: CampaignSummaryDto[]) {
+    const csum = campaignSums.find((e) => e.id === campaign.id)
     return {
       ...campaign,
-      ...{
-        summary: [
-          {
-            reachedAmount: campaignAmountReached,
-            donors: shouldAddDonors ? donors.size + anonymousDonors : undefined,
-          },
-        ],
-        vaults: [],
+      summary: {
+        reachedAmount: csum?.reachedAmount || 0,
+        currentAmount: csum?.currentAmount || 0,
+        blockedAmount: csum?.blockedAmount || 0,
+        donors: csum?.donors || 0,
       },
     }
   }

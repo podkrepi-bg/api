@@ -1,16 +1,4 @@
-FROM bitnami/postgresql:13 AS builder
-
-# Use root
-USER 0
-
-# Create postgres user
-RUN useradd postgres
-
-# Pull fresh repo list
-RUN apt-get clean && \
-    apt-get update -y && \
-    apt-get upgrade -y && \
-    apt-get autoremove -y && apt-get clean
+FROM postgres:13-alpine AS builder
 
 # ===== UNCOMMENT THE BELOW WHEN PG_CRON BECOMES NEEDED ===== 
 
@@ -63,5 +51,3 @@ RUN apt-get clean && \
 # ===== UNCOMMENT THE ABOVE WHEN PG_CRON BECOMES NEEDED ===== 
 
 COPY ./init.d/* /docker-entrypoint-initdb.d/
-
-USER 1001
