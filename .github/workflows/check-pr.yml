@@ -49,6 +49,7 @@ jobs:
           service_account_credentials: ${{ secrets.MONDOO_SECRET }}
           scan_type: docker_image
           docker_image_name: ghcr.io/podkrepi-bg/api/migrations:pr
+          extra_args: --verbose
 
   scan-manifests:
     name: Scan k8s manifests
