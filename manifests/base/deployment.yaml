@@ -88,6 +88,11 @@ spec:
                 secretKeyRef:
                   name: db-api
                   key: url
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: secret
+                  name: jwt-secret
             - name: S3_BUCKET
               value: campaign-files
             - name: KEYCLOAK_URL
