@@ -41,6 +41,7 @@ jobs:
         with:
           push: false
           file: Dockerfile.migrations
+          target: base
           tags: ghcr.io/podkrepi-bg/api/migrations:pr
 
       - name: Scan with Mondoo
