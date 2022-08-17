@@ -19,6 +19,8 @@ spec:
           env:
             - name: APP_ENV
               value: staging
+            - name: APP_URL
+              value: https://dev.podkrepi.bg/
             - name: S3_ENDPOINT
               valueFrom:
                 secretKeyRef:
