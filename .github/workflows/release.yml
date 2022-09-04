@@ -45,7 +45,7 @@ jobs:
             ghcr.io/podkrepi-bg/api:${{ env.VERSION }}
 
       - name: Scan with Mondoo
-        uses: mondoohq/actions@main
+        uses: mondoohq/actions@new_syntax
         with:
           service_account_credentials: ${{ secrets.MONDOO_SECRET }}
           scan_type: docker_image
@@ -87,7 +87,7 @@ jobs:
             ghcr.io/podkrepi-bg/api/migrations:${{ env.VERSION }}
 
       - name: Scan with Mondoo
-        uses: mondoohq/actions@main
+        uses: mondoohq/actions@new_syntax
         with:
           service_account_credentials: ${{ secrets.MONDOO_SECRET }}
           scan_type: docker_image
@@ -139,7 +139,7 @@ jobs:
         run: kustomize build manifests/overlays/development > dev-manifests.yaml
 
       - name: Scan development manifests with Mondoo
-        uses: mondoohq/actions@main
+        uses: mondoohq/actions@new_syntax
         with:
           service_account_credentials: ${{ secrets.MONDOO_SECRET }}
           scan_type: k8s
@@ -149,7 +149,7 @@ jobs:
         run: kustomize build manifests/overlays/production > prod-manifests.yaml
 
       - name: Scan production manifests with Mondoo
-        uses: mondoohq/actions@main
+        uses: mondoohq/actions@new_syntax
         with:
           service_account_credentials: ${{ secrets.MONDOO_SECRET }}
           scan_type: k8s
