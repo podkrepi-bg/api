@@ -44,7 +44,14 @@ export class CampaignService {
       where: { state: { in: [CampaignState.active, CampaignState.complete] } },
       include: {
         campaignType: { select: { category: true } },
-        beneficiary: { select: { person: true } },
+        beneficiary: {
+          select: {
+            id: true,
+            type: true,
+            person: { select: { id: true, firstName: true, lastName: true } },
+            company: { select: { id: true, companyName: true } },
+          },
+        },
         coordinator: { select: { person: true } },
         organizer: { select: { person: true } },
         campaignFiles: true,
@@ -62,7 +69,14 @@ export class CampaignService {
       },
       include: {
         campaignType: { select: { name: true, slug: true } },
-        beneficiary: { select: { person: { select: { firstName: true, lastName: true } } } },
+        beneficiary: {
+          select: {
+            id: true,
+            type: true,
+            person: { select: { id: true, firstName: true, lastName: true } },
+            company: { select: { id: true, companyName: true } },
+          },
+        },
         coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
         organizer: { select: { person: { select: { firstName: true, lastName: true } } } },
         incomingTransfers: { select: { amount: true } },
@@ -173,6 +187,7 @@ export class CampaignService {
             type: true,
             publicData: true,
             person: { select: { id: true, firstName: true, lastName: true } },
+            company: { select: { id: true, companyName: true } },
           },
         },
         coordinator: {
