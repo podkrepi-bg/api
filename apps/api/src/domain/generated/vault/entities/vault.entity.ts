@@ -8,13 +8,13 @@ import { Withdrawal } from '../../withdrawal/entities/withdrawal.entity'
 
 export class Vault {
   id: string
-  name: string
   currency: Currency
   amount: number
-  blockedAmount: number
   campaignId: string
   createdAt: Date
   updatedAt: Date | null
+  name: string
+  blockedAmount: number
   campaign?: Campaign
   donations?: Donation[]
   expenses?: Expense[]

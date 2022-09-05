@@ -37,7 +37,7 @@
     "@nestjs/swagger": "5.2.1",
     "@nestjs/terminus": "8.0.6",
     "@ntegral/nestjs-sentry": "3.0.6",
-    "@prisma/client": "4",
+    "@prisma/client": "^4.3",
     "@sendgrid/client": "7.6.2",
     "@sendgrid/mail": "7.6.0",
     "@sentry/node": "6.19.7",
