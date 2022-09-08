@@ -94,10 +94,10 @@ export class CampaignService {
     if (campaignIds && campaignIds.length > 0) {
       const result = await this.prisma.$queryRaw<CampaignSummaryDto[]>`
       SELECT
-      MAX(d.total) as "reachedAmount",
-      SUM(v.amount) as "currentAmount",
-      SUM(v."blockedAmount") as "blockedAmount",
-      MAX(d.donors) as donors,
+      MAX(d.total)::INTEGER as "reachedAmount",
+      SUM(v.amount)::INTEGER as "currentAmount",
+      SUM(v."blockedAmount")::INTEGER as "blockedAmount",
+      MAX(d.donors)::INTEGER as donors,
       v.campaign_id as id
       FROM api.vaults v
       LEFT join (
@@ -114,10 +114,10 @@ export class CampaignService {
     } else {
       const result = await this.prisma.$queryRaw<CampaignSummaryDto[]>`
       SELECT
-      MAX(d.total) as "reachedAmount",
-      SUM(v.amount) as "currentAmount",
-      SUM(v."blockedAmount") as "blockedAmount",
-      MAX(d.donors) as donors,
+      MAX(d.total)::INTEGER as "reachedAmount",
+      SUM(v.amount)::INTEGER as "currentAmount",
+      SUM(v."blockedAmount")::INTEGER as "blockedAmount",
+      MAX(d.donors)::INTEGER as donors,
       v.campaign_id as id
       FROM api.vaults v
       LEFT join (

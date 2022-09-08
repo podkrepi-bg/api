@@ -1,15 +1,15 @@
 import { CampaignState, Currency } from '@prisma/client'
 import { Person } from '../../person/entities/person.entity'
-import { Organizer } from '../../organizer/entities/organizer.entity'
 import { Beneficiary } from '../../beneficiary/entities/beneficiary.entity'
 import { CampaignType } from '../../campaignType/entities/campaignType.entity'
 import { Coordinator } from '../../coordinator/entities/coordinator.entity'
+import { Organizer } from '../../organizer/entities/organizer.entity'
+import { CampaignFile } from '../../campaignFile/entities/campaignFile.entity'
+import { DonationWish } from '../../donationWish/entities/donationWish.entity'
+import { Irregularity } from '../../irregularity/entities/irregularity.entity'
 import { Transfer } from '../../transfer/entities/transfer.entity'
 import { Vault } from '../../vault/entities/vault.entity'
 import { Withdrawal } from '../../withdrawal/entities/withdrawal.entity'
-import { CampaignFile } from '../../campaignFile/entities/campaignFile.entity'
-import { Irregularity } from '../../irregularity/entities/irregularity.entity'
-import { DonationWish } from '../../donationWish/entities/donationWish.entity'
 
 export class Campaign {
   id: string
@@ -17,14 +17,11 @@ export class Campaign {
   slug: string
   title: string
   essence: string
-  paymentReference: string
-  organizerId: string | null
   coordinatorId: string
   beneficiaryId: string
   campaignTypeId: string
   description: string | null
   targetAmount: number | null
-  allowDonationOnComplete: boolean
   startDate: Date | null
   endDate: Date | null
   createdAt: Date
@@ -32,16 +29,19 @@ export class Campaign {
   deletedAt: Date | null
   approvedById: string | null
   currency: Currency
+  allowDonationOnComplete: boolean
+  paymentReference: string
+  organizerId: string | null
   approvedBy?: Person | null
-  organizer?: Organizer | null
   beneficiary?: Beneficiary
   campaignType?: CampaignType
   coordinator?: Coordinator
+  organizer?: Organizer | null
+  campaignFiles?: CampaignFile[]
+  donationWish?: DonationWish[]
+  irregularities?: Irregularity[]
   outgoingTransfers?: Transfer[]
   incomingTransfers?: Transfer[]
   vaults?: Vault[]
   withdrawals?: Withdrawal[]
-  campaignFiles?: CampaignFile[]
-  irregularities?: Irregularity[]
-  donationWish?: DonationWish[]
 }

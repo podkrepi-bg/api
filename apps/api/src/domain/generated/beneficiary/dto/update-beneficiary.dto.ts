@@ -6,10 +6,10 @@ export class UpdateBeneficiaryDto {
   type?: BeneficiaryType
   countryCode?: string
   @ApiProperty({ enum: PersonRelation })
-  organizerRelation?: PersonRelation
-  @ApiProperty({ enum: PersonRelation })
   coordinatorRelation?: PersonRelation
   description?: string
   privateData?: Prisma.InputJsonValue
   publicData?: Prisma.InputJsonValue
+  @ApiProperty({ enum: PersonRelation })
+  organizerRelation?: PersonRelation
 }

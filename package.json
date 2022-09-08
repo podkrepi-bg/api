@@ -37,7 +37,7 @@
     "@nestjs/swagger": "5.2.1",
     "@nestjs/terminus": "8.0.6",
     "@ntegral/nestjs-sentry": "3.0.6",
-    "@prisma/client": "^3.15.2",
+    "@prisma/client": "^4.3",
     "@sendgrid/client": "7.6.2",
     "@sendgrid/mail": "7.6.0",
     "@sentry/node": "6.19.7",
@@ -77,7 +77,7 @@
     "@types/node": "16.9.1",
     "@typescript-eslint/eslint-plugin": "5.10.2",
     "@typescript-eslint/parser": "5.10.2",
-    "@vegardit/prisma-generator-nestjs-dto": "1.4.0",
+    "@vegardit/prisma-generator-nestjs-dto": "^1.5",
     "eslint": "8.7.0",
     "eslint-config-prettier": "8.3.0",
     "faker": "5.5.3",
@@ -88,8 +88,8 @@
     "lint-staged": "11.1.2",
     "nx": "13.9.3",
     "prettier": "2.6.0",
-    "prisma": "^3.15.2",
-    "prisma-dbml-generator": "0.9.0",
+    "prisma": "^4.3",
+    "prisma-dbml-generator": "^0.9",
     "ts-jest": "27.0.5",
     "ts-node": "10.2.1",
     "typescript": "4.3.5"
@@ -107,6 +107,7 @@
   },
   "resolutions": {
     "set-value": "^4.0.1",
-    "glob-parent": "^5.1.2"
+    "glob-parent": "^5.1.2",
+    "undici": "^5.8.2"
   }
 }

@@ -3,7 +3,6 @@ export class CreatePersonDto {
   lastName: string
   email: string
   phone?: string
-  picture?: string
   company?: string
   newsletter?: boolean
   address?: string
@@ -12,4 +11,5 @@ export class CreatePersonDto {
   personalNumber?: string
   keycloakId?: string
   stripeCustomerId?: string
+  picture?: string
 }

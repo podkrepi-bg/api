@@ -11,8 +11,8 @@ export class Irregularity {
   updatedAt: Date | null
   status: IrregularityStatus
   reason: IrregularityReason
-  notifierType: NotifierType
   description: string
+  notifierType: NotifierType
   campaign?: Campaign
   person?: Person
   files?: IrregularityFile[]

@@ -7,6 +7,6 @@ export class CreateDonationDto {
   extCustomerId: string
   extPaymentIntentId: string
   extPaymentMethodId: string
-  billingName?: string
   billingEmail?: string
+  billingName?: string
 }
