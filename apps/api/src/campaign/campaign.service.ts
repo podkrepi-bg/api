@@ -108,7 +108,7 @@ export class CampaignService {
         ) as d
         on d.target_vault_id = v.id
       GROUP BY v.campaign_id
-      HAVING v.campaign_id in (${Prisma.join(campaignIds)})
+      HAVING v.campaign_id::TEXT in (${Prisma.join(campaignIds)})
       `
       campaignSums = result || []
     } else {
