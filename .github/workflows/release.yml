@@ -45,11 +45,10 @@ jobs:
             ghcr.io/podkrepi-bg/api:${{ env.VERSION }}
 
       - name: Scan with Mondoo
-        uses: mondoohq/actions@new_syntax
+        uses: mondoohq/actions/docker-image@main
         with:
-          service_account_credentials: ${{ secrets.MONDOO_SECRET }}
-          scan_type: docker_image
-          docker_image_name: ghcr.io/podkrepi-bg/api:${{ env.VERSION }}
+          service-account-credentials: ${{ secrets.MONDOO_SECRET }}
+          image: ghcr.io/podkrepi-bg/api:${{ env.VERSION }}
 
   build-migrations-docker-image:
     name: Build migrations docker image
@@ -87,11 +86,10 @@ jobs:
             ghcr.io/podkrepi-bg/api/migrations:${{ env.VERSION }}
 
       - name: Scan with Mondoo
-        uses: mondoohq/actions@new_syntax
+        uses: mondoohq/actions/docker-image@main
         with:
-          service_account_credentials: ${{ secrets.MONDOO_SECRET }}
-          scan_type: docker_image
-          docker_image_name: ghcr.io/podkrepi-bg/api/migrations:${{ env.VERSION }}
+          service-account-credentials: ${{ secrets.MONDOO_SECRET }}
+          image: ghcr.io/podkrepi-bg/api/migrations:${{ env.VERSION }}
 
   build-seed-docker-image:
     name: Build seed docker image
@@ -139,20 +137,18 @@ jobs:
         run: kustomize build manifests/overlays/development > dev-manifests.yaml
 
       - name: Scan development manifests with Mondoo
-        uses: mondoohq/actions@new_syntax
+        uses: mondoohq/actions/k8s-manifest@main
         with:
-          service_account_credentials: ${{ secrets.MONDOO_SECRET }}
-          scan_type: k8s
+          service-account-credentials: ${{ secrets.MONDOO_SECRET }}
           path: dev-manifests.yaml
 
       - name: Build production manifests
         run: kustomize build manifests/overlays/production > prod-manifests.yaml
 
       - name: Scan production manifests with Mondoo
-        uses: mondoohq/actions@new_syntax
+        uses: mondoohq/actions/k8s-manifest@main
         with:
-          service_account_credentials: ${{ secrets.MONDOO_SECRET }}
-          scan_type: k8s
+          service-account-credentials: ${{ secrets.MONDOO_SECRET }}
           path: prod-manifests.yaml
 
   release-dev:
