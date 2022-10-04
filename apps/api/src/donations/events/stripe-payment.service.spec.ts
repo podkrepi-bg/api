@@ -206,13 +206,13 @@ describe('StripePaymentService', () => {
   it('calculate payment-intent.succeeded with BG tax included in charge', async () => {
     const billingDetails = getPaymentData(mockPaymentIntentBGIncluded)
     expect(billingDetails.netAmount).toEqual(1000)
-    expect(billingDetails.chargedAmount).toEqual(1065)
+    expect(billingDetails.chargedAmount).toEqual(1063)
   })
 })
 
 it('calculate payment-intent.succeeded with BG tax not included in charge', async () => {
   const billingDetails = getPaymentData(mockPaymentIntentBGIncludedNot)
-  expect(billingDetails.netAmount).toEqual(936)
+  expect(billingDetails.netAmount).toEqual(938)
   expect(billingDetails.chargedAmount).toEqual(1000)
 })
 
