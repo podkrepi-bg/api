@@ -29,7 +29,7 @@ export class CampaignController {
   constructor(
     private readonly campaignService: CampaignService,
     @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
-  ) {}
+  ) { }
 
   @Get('list')
   @Public()
@@ -91,6 +91,11 @@ export class CampaignController {
   })
   async findOne(@Param('id') id: string) {
     return this.campaignService.getCampaignById(id)
+  }
+  @Get('getUserCampaigns/:id')
+  @Public()
+  async findUserCampaigns(@Param('id') id: string) {
+    return this.campaignService.getUserCampaigns(id)
   }
 
   @Get('donations/:id')
