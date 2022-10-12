@@ -46,6 +46,18 @@ export class CampaignController {
     return this.campaignService.listAllCampaigns()
   }
 
+  @Get('get-user-campaigns')
+  async findUserCampaigns(@AuthenticatedUser() user: KeycloakTokenParsed) {
+    const person = await this.personService.findOneByKeycloakId(user.sub)
+
+    if (!person) {
+      Logger.error('No person found in database for logged user: ' + user.name)
+      throw new NotFoundException('No person found for logged user: ' + user.name)
+    }
+
+    return this.campaignService.getUserCampaigns(person?.id)
+  }
+
   @Get(':slug')
   @Public()
   async viewBySlug(@Param('slug') slug: string): Promise<{ campaign: Campaign | null }> {
@@ -92,11 +104,7 @@ export class CampaignController {
   async findOne(@Param('id') id: string) {
     return this.campaignService.getCampaignById(id)
   }
-  @Get('getUserCampaigns/:id')
-  @Public()
-  async findUserCampaigns(@Param('id') id: string) {
-    return this.campaignService.getUserCampaigns(id)
-  }
+
 
   @Get('donations/:id')
   @ApiQuery({ name: 'pageindex', required: false, type: Number })
