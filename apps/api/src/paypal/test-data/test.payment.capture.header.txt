@@ -1,0 +1,6 @@
+paypal-auth-algo: SHA256withRSA
+paypal-cert-url: https://api.sandbox.paypal.com/v1/notifications/certs/CERT-360caa42-fca2a594-5a29e601
+paypal-auth-version: v2
+paypal-transmission-sig:  jBNiBX0O3C1tJAOgykTYdfEBY7mMvBHmh1WThAlTkvDgik/He2YQ7HHV8BJG37TH/66OdFnQGq5vxUQ4mcrKs058RUDl1//Fn/Jrp016VX6eJ3o703KHX1lzUwR+nWXsx66+xKb0cxKxaHS9Ke3NBdp4i7d9Lnoi87NRfxUqdZ7n9f7cqqm7tvcBp5SkWrgQcJFONupwnmtDzTQQmRmS62bbd7idryyHHbQJ0nQlU0pwfLuhVlOv+OBKPJKieZn8sfsZO1MoLgNRMtlPlKtL3+FMKbhW3Um0rJ9NbilN5yBvyU/kw2fVPYuMazzcveWygpks6KJbKVHm5oJ08GmIOQ==
+paypal-transmission-time: 2022-10-10T11:39:56Z
+paypal-transmission-id: 43abb390-4890-11ed-99ae-addd9185388c
