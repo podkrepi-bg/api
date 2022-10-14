@@ -1,0 +1,102 @@
+{
+  "id": "WH-9AR30073AN139392C-9UR43034TE556804M",
+  "event_version": "1.0",
+  "create_time": "2022-10-10T11:39:52.382Z",
+  "resource_type": "checkout-order",
+  "resource_version": "2.0",
+  "event_type": "CHECKOUT.ORDER.APPROVED",
+  "summary": "An order has been approved by buyer",
+  "resource": {
+    "update_time": "2022-10-10T11:39:48Z",
+    "create_time": "2022-10-10T11:39:34Z",
+    "purchase_units": [
+      {
+        "reference_id": "default",
+        "amount": { "currency_code": "USD", "value": "100.00" },
+        "payee": {
+          "email_address": "sb-qjclk21146601@business.example.com",
+          "merchant_id": "D5AWZU4QZUB3L"
+        },
+        "description": "donation for campaign:e8a2a1e8-f8e7-44c8-9d07-e7186cd2df44",
+        "custom_id": "e8a2a1e8-f8e7-44c8-9d07-e7186cd2df44",
+        "soft_descriptor": "PAYPAL *TEST STORE",
+        "shipping": {
+          "name": { "full_name": "John Doe" },
+          "address": {
+            "address_line_1": "Free Trade Zone",
+            "admin_area_2": "Sofia",
+            "postal_code": "1172",
+            "country_code": "BG"
+          }
+        },
+        "payments": {
+          "captures": [
+            {
+              "id": "0CR98899N3573252K",
+              "status": "COMPLETED",
+              "amount": { "currency_code": "USD", "value": "100.00" },
+              "final_capture": true,
+              "seller_protection": {
+                "status": "ELIGIBLE",
+                "dispute_categories": ["ITEM_NOT_RECEIVED", "UNAUTHORIZED_TRANSACTION"]
+              },
+              "seller_receivable_breakdown": {
+                "gross_amount": { "currency_code": "USD", "value": "100.00" },
+                "paypal_fee": { "currency_code": "USD", "value": "3.70" },
+                "net_amount": { "currency_code": "USD", "value": "96.30" }
+              },
+              "links": [
+                {
+                  "href": "https://api.sandbox.paypal.com/v2/payments/captures/0CR98899N3573252K",
+                  "rel": "self",
+                  "method": "GET"
+                },
+                {
+                  "href": "https://api.sandbox.paypal.com/v2/payments/captures/0CR98899N3573252K/refund",
+                  "rel": "refund",
+                  "method": "POST"
+                },
+                {
+                  "href": "https://api.sandbox.paypal.com/v2/checkout/orders/4TR02727EC3239828",
+                  "rel": "up",
+                  "method": "GET"
+                }
+              ],
+              "create_time": "2022-10-10T11:39:48Z",
+              "update_time": "2022-10-10T11:39:48Z"
+            }
+          ]
+        }
+      }
+    ],
+    "links": [
+      {
+        "href": "https://api.sandbox.paypal.com/v2/checkout/orders/4TR02727EC3239828",
+        "rel": "self",
+        "method": "GET"
+      }
+    ],
+    "id": "4TR02727EC3239828",
+    "payment_source": { "paypal": {} },
+    "intent": "CAPTURE",
+    "payer": {
+      "name": { "given_name": "John", "surname": "Doe" },
+      "email_address": "sb-gn1nl20354867@personal.example.com",
+      "payer_id": "AE5YFTDATF7HC",
+      "address": { "country_code": "BG" }
+    },
+    "status": "COMPLETED"
+  },
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-9AR30073AN139392C-9UR43034TE556804M",
+      "rel": "self",
+      "method": "GET"
+    },
+    {
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-9AR30073AN139392C-9UR43034TE556804M/resend",
+      "rel": "resend",
+      "method": "POST"
+    }
+  ]
+}

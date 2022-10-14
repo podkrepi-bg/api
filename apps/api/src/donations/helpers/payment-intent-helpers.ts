@@ -1,3 +1,4 @@
+import { PaymentProvider } from '@prisma/client'
 import Stripe from 'stripe'
 import { getCountryRegion, stripeFeeCalculator } from './stripe-fee-calculator'
 
@@ -24,6 +25,7 @@ export type PaymentData = {
   billingEmail?: string
   paymentMethodId?: string
   stripeCustomerId?: string
+  paymentProvider: PaymentProvider
 }
 
 export function getPaymentData(paymentIntent: Stripe.PaymentIntent): PaymentData {
@@ -35,6 +37,7 @@ export function getPaymentData(paymentIntent: Stripe.PaymentIntent): PaymentData
   }
 
   return {
+    paymentProvider: PaymentProvider.stripe,
     paymentIntentId: paymentIntent.id,
     //netAmount is 0 until we receive a payment_intent.successful event where charges array contains the card country
     netAmount:
