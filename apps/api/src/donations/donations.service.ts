@@ -23,6 +23,7 @@ import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
 import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
+import { CampaignSummaryDto } from '../campaign/dto/campaign-summary.dto'
 
 @Injectable()
 export class DonationsService {
@@ -32,7 +33,7 @@ export class DonationsService {
     private campaignService: CampaignService,
     private prisma: PrismaService,
     private vaultService: VaultService,
-  ) {}
+  ) { }
 
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
     const list = await this.stripeClient.prices.list({ active, type })
@@ -59,9 +60,9 @@ export class DonationsService {
     const vault = await this.prisma.vault.findFirst({ where: { campaignId: campaign.id } })
     const targetVaultData = vault
       ? // Connect the existing vault to this donation
-        { connect: { id: vault.id } }
+      { connect: { id: vault.id } }
       : // Create new vault for the campaign
-        { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
+      { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
     /**
      * Create initial donation object
      */
@@ -370,6 +371,41 @@ export class DonationsService {
     return { donations, total }
   }
 
+  async getUserDonatedCampaigns(keycloakId: string) {
+    const donations = await this.prisma.donation.findMany({
+      where: { person: { keycloakId } },
+      distinct: ['targetVaultId'],
+      orderBy: [{ createdAt: 'desc' }],
+      include: {
+        targetVault: {
+          include: {
+            campaign: {
+              include: {
+                campaignType: { select: { name: true, slug: true } },
+                beneficiary: {
+                  select: {
+                    id: true,
+                    type: true,
+                    person: { select: { id: true, firstName: true, lastName: true } },
+                    company: { select: { id: true, companyName: true } },
+                  },
+                },
+                coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
+                organizer: { select: { person: { select: { firstName: true, lastName: true } } } },
+                incomingTransfers: { select: { amount: true } },
+                outgoingTransfers: { select: { amount: true } },
+              },
+            }
+          },
+        },
+      },
+    })
+    const campaigns = donations.map((donation) => donation.targetVault.campaign)
+    const campaignSums = await this.campaignService.getCampaignSums()
+
+    return campaigns.map((c) => this.addVaultAndDonationSummaries(c, campaignSums))
+  }
+
   async createDonationWish(message: string, donationId: string, campaignId: string) {
     const person = await this.prisma.donation.findUnique({ where: { id: donationId } }).person()
     await this.prisma.donationWish.create({
@@ -380,5 +416,18 @@ export class DonationsService {
         personId: person?.id,
       },
     })
+  }
+
+  private addVaultAndDonationSummaries(campaign: Campaign, campaignSums: CampaignSummaryDto[]) {
+    const csum = campaignSums.find((e) => e.id === campaign.id)
+    return {
+      ...campaign,
+      summary: {
+        reachedAmount: csum?.reachedAmount || 0,
+        currentAmount: csum?.currentAmount || 0,
+        blockedAmount: csum?.blockedAmount || 0,
+        donors: csum?.donors || 0,
+      },
+    }
   }
 }

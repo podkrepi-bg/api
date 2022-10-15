@@ -23,7 +23,7 @@ import { PagingQueryDto } from '../common/dto/paging-query-dto'
 
 @Controller('donation')
 export class DonationsController {
-  constructor(private readonly donationsService: DonationsService) {}
+  constructor(private readonly donationsService: DonationsService) { }
 
   @Post('create-checkout-session')
   @Public()
@@ -52,6 +52,11 @@ export class DonationsController {
   @Get('user-donations')
   async userDonations(@AuthenticatedUser() user: KeycloakTokenParsed) {
     return await this.donationsService.getDonationsByUser(user.sub)
+  }
+
+  @Get('user-donations-campaigns')
+  async getUserDonatedCampaigns(@AuthenticatedUser() user: KeycloakTokenParsed) {
+    return await this.donationsService.getUserDonatedCampaigns(user.sub)
   }
 
   @Get('listPublic')
