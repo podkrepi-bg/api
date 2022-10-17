@@ -23,3 +23,5 @@ images:
 #    envs: [keycloak-secret.env]
 #  - name: sendgrid-secret
 #    envs: [sendgrid-secret.env]
+#  - name: paypal-secret
+#    envs: [paypal.env]

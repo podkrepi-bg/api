@@ -167,3 +167,20 @@ spec:
                 configMapKeyRef:
                   name: sentry-config
                   key: server-root-dir
+            - name: PAYPAL_URL
+              value: https://api-m.sandbox.paypal.com/
+            - name: PAYPAL_CLIENT_ID
+              valueFrom:
+                secretKeyRef: 
+                  name: paypal-secret
+                  key: client-id
+            - name: PAYPAL_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef: 
+                  name: paypal-secret
+                  key: client-secret
+            - name: PAYPAL_WEBHOOK_ID
+              valueFrom:
+                secretKeyRef: 
+                  name: paypal-secret
+                  key: webhook-id
