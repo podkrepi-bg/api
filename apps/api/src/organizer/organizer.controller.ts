@@ -4,7 +4,9 @@ import { CreateOrganizerDto } from './dto/create-organizer.dto'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { KeycloakTokenParsed } from '../auth/keycloak'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('organizer')
 @Controller('organizer')
 export class OrganizerController {
   constructor(private readonly organizerService: OrganizerService) {}

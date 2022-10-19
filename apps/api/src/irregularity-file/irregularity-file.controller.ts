@@ -20,7 +20,9 @@ import { PersonService } from '../person/person.service'
 import { IrregularityFileService } from './irregularity-file.service'
 import { RealmViewContactRequests, ViewContactRequests } from '@podkrepi-bg/podkrepi-types'
 import { IrregularityService } from '../irregularity/irregularity.service'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('irregularity-file')
 @Controller('irregularity-file')
 export class IrregularityFileController {
   constructor(

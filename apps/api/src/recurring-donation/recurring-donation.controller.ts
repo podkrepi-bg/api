@@ -5,7 +5,9 @@ import { RecurringDonationService } from './recurring-donation.service'
 import { CreateRecurringDonationDto } from './dto/create-recurring-donation.dto'
 import { UpdateRecurringDonationDto } from './dto/update-recurring-donation.dto'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('recurring-donation')
 @Controller('recurring-donation')
 export class RecurringDonationController {
   constructor(private readonly recurringDonationService: RecurringDonationService) {}
