@@ -29,7 +29,7 @@ export class CampaignController {
   constructor(
     private readonly campaignService: CampaignService,
     @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
-  ) {}
+  ) { }
 
   @Get('list')
   @Public()
@@ -44,6 +44,23 @@ export class CampaignController {
   })
   async getAdminList() {
     return this.campaignService.listAllCampaigns()
+  }
+
+  @Get('get-user-campaigns')
+  async findUserCampaigns(@AuthenticatedUser() user: KeycloakTokenParsed) {
+    const person = await this.personService.findOneByKeycloakId(user.sub)
+
+    if (!person) {
+      Logger.error('No person found in database for logged user: ' + user.name)
+      throw new NotFoundException('No person found for logged user: ' + user.name)
+    }
+
+    return this.campaignService.getUserCampaigns(person?.id)
+  }
+
+  @Get('user-donations-campaigns')
+  async getUserDonatedCampaigns(@AuthenticatedUser() user: KeycloakTokenParsed) {
+    return await this.campaignService.getUserDonatedCampaigns(user.sub)
   }
 
   @Get(':slug')

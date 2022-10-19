@@ -54,11 +54,6 @@ export class DonationsController {
     return await this.donationsService.getDonationsByUser(user.sub)
   }
 
-  @Get('user-donations-campaigns')
-  async getUserDonatedCampaigns(@AuthenticatedUser() user: KeycloakTokenParsed) {
-    return await this.donationsService.getUserDonatedCampaigns(user.sub)
-  }
-
   @Get('listPublic')
   @Public()
   @ApiQuery({ name: 'campaignId', required: false, type: String })
