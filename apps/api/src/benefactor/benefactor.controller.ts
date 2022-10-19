@@ -5,7 +5,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { BenefactorService } from './benefactor.service'
 import { CreateBenefactorDto } from './dto/create-benefactor.dto'
 import { UpdateBenefactorDto } from './dto/update-benefactor.dto'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('benefactor')
 @Controller('benefactor')
 export class BenefactorController {
   constructor(private readonly benefactorService: BenefactorService) {}

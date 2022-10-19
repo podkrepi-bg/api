@@ -27,7 +27,9 @@ import { DonationsService } from '../donations/donations.service'
 import { parseBankTransactionsFile } from './helpers/parser'
 import { DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
 import { CreateManyBankPaymentsDto } from '../donations/dto/create-many-bank-payments.dto'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('bank-transactions-file')
 @Controller('bank-transactions-file')
 export class BankTransactionsFileController {
   constructor(
