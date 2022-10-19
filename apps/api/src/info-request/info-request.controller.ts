@@ -5,7 +5,9 @@ import { InfoRequestService } from './info-request.service'
 import { UpdateInfoRequestDto } from './dto/update-info-request.dto'
 import { Public } from 'nest-keycloak-connect'
 import { CreateInquiryDto } from '../support/dto/create-inquiry.dto'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('info-request')
 @Controller('info-request')
 export class InfoRequestController {
   constructor(private readonly infoRequestService: InfoRequestService) {}

@@ -2,7 +2,9 @@ import { Controller, Logger, Post, Req, RawBodyRequest, BadRequestException } fr
 import { Request } from 'express'
 import { Public } from 'nest-keycloak-connect'
 import { PaypalService } from './paypal.service'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('paypal')
 @Controller('paypal')
 export class PaypalController {
   constructor(private readonly paypalService: PaypalService) {}
