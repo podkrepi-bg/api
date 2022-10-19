@@ -4,7 +4,9 @@ import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { IrregularityService } from './irregularity.service'
 import { CreateIrregularityDto } from './dto/create-irregularity.dto'
 import { UpdateIrregularityDto } from './dto/update-irregularity.dto'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('irregularity')
 @Controller('irregularity')
 export class IrregularityController {
   constructor(private readonly irregularityService: IrregularityService) {}

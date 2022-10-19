@@ -4,7 +4,9 @@ import { RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { WithdrawalService } from './withdrawal.service'
 import { CreateWithdrawalDto } from './dto/create-withdrawal.dto'
 import { UpdateWithdrawalDto } from './dto/update-withdrawal.dto'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('withdrawal')
 @Controller('withdrawal')
 export class WithdrawalController {
   constructor(private readonly withdrawalService: WithdrawalService) {}

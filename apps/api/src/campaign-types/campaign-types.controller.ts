@@ -4,7 +4,9 @@ import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { CampaignTypesService } from './campaign-types.service'
 import { CreateCampaignTypeDto } from './dto/create-campaign-type.dto'
 import { UpdateCampaignTypeDto } from './dto/update-campaign-type.dto'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('campaign-types')
 @Controller('campaign-types')
 export class CampaignTypesController {
   constructor(private readonly campaignTypesService: CampaignTypesService) {}

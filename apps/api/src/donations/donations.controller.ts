@@ -20,7 +20,9 @@ import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { DonationStatus } from '@prisma/client'
 import { PagingQueryDto } from '../common/dto/paging-query-dto'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('donation')
 @Controller('donation')
 export class DonationsController {
   constructor(private readonly donationsService: DonationsService) { }

@@ -5,7 +5,9 @@ import { AuthService } from './auth.service'
 import { ForgottenPasswordEmailDto } from './dto/forgot-password.dto'
 import { LoginDto } from './dto/login.dto'
 import { NewPasswordDto } from './dto/recovery-password.dto'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('login')
 @Controller('login')
 @Resource('login')
 export class LoginController {
