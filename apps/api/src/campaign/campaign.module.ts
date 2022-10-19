@@ -12,5 +12,6 @@ import { CampaignService } from './campaign.service'
   imports: [forwardRef(() => VaultModule)],
   controllers: [CampaignController, CampaignTypeController],
   providers: [CampaignService, PrismaService, VaultService, PersonService, ConfigService],
+  exports: [CampaignService],
 })
 export class CampaignModule {}

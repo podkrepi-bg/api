@@ -20,8 +20,10 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule, {
     bodyParser: false, // Body parsing is enabled later on via middlewares
+    rawBody: true,
     logger: isDevConfig ? ['debug', 'verbose', ...logLevels] : logLevels,
   })
+
   app.setGlobalPrefix(globalPrefix)
   app.enableVersioning({ type: VersioningType.URI })
 

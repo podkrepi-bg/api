@@ -1,8 +1,4 @@
-import {
-  JsonBodyMiddleware,
-  RawBodyMiddleware,
-  applyRawBodyOnlyTo,
-} from '@golevelup/nestjs-webhooks'
+import { applyRawBodyOnlyTo } from '@golevelup/nestjs-webhooks'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { SentryInterceptor, SentryModule } from '@ntegral/nestjs-sentry'
@@ -49,13 +45,11 @@ import { BankTransactionsFileModule } from '../bank-transactions-file/bank-trans
 import { OrganizerModule } from '../organizer/organizer.module'
 import { DonationWishModule } from '../donation-wish/donation-wish.module'
 import { ApiLoggerMiddleware } from './middleware/apilogger.middleware'
+import { PaypalModule } from '../paypal/paypal.module'
 
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
-    /* Middlewares */
-    JsonBodyMiddleware,
-    RawBodyMiddleware,
     /* External modules */
     SentryModule.forRootAsync({
       imports: [ConfigModule],
@@ -95,6 +89,7 @@ import { ApiLoggerMiddleware } from './middleware/apilogger.middleware'
     BankTransactionsFileModule,
     OrganizerModule,
     DonationWishModule,
+    PaypalModule,
   ],
   controllers: [AppController],
   providers: [
@@ -135,9 +130,20 @@ export class AppModule implements NestModule {
      * Pass raw body for Stripe processing on single endpoint
      * @url https://github.com/golevelup/nestjs/tree/master/packages/webhooks
      */
+
     applyRawBodyOnlyTo(consumer, {
       method: RequestMethod.ALL,
       path: 'stripe/webhook',
+    })
+
+    /**
+     * Enabling rawBody for correct paypal webhook verification, by using Stripe middleware.
+     * Unfortunately the standard NestJS way didn't work as per these instructions:
+     * https://docs.nestjs.com/faq/raw-body
+     */
+    applyRawBodyOnlyTo(consumer, {
+      method: RequestMethod.ALL,
+      path: 'paypal/webhook',
     })
     // add HTTP request logging
     consumer.apply(ApiLoggerMiddleware).forRoutes('*')

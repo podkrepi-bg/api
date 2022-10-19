@@ -5,10 +5,10 @@ import { PrismaService } from '../prisma/prisma.service'
 import { S3Service } from '../s3/s3.service'
 import { PersonService } from '../person/person.service'
 import { IrregularityService } from '../irregularity/irregularity.service'
-import { ConfigService } from '@nestjs/config'
+import { ConfigModule } from '@nestjs/config'
 
 @Module({
-  imports: [ConfigService],
+  imports: [ConfigModule],
   controllers: [IrregularityFileController],
   providers: [
     IrregularityFileService,
@@ -16,7 +16,6 @@ import { ConfigService } from '@nestjs/config'
     PrismaService,
     S3Service,
     PersonService,
-    ConfigService,
   ],
 })
 export class IrregularityFileModule {}

@@ -5,7 +5,6 @@ import {
   Donation,
   DonationStatus,
   DonationType,
-  PaymentProvider,
   Vault,
 } from '.prisma/client'
 import {
@@ -360,7 +359,7 @@ export class CampaignService {
     newDonationStatus: DonationStatus,
   ) {
     const campaignId = campaign.id
-    Logger.debug('[Stripe webhook] Update donation to status: ' + newDonationStatus, {
+    Logger.debug('Update donation to status: ' + newDonationStatus, {
       campaignId,
       paymentIntentId: paymentData.paymentIntentId,
     })
@@ -398,7 +397,7 @@ export class CampaignService {
             chargedAmount: paymentData.chargedAmount,
             currency: campaign.currency,
             targetVault: targetVaultData,
-            provider: PaymentProvider.stripe,
+            provider: paymentData.paymentProvider,
             type: DonationType.donation,
             status: newDonationStatus,
             extCustomerId: paymentData.stripeCustomerId ?? '',
@@ -410,7 +409,7 @@ export class CampaignService {
         })
       } catch (error) {
         Logger.error(
-          `[Stripe webhook] Error while creating donation with paymentIntentId: ${paymentData.paymentIntentId} and status: ${newDonationStatus} . Error is: ${error}`,
+          `Error while creating donation with paymentIntentId: ${paymentData.paymentIntentId} and status: ${newDonationStatus} . Error is: ${error}`,
         )
         throw new InternalServerErrorException(error)
       }
@@ -438,7 +437,7 @@ export class CampaignService {
         })
       } catch (error) {
         Logger.error(
-          `[Stripe webhook] Error wile updating donation with paymentIntentId: ${paymentData.paymentIntentId} in database. Error is: ${error}`,
+          `Error wile updating donation with paymentIntentId: ${paymentData.paymentIntentId} in database. Error is: ${error}`,
         )
         throw new InternalServerErrorException(error)
       }
@@ -446,14 +445,14 @@ export class CampaignService {
     //donation exists but we need to skip because previous status is from later event than the incoming
     else {
       Logger.warn(
-        `[Stripe webhook] Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId}
+        `Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId}
         and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
       )
     }
   }
 
   async donateToCampaign(campaign: Campaign, paymentData: PaymentData) {
-    Logger.debug('[Stripe webhook] update amounts with successful donation', {
+    Logger.debug('Update amounts with successful donation', {
       campaignId: campaign.id,
       paymentIntentId: paymentData.paymentIntentId,
       netAmount: paymentData.netAmount,

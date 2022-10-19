@@ -26,11 +26,7 @@ describe('AuthService', () => {
   let service: AuthService
   let config: ConfigService
   let admin: KeycloakAdminClient
-  let httpService: HttpService
   let keycloak: KeycloakConnect.Keycloak
-  let sendEmail: EmailService
-  let jwtService: JwtService
-  let templateService: TemplateService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -78,10 +74,6 @@ describe('AuthService', () => {
     config = module.get<ConfigService>(ConfigService)
     admin = module.get<KeycloakAdminClient>(KeycloakAdminClient)
     keycloak = module.get<KeycloakConnect.Keycloak>(KEYCLOAK_INSTANCE)
-    httpService = module.get<HttpService>(HttpService)
-    sendEmail = module.get<EmailService>(EmailService)
-    jwtService = module.get<JwtService>(JwtService)
-    templateService = module.get<TemplateService>(TemplateService)
   })
 
   it('should be defined', () => {
