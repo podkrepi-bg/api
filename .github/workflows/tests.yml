@@ -33,7 +33,7 @@ jobs:
       - name: Migrate database
         run: yarn prisma migrate deploy
       - name: NX Build and lint API # https://github.com/marketplace/actions/nrwl-nx
-        uses: MansaGroup/nrwl-nx-action@v2
+        uses: MansaGroup/nrwl-nx-action@v3
         with:
           targets: lint,build
           projects: api
