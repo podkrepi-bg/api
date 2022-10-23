@@ -117,7 +117,7 @@ export class CampaignController {
       Logger.error('No person found in database for logged user: ' + user.name)
       throw new NotFoundException('No person found for logged user: ' + user.name)
     }
-    if (personId === campaign?.beneficiary.id ||
+    if (personId === campaign?.beneficiary.person?.id ||
       personId === campaign?.organizer?.person.id ||
       personId === campaign?.coordinator.person.id ||
       isAdmin(user))

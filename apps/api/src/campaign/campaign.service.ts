@@ -166,11 +166,7 @@ export class CampaignService {
     const campaign = await this.prisma.campaign.findFirst({
       where: { id: id },
       include: {
-        beneficiary: {
-          select: {
-            id: true,
-          },
-        },
+        beneficiary: { select: { person: { select: { id: true } } } },
         coordinator: { select: { person: { select: { id: true } } } },
         organizer: { select: { person: { select: { id: true } } } },
       },
