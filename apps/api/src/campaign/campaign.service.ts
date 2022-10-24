@@ -151,10 +151,10 @@ export class CampaignService {
     return this.addVaultAndDonationSummaries(campaign, campaignSums)
   }
 
-  async getUserCampaigns(id: string): Promise<Campaign[]> {
+  async getUserCampaigns(keycloakId: string): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({
       where: {
-        OR: [{ beneficiary: { person: { id: id } } }, { coordinator: { person: { id: id } } }, { organizer: { person: { id: id } } }]
+        OR: [{ beneficiary: { person: { keycloakId } } }, { coordinator: { person: { keycloakId } } }, { organizer: { person: { keycloakId } } }]
       },
       orderBy: {
         endDate: 'asc',
