@@ -121,19 +121,13 @@ export class CampaignController {
   })
   async update(@Param('id') id: string, @Body() updateCampaignDto: UpdateCampaignDto, @AuthenticatedUser() user: KeycloakTokenParsed) {
     const campaign = await this.campaignService.getCampaignByIdWithPersonIds(id)
-    const person = await this.personService.findOneByKeycloakId(user.sub)
-    const personId = person?.id
-    if (!person) {
-      Logger.error('No person found in database for logged user: ' + user.name)
-      throw new NotFoundException('No person found for logged user: ' + user.name)
-    }
-    if (personId === campaign?.beneficiary.person?.id ||
-      personId === campaign?.organizer?.person.id ||
-      personId === campaign?.coordinator.person.id ||
+    if (user.sub === campaign?.beneficiary.person?.keycloakId ||
+      user.sub === campaign?.organizer?.person.keycloakId ||
+      user.sub === campaign?.coordinator.person.keycloakId ||
       isAdmin(user))
       return this.campaignService.update(id, updateCampaignDto)
     else
-      throw new BadRequestException("The user is not coordinator,organizer,beneficiery to the requested campaign")
+      throw new BadRequestException("The user is not coordinator,organizer or beneficiery to the requested campaign")
   }
 
   @Delete(':id')
