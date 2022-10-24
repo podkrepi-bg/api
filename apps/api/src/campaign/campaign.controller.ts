@@ -24,7 +24,7 @@ import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { PersonService } from '../person/person.service'
 import { ApiQuery } from '@nestjs/swagger'
 import { PagingQueryDto } from '../common/dto/paging-query-dto'
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger'
 
 @ApiTags('campaign')
 @Controller('campaign')
@@ -32,7 +32,7 @@ export class CampaignController {
   constructor(
     private readonly campaignService: CampaignService,
     @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
-  ) { }
+  ) {}
 
   @Get('list')
   @Public()

@@ -32,7 +32,7 @@ export class DonationsService {
     private campaignService: CampaignService,
     private prisma: PrismaService,
     private vaultService: VaultService,
-  ) { }
+  ) {}
 
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
     const list = await this.stripeClient.prices.list({ active, type })
@@ -59,9 +59,9 @@ export class DonationsService {
     const vault = await this.prisma.vault.findFirst({ where: { campaignId: campaign.id } })
     const targetVaultData = vault
       ? // Connect the existing vault to this donation
-      { connect: { id: vault.id } }
+        { connect: { id: vault.id } }
       : // Create new vault for the campaign
-      { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
+        { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
     /**
      * Create initial donation object
      */
