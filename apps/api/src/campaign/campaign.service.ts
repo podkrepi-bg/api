@@ -41,18 +41,64 @@ export class CampaignService {
         endDate: 'asc',
       },
       where: { state: { in: [CampaignState.active, CampaignState.complete] } },
-      include: {
-        campaignType: { select: { category: true } },
+      select: {
+        id: true,
+        state: true,
+        slug: true,
+        title: true,
+        essence: true,
+        paymentReference: true,
+        description: true,
+        targetAmount: true,
+        allowDonationOnComplete: true,
+        currency: true,
+        startDate: true,
+        endDate: true,
+        createdAt: true,
+        updatedAt: true,
+        deletedAt: true,
+        campaignType: {
+          select: {
+            slug: true,
+            name: true,
+            category: true
+          }
+        },
         beneficiary: {
           select: {
             id: true,
             type: true,
+            publicData: true,
             person: { select: { id: true, firstName: true, lastName: true } },
             company: { select: { id: true, companyName: true } },
-          },
+          }
         },
-        coordinator: { select: { person: true } },
-        organizer: { select: { person: true } },
+        coordinator: {
+          select: {
+            id: true,
+            person: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              }
+            }
+          }
+        },
+        organizer: {
+          select: {
+            id: true,
+            person: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              }
+            }
+          }
+        },
         campaignFiles: true,
       },
     })
@@ -66,20 +112,57 @@ export class CampaignService {
       orderBy: {
         endDate: 'asc',
       },
-      include: {
-        campaignType: { select: { name: true, slug: true } },
+      select: {
+        id: true,
+        state: true,
+        slug: true,
+        title: true,
+        essence: true,
+        paymentReference: true,
+        description: true,
+        targetAmount: true,
+        allowDonationOnComplete: true,
+        currency: true,
+        startDate: true,
+        endDate: true,
+        createdAt: true,
+        updatedAt: true,
+        deletedAt: true,
+        campaignType: {
+          select: {
+            slug: true,
+            name: true,
+          }
+        },
         beneficiary: {
           select: {
             id: true,
             type: true,
+            publicData: true,
             person: { select: { id: true, firstName: true, lastName: true } },
             company: { select: { id: true, companyName: true } },
-          },
+          }
         },
-        coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
-        organizer: { select: { person: { select: { firstName: true, lastName: true } } } },
-        incomingTransfers: { select: { amount: true } },
-        outgoingTransfers: { select: { amount: true } },
+        coordinator: {
+          select: {
+            person: {
+              select: {
+                firstName: true,
+                lastName: true,
+              }
+            }
+          }
+        },
+        organizer: {
+          select: {
+            person: {
+              select: {
+                firstName: true,
+                lastName: true,
+              }
+            }
+          }
+        }
       },
     })
     const campaignSums = await this.getCampaignSums()
@@ -341,9 +424,9 @@ export class CampaignService {
     const vault = await this.prisma.vault.findFirst({ where: { campaignId } })
     const targetVaultData = vault
       ? // Connect the existing vault to this donation
-        { connect: { id: vault.id } }
+      { connect: { id: vault.id } }
       : // Create new vault for the campaign
-        { create: { campaignId, currency: campaign.currency, name: campaign.title } }
+      { create: { campaignId, currency: campaign.currency, name: campaign.title } }
 
     // Find donation by extPaymentIntentId and update if status allows
 
@@ -356,9 +439,9 @@ export class CampaignService {
     if (!donation) {
       Logger.debug(
         'No donation exists with extPaymentIntentId: ' +
-          paymentData.paymentIntentId +
-          ' Creating new donation with status: ' +
-          newDonationStatus,
+        paymentData.paymentIntentId +
+        ' Creating new donation with status: ' +
+        newDonationStatus,
       )
 
       try {
