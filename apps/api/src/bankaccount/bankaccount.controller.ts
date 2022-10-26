@@ -4,7 +4,9 @@ import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types
 import { BankAccountService } from './bankaccount.service'
 import { CreateBankaccountDto } from './dto/create-bankaccount.dto'
 import { UpdateBankaccountDto } from './dto/update-bankaccount.dto'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('bankaccount')
 @Controller('bankaccount')
 export class BankAccountController {
   constructor(private readonly bankaccountService: BankAccountService) {}

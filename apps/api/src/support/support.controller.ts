@@ -11,7 +11,9 @@ import { SupportService } from './support.service'
 import { CreateInquiryDto } from './dto/create-inquiry.dto'
 import { CreateRequestDto } from './dto/create-request.dto'
 import { CreateIrregularityDto } from './dto/create-irregularity.dto'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('support')
 @Controller('support')
 export class SupportController {
   constructor(private readonly supportService: SupportService) {}

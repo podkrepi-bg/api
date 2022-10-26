@@ -23,7 +23,9 @@ import { FilesRoleDto } from './dto/files-role.dto'
 import { CampaignFileService } from './campaign-file.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('campaign-file')
 @Controller('campaign-file')
 export class CampaignFileController {
   constructor(

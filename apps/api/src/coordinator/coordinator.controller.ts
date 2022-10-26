@@ -3,7 +3,9 @@ import { RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { CoordinatorService } from './coordinator.service'
 import { CreateCoordinatorDto } from './dto/create-coordinator.dto'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('coordinator')
 @Controller('coordinator')
 export class CoordinatorController {
   constructor(private readonly coordinatorService: CoordinatorService) {}

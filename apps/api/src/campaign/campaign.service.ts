@@ -234,6 +234,66 @@ export class CampaignService {
     return this.addVaultAndDonationSummaries(campaign, campaignSums)
   }
 
+  async getUserCampaigns(keycloakId: string): Promise<Campaign[]> {
+    const campaigns = await this.prisma.campaign.findMany({
+      where: {
+        OR: [
+          { beneficiary: { person: { keycloakId } } },
+          { coordinator: { person: { keycloakId } } },
+          { organizer: { person: { keycloakId } } },
+        ],
+      },
+      orderBy: {
+        endDate: 'asc',
+      },
+      include: {
+        campaignType: { select: { name: true, slug: true } },
+        beneficiary: {
+          select: {
+            id: true,
+            type: true,
+            person: { select: { id: true, firstName: true, lastName: true } },
+            company: { select: { id: true, companyName: true } },
+          },
+        },
+        coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
+        organizer: { select: { person: { select: { firstName: true, lastName: true } } } },
+        incomingTransfers: { select: { amount: true } },
+        outgoingTransfers: { select: { amount: true } },
+      },
+    })
+    const campaignSums = await this.getCampaignSums()
+
+    return campaigns.map((c) => this.addVaultAndDonationSummaries(c, campaignSums))
+  }
+
+  async getUserDonatedCampaigns(keycloakId: string) {
+    const campaigns = await this.prisma.campaign.findMany({
+      where: { vaults: { some: { donations: { some: { person: { keycloakId } } } } } },
+      orderBy: {
+        endDate: 'asc',
+      },
+      include: {
+        campaignType: { select: { name: true, slug: true } },
+        beneficiary: {
+          select: {
+            id: true,
+            type: true,
+            person: { select: { id: true, firstName: true, lastName: true } },
+            company: { select: { id: true, companyName: true } },
+          },
+        },
+        coordinator: { select: { person: { select: { firstName: true, lastName: true } } } },
+        organizer: { select: { person: { select: { firstName: true, lastName: true } } } },
+        incomingTransfers: { select: { amount: true } },
+        outgoingTransfers: { select: { amount: true } },
+      },
+    })
+    const campaignSums = await this.getCampaignSums()
+
+    return campaigns.map((c) => this.addVaultAndDonationSummaries(c, campaignSums))
+  }
+
   async getCampaignByIdAndCoordinatorId(
     campaignId: string,
     coordinatorId: string,

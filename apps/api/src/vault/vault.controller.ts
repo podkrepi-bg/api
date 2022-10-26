@@ -16,7 +16,9 @@ import { CampaignService } from '../campaign/campaign.service'
 import { CreateVaultDto } from './dto/create-vault.dto'
 import { UpdateVaultDto } from './dto/update-vault.dto'
 import { KeycloakTokenParsed } from '../auth/keycloak'
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('vault')
 @Controller('vault')
 export class VaultController {
   constructor(
