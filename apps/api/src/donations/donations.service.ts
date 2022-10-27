@@ -301,36 +301,54 @@ export class DonationsService {
     }
   }
 
+  /**
+   * Updates the donation's status or donor. Note: completed donations cannot have status updates.
+   * @param id
+   * @param updatePaymentDto
+   * @returns
+   */
   async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Donation> {
     try {
-      const oldDonationStatus = (
-        await this.prisma.donation.findFirst({
+      const currentDonation = await this.prisma.donation.findFirst({
           where: { id },
-          select: { status: true },
-        })
-      )?.status
+          include: { person: true }
+      })
+      if (!currentDonation) {
+        throw new NotFoundException(`Update failed. No donation found with ID: ${id}`)
+      }
 
-      if (oldDonationStatus === DonationStatus.succeeded) {
-        throw new Error('Succeded donations cannot be updated.')
+      if (currentDonation.status === DonationStatus.succeeded && updatePaymentDto.status && updatePaymentDto.status !== DonationStatus.succeeded) {
+        throw new Error('Succeeded donations cannot be updated.')
+      }
+
+      const status = updatePaymentDto.status || currentDonation.status
+      let donorId = currentDonation.personId;
+      if (updatePaymentDto.targetUserId && currentDonation.person?.keycloakId !== updatePaymentDto.targetUserId) {
+        const targetDonor = await this.prisma.person.findFirst({
+          where: { keycloakId: updatePaymentDto.targetUserId },
+        })
+        if (!targetDonor) {
+          throw new NotFoundException(`Update failed. No donor found with ID: ${updatePaymentDto.targetUserId}`)
+        }
+        donorId = targetDonor.id;
       }
 
       const donation = await this.prisma.donation.update({
         where: { id },
         data: {
-          status: updatePaymentDto.status,
+          status: status,
+          personId: donorId
         },
       })
 
       if (updatePaymentDto.status === DonationStatus.succeeded) {
-        await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
+        await this.vaultService.incrementVaultAmount(currentDonation.targetVaultId, currentDonation.amount)
       }
 
       return donation
     } catch (err) {
-      const msg = `Update failed. No Donation found with ID: ${id}`
-
-      Logger.warn(msg)
-      throw new NotFoundException(msg)
+      Logger.warn(err.message || err)
+      throw err
     }
   }
 
