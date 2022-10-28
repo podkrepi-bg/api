@@ -1,7 +1,7 @@
 import Stripe from 'stripe'
 import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import {
   Campaign,
   Donation,
@@ -310,39 +310,50 @@ export class DonationsService {
   async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Donation> {
     try {
       const currentDonation = await this.prisma.donation.findFirst({
-          where: { id },
-          include: { person: true }
+        where: { id },
       })
       if (!currentDonation) {
         throw new NotFoundException(`Update failed. No donation found with ID: ${id}`)
       }
 
-      if (currentDonation.status === DonationStatus.succeeded && updatePaymentDto.status && updatePaymentDto.status !== DonationStatus.succeeded) {
-        throw new Error('Succeeded donations cannot be updated.')
+      if (
+        currentDonation.status === DonationStatus.succeeded &&
+        updatePaymentDto.status &&
+        updatePaymentDto.status !== DonationStatus.succeeded
+      ) {
+        throw new BadRequestException('Succeeded donations cannot be updated.')
       }
 
       const status = updatePaymentDto.status || currentDonation.status
-      let donorId = currentDonation.personId;
-      if (updatePaymentDto.targetUserId && currentDonation.person?.keycloakId !== updatePaymentDto.targetUserId) {
+      let donorId = currentDonation.personId
+      if (
+        updatePaymentDto.targetPersonId &&
+        currentDonation.personId !== updatePaymentDto.targetPersonId
+      ) {
         const targetDonor = await this.prisma.person.findFirst({
-          where: { keycloakId: updatePaymentDto.targetUserId },
+          where: { id: updatePaymentDto.targetPersonId },
         })
         if (!targetDonor) {
-          throw new NotFoundException(`Update failed. No donor found with ID: ${updatePaymentDto.targetUserId}`)
+          throw new NotFoundException(
+            `Update failed. No person found with ID: ${updatePaymentDto.targetPersonId}`,
+          )
         }
-        donorId = targetDonor.id;
+        donorId = targetDonor.id
       }
 
       const donation = await this.prisma.donation.update({
         where: { id },
         data: {
           status: status,
-          personId: donorId
+          personId: donorId,
         },
       })
 
       if (updatePaymentDto.status === DonationStatus.succeeded) {
-        await this.vaultService.incrementVaultAmount(currentDonation.targetVaultId, currentDonation.amount)
+        await this.vaultService.incrementVaultAmount(
+          currentDonation.targetVaultId,
+          currentDonation.amount,
+        )
       }
 
       return donation

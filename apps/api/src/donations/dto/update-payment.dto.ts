@@ -9,5 +9,5 @@ export class UpdatePaymentDto extends PartialType(CreatePaymentDto) {
   @ApiProperty()
   @IsOptional()
   @IsUUID()
-  targetUserId?: string
+  targetPersonId?: string
 }
