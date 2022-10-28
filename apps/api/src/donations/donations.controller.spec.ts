@@ -199,8 +199,10 @@ describe('DonationsController', () => {
     }
 
     const existingDonation = { ...mockDonation, status: DonationStatus.initial }
+    const expectedUpdatedDonation = {...existingDonation, status: DonationStatus.succeeded }
 
     prismaMock.donation.findFirst.mockResolvedValueOnce(existingDonation)
+    prismaMock.donation.update.mockResolvedValueOnce(expectedUpdatedDonation)
 
     // act
     await controller.update('123', updatePaymentDto)

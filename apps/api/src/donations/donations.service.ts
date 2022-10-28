@@ -349,7 +349,9 @@ export class DonationsService {
         },
       })
 
-      if (updatePaymentDto.status === DonationStatus.succeeded) {
+      if (currentDonation.status !== DonationStatus.succeeded
+        && updatePaymentDto.status === DonationStatus.succeeded
+        && donation.status === DonationStatus.succeeded) {
         await this.vaultService.incrementVaultAmount(
           currentDonation.targetVaultId,
           currentDonation.amount,
