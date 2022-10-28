@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common'
+import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { Currency } from '.prisma/client'
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignState } from '@prisma/client'
@@ -69,6 +69,23 @@ describe('CampaignController', () => {
       beneficiary: {},
       coordinator: {},
       organizer: {},
+      campaignFiles: [],
+      paymentReference: paymentReferenceMock,
+      vaults: [],
+    },
+  }
+  const mockCampaignWithIds = {
+    ...mockCreateCampaign,
+    ...{
+      id: 'testId',
+      state: CampaignState.approved,
+      createdAt: new Date('2022-04-08T06:36:33.661Z'),
+      updatedAt: new Date('2022-04-08T06:36:33.662Z'),
+      deletedAt: null,
+      approvedById: null,
+      beneficiary: { person: { keycloakId: 'testBeneficieryKeycloakId' } },
+      coordinator: { person: { keycloakId: 'testCoordinatorKeycloakId' } },
+      organizer: { person: { keycloakId: 'testOrganizerKeycloakId' } },
       campaignFiles: [],
       paymentReference: paymentReferenceMock,
       vaults: [],
@@ -183,6 +200,56 @@ describe('CampaignController', () => {
       )
       expect(prismaService.campaign.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({ where: { slug } }),
+      )
+    })
+  })
+
+  describe('update', () => {
+    const mockUserUpdate = {
+      sub: 'testBeneficieryKeycloakId',
+      resource_access: { account: { roles: [] } },
+      'allowed-origins': [],
+    } as KeycloakTokenParsed
+    jest
+      .spyOn(paymentReferenceGenerator, 'getPaymentReference')
+      .mockReturnValue(paymentReferenceMock)
+
+    it('try to update as beneficiery of the campaign', async () => {
+      prismaMock.campaign.findFirst.mockResolvedValue(mockCampaignWithIds)
+      prismaMock.$queryRaw.mockResolvedValue([mockSummary])
+      expect(
+        await controller.update(mockCampaignWithIds.id, mockCreateCampaign, mockUserUpdate),
+      ).toEqual(mockCreateCampaign)
+    })
+
+    mockUserUpdate.sub = 'testCoordinatorKeycloakId'
+    it('try to update as coordinator of the campaign', async () => {
+      prismaMock.campaign.findFirst.mockResolvedValue(mockCampaignWithIds)
+      prismaMock.$queryRaw.mockResolvedValue([mockSummary])
+      expect(
+        await controller.update(mockCampaignWithIds.id, mockCreateCampaign, mockUserUpdate),
+      ).toEqual(mockCreateCampaign)
+    })
+
+    mockUserUpdate.sub = 'testOrganizerKeycloakId'
+    it('try to update as organizer of the campaign', async () => {
+      prismaMock.campaign.findFirst.mockResolvedValue(mockCampaignWithIds)
+      prismaMock.$queryRaw.mockResolvedValue([mockSummary])
+      expect(
+        await controller.update(mockCampaignWithIds.id, mockCreateCampaign, mockUserUpdate),
+      ).toEqual(mockCreateCampaign)
+    })
+
+    mockUserUpdate.sub = 'testSomeOtherUserId'
+    it('try to update as some random user', async () => {
+      prismaMock.campaign.findFirst.mockResolvedValue(mockCampaignWithIds)
+      prismaMock.$queryRaw.mockResolvedValue([mockSummary])
+      expect(
+        await controller.update(mockCampaignWithIds.id, mockCreateCampaign, mockUserUpdate),
+      ).rejects.toThrow(
+        new BadRequestException(
+          'The user is not coordinator,organizer or beneficiery to the requested campaign',
+        ),
       )
     })
   })
