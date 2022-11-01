@@ -26,6 +26,12 @@ import { PaymentData } from '../donations/helpers/payment-intent-helpers'
 import { getAllowedPreviousStatus } from '../donations/helpers/donation-status-updates'
 import { Prisma } from '@prisma/client'
 import { CampaignSummaryDto } from './dto/campaign-summary.dto'
+import {
+  AdminCampaignListItem,
+  AdminCampaignListItemSelect,
+  CampaignListItem,
+  CampaignListItemSelect,
+} from './dto/list-campaigns.dto'
 
 @Injectable()
 export class CampaignService {
@@ -35,139 +41,37 @@ export class CampaignService {
     @Inject(forwardRef(() => PersonService)) private personService: PersonService,
   ) {}
 
-  async listCampaigns(): Promise<Campaign[]> {
+  async listCampaigns(): Promise<CampaignListItem[]> {
     const campaigns = await this.prisma.campaign.findMany({
       orderBy: {
         endDate: 'asc',
       },
       where: { state: { in: [CampaignState.active, CampaignState.complete] } },
-      select: {
-        id: true,
-        state: true,
-        slug: true,
-        title: true,
-        essence: true,
-        paymentReference: true,
-        description: true,
-        targetAmount: true,
-        allowDonationOnComplete: true,
-        currency: true,
-        startDate: true,
-        endDate: true,
-        createdAt: true,
-        updatedAt: true,
-        deletedAt: true,
-        campaignType: {
-          select: {
-            slug: true,
-            name: true,
-            category: true
-          }
-        },
-        beneficiary: {
-          select: {
-            id: true,
-            type: true,
-            publicData: true,
-            person: { select: { id: true, firstName: true, lastName: true } },
-            company: { select: { id: true, companyName: true } },
-          }
-        },
-        coordinator: {
-          select: {
-            id: true,
-            person: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-              }
-            }
-          }
-        },
-        organizer: {
-          select: {
-            id: true,
-            person: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-              }
-            }
-          }
-        },
-        campaignFiles: true,
-      },
+      ...CampaignListItemSelect,
     })
     const campaignSums = await this.getCampaignSums()
 
-    return campaigns.map((c) => this.addVaultAndDonationSummaries(c, campaignSums))
+    for (const campaign of campaigns) {
+      campaign['summary'] = this.addVaultAndDonationSummaries(campaign.id, campaignSums)
+    }
+
+    return campaigns
   }
 
-  async listAllCampaigns(): Promise<Campaign[]> {
+  async listAllCampaigns(): Promise<AdminCampaignListItem[]> {
     const campaigns = await this.prisma.campaign.findMany({
       orderBy: {
         endDate: 'asc',
       },
-      select: {
-        id: true,
-        state: true,
-        slug: true,
-        title: true,
-        essence: true,
-        paymentReference: true,
-        description: true,
-        targetAmount: true,
-        allowDonationOnComplete: true,
-        currency: true,
-        startDate: true,
-        endDate: true,
-        createdAt: true,
-        updatedAt: true,
-        deletedAt: true,
-        campaignType: {
-          select: {
-            slug: true,
-            name: true,
-          }
-        },
-        beneficiary: {
-          select: {
-            id: true,
-            type: true,
-            publicData: true,
-            person: { select: { id: true, firstName: true, lastName: true } },
-            company: { select: { id: true, companyName: true } },
-          }
-        },
-        coordinator: {
-          select: {
-            person: {
-              select: {
-                firstName: true,
-                lastName: true,
-              }
-            }
-          }
-        },
-        organizer: {
-          select: {
-            person: {
-              select: {
-                firstName: true,
-                lastName: true,
-              }
-            }
-          }
-        }
-      },
+      ...AdminCampaignListItemSelect,
     })
     const campaignSums = await this.getCampaignSums()
 
-    return campaigns.map((c) => this.addVaultAndDonationSummaries(c, campaignSums))
+    for (const campaign of campaigns) {
+      campaign['summary'] = this.addVaultAndDonationSummaries(campaign.id, campaignSums)
+    }
+
+    return campaigns
   }
 
   async getCampaignSums(campaignIds?: string[]): Promise<CampaignSummaryDto[]> {
@@ -231,7 +135,9 @@ export class CampaignService {
     }
     const campaignSums = await this.getCampaignSums([campaign.id])
 
-    return this.addVaultAndDonationSummaries(campaign, campaignSums)
+    campaign['summary'] = this.addVaultAndDonationSummaries(campaign.id, campaignSums)
+
+    return campaign
   }
 
   async getUserCampaigns(keycloakId: string): Promise<Campaign[]> {
@@ -264,7 +170,11 @@ export class CampaignService {
     })
     const campaignSums = await this.getCampaignSums()
 
-    return campaigns.map((c) => this.addVaultAndDonationSummaries(c, campaignSums))
+    for (const campaign of campaigns) {
+      campaign['summary'] = this.addVaultAndDonationSummaries(campaign.id, campaignSums)
+    }
+
+    return campaigns
   }
 
   async getUserDonatedCampaigns(keycloakId: string) {
@@ -291,7 +201,11 @@ export class CampaignService {
     })
     const campaignSums = await this.getCampaignSums()
 
-    return campaigns.map((c) => this.addVaultAndDonationSummaries(c, campaignSums))
+    for (const campaign of campaigns) {
+      campaign['summary'] = this.addVaultAndDonationSummaries(campaign.id, campaignSums)
+    }
+
+    return campaigns
   }
 
   async getCampaignByIdAndCoordinatorId(
@@ -355,7 +269,8 @@ export class CampaignService {
 
     const campaignSums = await this.getCampaignSums([campaign.id])
 
-    return this.addVaultAndDonationSummaries(campaign, campaignSums)
+    campaign['summary'] = this.addVaultAndDonationSummaries(campaign.id, campaignSums)
+    return campaign
   }
 
   async getCampaignByPaymentReference(paymentReference: string): Promise<Campaign> {
@@ -484,9 +399,9 @@ export class CampaignService {
     const vault = await this.prisma.vault.findFirst({ where: { campaignId } })
     const targetVaultData = vault
       ? // Connect the existing vault to this donation
-      { connect: { id: vault.id } }
+        { connect: { id: vault.id } }
       : // Create new vault for the campaign
-      { create: { campaignId, currency: campaign.currency, name: campaign.title } }
+        { create: { campaignId, currency: campaign.currency, name: campaign.title } }
 
     // Find donation by extPaymentIntentId and update if status allows
 
@@ -499,9 +414,9 @@ export class CampaignService {
     if (!donation) {
       Logger.debug(
         'No donation exists with extPaymentIntentId: ' +
-        paymentData.paymentIntentId +
-        ' Creating new donation with status: ' +
-        newDonationStatus,
+          paymentData.paymentIntentId +
+          ' Creating new donation with status: ' +
+          newDonationStatus,
       )
 
       try {
@@ -668,16 +583,13 @@ export class CampaignService {
     }
   }
 
-  private addVaultAndDonationSummaries(campaign: Campaign, campaignSums: CampaignSummaryDto[]) {
-    const csum = campaignSums.find((e) => e.id === campaign.id)
+  private addVaultAndDonationSummaries(campaignId: string, campaignSums: CampaignSummaryDto[]) {
+    const csum = campaignSums.find((e) => e.id === campaignId)
     return {
-      ...campaign,
-      summary: {
-        reachedAmount: csum?.reachedAmount || 0,
-        currentAmount: csum?.currentAmount || 0,
-        blockedAmount: csum?.blockedAmount || 0,
-        donors: csum?.donors || 0,
-      },
+      reachedAmount: csum?.reachedAmount || 0,
+      currentAmount: csum?.currentAmount || 0,
+      blockedAmount: csum?.blockedAmount || 0,
+      donors: csum?.donors || 0,
     }
   }
 }
