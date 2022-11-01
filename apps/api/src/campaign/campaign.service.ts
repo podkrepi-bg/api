@@ -52,7 +52,7 @@ export class CampaignService {
     const campaignSums = await this.getCampaignSums()
 
     for (const campaign of campaigns) {
-      campaign['summary'] = this.addVaultAndDonationSummaries(campaign.id, campaignSums)
+      campaign['summary'] = this.getVaultAndDonationSummaries(campaign.id, campaignSums)
     }
 
     return campaigns
@@ -68,7 +68,7 @@ export class CampaignService {
     const campaignSums = await this.getCampaignSums()
 
     for (const campaign of campaigns) {
-      campaign['summary'] = this.addVaultAndDonationSummaries(campaign.id, campaignSums)
+      campaign['summary'] = this.getVaultAndDonationSummaries(campaign.id, campaignSums)
     }
 
     return campaigns
@@ -135,7 +135,7 @@ export class CampaignService {
     }
     const campaignSums = await this.getCampaignSums([campaign.id])
 
-    campaign['summary'] = this.addVaultAndDonationSummaries(campaign.id, campaignSums)
+    campaign['summary'] = this.getVaultAndDonationSummaries(campaign.id, campaignSums)
 
     return campaign
   }
@@ -171,7 +171,7 @@ export class CampaignService {
     const campaignSums = await this.getCampaignSums()
 
     for (const campaign of campaigns) {
-      campaign['summary'] = this.addVaultAndDonationSummaries(campaign.id, campaignSums)
+      campaign['summary'] = this.getVaultAndDonationSummaries(campaign.id, campaignSums)
     }
 
     return campaigns
@@ -202,7 +202,7 @@ export class CampaignService {
     const campaignSums = await this.getCampaignSums()
 
     for (const campaign of campaigns) {
-      campaign['summary'] = this.addVaultAndDonationSummaries(campaign.id, campaignSums)
+      campaign['summary'] = this.getVaultAndDonationSummaries(campaign.id, campaignSums)
     }
 
     return campaigns
@@ -269,7 +269,7 @@ export class CampaignService {
 
     const campaignSums = await this.getCampaignSums([campaign.id])
 
-    campaign['summary'] = this.addVaultAndDonationSummaries(campaign.id, campaignSums)
+    campaign['summary'] = this.getVaultAndDonationSummaries(campaign.id, campaignSums)
     return campaign
   }
 
@@ -583,7 +583,7 @@ export class CampaignService {
     }
   }
 
-  private addVaultAndDonationSummaries(campaignId: string, campaignSums: CampaignSummaryDto[]) {
+  private getVaultAndDonationSummaries(campaignId: string, campaignSums: CampaignSummaryDto[]) {
     const csum = campaignSums.find((e) => e.id === campaignId)
     return {
       reachedAmount: csum?.reachedAmount || 0,
