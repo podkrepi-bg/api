@@ -264,7 +264,7 @@ describe('CampaignController', () => {
 
       prismaMock.campaign.findFirst.mockResolvedValue(mockUpdateCampaign)
 
-      await expect(
+      expect(
         controller.update(mockUpdateCampaign.id, mockCreateCampaign, mockUserUpdate),
       ).rejects.toThrow(
         new BadRequestException(
