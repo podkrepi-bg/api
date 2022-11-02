@@ -33,6 +33,9 @@ spec:
           securityContext:
             runAsNonRoot: true
             readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - NET_RAW
           resources:
             limits:
               memory: 200Mi
@@ -55,6 +58,9 @@ spec:
           securityContext:
             runAsNonRoot: true
             readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - NET_RAW
           resources:
             limits:
               memory: 500Mi
