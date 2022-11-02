@@ -15,6 +15,7 @@ import {
   Logger,
   BadRequestException,
   Query,
+  ForbiddenException,
 } from '@nestjs/common'
 
 import { CampaignService } from './campaign.service'
@@ -133,7 +134,7 @@ export class CampaignController {
     )
       return this.campaignService.update(id, updateCampaignDto)
     else
-      throw new BadRequestException(
+      throw new ForbiddenException(
         'The user is not coordinator,organizer or beneficiery to the requested campaign',
       )
   }

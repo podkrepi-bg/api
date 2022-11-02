@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common'
+import { ForbiddenException, NotFoundException } from '@nestjs/common'
 import { Currency } from '.prisma/client'
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignState } from '@prisma/client'
@@ -267,7 +267,7 @@ describe('CampaignController', () => {
       expect(
         controller.update(mockUpdateCampaign.id, mockCreateCampaign, mockUserUpdate),
       ).rejects.toThrow(
-        new BadRequestException(
+        new ForbiddenException(
           'The user is not coordinator,organizer or beneficiery to the requested campaign',
         ),
       )
