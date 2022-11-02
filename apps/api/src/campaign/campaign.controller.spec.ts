@@ -74,7 +74,8 @@ describe('CampaignController', () => {
       vaults: [],
     },
   }
-  const mockCampaignWithIds = {
+
+  const mockUpdateCampaign = {
     ...mockCreateCampaign,
     ...{
       id: 'testId',
@@ -83,7 +84,7 @@ describe('CampaignController', () => {
       updatedAt: new Date('2022-04-08T06:36:33.662Z'),
       deletedAt: null,
       approvedById: null,
-      beneficiary: { person: { keycloakId: 'testBeneficieryKeycloakId' } },
+      beneficiary: { person: { keycloakId: 'testBeneficiaryKeycloakId' } },
       coordinator: { person: { keycloakId: 'testCoordinatorKeycloakId' } },
       organizer: { person: { keycloakId: 'testOrganizerKeycloakId' } },
       campaignFiles: [],
@@ -91,6 +92,7 @@ describe('CampaignController', () => {
       vaults: [],
     },
   }
+
   const mockSummary = {
     id: 'testId',
     reachedAmount: 110,
@@ -205,47 +207,65 @@ describe('CampaignController', () => {
   })
 
   describe('update', () => {
-    const mockUserUpdate = {
-      sub: 'testBeneficieryKeycloakId',
-      resource_access: { account: { roles: [] } },
-      'allowed-origins': [],
-    } as KeycloakTokenParsed
     jest
       .spyOn(paymentReferenceGenerator, 'getPaymentReference')
       .mockReturnValue(paymentReferenceMock)
 
     it('try to update as beneficiery of the campaign', async () => {
-      prismaMock.campaign.findFirst.mockResolvedValue(mockCampaignWithIds)
-      prismaMock.$queryRaw.mockResolvedValue([mockSummary])
+      const mockUserUpdate = {
+        sub: 'testBeneficiaryKeycloakId',
+        resource_access: { account: { roles: [] } },
+        'allowed-origins': [],
+      } as KeycloakTokenParsed
+
+      prismaMock.campaign.findFirst.mockResolvedValue(mockUpdateCampaign)
+      prismaMock.campaign.update.mockResolvedValue(mockUpdateCampaign)
+
       expect(
-        await controller.update(mockCampaignWithIds.id, mockCreateCampaign, mockUserUpdate),
-      ).toEqual(mockCreateCampaign)
+        controller.update(mockUpdateCampaign.id, mockCreateCampaign, mockUserUpdate),
+      ).resolves.toEqual(mockUpdateCampaign)
     })
 
-    mockUserUpdate.sub = 'testCoordinatorKeycloakId'
     it('try to update as coordinator of the campaign', async () => {
-      prismaMock.campaign.findFirst.mockResolvedValue(mockCampaignWithIds)
-      prismaMock.$queryRaw.mockResolvedValue([mockSummary])
+      const mockUserUpdate = {
+        sub: 'testCoordinatorKeycloakId',
+        resource_access: { account: { roles: [] } },
+        'allowed-origins': [],
+      } as KeycloakTokenParsed
+
+      prismaMock.campaign.findFirst.mockResolvedValue(mockUpdateCampaign)
+      prismaMock.campaign.update.mockResolvedValue(mockUpdateCampaign)
       expect(
-        await controller.update(mockCampaignWithIds.id, mockCreateCampaign, mockUserUpdate),
-      ).toEqual(mockCreateCampaign)
+        controller.update(mockUpdateCampaign.id, mockCreateCampaign, mockUserUpdate),
+      ).resolves.toEqual(mockUpdateCampaign)
     })
 
-    mockUserUpdate.sub = 'testOrganizerKeycloakId'
     it('try to update as organizer of the campaign', async () => {
-      prismaMock.campaign.findFirst.mockResolvedValue(mockCampaignWithIds)
-      prismaMock.$queryRaw.mockResolvedValue([mockSummary])
+      const mockUserUpdate = {
+        sub: 'testOrganizerKeycloakId',
+        resource_access: { account: { roles: [] } },
+        'allowed-origins': [],
+      } as KeycloakTokenParsed
+
+      prismaMock.campaign.findFirst.mockResolvedValue(mockUpdateCampaign)
+      prismaMock.campaign.update.mockResolvedValue(mockUpdateCampaign)
+
       expect(
-        await controller.update(mockCampaignWithIds.id, mockCreateCampaign, mockUserUpdate),
-      ).toEqual(mockCreateCampaign)
+        controller.update(mockUpdateCampaign.id, mockCreateCampaign, mockUserUpdate),
+      ).resolves.toEqual(mockUpdateCampaign)
     })
 
-    mockUserUpdate.sub = 'testSomeOtherUserId'
-    it('try to update as some random user', async () => {
-      prismaMock.campaign.findFirst.mockResolvedValue(mockCampaignWithIds)
-      prismaMock.$queryRaw.mockResolvedValue([mockSummary])
-      expect(
-        await controller.update(mockCampaignWithIds.id, mockCreateCampaign, mockUserUpdate),
+    it('try to update as some other user', async () => {
+      const mockUserUpdate = {
+        sub: 'testSomeOtherUserId',
+        resource_access: { account: { roles: [] } },
+        'allowed-origins': [],
+      } as KeycloakTokenParsed
+
+      prismaMock.campaign.findFirst.mockResolvedValue(mockUpdateCampaign)
+
+      await expect(
+        controller.update(mockUpdateCampaign.id, mockCreateCampaign, mockUserUpdate),
       ).rejects.toThrow(
         new BadRequestException(
           'The user is not coordinator,organizer or beneficiery to the requested campaign',

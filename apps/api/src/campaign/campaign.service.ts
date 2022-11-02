@@ -39,7 +39,7 @@ export class CampaignService {
     private prisma: PrismaService,
     @Inject(forwardRef(() => VaultService)) private vaultService: VaultService,
     @Inject(forwardRef(() => PersonService)) private personService: PersonService,
-  ) { }
+  ) {}
 
   async listCampaigns(): Promise<CampaignListItem[]> {
     const campaigns = await this.prisma.campaign.findMany({
@@ -412,9 +412,9 @@ export class CampaignService {
     const vault = await this.prisma.vault.findFirst({ where: { campaignId } })
     const targetVaultData = vault
       ? // Connect the existing vault to this donation
-      { connect: { id: vault.id } }
+        { connect: { id: vault.id } }
       : // Create new vault for the campaign
-      { create: { campaignId, currency: campaign.currency, name: campaign.title } }
+        { create: { campaignId, currency: campaign.currency, name: campaign.title } }
 
     // Find donation by extPaymentIntentId and update if status allows
 
@@ -427,9 +427,9 @@ export class CampaignService {
     if (!donation) {
       Logger.debug(
         'No donation exists with extPaymentIntentId: ' +
-        paymentData.paymentIntentId +
-        ' Creating new donation with status: ' +
-        newDonationStatus,
+          paymentData.paymentIntentId +
+          ' Creating new donation with status: ' +
+          newDonationStatus,
       )
 
       try {
@@ -575,7 +575,7 @@ export class CampaignService {
       where: { id: id },
       data: updateCampaignDto,
     })
-    if (!result) throw new NotFoundException('Not found')
+    if (!result) throw new NotFoundException(`Not found campaign with id: ${id}`)
     return result
   }
 

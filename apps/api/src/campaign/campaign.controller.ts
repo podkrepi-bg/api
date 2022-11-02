@@ -32,7 +32,7 @@ export class CampaignController {
   constructor(
     private readonly campaignService: CampaignService,
     @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
-  ) { }
+  ) {}
 
   @Get('list')
   @Public()
@@ -119,15 +119,23 @@ export class CampaignController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  async update(@Param('id') id: string, @Body() updateCampaignDto: UpdateCampaignDto, @AuthenticatedUser() user: KeycloakTokenParsed) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateCampaignDto: UpdateCampaignDto,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
     const campaign = await this.campaignService.getCampaignByIdWithPersonIds(id)
-    if (user.sub === campaign?.beneficiary.person?.keycloakId ||
+    if (
+      user.sub === campaign?.beneficiary.person?.keycloakId ||
       user.sub === campaign?.organizer?.person.keycloakId ||
       user.sub === campaign?.coordinator.person.keycloakId ||
-      isAdmin(user))
+      isAdmin(user)
+    )
       return this.campaignService.update(id, updateCampaignDto)
     else
-      throw new BadRequestException("The user is not coordinator,organizer or beneficiery to the requested campaign")
+      throw new BadRequestException(
+        'The user is not coordinator,organizer or beneficiery to the requested campaign',
+      )
   }
 
   @Delete(':id')
