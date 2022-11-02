@@ -15,6 +15,7 @@ import {
   Logger,
   BadRequestException,
   Query,
+  ForbiddenException,
 } from '@nestjs/common'
 
 import { CampaignService } from './campaign.service'
@@ -119,8 +120,23 @@ export class CampaignController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  async update(@Param('id') id: string, @Body() updateCampaignDto: UpdateCampaignDto) {
-    return this.campaignService.update(id, updateCampaignDto)
+  async update(
+    @Param('id') id: string,
+    @Body() updateCampaignDto: UpdateCampaignDto,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    const campaign = await this.campaignService.getCampaignByIdWithPersonIds(id)
+    if (
+      user.sub === campaign?.beneficiary.person?.keycloakId ||
+      user.sub === campaign?.organizer?.person.keycloakId ||
+      user.sub === campaign?.coordinator.person.keycloakId ||
+      isAdmin(user)
+    )
+      return this.campaignService.update(id, updateCampaignDto)
+    else
+      throw new ForbiddenException(
+        'The user is not coordinator,organizer or beneficiery to the requested campaign',
+      )
   }
 
   @Delete(':id')

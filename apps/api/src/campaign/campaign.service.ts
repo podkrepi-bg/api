@@ -219,6 +219,19 @@ export class CampaignService {
     return campaign
   }
 
+  async getCampaignByIdWithPersonIds(id: string) {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: id },
+      select: {
+        beneficiary: { select: { person: { select: { keycloakId: true } } } },
+        coordinator: { select: { person: { select: { keycloakId: true } } } },
+        organizer: { select: { person: { select: { keycloakId: true } } } },
+      },
+    })
+
+    return campaign
+  }
+
   async getCampaignByVaultIdAndPersonId(
     vaultId: string,
     personId: string,
@@ -562,7 +575,7 @@ export class CampaignService {
       where: { id: id },
       data: updateCampaignDto,
     })
-    if (!result) throw new NotFoundException('Not found')
+    if (!result) throw new NotFoundException(`Not found campaign with id: ${id}`)
     return result
   }
 
