@@ -94,7 +94,7 @@ export class PaypalService {
     verifyRequest += ',"webhook_event": ' + rawPaypalBody.toString()
     verifyRequest += '}'
 
-    Logger.debug('Verification request will be: ' + verifyRequest)
+    Logger.log('Verification request will be: ' + verifyRequest)
 
     const response = await this.httpService.axiosRef({
       url: paypalVerificationUrl,
@@ -106,20 +106,20 @@ export class PaypalService {
       },
     })
 
-    Logger.debug('verification response: ', response.data)
-    Logger.debug('verification result: ', response.data.verification_status)
+    Logger.log('verification response: ', response.data)
+    Logger.log(`verification result: ${response.data.verification_status}`, 'PaypalWebhook')
 
     return response.data.verification_status === verification_status.SUCCESS
   }
 
   async generateAccessToken(): Promise<string | null> {
-    Logger.debug(
+    Logger.log(
       `Generating token with clientId ${this.config.get<string>('paypal.clientId')}`,
       'PaypalWebhook',
     )
 
     const paypalTokenUrl = this.config.get<string>('paypal.apiUrl') + '/v1/oauth2/token'
-    Logger.debug(`Generating token with apiUrl ${paypalTokenUrl}`, 'PaypalWebhook')
+    Logger.log(`Generating token with apiUrl ${paypalTokenUrl}`, 'PaypalWebhook')
 
     await this.httpService
       .axiosRef({
@@ -138,7 +138,7 @@ export class PaypalService {
         },
       })
       .then((response) => {
-        Logger.debug(`Got token: ${response.data.access_token}`, 'PaypalWebhook')
+        Logger.log(`Got token: ${response.data.access_token}`, 'PaypalWebhook')
         return response.data.access_token
       })
       .catch((e) => {
