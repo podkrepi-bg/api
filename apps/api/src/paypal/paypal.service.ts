@@ -4,6 +4,7 @@ import { CampaignService } from '../campaign/campaign.service'
 import { HttpService } from '@nestjs/axios'
 import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
 import { DonationStatus, PaymentProvider } from '@prisma/client'
+
 @Injectable()
 export class PaypalService {
   constructor(
@@ -72,9 +73,10 @@ export class PaypalService {
     rawPaypalBody: string,
   ): Promise<boolean> {
     const paypalVerificationUrl =
-      this.config.get<string>('PAYPAL_URL') + '/v1/notifications/verify-webhook-signature'
+      this.config.get<string>('paypal.apiUrl') + '/v1/notifications/verify-webhook-signature'
 
     const token = await this.generateAccessToken()
+    if (!token) return false
 
     enum verification_status {
       SUCCESS = 'SUCCESS',
@@ -88,7 +90,7 @@ export class PaypalService {
     verifyRequest += ',"transmission_id": "' + headers['paypal-transmission-id'] + '"'
     verifyRequest += ',"transmission_sig": "' + headers['paypal-transmission-sig'] + '"'
     verifyRequest += ',"transmission_time": "' + headers['paypal-transmission-time'] + '"'
-    verifyRequest += ',"webhook_id": "' + this.config.get<string>('PAYPAL_WEBHOOK_ID') + '"'
+    verifyRequest += ',"webhook_id": "' + this.config.get<string>('paypal.webhookId') + '"'
     verifyRequest += ',"webhook_event": ' + rawPaypalBody.toString()
     verifyRequest += '}'
 
@@ -110,31 +112,41 @@ export class PaypalService {
     return response.data.verification_status === verification_status.SUCCESS
   }
 
-  async generateAccessToken(): Promise<string> {
-    Logger.debug('Generating token')
+  async generateAccessToken(): Promise<string | null> {
+    Logger.debug(
+      `Generating token with clientId ${this.config.get<string>('paypal.clientId')}`,
+      'PaypalWebhook',
+    )
 
-    const paypalTokenUrl = this.config.get<string>('PAYPAL_URL') + '/v1/oauth2/token'
-    const response = await this.httpService.axiosRef({
-      url: paypalTokenUrl,
-      method: 'post',
-      headers: {
-        Accept: 'application/json',
-        'Accept-Language': 'en_US',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Access-Control-Allow-Origin': '*',
-      },
-      data: 'grant_type=client_credentials',
-      auth: {
-        username: this.config.get<string>('PAYPAL_CLIENT_ID') ?? '',
-        password: this.config.get<string>('PAYPAL_APP_SECRET') ?? '',
-      },
-    })
+    const paypalTokenUrl = this.config.get<string>('paypal.apiUrl') + '/v1/oauth2/token'
+    Logger.debug(`Generating token with apiUrl ${paypalTokenUrl}`, 'PaypalWebhook')
 
-    const data = await this.handleResponse(response)
+    await this.httpService
+      .axiosRef({
+        url: paypalTokenUrl,
+        method: 'post',
+        headers: {
+          Accept: 'application/json',
+          'Accept-Language': 'en_US',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Access-Control-Allow-Origin': '*',
+        },
+        data: 'grant_type=client_credentials',
+        auth: {
+          username: this.config.get<string>('paypal.clientId') ?? '',
+          password: this.config.get<string>('paypal.clientSecret') ?? '',
+        },
+      })
+      .then((response) => {
+        Logger.debug(`Got token: ${response.data.access_token}`, 'PaypalWebhook')
+        return response.data.access_token
+      })
+      .catch((e) => {
+        Logger.error(`Couldn't get paypal token. Error is: ${e.message}`, 'PaypalWebhook')
+        return null
+      })
 
-    Logger.debug('Got token: ' + data.access_token)
-
-    return data.access_token
+    return null
   }
 
   async handleResponse(response: AxiosResponse) {
