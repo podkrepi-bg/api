@@ -76,6 +76,9 @@ export class PaypalService {
       this.config.get<string>('paypal.apiUrl')).toString()
 
     const token = await this.generateAccessToken()
+
+    Logger.log("Token to use: " + token)
+
     if (!token) return false
 
     enum verification_status {
@@ -96,7 +99,8 @@ export class PaypalService {
 
     Logger.log('Verification request will be: ' + verifyRequest)
 
-    const response = await this.httpService.axiosRef({
+    const verificationResponse  = 
+     await this.httpService.axiosRef({
       url: paypalVerificationUrl,
       method: 'post',
       data: verifyRequest,
@@ -105,11 +109,19 @@ export class PaypalService {
         'Content-Type': 'application/json',
       },
     })
+    .then(response => response.data)
+    .catch((e) => {
+      Logger.error(`Error while verifying webhook event. Error is: ${e.message}`, 'PaypalWebhook')
+      return null
+    })
 
-    Logger.log('verification response: ', response.data)
-    Logger.log(`verification result: ${response.data.verification_status}`, 'PaypalWebhook')
+    if(!verificationResponse)
+      return false
+    
+    Logger.log('verification response: ', verificationResponse)
+    Logger.log(`verification result: ${verificationResponse.verification_status}`, 'PaypalWebhook')
 
-    return response.data.verification_status === verification_status.SUCCESS
+    return verificationResponse.verification_status === verification_status.SUCCESS
   }
 
   async generateAccessToken(): Promise<string | null> {
@@ -122,7 +134,7 @@ export class PaypalService {
       this.config.get<string>('paypal.apiUrl')).toString()
     Logger.log(`Generating token with apiUrl ${paypalTokenUrl}`, 'PaypalWebhook')
 
-    await this.httpService
+    return this.httpService
       .axiosRef({
         url: paypalTokenUrl,
         method: 'post',
@@ -146,8 +158,6 @@ export class PaypalService {
         Logger.error(`Couldn't get paypal token. Error is: ${e.message}`, 'PaypalWebhook')
         return null
       })
-
-    return null
   }
 
   parsePaypalPaymentOrder(paypalOrder): PaymentData {
