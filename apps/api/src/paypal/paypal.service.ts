@@ -72,8 +72,8 @@ export class PaypalService {
     headers: Record<string, unknown>,
     rawPaypalBody: string,
   ): Promise<boolean> {
-    const paypalVerificationUrl =
-      this.config.get<string>('paypal.apiUrl') + '/v1/notifications/verify-webhook-signature'
+    const paypalVerificationUrl = new URL('/v1/notifications/verify-webhook-signature',
+      this.config.get<string>('paypal.apiUrl')).toString()
 
     const token = await this.generateAccessToken()
     if (!token) return false
@@ -118,7 +118,8 @@ export class PaypalService {
       'PaypalWebhook',
     )
 
-    const paypalTokenUrl = this.config.get<string>('paypal.apiUrl') + '/v1/oauth2/token'
+    const paypalTokenUrl = new URL('/v1/oauth2/token',
+      this.config.get<string>('paypal.apiUrl')).toString()
     Logger.log(`Generating token with apiUrl ${paypalTokenUrl}`, 'PaypalWebhook')
 
     await this.httpService
@@ -147,15 +148,6 @@ export class PaypalService {
       })
 
     return null
-  }
-
-  async handleResponse(response: AxiosResponse) {
-    if (response.status === 200 || response.status === 201) {
-      return response.data
-    }
-
-    const errorMessage = response.statusText
-    throw new Error(errorMessage)
   }
 
   parsePaypalPaymentOrder(paypalOrder): PaymentData {
