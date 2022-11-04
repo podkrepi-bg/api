@@ -94,7 +94,7 @@ export class PaypalService {
     verifyRequest += ',"transmission_sig": "' + headers['paypal-transmission-sig'] + '"'
     verifyRequest += ',"transmission_time": "' + headers['paypal-transmission-time'] + '"'
     verifyRequest += ',"webhook_id": "' + this.config.get<string>('paypal.webhookId') + '"'
-    verifyRequest += ',"webhook_event": ' + rawPaypalBody.toString()
+    verifyRequest += ',"webhook_event": ' + rawPaypalBody
     verifyRequest += '}'
 
     Logger.log('Verification request will be: ' + verifyRequest)
