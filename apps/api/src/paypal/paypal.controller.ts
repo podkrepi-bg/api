@@ -13,7 +13,7 @@ export class PaypalController {
   @Public()
   async completeCapture(@Req() req: RawBodyRequest<Request>) {
     Logger.debug('Paypal new capture received with signiture: ', req.headers)
-    Logger.debug('Paypal new capture received with rawBody: ', req.body)
+    Logger.log('Paypal new capture received with rawBody: ', req.body)
 
     if (!(await this.paypalService.validatePaypalMessage(req.headers, req.body)))
       throw new BadRequestException('Paypal verification: invalid webhook request')
