@@ -37,8 +37,35 @@ export async function campaignSeed() {
     throw new Error('No campaign type')
   }
 
-  const insert = await prisma.campaign.createMany({
-    data: [...Array(12).keys()].map(() => {
+  console.log('Insert 5 active campaigns')
+  const activeCampaigns = await prisma.campaign.createMany({
+    data: [...Array(5).keys()].map(() => {
+      const title = faker.lorem.sentence(3)
+      const randomType = campaignTypeFromDb[Math.floor(Math.random() * campaignTypeFromDb.length)]
+      return {
+        state: CampaignState.active,
+        slug: faker.helpers.slugify(title).replace('.', '').toLowerCase(),
+        title,
+        essence: faker.company.catchPhrase(),
+        coordinatorId: coordinatorFromDb.id,
+        beneficiaryId: beneficiaryFromDb.id,
+        campaignTypeId: randomType.id,
+        description: faker.lorem.paragraphs(1),
+        targetAmount: parseInt(faker.finance.amount(2000, 200000)),
+        currency: Currency.BGN,
+        paymentReference: getPaymentReference(),
+        startDate: faker.date.soon(3),
+        endDate: faker.date.soon(60),
+      }
+    }),
+    skipDuplicates: true,
+  })
+  console.log({ activeCampaigns })
+
+
+  console.log('Insert 5 more random state campaigns')
+  const randomCampaigns = await prisma.campaign.createMany({
+    data: [...Array(5).keys()].map(() => {
       const title = faker.lorem.sentence(3)
       const randomType = campaignTypeFromDb[Math.floor(Math.random() * campaignTypeFromDb.length)]
       return {
@@ -59,5 +86,5 @@ export async function campaignSeed() {
     }),
     skipDuplicates: true,
   })
-  console.log({ insert })
+  console.log({ randomCampaigns })
 }
