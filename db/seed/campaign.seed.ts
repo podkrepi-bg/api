@@ -62,7 +62,6 @@ export async function campaignSeed() {
   })
   console.log({ activeCampaigns })
 
-
   console.log('Insert 5 more random state campaigns')
   const randomCampaigns = await prisma.campaign.createMany({
     data: [...Array(5).keys()].map(() => {
