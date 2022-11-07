@@ -126,25 +126,27 @@ import { PaypalModule } from '../paypal/paypal.module'
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    /**
-     * Pass raw body for Stripe processing on single endpoint
-     * @url https://github.com/golevelup/nestjs/tree/master/packages/webhooks
-     */
+    applyRawBodyOnlyTo(
+      consumer,
+      /**
+       * Pass raw body for Stripe processing on single endpoint
+       * @url https://github.com/golevelup/nestjs/tree/master/packages/webhooks
+       */
+      {
+        path: 'stripe/webhook',
+        method: RequestMethod.ALL,
+      },
+      /**
+       * Enabling rawBody for correct paypal webhook verification, by using Stripe middleware.
+       * Unfortunately the standard NestJS way didn't work as per these instructions:
+       * https://docs.nestjs.com/faq/raw-body
+       */
+      {
+        path: 'paypal/webhook',
+        method: RequestMethod.ALL,
+      },
+    )
 
-    applyRawBodyOnlyTo(consumer, {
-      method: RequestMethod.ALL,
-      path: 'stripe/webhook',
-    })
-
-    /**
-     * Enabling rawBody for correct paypal webhook verification, by using Stripe middleware.
-     * Unfortunately the standard NestJS way didn't work as per these instructions:
-     * https://docs.nestjs.com/faq/raw-body
-     */
-    applyRawBodyOnlyTo(consumer, {
-      method: RequestMethod.ALL,
-      path: 'paypal/webhook',
-    })
     // add HTTP request logging
     consumer.apply(ApiLoggerMiddleware).forRoutes('*')
   }
