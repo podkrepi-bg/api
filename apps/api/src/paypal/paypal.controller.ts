@@ -2,7 +2,7 @@ import { Controller, Logger, Post, Req, RawBodyRequest, BadRequestException } fr
 import { Request } from 'express'
 import { Public } from 'nest-keycloak-connect'
 import { PaypalService } from './paypal.service'
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger'
 
 @ApiTags('paypal')
 @Controller('paypal')
@@ -12,10 +12,11 @@ export class PaypalController {
   @Post('webhook')
   @Public()
   async completeCapture(@Req() req: RawBodyRequest<Request>) {
-    Logger.debug('Paypal new capture received with signiture: ', req.headers)
-    Logger.log('Paypal new capture received with rawBody: ', req.body)
+    Logger.log('Paypal new capture received with signiture: ' + req.headers, 'Paypal')
+    Logger.log('paypal request body is buffer: ' + Buffer.isBuffer(req.body), 'Paypal')
+    Logger.log('Paypal new capture received with rawBody: ' + req.body.toString(), 'Paypal')
 
-    if (!(await this.paypalService.validatePaypalMessage(req.headers, req.body)))
+    if (!(await this.paypalService.validatePaypalMessage(req.headers, req.body.toString())))
       throw new BadRequestException('Paypal verification: invalid webhook request')
 
     const parsedBody = JSON.parse(req.body)
