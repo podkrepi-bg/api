@@ -51,7 +51,7 @@ services:
     restart: 'no'
     environment:
       DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
-    entrypoint: ["sh", "-c", "sleep 5 && yarn prisma migrate deploy"]
+    entrypoint: ['sh', '-c', 'sleep 5 && yarn prisma migrate deploy']
     depends_on:
       - pg-db
     networks:
@@ -65,7 +65,7 @@ services:
     restart: 'no'
     environment:
       DATABASE_URL: postgres://${DB_USER?}:${DB_PASS?}@${DB_HOST?}:${DB_PORT?}/${DB_NAME?}?schema=api
-    entrypoint: ["sh", "-c", "sleep 15 && yarn prisma generate && yarn prisma db seed"]
+    entrypoint: ['sh', '-c', 'sleep 15 && yarn prisma generate && yarn prisma db seed']
     depends_on:
       - pg-db
     networks:
@@ -95,7 +95,6 @@ services:
 
     networks:
       - backend-net
-
   ########################################
   ## LOCAL IDENTITY PROVIDER - KEYCLOAK ##
   ########################################
@@ -108,22 +107,27 @@ services:
     profiles: ['local-keycloak']
     restart: always
     environment:
-      - KEYCLOAK_USER=${KEYCLOAK_PASSWORD}
-      - KEYCLOAK_PASSWORD=${KEYCLOAK_PASSWORD}
+      - KEYCLOAK_USER=${KEYCLOAK_USER?}
+      - KEYCLOAK_PASSWORD=${KEYCLOAK_PASSWORD?}
       - JAVA_OPTS_APPEND=-Dkeycloak.profile.feature.token_exchange=enabled -Dkeycloak.profile.feature.admin_fine_grained_authz=enabled
       - KEYCLOAK_IMPORT=/opt/jboss/keycloak/config/keycloak-webapp-realm.json
       - DEBUG=true
       - DEBUG_PORT='*:8787'
-      - DB_VENDOR=H2
-      - TZ=Europe/Sofia
+      - DB_VENDOR=POSTGRES
+      - DB_USER=keycloak
+      - DB_PASSWORD=keycloak
+      - DB_ADDR=${COMPOSE_PROJECT_NAME?}-pg-db
+      - DB_DATABASE=keycloak
     ports:
-      - '8180:8080'
+      - '8080:8080'
       - '8787:8787'
     volumes:
       - './manifests/keycloak/theme_podkrepi:/opt/jboss/keycloak/themes/theme_podkrepi'
       - './manifests/keycloak/config:/opt/jboss/keycloak/config'
     networks:
       backend-net:
+    depends_on:
+      - pg-db
 
   # ## KEYCLOAK CONFIGURATOR - removes the need to recreate keycloak container upon config changes
   # ## uncomment if you plan to tune the keycloak realm configuration
