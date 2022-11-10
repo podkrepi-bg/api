@@ -119,7 +119,7 @@ services:
       - DB_ADDR=${COMPOSE_PROJECT_NAME?}-pg-db
       - DB_DATABASE=keycloak
     ports:
-      - '8080:8080'
+      - '8180:8080'
       - '8787:8787'
     volumes:
       - './manifests/keycloak/theme_podkrepi:/opt/jboss/keycloak/themes/theme_podkrepi'
