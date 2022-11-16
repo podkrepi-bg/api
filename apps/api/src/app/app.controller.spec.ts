@@ -14,12 +14,12 @@ describe('AppController', () => {
   })
 
   describe('getData', () => {
-    it('should return "Welcome to Podkrepi.bg Backend API! See Swagger docs at /docs"', () => {
+    it('should return "Welcome to Podkrepi.bg Backend API! See Swagger docs at /swagger"', () => {
       const appVersion = process.env.APP_VERSION || 'unknown'
       const appController = app.get<AppController>(AppController)
       expect(appController.getData()).toEqual({
         version: appVersion,
-        message: 'Welcome to Podkrepi.bg Backend API! See Swagger docs at /docs',
+        message: 'Welcome to Podkrepi.bg Backend API! See Swagger docs at /swagger',
       })
     })
   })

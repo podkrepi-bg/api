@@ -44,8 +44,8 @@ To run and develop the module NodeJS 16 is required. In this section 2 ways of c
 
 The following prerequisites are required in order to be able to run the project:
 
-- [NodeJS 16 LTS](https://nodejs.org/en/download/)
-- [yarn](https://classic.yarnpkg.com/lang/en/docs/install)
+- [Node.js 16 LTS](https://nodejs.org/en/download/)
+- [Yarn v1.x](https://classic.yarnpkg.com/lang/en/docs/install)
 - [Docker](https://www.docker.com/get-started) (to easily run a local database instance)
 
 ## Development container
@@ -147,7 +147,7 @@ docker-compose down
 
 ## API Docs via Swagger
 
-Available at <http://localhost:5010/docs/>
+Available at <http://localhost:5010/swagger/>
 
 ## Understand your workspace
 
@@ -272,9 +272,11 @@ s3cmd ls
 ```
 
 # Configuring Google Sign-in with Keycloak
-For enabling sign-in with existing gmail account we use the token-exchange feature of Keycloak as per the great description in: https://medium.com/@souringhosh/keycloak-token-exchange-usage-with-google-sign-in-cd9127ebc96d 
+
+For enabling sign-in with existing gmail account we use the token-exchange feature of Keycloak as per the great description in: https://medium.com/@souringhosh/keycloak-token-exchange-usage-with-google-sign-in-cd9127ebc96d
 
 The logic is the following:
+
 1. The frontend acquires a token from Google Sign-in
 2. The frontend sends the token to the backend API requesting a login with external provider (see: auth.service.ts issueTokenFromProvider)
 3. The backend sends the token-exchange request to Keycloak passing the Google Token for Permission to Login

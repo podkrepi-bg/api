@@ -11,7 +11,7 @@ export class AppService {
   getData(): { version: string; message: string } {
     return {
       version: this.appVersion,
-      message: 'Welcome to Podkrepi.bg Backend API! See Swagger docs at /docs',
+      message: 'Welcome to Podkrepi.bg Backend API! See Swagger docs at /swagger',
     }
   }
 }
