@@ -81,7 +81,7 @@ services:
     restart: always
 
     volumes:
-      - keycloak-db-data:/var/lib/postgresql/data
+      - keycloak-db-data:/var/lib/keycloak
       - pg-db-data:/var/lib/postgresql/data
     ports:
       - '${DB_PORT?}:5432'
