@@ -81,8 +81,8 @@ services:
     restart: always
 
     volumes:
-      - pg-db-data:/bitnami/postgresql
-
+      - keycloak-db-data:/var/lib/postgresql/data
+      - pg-db-data:/var/lib/postgresql/data
     ports:
       - '${DB_PORT?}:5432'
 
@@ -113,21 +113,21 @@ services:
       - KEYCLOAK_IMPORT=/opt/jboss/keycloak/config/keycloak-webapp-realm.json
       - DEBUG=true
       - DEBUG_PORT='*:8787'
-      - DB_VENDOR=POSTGRES
-      - DB_USER=keycloak
-      - DB_PASSWORD=keycloak
+      - DB_VENDOR=${KEYCLOAK_DB_VENDOR?}
+      - DB_USER=${KEYCLOAK_DB_USER?}
+      - DB_PASSWORD=${KEYCLOAK_DB_PASSWORD?}
       - DB_ADDR=${COMPOSE_PROJECT_NAME?}-pg-db
-      - DB_DATABASE=keycloak
+      - DB_DATABASE=${KEYCLOAK_DB_NAME?}
     ports:
       - '8180:8080'
       - '8787:8787'
     volumes:
       - './manifests/keycloak/theme_podkrepi:/opt/jboss/keycloak/themes/theme_podkrepi'
       - './manifests/keycloak/config:/opt/jboss/keycloak/config'
-    networks:
-      backend-net:
     depends_on:
       - pg-db
+    networks:
+      - backend-net
 
   # ## KEYCLOAK CONFIGURATOR - removes the need to recreate keycloak container upon config changes
   # ## uncomment if you plan to tune the keycloak realm configuration
@@ -151,6 +151,7 @@ services:
   #     backend-net:
 volumes:
   pg-db-data:
+    driver: local
   keycloak-db-data:
     driver: local
 
