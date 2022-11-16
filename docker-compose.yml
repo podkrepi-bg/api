@@ -81,6 +81,7 @@ services:
     restart: always
 
     volumes:
+      # Keycloak creates it's own /data and /conf folders
       - keycloak-db-data:/var/lib/keycloak
       - pg-db-data:/var/lib/postgresql/data
     ports:
