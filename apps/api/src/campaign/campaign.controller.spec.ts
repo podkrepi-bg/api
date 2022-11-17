@@ -31,6 +31,7 @@ describe('CampaignController', () => {
     coordinatorId: 'testCoordinatorId',
     beneficiaryId: 'testBeneficiaryId',
     organizerId: 'testOrganizerId',
+    companyId: 'testCompanyId',
     campaignTypeId: 'testCampaignTypeId',
     targetAmount: 1000,
     reachedAmount: 0,
