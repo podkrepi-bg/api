@@ -48,6 +48,7 @@ describe('CampaignController', () => {
     essence: 'test',
     beneficiaryId: 'testBeneficiaryId',
     organizerId: 'testOrganizerId',
+    companyId: 'testCompanyId',
     campaignTypeId: 'testCampaignTypeId',
     targetAmount: 1000,
     reachedAmount: 0,
@@ -88,6 +89,7 @@ describe('CampaignController', () => {
       beneficiary: { person: { keycloakId: 'testBeneficiaryKeycloakId' } },
       coordinator: { person: { keycloakId: 'testCoordinatorKeycloakId' } },
       organizer: { person: { keycloakId: 'testOrganizerKeycloakId' } },
+      company: { person: { keycloakId: 'testCompanyKeycloakId' } },
       campaignFiles: [],
       paymentReference: paymentReferenceMock,
       vaults: [],
@@ -154,6 +156,7 @@ describe('CampaignController', () => {
         beneficiary: { firstName: 'Test', lastName: 'Test' },
         coordinator: { firstName: 'Test', lastName: 'Test' },
         organizer: { firstName: 'Test', lastName: 'Test' },
+        company: { companyName: 'Test', companyNumber: '123123123' },
         campaignType: { name: 'Test type' },
         paymentReference: paymentReferenceMock,
       }

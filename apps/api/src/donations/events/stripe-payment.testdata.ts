@@ -12,6 +12,7 @@ export const mockedCampaign: Campaign = {
   essence: 'test-campaign',
   coordinatorId: '4c1616b0-1284-4b7d-8b89-9098e7ded2c4',
   organizerId: '4c1616b0-1284-4b7d-8b89-9098e7ded2c4',
+  companyId: '4c1616b0-1284-4b7d-8b89-9098e7ded2c4',
   beneficiaryId: '4c1616b0-1284-4b7d-8b89-9098e7ded2c4',
   approvedById: '4c1616b0-1284-4b7d-8b89-9098e7ded2c4',
   campaignTypeId: '4c1616b0-1284-4b7d-8b89-9098e7ded2c4',

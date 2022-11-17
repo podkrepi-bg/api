@@ -32,6 +32,7 @@ export class Campaign {
   allowDonationOnComplete: boolean
   paymentReference: string
   organizerId: string | null
+  companyId: string | null
   approvedBy?: Person | null
   beneficiary?: Beneficiary
   campaignType?: CampaignType

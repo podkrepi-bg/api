@@ -8,4 +8,5 @@ export class UpdateCampaignDto {
   endDate?: Date
   deletedAt?: Date
   paymentReference?: string
+  companyId?: string
 }

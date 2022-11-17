@@ -8,4 +8,5 @@ export class CreateCampaignDto {
   endDate?: Date
   deletedAt?: Date
   paymentReference: string
+  companyId?: string
 }

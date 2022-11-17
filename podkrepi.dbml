@@ -153,6 +153,7 @@ Table campaigns {
   allowDonationOnComplete Boolean [not null, default: false]
   paymentReference String [unique, not null]
   organizerId String
+  companyId String
   approvedBy people
   beneficiary beneficiaries [not null]
   campaignType campaign_types [not null]
