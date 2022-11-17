@@ -41,6 +41,12 @@ export class CreateCampaignDto {
   @IsOptional()
   @Expose()
   @IsUUID()
+  companyId: string
+
+  @ApiProperty()
+  @IsOptional()
+  @Expose()
+  @IsUUID()
   coordinatorId: string
 
   @ApiProperty()
