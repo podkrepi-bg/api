@@ -1,4 +1,5 @@
 import { Campaign, CampaignState } from '@prisma/client'
+import { randomUUID } from 'crypto'
 import Stripe from 'stripe'
 
 export const campaignId = '4c1616b0-1284-4b7d-8b89-9098e7ded2c4'
@@ -10,12 +11,12 @@ export const mockedCampaign: Campaign = {
   title: 'test-campaigns',
   paymentReference: 'test-campaign',
   essence: 'test-campaign',
-  coordinatorId: '4c1616b0-1284-4b7d-8b89-9098e7ded2c4',
-  organizerId: '4c1616b0-1284-4b7d-8b89-9098e7ded2c4',
-  companyId: '4c1616b0-1284-4b7d-8b89-9098e7ded2c4',
-  beneficiaryId: '4c1616b0-1284-4b7d-8b89-9098e7ded2c4',
-  approvedById: '4c1616b0-1284-4b7d-8b89-9098e7ded2c4',
-  campaignTypeId: '4c1616b0-1284-4b7d-8b89-9098e7ded2c4',
+  coordinatorId: randomUUID(),
+  organizerId: randomUUID(),
+  companyId: randomUUID(),
+  beneficiaryId: randomUUID(),
+  approvedById: randomUUID(),
+  campaignTypeId: randomUUID(),
   targetAmount: 1000000,
   currency: 'BGN',
   allowDonationOnComplete: true,
