@@ -1,2 +1,1 @@
-
-export * from './infoRequest.entity';
+export * from './infoRequest.entity'

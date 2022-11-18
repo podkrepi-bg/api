@@ -1,9 +1,3 @@
-
-
-
-
-
-
 export class UpdateBenefactorDto {
-  extCustomerId?: string;
+  extCustomerId?: string
 }

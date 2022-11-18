@@ -1,10 +1,4 @@
-
-
-
-
-
-
 export class CreateCountryDto {
-  name: string;
-countryCode: string;
+  name: string
+  countryCode: string
 }
