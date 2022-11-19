@@ -4,6 +4,7 @@ import { Beneficiary } from '../../beneficiary/entities/beneficiary.entity'
 import { CampaignType } from '../../campaignType/entities/campaignType.entity'
 import { Coordinator } from '../../coordinator/entities/coordinator.entity'
 import { Organizer } from '../../organizer/entities/organizer.entity'
+import { Company } from '../../company/entities/company.entity'
 import { CampaignFile } from '../../campaignFile/entities/campaignFile.entity'
 import { DonationWish } from '../../donationWish/entities/donationWish.entity'
 import { Irregularity } from '../../irregularity/entities/irregularity.entity'
@@ -32,11 +33,13 @@ export class Campaign {
   allowDonationOnComplete: boolean
   paymentReference: string
   organizerId: string | null
+  companyId: string | null
   approvedBy?: Person | null
   beneficiary?: Beneficiary
   campaignType?: CampaignType
   coordinator?: Coordinator
   organizer?: Organizer | null
+  company?: Company | null
   campaignFiles?: CampaignFile[]
   donationWish?: DonationWish[]
   irregularities?: Irregularity[]

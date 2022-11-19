@@ -1,4 +1,5 @@
 import { Beneficiary } from '../../beneficiary/entities/beneficiary.entity'
+import { Campaign } from '../../campaign/entities/campaign.entity'
 
 export class Company {
   id: string
@@ -10,4 +11,5 @@ export class Company {
   createdAt: Date
   updatedAt: Date | null
   beneficiaries?: Beneficiary[]
+  Campaign?: Campaign[]
 }
