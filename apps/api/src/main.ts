@@ -8,20 +8,21 @@ import { setupSwagger } from './config/swagger.config'
 import { setupExceptions } from './config/exceptions.config'
 import { setupValidation } from './config/validation.config'
 import { setupShutdownHooks } from './config/shutdown.config'
+import { PodkrepiLogger } from './app/PodkrepiLogger'
 
 const globalPrefix = process.env.GLOBAL_PREFIX ?? 'api/v1'
 const logLevels: LogLevel[] = ['error', 'log', 'warn']
-
 async function bootstrap() {
   const isDevConfig = process.env.NODE_ENV === 'development'
+  const logger = new PodkrepiLogger(isDevConfig ? ['debug', 'verbose', ...logLevels] : logLevels)
   if (isDevConfig) {
-    Logger.warn('Running with development configuration')
+    logger.warn('Running with development configuration')
   }
 
   const app = await NestFactory.create(AppModule, {
     bodyParser: false, // Body parsing is enabled later on via middlewares
     rawBody: true,
-    logger: isDevConfig ? ['debug', 'verbose', ...logLevels] : logLevels,
+    logger,
   })
 
   app.setGlobalPrefix(globalPrefix)
