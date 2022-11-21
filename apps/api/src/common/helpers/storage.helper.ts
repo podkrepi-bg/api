@@ -27,7 +27,7 @@ export const getFile = async (path: string, encoding: BufferEncoding): Promise<s
 }
 
 /**
- * Writes a file at a given path via a promise interface.
+ * Writes or appends to an existing a file at a given path via a promise interface.
  *
  * @param {string} path
  * @param {string} fileName
@@ -35,14 +35,19 @@ export const getFile = async (path: string, encoding: BufferEncoding): Promise<s
  *
  * @return {Promise<void>}
  */
-export const createFile = async (path: string, fileName: string, data: string): Promise<void> => {
+export const appendToFile = async (path: string, fileName: string, data: string): Promise<void> => {
   if (!checkIfFileOrDirectoryExists(path)) {
     fs.mkdirSync(path)
   }
-
   const writeFile = promisify(fs.writeFile)
+  const appendFile = promisify(fs.appendFile)
 
-  return await writeFile(`${path}/${fileName}`, data, 'utf8')
+  const fullPath = `${path}/${fileName}`
+  if (checkIfFileOrDirectoryExists(fullPath)) {
+    return await appendFile(fullPath, data, 'utf8')
+  }
+
+  return await writeFile(fullPath, data, 'utf8')
 }
 
 /**
