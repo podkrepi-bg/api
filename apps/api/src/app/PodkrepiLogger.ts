@@ -10,23 +10,23 @@ export class PodkrepiLogger extends ConsoleLogger {
     super.log(message)
   }
 
-  error(message: string, ...args) {
-    appendToFile('api-logs', 'api-error.log', message)
-    super.error(message, args)
+  error(message: string) {
+    appendToFile('api-logs', 'api-error.log', `\n[ERROR] - ${message}`)
+    super.error(message)
   }
 
   warn(message: string) {
-    appendToFile('api-logs', 'api-warn.log', message)
+    appendToFile('api-logs', 'api-warn.log', `\n[WARN] - ${message}`)
     super.warn(message)
   }
 
   debug(message: string) {
-    appendToFile('api-logs', 'api-debug.log', message)
+    appendToFile('api-logs', 'api-debug.log', `\n[DEBUG] - ${message}`)
     super.debug(message)
   }
 
   verbose(message: string) {
-    appendToFile('api-logs', 'api-verbose.log', message)
+    appendToFile('api-logs', 'api-verbose.log', `\n[VERBOSE] - ${message}`)
     super.verbose(message)
   }
 }
