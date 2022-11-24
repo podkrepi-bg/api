@@ -46,7 +46,6 @@ import { OrganizerModule } from '../organizer/organizer.module'
 import { DonationWishModule } from '../donation-wish/donation-wish.module'
 import { ApiLoggerMiddleware } from './middleware/apilogger.middleware'
 import { PaypalModule } from '../paypal/paypal.module'
-
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
