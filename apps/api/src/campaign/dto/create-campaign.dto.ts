@@ -41,6 +41,12 @@ export class CreateCampaignDto {
   @IsOptional()
   @Expose()
   @IsUUID()
+  companyId: string
+
+  @ApiProperty()
+  @IsOptional()
+  @Expose()
+  @IsUUID()
   coordinatorId: string
 
   @ApiProperty()
@@ -126,6 +132,7 @@ export class CreateCampaignDto {
       beneficiary: { connect: { id: this.beneficiaryId } },
       coordinator: { connect: { id: this.coordinatorId } },
       organizer: { connect: { id: this.organizerId } },
+      company: { connect: { id: this.companyId } },
     }
   }
 }
