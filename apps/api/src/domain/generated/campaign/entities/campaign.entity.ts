@@ -11,6 +11,7 @@ import { Irregularity } from '../../irregularity/entities/irregularity.entity'
 import { Transfer } from '../../transfer/entities/transfer.entity'
 import { Vault } from '../../vault/entities/vault.entity'
 import { Withdrawal } from '../../withdrawal/entities/withdrawal.entity'
+import { CampaignReport } from '../../campaignReport/entities/campaignReport.entity'
 
 export class Campaign {
   id: string
@@ -47,4 +48,5 @@ export class Campaign {
   incomingTransfers?: Transfer[]
   vaults?: Vault[]
   withdrawals?: Withdrawal[]
+  campaignReports?: CampaignReport[]
 }

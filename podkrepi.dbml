@@ -28,6 +28,7 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   benefactors benefactors [not null]
   beneficiaries beneficiaries [not null]
   campaignFiles campaign_files [not null]
+  campaignReportFiles campaign_reports_files [not null]
   campaigns campaigns [not null]
   coordinators coordinators
   documents documents [not null]
@@ -168,6 +169,7 @@ Table campaigns {
   incomingTransfers transfers [not null]
   vaults vaults [not null]
   withdrawals withdrawals [not null]
+  campaignReports campaign_reports [not null]
 }
 
 Table irregularities {
@@ -432,6 +434,38 @@ Table bank_transactions_files {
   bankTransactionsFileId String [not null]
   type BankTransactionsFileType [not null, default: 'xml']
   personId String [not null]
+}
+
+Table campaign_reports {
+  id String [pk]
+  campaignId String [not null]
+  campaign campaigns [not null]
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  description String [not null]
+  files campaign_reports_files [not null]
+  totalFunds Float
+  fundsForPeriod Float
+  spentFundsForPeriod Float
+  goals String [not null]
+  nextSteps String [not null]
+  additionalInfo String [not null]
+}
+
+Table campaign_reports_files {
+  id String [pk]
+  reportId String [not null]
+  report campaign_reports [not null]
+  filename String [not null]
+  mimetype String [not null]
+  type CampaignReportFileType [not null]
+  personId String [not null]
+  person people [not null]
+}
+
+Enum CampaignReportFileType {
+  photo
+  document
 }
 
 Enum BeneficiaryType {
@@ -723,3 +757,9 @@ Ref: expenses.documentId > documents.id
 Ref: expenses.vaultId > vaults.id
 
 Ref: documents.ownerId > people.id
+
+Ref: campaign_reports.campaignId > campaigns.id
+
+Ref: campaign_reports_files.reportId > campaign_reports.id
+
+Ref: campaign_reports_files.personId > people.id
