@@ -41,3 +41,5 @@ Thumbs.db
 
 # Env
 .env*.local
+
+test-results.xml
