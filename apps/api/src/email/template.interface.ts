@@ -1,6 +1,7 @@
 import { CreatePersonDto } from '../person/dto/create-person.dto'
 import { CreateInquiryDto } from '../support/dto/create-inquiry.dto'
 import { CreateRequestDto } from '../support/dto/create-request.dto'
+import { UserReportDto } from '../support/dto/user-report.dto'
 
 export enum TemplateType {
   welcome = 'welcome',
@@ -54,4 +55,8 @@ export class InquiryReceivedEmailDto extends EmailTemplate<CreateInquiryDto> {
 
 export class InquiryReceivedInternalEmailDto extends EmailTemplate<CreateInquiryDto> {
   name = TemplateType.inquiryReceivedInternal
+}
+
+export class UserReportEmailDto extends EmailTemplate<UserReportDto> {
+  name = TemplateType.userReport
 }
