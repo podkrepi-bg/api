@@ -50,3 +50,6 @@ Thumbs.db
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# tests
+test-results.xml
