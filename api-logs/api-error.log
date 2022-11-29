@@ -1,0 +1,2 @@
+
+[ERROR] - 27/11/2022, 20:50:05 - Couldn't get authentication from keycloak. Error: {"error":"invalid_grant","error_description":"Token is not active"}

@@ -8,6 +8,7 @@ export enum TemplateType {
   inquiryReceived = 'inquiry-received',
   inquiryReceivedInternal = 'inquiry-received-internal',
   forgotPass = 'forgot-password',
+  userReport = 'user-report',
 }
 export type TemplateTypeKeys = keyof typeof TemplateType
 export type TemplateTypeValues = typeof TemplateType[TemplateTypeKeys]

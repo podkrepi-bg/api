@@ -1,0 +1,449 @@
+
+[DEBUG] - 25/11/2022, 18:56:34 - Listening at http://localhost:5010/api/v1
+[DEBUG] - 25/11/2022, 18:56:34 - Swagger Docs at http://localhost:5010/swagger
+[DEBUG] - 25/11/2022, 19:00:56 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:00:58 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:02:10 - POST /api/v1/login 201 Created
+[DEBUG] - 25/11/2022, 19:02:14 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:02:14 - GET /api/v1/account/me 200 OK
+[DEBUG] - 25/11/2022, 19:02:14 - GET /api/v1/donation/user-donations 200 OK
+[DEBUG] - 25/11/2022, 19:02:17 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:02:17 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:02:25 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:02:25 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:02:26 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:02:26 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 25/11/2022, 19:02:28 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:02:28 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:02:28 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:03:51 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:03:51 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:03:51 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:03:55 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:03:55 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:03:55 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:03:57 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:04:00 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:04:02 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 25/11/2022, 19:04:04 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:04:04 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:04:04 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:04:38 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:04:38 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:06:25 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:06:48 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:07:02 - POST /api/v1/refresh 201 Created
+[DEBUG] - 25/11/2022, 19:07:38 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:07:38 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:07:41 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:07:41 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:07:48 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:07:48 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:07:51 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:07:51 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 25/11/2022, 19:07:52 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:07:53 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:07:53 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:08:14 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:09:22 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:09:22 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:09:48 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:09:52 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:09:52 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:09:53 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:09:53 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:09:54 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:09:54 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:10:06 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:10:06 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:10:07 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:10:07 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 25/11/2022, 19:10:35 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:10:35 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:10:35 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:11:14 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:11:14 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:11:16 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:11:16 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:11:17 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:11:18 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:11:18 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:11:18 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:11:44 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:11:44 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:11:46 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:11:47 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:11:47 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:11:47 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:11:54 - POST /api/v1/refresh 201 Created
+[DEBUG] - 25/11/2022, 19:12:13 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:12:13 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:14:33 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:14:33 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:14:36 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:14:36 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:14:36 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:14:36 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:14:37 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:14:37 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:14:54 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:14:54 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:16:04 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:16:04 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:16:10 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:16:10 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:16:11 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:16:13 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:16:13 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:16:13 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:16:23 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:16:24 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:16:25 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:16:26 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:16:36 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:16:36 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:16:54 - POST /api/v1/refresh 201 Created
+[DEBUG] - 25/11/2022, 19:17:08 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:17:08 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:17:21 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:17:21 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:17:47 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:18:29 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:18:29 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:18:30 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:18:31 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 25/11/2022, 19:18:31 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:18:31 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:19:04 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 25/11/2022, 19:19:04 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 25/11/2022, 19:21:55 - POST /api/v1/refresh 201 Created
+[DEBUG] - 26/11/2022, 03:06:45 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 26/11/2022, 03:06:45 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 26/11/2022, 03:08:41 - POST /api/v1/login 201 Created
+[DEBUG] - 26/11/2022, 03:08:42 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 26/11/2022, 03:08:42 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 26/11/2022, 03:08:42 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 26/11/2022, 03:09:00 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 26/11/2022, 03:09:00 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 26/11/2022, 03:18:34 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 15:34:31 - Listening at http://localhost:5010/api/v1
+[DEBUG] - 27/11/2022, 15:34:31 - Swagger Docs at http://localhost:5010/swagger
+[DEBUG] - 27/11/2022, 15:35:01 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 27/11/2022, 15:35:01 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 27/11/2022, 15:35:02 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 27/11/2022, 15:35:41 - POST /api/v1/login 201 Created
+[DEBUG] - 27/11/2022, 15:35:45 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 27/11/2022, 15:35:45 - GET /api/v1/account/me 200 OK
+[DEBUG] - 27/11/2022, 15:35:45 - GET /api/v1/donation/user-donations 200 OK
+[DEBUG] - 27/11/2022, 15:38:19 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 27/11/2022, 15:38:19 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 27/11/2022, 15:42:10 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 15:45:58 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 27/11/2022, 15:45:58 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 27/11/2022, 15:47:58 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 15:54:09 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 15:59:16 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 16:04:15 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 16:09:07 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 16:14:02 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 16:19:14 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 16:24:08 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 16:29:03 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 16:34:13 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 16:40:57 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 16:46:11 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 16:51:11 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 17:15:12 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 17:18:30 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 27/11/2022, 17:18:30 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 27/11/2022, 17:18:35 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 27/11/2022, 17:18:35 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 27/11/2022, 17:20:26 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 17:20:40 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 27/11/2022, 17:20:40 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 27/11/2022, 17:26:08 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 17:31:18 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 17:36:23 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 17:41:20 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 17:47:05 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 17:52:05 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 17:57:05 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 18:02:05 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 18:07:05 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 18:12:05 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 18:17:05 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 18:22:05 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 18:27:05 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 18:32:04 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 18:37:04 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 18:42:04 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 18:47:05 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 18:52:05 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 18:57:19 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 19:22:14 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 19:27:28 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 19:33:32 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 19:38:24 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 19:43:39 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 19:55:44 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 20:00:41 - POST /api/v1/refresh 201 Created
+[DEBUG] - 27/11/2022, 20:33:06 - POST /api/v1/refresh 201 Created
+[DEBUG] - 28/11/2022, 11:43:02 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 11:43:36 - POST /api/v1/login 201 Created
+[DEBUG] - 28/11/2022, 11:43:38 - GET /api/v1/account/me 200 OK
+[DEBUG] - 28/11/2022, 11:43:38 - GET /api/v1/donation/user-donations 200 OK
+[DEBUG] - 28/11/2022, 11:43:44 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 11:43:44 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 11:43:46 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 11:43:46 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 11:44:01 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 11:44:01 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 11:44:03 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 11:44:03 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 11:44:17 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 11:44:17 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 11:44:21 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 11:44:21 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 11:44:25 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 11:44:25 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 11:44:25 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 11:44:58 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 11:44:58 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 11:45:01 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 11:45:01 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 11:45:01 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 11:45:01 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 11:45:57 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 11:45:57 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 11:46:12 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 11:46:12 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 11:46:19 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 11:46:22 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 11:46:24 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 11:46:28 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 11:46:28 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 11:46:28 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 11:46:30 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 11:46:32 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 11:46:34 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 11:46:34 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 11:46:34 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 11:46:50 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 11:46:50 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 11:48:03 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 11:49:25 - POST /api/v1/refresh 201 Created
+[DEBUG] - 28/11/2022, 12:04:41 - POST /api/v1/refresh 201 Created
+[DEBUG] - 28/11/2022, 12:05:32 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 12:09:40 - POST /api/v1/refresh 201 Created
+[DEBUG] - 28/11/2022, 12:24:55 - POST /api/v1/refresh 201 Created
+[DEBUG] - 28/11/2022, 12:36:43 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 12:37:07 - POST /api/v1/refresh 201 Created
+[DEBUG] - 28/11/2022, 12:52:36 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 12:52:47 - POST /api/v1/refresh 201 Created
+[DEBUG] - 28/11/2022, 12:57:50 - POST /api/v1/refresh 201 Created
+[DEBUG] - 28/11/2022, 13:02:56 - POST /api/v1/refresh 201 Created
+[DEBUG] - 28/11/2022, 13:18:25 - POST /api/v1/refresh 201 Created
+[DEBUG] - 28/11/2022, 13:18:36 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 13:18:48 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:18:48 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:18:50 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 13:18:58 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:18:59 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:18:59 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:19:12 - GET /api/v1/account/me 200 OK
+[DEBUG] - 28/11/2022, 13:19:12 - GET /api/v1/donation/user-donations 200 OK
+[DEBUG] - 28/11/2022, 13:19:15 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:19:16 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:19:18 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:19:18 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:19:22 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:19:24 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:19:25 - GET /api/v1/campaign/get-user-campaigns 200 OK
+[DEBUG] - 28/11/2022, 13:19:25 - GET /api/v1/campaign/user-donations-campaigns 200 OK
+[DEBUG] - 28/11/2022, 13:19:26 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:19:26 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:19:29 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:19:29 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:19:31 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:19:31 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:19:33 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 13:19:36 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:19:36 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:20:16 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:20:16 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:27:46 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:27:47 - POST /api/v1/refresh 201 Created
+[DEBUG] - 28/11/2022, 13:27:48 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 13:27:53 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:27:53 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:28:01 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:28:01 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:28:02 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:28:02 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:28:03 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:28:04 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:28:05 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:28:05 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:28:08 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:28:08 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:29:35 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:29:35 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:29:43 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:29:43 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:29:46 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:29:46 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 13:29:48 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:29:48 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:29:48 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:29:55 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:29:55 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:29:56 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:29:56 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:30:19 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:30:19 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:31:07 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:31:07 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:31:23 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:31:25 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 13:31:51 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:31:52 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:31:52 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:31:57 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:31:57 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:31:57 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:31:59 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:32:01 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 13:32:03 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:32:03 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:32:03 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:32:22 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:32:22 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:32:30 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:32:35 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:32:35 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:32:37 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:32:37 - POST /api/v1/refresh 201 Created
+[DEBUG] - 28/11/2022, 13:32:37 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 13:32:40 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:32:40 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:32:40 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:34:12 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:34:14 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:35:14 - POST /api/v1/login 201 Created
+[DEBUG] - 28/11/2022, 13:35:17 - GET /api/v1/account/me 200 OK
+[DEBUG] - 28/11/2022, 13:35:17 - GET /api/v1/donation/user-donations 200 OK
+[DEBUG] - 28/11/2022, 13:35:20 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:35:21 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:35:22 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 13:35:25 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:35:25 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:35:33 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:35:35 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:35:38 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:35:38 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:35:41 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:35:41 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:35:44 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:35:44 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 13:35:47 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:35:47 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 13:35:52 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 13:35:53 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 13:35:56 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 28/11/2022, 13:35:56 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 28/11/2022, 17:09:54 - Listening at http://localhost:5010/api/v1
+[DEBUG] - 28/11/2022, 17:09:54 - Swagger Docs at http://localhost:5010/swagger
+[DEBUG] - 28/11/2022, 17:10:52 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 17:10:53 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 17:17:00 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 17:17:45 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 21:35:48 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 21:53:17 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 21:58:44 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 21:58:46 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:01:40 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:03:42 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:03:44 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:05:04 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:05:36 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:13:14 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:25:14 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:25:16 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:26:30 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:26:32 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:27:50 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:27:52 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:28:31 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:28:33 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:28:37 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:28:40 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:30:27 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:30:29 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:30:57 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:30:58 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:37:24 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:37:24 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:37:26 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:38:02 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:38:04 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:40:52 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:45:48 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:46:32 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:46:49 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:50:31 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 28/11/2022, 22:54:47 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 28/11/2022, 22:55:55 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 29/11/2022, 08:50:39 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 29/11/2022, 14:43:35 - Listening at http://localhost:5010/api/v1
+[DEBUG] - 29/11/2022, 14:43:35 - Swagger Docs at http://localhost:5010/swagger
+[DEBUG] - 29/11/2022, 14:43:44 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 29/11/2022, 14:43:46 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 29/11/2022, 14:44:33 - POST /api/v1/login 201 Created
+[DEBUG] - 29/11/2022, 14:49:37 - POST /api/v1/refresh 201 Created
+[DEBUG] - 29/11/2022, 14:58:51 - POST /api/v1/refresh 201 Created
+[DEBUG] - 29/11/2022, 14:59:49 - GET /api/v1/account/me 200 OK
+[DEBUG] - 29/11/2022, 14:59:49 - GET /api/v1/donation/user-donations 200 OK
+[DEBUG] - 29/11/2022, 15:17:10 - POST /api/v1/refresh 201 Created
+[DEBUG] - 29/11/2022, 15:17:27 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 29/11/2022, 15:17:27 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 29/11/2022, 15:24:16 - POST /api/v1/refresh 201 Created
+[DEBUG] - 29/11/2022, 15:24:29 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 29/11/2022, 15:24:29 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 29/11/2022, 15:26:55 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 29/11/2022, 15:26:55 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 29/11/2022, 15:26:58 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 29/11/2022, 15:26:58 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 29/11/2022, 15:27:00 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 29/11/2022, 15:27:00 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 29/11/2022, 15:27:01 - GET /api/v1/campaign/get-user-campaigns 200 OK
+[DEBUG] - 29/11/2022, 15:27:01 - GET /api/v1/campaign/user-donations-campaigns 200 OK
+[DEBUG] - 29/11/2022, 15:27:02 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 29/11/2022, 15:27:02 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 29/11/2022, 15:27:04 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 29/11/2022, 15:27:04 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 29/11/2022, 15:27:06 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 29/11/2022, 15:27:06 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 29/11/2022, 15:27:06 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 29/11/2022, 15:29:16 - POST /api/v1/refresh 201 Created
+[DEBUG] - 29/11/2022, 15:32:54 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 29/11/2022, 15:32:55 - GET /api/v1/campaign/list 304 Not Modified
+[DEBUG] - 29/11/2022, 15:33:02 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 29/11/2022, 15:33:02 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 29/11/2022, 15:33:08 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 29/11/2022, 15:33:09 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 29/11/2022, 15:33:11 - GET /api/v1/campaign/user-donations-campaigns 304 Not Modified
+[DEBUG] - 29/11/2022, 15:33:11 - GET /api/v1/campaign/get-user-campaigns 304 Not Modified
+[DEBUG] - 29/11/2022, 15:33:14 - GET /api/v1/account/me 304 Not Modified
+[DEBUG] - 29/11/2022, 15:33:14 - GET /api/v1/donation/user-donations 304 Not Modified
+[DEBUG] - 29/11/2022, 15:33:15 - GET /api/v1/campaign/list 200 OK
+[DEBUG] - 29/11/2022, 15:34:56 - POST /api/v1/refresh 201 Created
+[DEBUG] - 29/11/2022, 15:53:26 - Listening at http://localhost:5010/api/v1
+[DEBUG] - 29/11/2022, 15:53:26 - Swagger Docs at http://localhost:5010/swagger
+[DEBUG] - 29/11/2022, 15:54:31 - Listening at http://localhost:5010/api/v1
+[DEBUG] - 29/11/2022, 15:54:31 - Swagger Docs at http://localhost:5010/swagger
+[DEBUG] - 29/11/2022, 15:55:15 - Listening at http://localhost:5010/api/v1
+[DEBUG] - 29/11/2022, 15:55:15 - Swagger Docs at http://localhost:5010/swagger
+[DEBUG] - 29/11/2022, 15:56:51 - Swagger Docs at http://localhost:5010/swagger
+[DEBUG] - 29/11/2022, 15:56:51 - Listening at http://localhost:5010/api/v1
+[DEBUG] - 29/11/2022, 15:58:34 - Listening at http://localhost:5010/api/v1
+[DEBUG] - 29/11/2022, 15:58:34 - Swagger Docs at http://localhost:5010/swagger

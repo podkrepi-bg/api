@@ -1,0 +1,66 @@
+
+[WARN] - 24/11/2022, 11:20:44 - Running with development configuration
+[WARN] - 24/11/2022, 11:27:29 - Running with development configuration
+[WARN] - 24/11/2022, 11:45:34 - Running with development configuration
+[WARN] - 24/11/2022, 11:46:48 - Running with development configuration
+[WARN] - 24/11/2022, 11:47:11 - Running with development configuration
+[WARN] - 24/11/2022, 11:47:20 - Running with development configuration
+[WARN] - 24/11/2022, 11:47:31 - Running with development configuration
+[WARN] - 24/11/2022, 11:47:46 - Running with development configuration
+[WARN] - 24/11/2022, 11:47:50 - Running with development configuration
+[WARN] - 24/11/2022, 11:47:57 - Running with development configuration
+[WARN] - 24/11/2022, 11:48:13 - Running with development configuration
+[WARN] - 24/11/2022, 11:48:32 - Running with development configuration
+[WARN] - 24/11/2022, 11:49:58 - Running with development configuration
+[WARN] - 24/11/2022, 11:50:05 - Running with development configuration
+[WARN] - 24/11/2022, 11:50:09 - Running with development configuration
+[WARN] - 24/11/2022, 11:50:27 - Running with development configuration
+[WARN] - 24/11/2022, 11:50:29 - Running with development configuration
+[WARN] - 24/11/2022, 11:51:55 - Running with development configuration
+[WARN] - 24/11/2022, 11:52:01 - Running with development configuration
+[WARN] - 24/11/2022, 11:52:25 - Running with development configuration
+[WARN] - 24/11/2022, 11:52:35 - Running with development configuration
+[WARN] - 24/11/2022, 11:53:26 - Running with development configuration
+[WARN] - 24/11/2022, 11:53:52 - Running with development configuration
+[WARN] - 24/11/2022, 11:54:32 - Running with development configuration
+[WARN] - 24/11/2022, 11:54:39 - Running with development configuration
+[WARN] - 24/11/2022, 11:56:18 - Running with development configuration
+[WARN] - 24/11/2022, 11:57:05 - Running with development configuration
+[WARN] - 24/11/2022, 11:57:11 - Running with development configuration
+[WARN] - 24/11/2022, 11:57:16 - Running with development configuration
+[WARN] - 24/11/2022, 11:59:45 - Running with development configuration
+[WARN] - 24/11/2022, 16:49:14 - Running with development configuration
+[WARN] - 25/11/2022, 18:56:32 - Running with development configuration
+[WARN] - 27/11/2022, 15:34:30 - Running with development configuration
+[WARN] - 27/11/2022, 20:50:05 - POST /api/v1/refresh 401 Unauthorized
+[WARN] - 28/11/2022, 13:32:51 - Cannot validate access token: Error: Grant validation failed. Reason: invalid token (expired)
+[WARN] - 28/11/2022, 13:32:51 - GET /api/v1/donation/user-donations 401 Unauthorized
+[WARN] - 28/11/2022, 13:32:51 - Cannot validate access token: Error: Grant validation failed. Reason: invalid token (expired)
+[WARN] - 28/11/2022, 13:32:51 - GET /api/v1/account/me 401 Unauthorized
+[WARN] - 28/11/2022, 13:32:52 - GET /api/v1/account/me 401 Unauthorized
+[WARN] - 28/11/2022, 13:32:52 - GET /api/v1/donation/user-donations 401 Unauthorized
+[WARN] - 28/11/2022, 13:32:52 - Cannot validate access token: Error: Grant validation failed. Reason: invalid token (expired)
+[WARN] - 28/11/2022, 13:32:52 - Cannot validate access token: Error: Grant validation failed. Reason: invalid token (expired)
+[WARN] - 28/11/2022, 13:32:54 - Cannot validate access token: Error: Grant validation failed. Reason: invalid token (expired)
+[WARN] - 28/11/2022, 13:32:54 - GET /api/v1/donation/user-donations 401 Unauthorized
+[WARN] - 28/11/2022, 13:32:54 - GET /api/v1/account/me 401 Unauthorized
+[WARN] - 28/11/2022, 13:32:54 - Cannot validate access token: Error: Grant validation failed. Reason: invalid token (expired)
+[WARN] - 28/11/2022, 17:09:53 - Running with development configuration
+[WARN] - 29/11/2022, 14:43:32 - Running with development configuration
+[WARN] - 29/11/2022, 15:28:58 - Cannot validate access token: Error: Grant validation failed. Reason: invalid token (expired)
+[WARN] - 29/11/2022, 15:28:58 - GET /api/v1/donation/user-donations 401 Unauthorized
+[WARN] - 29/11/2022, 15:28:58 - Cannot validate access token: Error: Grant validation failed. Reason: invalid token (expired)
+[WARN] - 29/11/2022, 15:28:58 - GET /api/v1/account/me 401 Unauthorized
+[WARN] - 29/11/2022, 15:30:55 - Cannot validate access token: Error: Grant validation failed. Reason: invalid token (expired)
+[WARN] - 29/11/2022, 15:30:55 - GET /api/v1/account/me 401 Unauthorized
+[WARN] - 29/11/2022, 15:30:55 - Cannot validate access token: Error: Grant validation failed. Reason: invalid token (expired)
+[WARN] - 29/11/2022, 15:30:55 - GET /api/v1/donation/user-donations 401 Unauthorized
+[WARN] - 29/11/2022, 15:30:57 - Cannot validate access token: Error: Grant validation failed. Reason: invalid token (expired)
+[WARN] - 29/11/2022, 15:30:57 - GET /api/v1/account/me 401 Unauthorized
+[WARN] - 29/11/2022, 15:30:57 - Cannot validate access token: Error: Grant validation failed. Reason: invalid token (expired)
+[WARN] - 29/11/2022, 15:30:57 - GET /api/v1/donation/user-donations 401 Unauthorized
+[WARN] - 29/11/2022, 15:53:25 - Running with development configuration
+[WARN] - 29/11/2022, 15:54:29 - Running with development configuration
+[WARN] - 29/11/2022, 15:55:13 - Running with development configuration
+[WARN] - 29/11/2022, 15:56:50 - Running with development configuration
+[WARN] - 29/11/2022, 15:58:32 - Running with development configuration
