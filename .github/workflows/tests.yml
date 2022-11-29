@@ -38,8 +38,15 @@ jobs:
           targets: lint,build
           projects: api
       - name: Jest coverage report
-        uses: ArtiomTr/jest-coverage-report-action@v2.1.2
+        uses: ArtiomTr/jest-coverage-report-action@v2
+        # give the id for the step, to access outputs in another step.
+        id: coverage
         with:
           package-manager: yarn
           test-script: yarn test:ci
-          annotations: coverage
+          # tell to the action to not attach comment.
+          output: report-markdown
+      - uses: marocchino/sticky-pull-request-comment@v2
+        with:
+            # pass output from the previous step by id.
+            message: ${{ steps.coverage.outputs.report }}
