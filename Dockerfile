@@ -11,7 +11,7 @@ FROM base AS dependencies
 RUN yarn set version berry
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY schema.prisma .
-RUN yarn --production
+RUN yarn workspaces focus --all --production
 
 # Build target builder #
 ########################
