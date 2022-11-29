@@ -1,6 +1,6 @@
 <h1><p align="center">
   Дарителска Платформа Подкрепи.бг <br/>
-  REST API
+  REST API test
 </p></h1>
 
 <p align="center">
