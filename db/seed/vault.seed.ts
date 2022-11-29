@@ -38,7 +38,7 @@ export async function vaultSeed() {
     data: [...Array(20).keys()].map(() => {
       return {
         currency: Currency.BGN,
-        amount: faker.datatype.number({ min: 1, max: 1000 }),
+        amount: 0, // Initializing with 0 and fill the correct amount after donations have been seeded
         campaignId: campaign.id,
         name: faker.finance.accountName(),
       }
@@ -48,21 +48,21 @@ export async function vaultSeed() {
   console.log({ insert })
 
   console.log('Insert one vault for the completed campaign')
-  const compltedCampaignVault = await prisma.vault.create({
+  const completedCampaignVault = await prisma.vault.create({
     data: {
       currency: Currency.BGN,
-      amount: 10000,
+      amount: 0, // Initializing with 0 and fill the correct amount after donations have been seeded
       campaignId: completedCampaign.id,
       name: faker.finance.accountName() + 'completed',
     },
   })
-  console.log({ compltedCampaignVault })
+  console.log({ completedCampaignVault })
 
   console.log('Insert one vault for the heavily funded campaign')
   const heavilyFundedCampaignVault = await prisma.vault.create({
     data: {
       currency: Currency.BGN,
-      amount: 10000,
+      amount: 0, // Initializing with 0 and fill the correct amount after donations have been seeded
       campaignId: heavilyFundedCampaign.id,
       name: faker.finance.accountName() + 'heavily-funded',
     },
