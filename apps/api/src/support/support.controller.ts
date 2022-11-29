@@ -11,7 +11,8 @@ import { SupportService } from './support.service'
 import { CreateInquiryDto } from './dto/create-inquiry.dto'
 import { CreateRequestDto } from './dto/create-request.dto'
 import { CreateIrregularityDto } from './dto/create-irregularity.dto'
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger'
+import { UserReportDto } from './dto/user-report.dto'
 
 @ApiTags('support')
 @Controller('support')
@@ -52,5 +53,11 @@ export class SupportController {
   @Public()
   async createReport(@Body() createDto: CreateIrregularityDto) {
     return await this.supportService.createIrregularity(createDto)
+  }
+
+  @Post('create-user-report')
+  @Public()
+  async createUserReport(@Body() createDto: UserReportDto) {
+    return await this.supportService.sendUserReportEmail(createDto)
   }
 }

@@ -5,6 +5,7 @@ import { InfoRequest, Supporter, Irregularity } from '.prisma/client'
 import {
   InquiryReceivedEmailDto,
   InquiryReceivedInternalEmailDto,
+  UserReportEmailDto,
   WelcomeEmailDto,
   WelcomeInternalEmailDto,
 } from '../email/template.interface'
@@ -92,6 +93,14 @@ export class SupportService {
   async sendInquiryReceivedInternalEmail(inputDto: CreateInquiryDto) {
     const email = new InquiryReceivedInternalEmailDto(inputDto)
     this.emailService.sendFromTemplate(email, { to: [this.getInternalEmail()] })
+  }
+
+  async sendUserReportEmail(inputDto: UserReportDto) {
+    const email = new UserReportEmailDto(inputDto)
+    this.emailService.sendFromTemplate(email, {
+      to: [this.getInternalEmail()],
+      from: inputDto.email,
+    })
   }
 
   getInternalEmail(): string {
