@@ -49,6 +49,12 @@ export class CreateSessionDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
+  personId: string | null
+
+  @Expose()
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
   firstName: string | null
 
   @Expose()

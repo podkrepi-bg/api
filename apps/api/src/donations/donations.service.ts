@@ -35,7 +35,7 @@ export class DonationsService {
   ) {}
 
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
-    const list = await this.stripeClient.prices.list({ active, type })
+    const list = await this.stripeClient.prices.list({ active, type, limit: 100 })
     return list.data
   }
 
@@ -110,26 +110,38 @@ export class DonationsService {
   }
 
   async createCheckoutSession(
-    sessionDto: CreateSessionDto,
+    sessionDto: CreateSessionDto
   ): Promise<{ session: Stripe.Checkout.Session }> {
     const campaign = await this.campaignService.validateCampaignId(sessionDto.campaignId)
     const { mode } = sessionDto
     const appUrl = this.config.get<string>('APP_URL')
-    const metadata: DonationMetadata = { campaignId: sessionDto.campaignId }
+    const metadata: DonationMetadata = { campaignId: sessionDto.campaignId, personId: sessionDto.personId }
 
-    const session = await this.stripeClient.checkout.sessions.create({
+    const items = this.prepareSessionItems(sessionDto, campaign)
+
+    const createSessionRequest: Stripe.Checkout.SessionCreateParams = {
       mode,
       customer_email: sessionDto.personEmail,
-      line_items: this.prepareSessionItems(sessionDto, campaign),
+      line_items: items,
       payment_method_types: ['card'],
-      payment_intent_data: mode === 'payment' ? { metadata } : undefined,
-      subscription_data: mode === 'subscription' ? { metadata } : undefined,
+      payment_intent_data: mode == "payment" ? { metadata } : undefined,
+      subscription_data: mode == "subscription" ?  { metadata } : undefined,
       success_url: sessionDto.successUrl ?? `${appUrl}/success`,
       cancel_url: sessionDto.cancelUrl ?? `${appUrl}/canceled`,
       tax_id_collection: { enabled: true },
+    }
+
+    Logger.debug('[ CreateCheckoutSession ]', createSessionRequest)
+
+    const session = await this.stripeClient.checkout.sessions.create(createSessionRequest)
+
+    Logger.log('[ CreateInitialDonation ]', {
+      session: session
     })
 
-    await this.createInitialDonation(campaign, sessionDto, session.payment_intent as string)
+    if (mode == "payment") {
+      await this.createInitialDonation(campaign, sessionDto, session.payment_intent as string ?? session.id)
+    }
 
     return { session }
   }
