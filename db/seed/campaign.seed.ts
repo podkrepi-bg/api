@@ -86,4 +86,46 @@ export async function campaignSeed() {
     skipDuplicates: true,
   })
   console.log({ randomCampaigns })
+
+  console.log('Insert 1 completed campaign')
+  const completedCampaignTitle = faker.lorem.sentence(3) + 'completed'
+  const completedCampaign = await prisma.campaign.create({
+    data: {
+      state: CampaignState.complete,
+      slug: faker.helpers.slugify(completedCampaignTitle).replace('.', '').toLowerCase(),
+      title: completedCampaignTitle,
+      essence: faker.company.catchPhrase(),
+      coordinatorId: coordinatorFromDb.id,
+      beneficiaryId: beneficiaryFromDb.id,
+      campaignTypeId: campaignTypeFromDb[Math.floor(Math.random() * campaignTypeFromDb.length)].id,
+      description: faker.lorem.paragraphs(1),
+      targetAmount: 100 * 100,
+      currency: Currency.BGN,
+      paymentReference: getPaymentReference(),
+      startDate: faker.date.soon(3),
+      endDate: faker.date.soon(60),
+    },
+  })
+  console.log({ completedCampaign })
+
+  console.log('Insert 1 heavily funded campaign')
+  const heavilyFundedCampaignTitle = faker.lorem.sentence(3) + 'heavily-funded'
+  const heavilyFundedCampaign = await prisma.campaign.create({
+    data: {
+      state: CampaignState.active,
+      slug: faker.helpers.slugify(heavilyFundedCampaignTitle).replace('.', '').toLowerCase(),
+      title: heavilyFundedCampaignTitle,
+      essence: faker.company.catchPhrase(),
+      coordinatorId: coordinatorFromDb.id,
+      beneficiaryId: beneficiaryFromDb.id,
+      campaignTypeId: campaignTypeFromDb[Math.floor(Math.random() * campaignTypeFromDb.length)].id,
+      description: faker.lorem.paragraphs(1),
+      targetAmount: 250 * 100,
+      currency: Currency.BGN,
+      paymentReference: getPaymentReference(),
+      startDate: faker.date.soon(3),
+      endDate: faker.date.soon(60),
+    },
+  })
+  console.log({ heavilyFundedCampaign })
 }
