@@ -11,4 +11,5 @@ export class CampaignReportFile {
   type: CampaignReportFileType
   personId: string
   person?: Person
+  isDeleted: boolean
 }

@@ -28,6 +28,7 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   benefactors benefactors [not null]
   beneficiaries beneficiaries [not null]
   campaignFiles campaign_files [not null]
+  campaignReports campaign_reports [not null]
   campaignReportFiles campaign_reports_files [not null]
   campaigns campaigns [not null]
   coordinators coordinators
@@ -450,6 +451,8 @@ Table campaign_reports {
   goals String [not null]
   nextSteps String [not null]
   additionalInfo String [not null]
+  creatorId String [not null]
+  creator people [not null]
 }
 
 Table campaign_reports_files {
@@ -461,6 +464,7 @@ Table campaign_reports_files {
   type CampaignReportFileType [not null]
   personId String [not null]
   person people [not null]
+  isDeleted Boolean [not null, default: false]
 }
 
 Enum CampaignReportFileType {
@@ -759,6 +763,8 @@ Ref: expenses.vaultId > vaults.id
 Ref: documents.ownerId > people.id
 
 Ref: campaign_reports.campaignId > campaigns.id
+
+Ref: campaign_reports.creatorId > people.id
 
 Ref: campaign_reports_files.reportId > campaign_reports.id
 

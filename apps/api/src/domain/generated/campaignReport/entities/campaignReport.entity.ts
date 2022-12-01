@@ -1,5 +1,6 @@
 import { Campaign } from '../../campaign/entities/campaign.entity'
 import { CampaignReportFile } from '../../campaignReportFile/entities/campaignReportFile.entity'
+import { Person } from '../../person/entities/person.entity'
 
 export class CampaignReport {
   id: string
@@ -15,4 +16,6 @@ export class CampaignReport {
   goals: string
   nextSteps: string
   additionalInfo: string
+  creatorId: string
+  creator?: Person
 }

@@ -52,6 +52,7 @@ model Person {
   benefactors         Benefactor[]
   beneficiaries       Beneficiary[]
   campaignFiles       CampaignFile[]
+  campaignReports     CampaignReport[]
   campaignReportFiles CampaignReportFile[]
   campaigns           Campaign[]
   coordinators        Coordinator?
@@ -538,6 +539,8 @@ model CampaignReport {
   goals               String
   nextSteps           String               @map("next_steps")
   additionalInfo      String               @map("additional_info")
+  creatorId           String               @map("creator_id") @db.Uuid
+  creator             Person               @relation(fields: [creatorId], references: [id])
 
   @@map("campaign_reports")
 }
@@ -550,14 +553,15 @@ enum CampaignReportFileType {
 }
 
 model CampaignReportFile {
-  id       String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  reportId String                 @map("report_id") @db.Uuid
-  report   CampaignReport         @relation(fields: [reportId], references: [id])
-  filename String                 @db.VarChar(200)
-  mimetype String                 @db.VarChar(50)
-  type     CampaignReportFileType
-  personId String                 @map("person_id") @db.Uuid
-  person   Person                 @relation(fields: [personId], references: [id])
+  id        String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reportId  String                 @map("report_id") @db.Uuid
+  report    CampaignReport         @relation(fields: [reportId], references: [id])
+  filename  String                 @db.VarChar(200)
+  mimetype  String                 @db.VarChar(50)
+  type      CampaignReportFileType
+  personId  String                 @map("person_id") @db.Uuid
+  person    Person                 @relation(fields: [personId], references: [id])
+  isDeleted Boolean                @map("is_deleted") @default(false)
 
   @@map("campaign_reports_files")
 }

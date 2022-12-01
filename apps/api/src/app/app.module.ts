@@ -16,6 +16,7 @@ import { AccountModule } from '../account/account.module'
 import { HealthModule } from '../health/health.module'
 import { SupportModule } from '../support/support.module'
 import { CampaignModule } from '../campaign/campaign.module'
+import { CampaignReportModule } from '../campaign-report/campaign-report.module'
 import { ExpensesModule } from '../expenses/expenses.module'
 import { AppConfigModule } from '../config/app-config.module'
 import { validationSchema } from '../config/validation.config'
@@ -64,6 +65,7 @@ import { PaypalModule } from '../paypal/paypal.module'
     AuthModule,
     AccountModule,
     CampaignModule,
+    CampaignReportModule,
     CampaignFileModule,
     CountryModule,
     DonationsModule,

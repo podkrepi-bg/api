@@ -1,6 +1,7 @@
 import { Benefactor } from '../../benefactor/entities/benefactor.entity'
 import { Beneficiary } from '../../beneficiary/entities/beneficiary.entity'
 import { CampaignFile } from '../../campaignFile/entities/campaignFile.entity'
+import { CampaignReport } from '../../campaignReport/entities/campaignReport.entity'
 import { CampaignReportFile } from '../../campaignReportFile/entities/campaignReportFile.entity'
 import { Campaign } from '../../campaign/entities/campaign.entity'
 import { Coordinator } from '../../coordinator/entities/coordinator.entity'
@@ -37,6 +38,7 @@ export class Person {
   benefactors?: Benefactor[]
   beneficiaries?: Beneficiary[]
   campaignFiles?: CampaignFile[]
+  campaignReports?: CampaignReport[]
   campaignReportFiles?: CampaignReportFile[]
   campaigns?: Campaign[]
   coordinators?: Coordinator | null
