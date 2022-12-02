@@ -100,6 +100,7 @@ export class SupportService {
     this.emailService.sendFromTemplate(email, {
       to: [this.getInternalEmail()],
       from: inputDto.email,
+      subject: `User report: ${inputDto.type}`,
     })
   }
 
