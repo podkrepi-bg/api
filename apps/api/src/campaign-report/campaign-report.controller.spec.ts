@@ -31,7 +31,15 @@ describe('CampaignReportController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CampaignReportController, CampaignReportService, CampaignService, PersonService, MockPrismaService, S3Service, VaultService],
+      providers: [
+        CampaignReportController,
+        CampaignReportService,
+        CampaignService,
+        PersonService,
+        MockPrismaService,
+        S3Service,
+        VaultService,
+      ],
     })
       .overrideProvider(PersonService)
       .useValue(personServiceMock)
@@ -49,15 +57,19 @@ describe('CampaignReportController', () => {
   it('should be defined', () => {
     expect(controller).toBeDefined()
   })
-  
+
   describe('create report', () => {
     it('should not allow non-existent users to upload reports', async () => {
-      jest.spyOn(personServiceMock, 'findOneByKeycloakId')
+      jest
+        .spyOn(personServiceMock, 'findOneByKeycloakId')
         .mockReturnValueOnce(Promise.resolve(null))
 
       await expect(
-        controller.addReport('1', { photos: [], documents: [] }, new CreateReportDto(), userMock),
-      ).rejects.toThrowWithMessage(ForbiddenException, 'The user cannot modify the requested campaign')
+        controller.create('1', { photos: [], documents: [] }, new CreateReportDto(), userMock),
+      ).rejects.toThrowWithMessage(
+        ForbiddenException,
+        'The user cannot modify the requested campaign',
+      )
     })
 
     it('should not allow unauthorized users to upload reports', async () => {
@@ -76,8 +88,11 @@ describe('CampaignReportController', () => {
       )
 
       await expect(
-        controller.addReport('1', { photos: [], documents: [] }, new CreateReportDto(), userMock),
-      ).rejects.toThrowWithMessage(ForbiddenException, 'The user cannot modify the requested campaign')
+        controller.create('1', { photos: [], documents: [] }, new CreateReportDto(), userMock),
+      ).rejects.toThrowWithMessage(
+        ForbiddenException,
+        'The user cannot modify the requested campaign',
+      )
     })
 
     it('should allow authorized users to upload reports', async () => {
@@ -99,7 +114,7 @@ describe('CampaignReportController', () => {
         .spyOn(campaignReportService, 'createReport')
         .mockReturnValue(Promise.resolve('description'))
 
-      const result = await controller.addReport(
+      const result = await controller.create(
         '1',
         { photos: [], documents: [] },
         plainToClass(CreateReportDto, { ...new CreateReportDto(), description: 'descr' }),

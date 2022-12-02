@@ -453,6 +453,7 @@ Table campaign_reports {
   additionalInfo String [not null]
   creatorId String [not null]
   creator people [not null]
+  isDeleted Boolean [not null, default: false]
 }
 
 Table campaign_reports_files {

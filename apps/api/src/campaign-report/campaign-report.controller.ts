@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   Get,
   Logger,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -13,13 +14,17 @@ import {
 } from '@nestjs/common'
 import { FileFieldsInterceptor } from '@nestjs/platform-express'
 import { ApiTags } from '@nestjs/swagger'
+import { Person } from '@prisma/client'
 import { plainToInstance } from 'class-transformer'
 import { AuthenticatedUser, Public } from 'nest-keycloak-connect'
-import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
+import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CampaignService } from '../campaign/campaign.service'
 import { PersonService } from '../person/person.service'
 import { CampaignReportService } from './campaign-report.service'
 import { CreateReportDto } from './dto/create-report.dto'
+import { GetReportDto } from './dto/get-report.dto'
+import { ListReportsDto } from './dto/list-reports.dto'
+import { UpdateReportDto } from './dto/update-report.dto'
 
 @ApiTags('campaign-report')
 @Controller('campaign')
@@ -32,18 +37,32 @@ export class CampaignReportController {
 
   @Get(':campaignId/reports')
   @Public()
-  async getReports(@Param('campaignId') campaignId: number): Promise<string> {
-    return Promise.resolve(`Hi from campaignId ${campaignId}`)
+  async getAllReports(@Param('campaignId') campaignId: string): Promise<ListReportsDto[]> {
+    return this.campaignReportService.getReports(campaignId)
   }
 
   @Get(':campaignId/reports/:reportId')
+  @Public()
   async getReport(
-    @Param('campaignId') campaignId: number,
-    @Param('reportId') reportId: number,
-  ): Promise<void> {}
+    @Param('campaignId') campaignId: string,
+    @Param('reportId') reportId: string,
+  ): Promise<GetReportDto> {
+    const campaignReports = await this.campaignReportService.getReports(campaignId)
+
+    if (!campaignReports.map(report => report.id).includes(reportId)) {
+      throw new NotFoundException('The given report is not part of the selected campaign')
+    }
+
+    const report = await this.campaignReportService.getReport(reportId)
+
+    if (report === null) {
+      throw new NotFoundException(`Report with id ${reportId} does not exist`)
+    }
+
+    return report
+  }
 
   @Post(':campaignId/reports')
-  @Public()
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -55,12 +74,87 @@ export class CampaignReportController {
       },
     ),
   )
-  async addReport(
+  async create(
     @Param('campaignId') campaignId: string,
     @UploadedFiles() files: { photos?: Express.Multer.File[]; documents?: Express.Multer.File[] },
     @Body() report: CreateReportDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
+    const authorizedPerson = await this.userCanPerformReportAction(campaignId, user)
+    if (!authorizedPerson) {
+      throw new ForbiddenException('The user cannot modify the requested campaign')
+    }
+
+    const createReportDto: CreateReportDto = plainToInstance(CreateReportDto, { ...report })
+    const createdReportId = await this.campaignReportService.createReport(
+      createReportDto,
+      campaignId,
+      authorizedPerson.id,
+      files.photos ?? [],
+      files.documents ?? [],
+    )
+    return createdReportId
+  }
+
+  @Put(':/campaignId/reports/:reportId')
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'photos', maxCount: 5 },
+        { name: 'documents', maxCount: 5 },
+      ],
+      {
+        limits: { fileSize: 1024 * 1024 * 10 },
+      },
+    ),
+  )
+  async update(
+    @Param('campaignId') campaignId: string,
+    @Param('reportId') reportId: string,
+    @UploadedFiles() files: { photos?: Express.Multer.File[]; documents?: Express.Multer.File[] },
+    @Body() updatedReport: UpdateReportDto,
+    @AuthenticatedUser() user: KeycloakTokenParsed
+  ) {
+    const authorizedPerson = await this.userCanPerformReportAction(campaignId, user)
+    if (!authorizedPerson) {
+      throw new ForbiddenException('The user cannot modify the requested campaign')
+    }
+
+    const campaignReports = await this.campaignReportService.getReports(campaignId)
+
+    if (!campaignReports.map(report => report.id).includes(reportId)) {
+      throw new NotFoundException('The given report is not part of the selected campaign')
+    }
+
+    await this.campaignReportService.updateReport(
+      reportId,
+      authorizedPerson.id,
+      updatedReport,
+      files.photos ?? [],
+      files.documents ?? [])
+  }
+
+  @Delete(':campaignId/reports/:reportId')
+  async delete(
+    @Param('campaignId') campaignId: string,
+    @Param('reportId') reportId: string,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    const authorizedPerson = await this.userCanPerformReportAction(campaignId, user)
+    if (!authorizedPerson) {
+      throw new ForbiddenException('The user cannot modify the requested campaign')
+    }
+
+    const campaignReports = await this.campaignReportService.getReports(campaignId)
+
+    if (!campaignReports.map(report => report.id).includes(reportId)) {
+      throw new NotFoundException('The given report is not part of the selected campaign')
+    }
+
+    await this.campaignReportService.softDeleteReport(reportId)
+  }
+
+  private async userCanPerformReportAction(campaignId: string, user: KeycloakTokenParsed): Promise<Person | null> {
     const campaign = await this.campaignService.getCampaignByIdWithPersonIds(campaignId)
     const userCanUploadReport = [
       campaign?.beneficiary.person?.keycloakId,
@@ -73,31 +167,8 @@ export class CampaignReportController {
       Logger.warn('No person record with keycloak ID: ' + user.sub)
     }
 
-    if (campaign === null || !userCanUploadReport || !person) {
-      throw new ForbiddenException('The user cannot modify the requested campaign')
-    }
-
-    const createReportDto: CreateReportDto = plainToInstance(CreateReportDto, { ...report })
-    const createdReportId = await this.campaignReportService.createReport(
-      createReportDto,
-      campaignId,
-      person.id,
-      files.photos ?? [],
-      files.documents ?? [],
-    )
-    return createdReportId
+    return campaign !== null && person !== null && userCanUploadReport ?
+      person :
+      null;
   }
-
-  @Put(':/campaignId/reports/:reportId')
-  async updateReport(
-    @Param('campaignId') campaignId: number,
-    @Param('reportId') reportId: number,
-    @Body() updatedReport: any,
-  ) {}
-
-  @Delete(':campaignId/reports/:reportId')
-  async deleteReport(
-    @Param('campaignId') campaignId: number,
-    @Param('reportId') reportId: number,
-  ) {}
 }

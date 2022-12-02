@@ -18,4 +18,5 @@ export class CampaignReport {
   additionalInfo: string
   creatorId: string
   creator?: Person
+  isDeleted: boolean
 }

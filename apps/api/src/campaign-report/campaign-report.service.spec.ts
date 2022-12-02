@@ -82,9 +82,9 @@ describe('CampaignReportService', () => {
         'campaign-report-files', // bucket name
         expect.toBeString(),
         expect.toBeString(),
-        expect.toBeString(),
+        'jpg', // mimetype
         expect.toBeObject(),
-        expect.toBeString(),
+        'CampaignReport',
         '1', // campaign id
         '1', // user id
       )
@@ -115,6 +115,46 @@ describe('CampaignReportService', () => {
       await expect(
         service.createReport(createReportDto, '1', '1', photos, documents),
       ).rejects.toThrowError()
+    })
+  })
+
+  describe('deleteReport', () => {
+    it('should mark the file as deleted', async () => {
+      const reportId = '1'
+
+      const report = {
+        id: '1',
+        description: '',
+        campaignId: '',
+        startDate: new Date(),
+        endDate: new Date(),
+        totalFunds: 0,
+        fundsForPeriod: 0,
+        spentFundsForPeriod: 0,
+        goals: '',
+        nextSteps: '',
+        additionalInfo: '',
+        creatorId: '1',
+        isDeleted: true
+      }
+      
+      prismaService.campaignReport.update = jest.fn().mockImplementationOnce(() => Promise.resolve({}))
+
+      const spy = jest.spyOn(prismaService.campaignReport, 'update')
+        .mockResolvedValue({...report})
+      
+      const deleteSpy = jest.spyOn(prismaService.campaignReport, 'delete')
+        .mockResolvedValue({...report})
+
+      await service.softDeleteReport(reportId)
+
+      expect(deleteSpy).not.toHaveBeenCalled()
+
+      expect(spy).toHaveBeenCalledTimes(1)
+      expect(spy).toHaveBeenCalledWith({
+        where: { id: reportId },
+        data: { isDeleted: { set: true } }
+      })
     })
   })
 })

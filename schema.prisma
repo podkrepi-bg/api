@@ -541,6 +541,7 @@ model CampaignReport {
   additionalInfo      String               @map("additional_info")
   creatorId           String               @map("creator_id") @db.Uuid
   creator             Person               @relation(fields: [creatorId], references: [id])
+  isDeleted           Boolean              @map("is_deleted") @default(false)
 
   @@map("campaign_reports")
 }
