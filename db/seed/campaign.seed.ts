@@ -1,4 +1,4 @@
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 import { PrismaClient, CampaignState, Currency } from '@prisma/client'
 import { getPaymentReference } from '../../apps/api/src/campaign/helpers/payment-reference'
 
@@ -68,7 +68,7 @@ export async function campaignSeed() {
       const title = faker.lorem.sentence(3)
       const randomType = campaignTypeFromDb[Math.floor(Math.random() * campaignTypeFromDb.length)]
       return {
-        state: faker.random.objectElement<CampaignState>(CampaignState),
+        state: faker.helpers.arrayElement(Object.values(CampaignState)),
         slug: faker.helpers.slugify(title).replace('.', '').toLowerCase(),
         title,
         essence: faker.company.catchPhrase(),
