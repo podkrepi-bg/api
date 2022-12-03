@@ -5,7 +5,9 @@ const prisma = new PrismaClient()
 export async function vaultSeed() {
   console.log('Vault seed')
 
-  const campaign = await prisma.campaign.findFirst()
+  const campaign = await prisma.campaign
+    .findMany()
+    .then((campaigns) => faker.helpers.arrayElement(campaigns))
 
   if (!campaign) {
     throw new Error('There are no campaigns created yet!')

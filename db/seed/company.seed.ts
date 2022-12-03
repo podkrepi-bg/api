@@ -1,6 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { PrismaClient, CampaignState, Currency } from '@prisma/client'
-import { getPaymentReference } from '../../apps/api/src/campaign/helpers/payment-reference'
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
