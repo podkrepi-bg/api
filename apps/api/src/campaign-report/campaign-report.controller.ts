@@ -49,7 +49,7 @@ export class CampaignReportController {
   ): Promise<GetReportDto> {
     const campaignReports = await this.campaignReportService.getReports(campaignId)
 
-    if (!campaignReports.map(report => report.id).includes(reportId)) {
+    if (!campaignReports.map((report) => report.id).includes(reportId)) {
       throw new NotFoundException('The given report is not part of the selected campaign')
     }
 
@@ -113,7 +113,7 @@ export class CampaignReportController {
     @Param('reportId') reportId: string,
     @UploadedFiles() files: { photos?: Express.Multer.File[]; documents?: Express.Multer.File[] },
     @Body() updatedReport: UpdateReportDto,
-    @AuthenticatedUser() user: KeycloakTokenParsed
+    @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
     const authorizedPerson = await this.userCanPerformReportAction(campaignId, user)
     if (!authorizedPerson) {
@@ -122,7 +122,7 @@ export class CampaignReportController {
 
     const campaignReports = await this.campaignReportService.getReports(campaignId)
 
-    if (!campaignReports.map(report => report.id).includes(reportId)) {
+    if (!campaignReports.map((report) => report.id).includes(reportId)) {
       throw new NotFoundException('The given report is not part of the selected campaign')
     }
 
@@ -131,7 +131,8 @@ export class CampaignReportController {
       authorizedPerson.id,
       updatedReport,
       files.photos ?? [],
-      files.documents ?? [])
+      files.documents ?? [],
+    )
   }
 
   @Delete(':campaignId/reports/:reportId')
@@ -147,14 +148,17 @@ export class CampaignReportController {
 
     const campaignReports = await this.campaignReportService.getReports(campaignId)
 
-    if (!campaignReports.map(report => report.id).includes(reportId)) {
+    if (!campaignReports.map((report) => report.id).includes(reportId)) {
       throw new NotFoundException('The given report is not part of the selected campaign')
     }
 
     await this.campaignReportService.softDeleteReport(reportId)
   }
 
-  private async userCanPerformReportAction(campaignId: string, user: KeycloakTokenParsed): Promise<Person | null> {
+  private async userCanPerformReportAction(
+    campaignId: string,
+    user: KeycloakTokenParsed,
+  ): Promise<Person | null> {
     const campaign = await this.campaignService.getCampaignByIdWithPersonIds(campaignId)
     const userCanUploadReport = [
       campaign?.beneficiary.person?.keycloakId,
@@ -167,8 +171,6 @@ export class CampaignReportController {
       Logger.warn('No person record with keycloak ID: ' + user.sub)
     }
 
-    return campaign !== null && person !== null && userCanUploadReport ?
-      person :
-      null;
+    return campaign !== null && person !== null && userCanUploadReport ? person : null
   }
 }

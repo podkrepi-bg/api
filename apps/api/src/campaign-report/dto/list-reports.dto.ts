@@ -1,5 +1,5 @@
 export class ListReportsDto {
-  id: string;
+  id: string
   startDate: Date
   endDate: Date
   description: string

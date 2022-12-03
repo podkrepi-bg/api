@@ -1,9 +1,9 @@
-import { PartialType } from "@nestjs/swagger";
-import { CreateReportDto } from "./create-report.dto";
+import { PartialType } from '@nestjs/swagger'
+import { CreateReportDto } from './create-report.dto'
 
 export class ReportFileDto {
-  filename: string;
-  mimetype: string;
+  filename: string
+  mimetype: string
 }
 
 export class GetReportDto extends PartialType(CreateReportDto) {

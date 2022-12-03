@@ -135,16 +135,20 @@ describe('CampaignReportService', () => {
         nextSteps: '',
         additionalInfo: '',
         creatorId: '1',
-        isDeleted: true
+        isDeleted: true,
       }
-      
-      prismaService.campaignReport.update = jest.fn().mockImplementationOnce(() => Promise.resolve({}))
 
-      const spy = jest.spyOn(prismaService.campaignReport, 'update')
-        .mockResolvedValue({...report})
-      
-      const deleteSpy = jest.spyOn(prismaService.campaignReport, 'delete')
-        .mockResolvedValue({...report})
+      prismaService.campaignReport.update = jest
+        .fn()
+        .mockImplementationOnce(() => Promise.resolve({}))
+
+      const spy = jest
+        .spyOn(prismaService.campaignReport, 'update')
+        .mockResolvedValue({ ...report })
+
+      const deleteSpy = jest
+        .spyOn(prismaService.campaignReport, 'delete')
+        .mockResolvedValue({ ...report })
 
       await service.softDeleteReport(reportId)
 
@@ -153,7 +157,7 @@ describe('CampaignReportService', () => {
       expect(spy).toHaveBeenCalledTimes(1)
       expect(spy).toHaveBeenCalledWith({
         where: { id: reportId },
-        data: { isDeleted: { set: true } }
+        data: { isDeleted: { set: true } },
       })
     })
   })

@@ -17,30 +17,30 @@ export class CampaignReportService {
     return this.prisma.campaignReport.findMany({
       where: {
         campaignId,
-        isDeleted: includeDeleted
+        isDeleted: includeDeleted,
       },
       select: {
         id: true,
         startDate: true,
         endDate: true,
-        description: true
-      }
+        description: true,
+      },
     })
   }
 
   async getReport(reportId: string, includeDeleted = false): Promise<GetReportDto | null> {
     const report = this.prisma.campaignReport.findFirst({
-      where: { 
+      where: {
         id: reportId,
         isDeleted: includeDeleted,
       },
       select: {
         files: {
           where: {
-            isDeleted: false
-          }
-        }
-      }
+            isDeleted: false,
+          },
+        },
+      },
     })
 
     if (report === null) {
@@ -48,14 +48,13 @@ export class CampaignReportService {
     }
 
     const files = await report.files()
-    const photos = files.filter(file => file.type === CampaignReportFileType.photo)
-    const documents = files.filter(file => file.type === CampaignReportFileType.document)
-  
+    const photos = files.filter((file) => file.type === CampaignReportFileType.photo)
+    const documents = files.filter((file) => file.type === CampaignReportFileType.document)
 
     return {
       ...report,
       photos,
-      documents
+      documents,
     }
   }
 
@@ -82,9 +81,10 @@ export class CampaignReportService {
     userId: string,
     updateReportDto: UpdateReportDto,
     newPhotos: Express.Multer.File[],
-    newDocuments: Express.Multer.File[],) {
+    newDocuments: Express.Multer.File[],
+  ) {
     const report = await this.prisma.campaignReport.findUnique({
-      where: { id: reportId }
+      where: { id: reportId },
     })
 
     if (!report) {
@@ -103,12 +103,14 @@ export class CampaignReportService {
         spentFundsForPeriod: updateReportDto.spentFundsForPeriod,
         goals: updateReportDto.goals,
         nextSteps: updateReportDto.nextSteps,
-        additionalInfo: updateReportDto.additionalInfo
-      }
+        additionalInfo: updateReportDto.additionalInfo,
+      },
     })
 
     // Mark files as deleted
-    await Promise.all(updateReportDto.daletedFileIds.map(deletedFileId => this.softDeleteFile(deletedFileId)))
+    await Promise.all(
+      updateReportDto.daletedFileIds.map((deletedFileId) => this.softDeleteFile(deletedFileId)),
+    )
 
     // Upload new files
     await this.uploadFiles(report.campaignId, reportId, userId, newPhotos, newDocuments)
@@ -117,22 +119,22 @@ export class CampaignReportService {
   async softDeleteReport(reportId: string): Promise<CampaignReport> {
     return this.prisma.campaignReport.update({
       where: {
-        id: reportId
+        id: reportId,
       },
       data: {
-        isDeleted: { set: true }
-      }
+        isDeleted: { set: true },
+      },
     })
   }
 
   private async softDeleteFile(fileId: string): Promise<CampaignReportFile> {
     return this.prisma.campaignReportFile.update({
-      where: { 
-        id: fileId 
+      where: {
+        id: fileId,
       },
       data: {
-        isDeleted: true
-      }
+        isDeleted: true,
+      },
     })
   }
 
@@ -141,15 +143,10 @@ export class CampaignReportService {
     reportId: string,
     userId: string,
     photos: Express.Multer.File[],
-    documents: Express.Multer.File[]
+    documents: Express.Multer.File[],
   ) {
     // Insert file records in database
-    const fileDatabaseRecords = await this.createFileRecords(
-      photos,
-      documents,
-      reportId,
-      userId,
-    )
+    const fileDatabaseRecords = await this.createFileRecords(photos, documents, reportId, userId)
 
     // Upload files to storage
     await Promise.all(
@@ -165,7 +162,7 @@ export class CampaignReportService {
           userId,
         ),
       ),
-    ) 
+    )
   }
 
   private async createFileRecords(

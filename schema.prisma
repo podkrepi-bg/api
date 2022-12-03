@@ -533,9 +533,9 @@ model CampaignReport {
   endDate             DateTime             @map("end_date")
   description         String
   files               CampaignReportFile[]
-  totalFunds          Float?               @map("total_funds")
-  fundsForPeriod      Float?               @map("funds_for_period")
-  spentFundsForPeriod Float?               @map("spent_funds_for_period")
+  totalFunds          Int?               @map("total_funds") @default(0)
+  fundsForPeriod      Int?               @map("funds_for_period") @default(0)
+  spentFundsForPeriod Int?               @map("spent_funds_for_period") @default(0)
   goals               String
   nextSteps           String               @map("next_steps")
   additionalInfo      String               @map("additional_info")

@@ -445,9 +445,9 @@ Table campaign_reports {
   endDate DateTime [not null]
   description String [not null]
   files campaign_reports_files [not null]
-  totalFunds Float
-  fundsForPeriod Float
-  spentFundsForPeriod Float
+  totalFunds Int [default: 0]
+  fundsForPeriod Int [default: 0]
+  spentFundsForPeriod Int [default: 0]
   goals String [not null]
   nextSteps String [not null]
   additionalInfo String [not null]
