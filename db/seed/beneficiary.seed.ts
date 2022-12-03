@@ -7,7 +7,12 @@ export async function beneficiarySeed() {
 
   const persons = await prisma.person.findMany()
   if (!persons) {
-    throw new Error('No persons subscribed to newsletter')
+    throw new Error('No persons in the database')
+  }
+
+  const companies = await prisma.company.findMany()
+  if (!companies) {
+    throw new Error('No companies in the database')
   }
 
   const bg = await prisma.country.findFirst({ where: { countryCode: 'BG' } })
@@ -25,7 +30,7 @@ export async function beneficiarySeed() {
     throw new Error('No coordinator')
   }
 
-  const insert = await prisma.beneficiary.createMany({
+  const insertPeopleAsBeneficiares = await prisma.beneficiary.createMany({
     data: persons.slice(0, persons.length / 2).map((person) => ({
       type: BeneficiaryType.individual,
       personId: person.id,
@@ -36,5 +41,16 @@ export async function beneficiarySeed() {
     })),
     skipDuplicates: true,
   })
-  console.log({ insert })
+  const insertCompaniesAsBeneficiaries = await prisma.beneficiary.createMany({
+    data: persons.slice(0, companies.length / 2).map((company) => ({
+      type: BeneficiaryType.company,
+      companyId: company.id,
+      countryCode: bg.countryCode,
+      cityId: cityFromDb.id,
+      coordinatorId: coordinatorFromDb.id,
+      coordinatorRelation: PersonRelation.none,
+    })),
+    skipDuplicates: true,
+  })
+  console.log({ insertPeopleAsBeneficiares, insertCompaniesAsBeneficiaries })
 }

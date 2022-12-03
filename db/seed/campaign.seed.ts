@@ -30,6 +30,12 @@ export async function campaignSeed() {
     throw new Error('No beneficiary')
   }
 
+  const companyFromDb = await prisma.company.findFirst()
+  console.log(companyFromDb)
+  if (!companyFromDb) {
+    throw new Error('No company')
+  }
+
   const campaignTypeFromDb = await prisma.campaignType.findMany()
   console.log(campaignTypeFromDb)
 
@@ -62,7 +68,7 @@ export async function campaignSeed() {
   })
   console.log({ activeCampaigns })
 
-  console.log('Insert 5 more random state campaigns')
+  console.log('Insert 5 more random state campaigns with companies')
   const randomCampaigns = await prisma.campaign.createMany({
     data: [...Array(5).keys()].map(() => {
       const title = faker.lorem.sentence(3)
@@ -75,6 +81,7 @@ export async function campaignSeed() {
         coordinatorId: coordinatorFromDb.id,
         beneficiaryId: beneficiaryFromDb.id,
         campaignTypeId: randomType.id,
+        companyFromDb: companyFromDb.id,
         description: faker.lorem.paragraphs(1),
         targetAmount: parseInt(faker.finance.amount(2000, 200000)),
         currency: Currency.BGN,
