@@ -7,9 +7,13 @@ ENV TARGET_APP $TARGET_APP
 # Build target dependencies #
 #############################
 FROM base AS dependencies
-COPY package.json yarn.lock .yarnrc ./
+# Yarn
+RUN yarn set version berry
+COPY package.json yarn.lock .yarnrc.yml ./
 COPY schema.prisma .
-RUN yarn --production
+
+COPY .yarn .yarn
+RUN yarn workspaces focus --all --production
 
 # Build target builder #
 ########################

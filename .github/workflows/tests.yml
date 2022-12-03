@@ -37,9 +37,11 @@ jobs:
         with:
           targets: lint,build
           projects: api
-      - name: Jest coverage report
-        uses: ArtiomTr/jest-coverage-report-action@v2.1.2
-        with:
-          package-manager: yarn
-          test-script: yarn test:ci
-          annotations: coverage
+      - name: Run tests
+        run: yarn test:ci
+      - name: Upload test results artifact
+        uses: actions/upload-artifact@v3  # upload test results
+        if: success() || failure()        # run this step even if previous step failed
+        with:                             # upload a combined archive with unit and integration test results
+          name: test-results
+          path: test-results.xml
