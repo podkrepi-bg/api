@@ -9,7 +9,7 @@ export async function companySeed() {
 
   console.log('Insert 5 companies')
   await prisma.company.createMany({
-    data: [...Array(5).keys()].map(() => {
+    data: [...Array(13).keys()].map(() => {
       return {
         companyName: faker.company.name(),
         companyNumber: faker.finance.account(9),

@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { PrismaClient, CampaignState, Currency } from '@prisma/client'
+import { PrismaClient, CampaignState, Currency, BeneficiaryType } from '@prisma/client'
 import { getPaymentReference } from '../../apps/api/src/campaign/helpers/payment-reference'
 
 const prisma = new PrismaClient()
@@ -21,12 +21,23 @@ export async function campaignSeed() {
     throw new Error('No coordinator')
   }
 
-  const beneficiaryFromDb = await prisma.beneficiary.findFirst({
-    where: { person: { email: 'receiver@podkrepi.bg' } },
-  })
-  console.log(beneficiaryFromDb)
+  const beneficiaryPersonFromDb = await prisma.beneficiary
+    .findMany({
+      where: { person: { email: 'receiver@podkrepi.bg' } },
+    })
+    .then((beneficiaries) => faker.helpers.arrayElement(beneficiaries))
 
-  if (!beneficiaryFromDb) {
+  if (!beneficiaryPersonFromDb) {
+    throw new Error('No beneficiary')
+  }
+
+  const beneficiaryCompanyFromDb = await prisma.beneficiary
+    .findMany({
+      where: { type: BeneficiaryType.company },
+    })
+    .then((beneficiaries) => faker.helpers.arrayElement(beneficiaries))
+
+  if (!beneficiaryCompanyFromDb) {
     throw new Error('No beneficiary')
   }
 
@@ -54,7 +65,7 @@ export async function campaignSeed() {
         title,
         essence: faker.company.catchPhrase(),
         coordinatorId: coordinatorFromDb.id,
-        beneficiaryId: beneficiaryFromDb.id,
+        beneficiaryId: beneficiaryPersonFromDb.id,
         campaignTypeId: randomType.id,
         description: faker.lorem.paragraphs(1),
         targetAmount: parseInt(faker.finance.amount(2000, 200000)),
@@ -79,9 +90,9 @@ export async function campaignSeed() {
         title,
         essence: faker.company.catchPhrase(),
         coordinatorId: coordinatorFromDb.id,
-        beneficiaryId: beneficiaryFromDb.id,
+        beneficiaryId: beneficiaryCompanyFromDb.id,
         campaignTypeId: randomType.id,
-        companyFromDb: companyFromDb.id,
+        companyId: companyFromDb.id,
         description: faker.lorem.paragraphs(1),
         targetAmount: parseInt(faker.finance.amount(2000, 200000)),
         currency: Currency.BGN,

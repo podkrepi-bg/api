@@ -42,7 +42,7 @@ export async function beneficiarySeed() {
     skipDuplicates: true,
   })
   const insertCompaniesAsBeneficiaries = await prisma.beneficiary.createMany({
-    data: persons.slice(0, companies.length / 2).map((company) => ({
+    data: companies.slice(0, companies.length / 2).map((company) => ({
       type: BeneficiaryType.company,
       companyId: company.id,
       countryCode: bg.countryCode,
