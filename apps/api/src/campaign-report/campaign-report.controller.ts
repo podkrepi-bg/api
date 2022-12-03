@@ -9,6 +9,8 @@ import {
   Param,
   Patch,
   Post,
+  StreamableFile,
+  Response,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common'
@@ -60,6 +62,39 @@ export class CampaignReportController {
     }
 
     return report
+  }
+
+  @Get(':campaignId/reports/:reportId/files/:fileId')
+  @Public()
+  async getFile(
+    @Param('campaignId') campaignId: string,
+    @Param('reportId') reportId: string,
+    @Param('fileId') fileId: string,
+    @Response({ passthrough: true }) res,
+  ): Promise<StreamableFile> {
+    const campaignReports = await this.campaignReportService.getReports(campaignId)
+    const report = await this.campaignReportService.getReport(reportId)
+
+    if (!campaignReports.map((report) => report.id).includes(reportId)) {
+      throw new NotFoundException('The given report is not part of the selected campaign')
+    }
+
+    const fileIsInReport = [
+      ...(report?.photos ?? []).map(photo => photo.id),
+      ...(report?.documents ?? []).map(document => document.id)]
+      .includes(fileId)
+
+    if (!fileIsInReport) {
+      throw new NotFoundException('The given file is not part of the report')
+    }
+
+    const file = await this.campaignReportService.getReportFile(fileId)
+    res.set({
+      'Content-Type': file.mimetype,
+      'Content-Disposition': 'attachment; filename="' + file.filename + '"',
+    })
+
+    return new StreamableFile(file.stream)
   }
 
   @Post(':campaignId/reports')

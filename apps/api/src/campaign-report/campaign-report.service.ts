@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { CampaignReport, CampaignReportFile, CampaignReportFileType } from '@prisma/client'
+import { StreamableFileDto } from '../common/dto/streamable-file.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { S3Service } from '../s3/s3.service'
 import { CreateReportDto } from './dto/create-report.dto'
@@ -114,6 +115,20 @@ export class CampaignReportService {
 
     // Upload new files
     await this.uploadFiles(report.campaignId, reportId, userId, newPhotos, newDocuments)
+  }
+
+  async getReportFile(fileId: string): Promise<StreamableFileDto> {
+    const file = await this.prisma.campaignReportFile.findFirst({ where: { id: fileId } })
+    if (!file) {
+      const errorMessage = `No campaign file record with ID: ${fileId}`
+      Logger.warn(errorMessage)
+      throw new Error(errorMessage)
+    }
+    return {
+      filename: encodeURIComponent(file.filename),
+      mimetype: file.mimetype,
+      stream: await this.s3.streamFile(this.bucketName, fileId),
+    }
   }
 
   async softDeleteReport(reportId: string): Promise<CampaignReport> {
