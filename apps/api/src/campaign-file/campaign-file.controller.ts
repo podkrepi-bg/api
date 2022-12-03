@@ -35,7 +35,7 @@ export class CampaignFileController {
   ) {}
 
   @Post(':campaign_id')
-  @UseInterceptors(FilesInterceptor('file', 10, { limits: { fileSize: 10485760 } }))
+  @UseInterceptors(FilesInterceptor('file', 10, { limits: { fileSize: 1024 * 1024 * 10 } }))
   async create(
     @Param('campaign_id') campaignId: string,
     @Body() body: FilesRoleDto,

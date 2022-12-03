@@ -7,8 +7,8 @@ import {
   Logger,
   NotFoundException,
   Param,
+  Patch,
   Post,
-  Put,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common'
@@ -96,7 +96,7 @@ export class CampaignReportController {
     return createdReportId
   }
 
-  @Put(':/campaignId/reports/:reportId')
+  @Patch(':campaignId/reports/:reportId')
   @UseInterceptors(
     FileFieldsInterceptor(
       [

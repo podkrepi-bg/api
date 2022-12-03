@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { CampaignModule } from '../campaign/campaign.module'
 import { PersonService } from '../person/person.service'
@@ -9,7 +9,7 @@ import { CampaignReportController } from './campaign-report.controller'
 import { CampaignReportService } from './campaign-report.service'
 
 @Module({
-  imports: [forwardRef(() => VaultModule), forwardRef(() => CampaignModule)],
+  imports: [VaultModule, CampaignModule],
   controllers: [CampaignReportController],
   providers: [CampaignReportService, PrismaService, PersonService, ConfigService, S3Service],
   exports: [CampaignReportService],
