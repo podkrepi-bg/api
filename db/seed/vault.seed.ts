@@ -1,11 +1,13 @@
-import faker from 'faker'
-import { CampaignState, Currency, PrismaClient } from '@prisma/client'
+import { faker } from '@faker-js/faker'
+import { Currency, PrismaClient, CampaignState } from '@prisma/client'
 const prisma = new PrismaClient()
 
 export async function vaultSeed() {
   console.log('Vault seed')
 
-  const campaign = await prisma.campaign.findFirst()
+  const campaign = await prisma.campaign
+    .findMany()
+    .then((campaigns) => faker.helpers.arrayElement(campaigns))
 
   const completedCampaign = await prisma.campaign.findFirst({
     where: {

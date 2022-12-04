@@ -1,5 +1,5 @@
-import faker from 'faker'
-import { PrismaClient, CampaignState, Currency } from '@prisma/client'
+import { faker } from '@faker-js/faker'
+import { PrismaClient, CampaignState, Currency, BeneficiaryType } from '@prisma/client'
 import { getPaymentReference } from '../../apps/api/src/campaign/helpers/payment-reference'
 
 const prisma = new PrismaClient()
@@ -21,13 +21,30 @@ export async function campaignSeed() {
     throw new Error('No coordinator')
   }
 
-  const beneficiaryFromDb = await prisma.beneficiary.findFirst({
-    where: { person: { email: 'receiver@podkrepi.bg' } },
-  })
-  console.log(beneficiaryFromDb)
+  const beneficiaryPersonFromDb = await prisma.beneficiary
+    .findMany({
+      where: { person: { email: 'receiver@podkrepi.bg' } },
+    })
+    .then((beneficiaries) => faker.helpers.arrayElement(beneficiaries))
 
-  if (!beneficiaryFromDb) {
+  if (!beneficiaryPersonFromDb) {
     throw new Error('No beneficiary')
+  }
+
+  const beneficiaryCompanyFromDb = await prisma.beneficiary
+    .findMany({
+      where: { type: BeneficiaryType.company },
+    })
+    .then((beneficiaries) => faker.helpers.arrayElement(beneficiaries))
+
+  if (!beneficiaryCompanyFromDb) {
+    throw new Error('No beneficiary')
+  }
+
+  const companyFromDb = await prisma.company.findFirst()
+  console.log(companyFromDb)
+  if (!companyFromDb) {
+    throw new Error('No company')
   }
 
   const campaignTypeFromDb = await prisma.campaignType.findMany()
@@ -48,7 +65,7 @@ export async function campaignSeed() {
         title,
         essence: faker.company.catchPhrase(),
         coordinatorId: coordinatorFromDb.id,
-        beneficiaryId: beneficiaryFromDb.id,
+        beneficiaryId: beneficiaryPersonFromDb.id,
         campaignTypeId: randomType.id,
         description: faker.lorem.paragraphs(1),
         targetAmount: parseInt(faker.finance.amount(2000, 200000)),
@@ -62,19 +79,20 @@ export async function campaignSeed() {
   })
   console.log({ activeCampaigns })
 
-  console.log('Insert 5 more random state campaigns')
+  console.log('Insert 5 more random state campaigns with companies')
   const randomCampaigns = await prisma.campaign.createMany({
     data: [...Array(5).keys()].map(() => {
       const title = faker.lorem.sentence(3)
       const randomType = campaignTypeFromDb[Math.floor(Math.random() * campaignTypeFromDb.length)]
       return {
-        state: faker.random.objectElement<CampaignState>(CampaignState),
+        state: faker.helpers.arrayElement(Object.values(CampaignState)),
         slug: faker.helpers.slugify(title).replace('.', '').toLowerCase(),
         title,
         essence: faker.company.catchPhrase(),
         coordinatorId: coordinatorFromDb.id,
-        beneficiaryId: beneficiaryFromDb.id,
+        beneficiaryId: beneficiaryCompanyFromDb.id,
         campaignTypeId: randomType.id,
+        companyId: companyFromDb.id,
         description: faker.lorem.paragraphs(1),
         targetAmount: parseInt(faker.finance.amount(2000, 200000)),
         currency: Currency.BGN,

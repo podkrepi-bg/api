@@ -13,6 +13,7 @@ import { bankAccountSeed } from './bankaccount.seed'
 import { vaultSeed } from './vault.seed'
 import { expenseSeed } from './expense.seed'
 import { donationsSeed } from './donations.seed'
+import { companySeed } from './company.seed'
 
 const prisma = new PrismaClient()
 
@@ -23,6 +24,7 @@ async function main() {
   if (isDevConfig) {
     console.warn('Executing development seeds')
     await personSeed()
+    await companySeed()
     await infoRequestSeed()
     await supportersSeed()
     await coordinatorSeed()
