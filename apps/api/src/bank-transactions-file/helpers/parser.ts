@@ -19,7 +19,13 @@ export function parseBankTransactionsFile(
         ) {
           const payment = new CreateManyBankPaymentsDto()
           const paymentRef = items[item].AccountMovement[movement].NarrativeI02[0]
-          payment.amount = Number(items[item].AccountMovement[movement].Amount[0]) * 100
+          // Note: the amount is kept as cents in the database, so input from file of 10.2 is saved as 1020.
+          // Rounding is also needed because sometimes amounts get parsed as 10.19999999 which creates floating numbers,
+          // but the database expects integer
+          payment.amount =
+            Math.round(
+              (Number(items[item].AccountMovement[movement].Amount[0]) + Number.EPSILON) * 10000,
+            ) / 100
           payment.currency = items[item].AccountMovement[movement].CCY[0]
           payment.extCustomerId = items[item].AccountMovement[movement].OppositeSideAccount[0]
           payment.extPaymentIntentId = items[item].AccountMovement[movement].DocumentReference[0]
