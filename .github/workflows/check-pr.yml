@@ -8,7 +8,8 @@ on:
 jobs:
   security-checks:
     name: Security tests
-    needs: [check-label]
+    if: |
+      !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]'
     uses: ./.github/workflows/security-checks.yaml
     secrets:
       MONDOO_SECRET: ${{ secrets.MONDOO_SECRET }}
