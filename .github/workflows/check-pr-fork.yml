@@ -40,9 +40,9 @@ jobs:
         uses: mshick/add-pr-comment@v2
         with:
           message: |
-            Tests will run for this PR. Once they succeed it can be merged.
+            ✅ Tests will run for this PR. Once they succeed it can be merged.
           message-failure: |
-            Not all tests have run for this PR. Please add the `run tests` label to trigger them.
+            ❌ Not all tests have run for this PR. Please add the `run tests` label to trigger them.
 
 
   security-checks:
