@@ -6,6 +6,11 @@ on:
     branches: [master]
 
 jobs:
+  debug-event:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print workflow actor
+        run: echo "${{ toJSON(github.actor) }}"
   security-checks:
     name: Security tests
     if: |
