@@ -32,6 +32,6 @@ jobs:
   security-checks:
     name: Security tests
     needs: [check-label]
-    uses: ./.github/workflows/security-checks.yaml
+    uses: ./.github/workflows/security-checks.yml
     secrets:
       MONDOO_SECRET: ${{ secrets.MONDOO_SECRET }}

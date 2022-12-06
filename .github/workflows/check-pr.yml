@@ -10,6 +10,6 @@ jobs:
     name: Security tests
     if: |
       !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]'
-    uses: ./.github/workflows/security-checks.yaml
+    uses: ./.github/workflows/security-checks.yml
     secrets:
       MONDOO_SECRET: ${{ secrets.MONDOO_SECRET }}
