@@ -10,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Print workflow actor
-        run: echo "${{ toJSON(github.pull_request.user) }}"
+        run: echo "${{ toJSON(github.event.pull_request.user) }}"
   security-checks:
     name: Security tests
     if: |
-      !github.event.pull_request.head.repo.fork && github.pull_request.user.login != 'dependabot[bot]'
+      !github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]'
     uses: ./.github/workflows/security-checks.yml
     secrets:
       MONDOO_SECRET: ${{ secrets.MONDOO_SECRET }}
