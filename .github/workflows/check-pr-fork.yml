@@ -17,7 +17,6 @@ jobs:
       (github.event.pull_request.user.login == 'dependabot[bot]' && contains(github.event.pull_request.labels.*.name, 'run tests'))
       || (github.event.pull_request.head.repo.fork && contains(github.event.pull_request.labels.*.name, 'run tests'))
     permissions:
-      issues: write
       pull-requests: write
     steps:
       - uses: actions/checkout@v3
@@ -28,6 +27,25 @@ jobs:
           gh pr edit ${{ github.event.pull_request.number }} --remove-label "run tests"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  check-pr-tests:
+    name: Check PR tests status
+    runs-on: ubuntu-latest
+    if: |
+      (github.event.pull_request.user.login == 'dependabot[bot]' && !contains(github.event.pull_request.labels.*.name, 'run tests'))
+      || (github.event.pull_request.head.repo.fork && !contains(github.event.pull_request.labels.*.name, 'run tests'))
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: mshick/add-pr-comment@v2
+        with:
+          message: |
+            Not all tests have run for this PR. Please add the `run tests` label to trigger them.
+
+      - run: |
+          echo "Not all tests have run for this PR. Please add the `run tests` label to trigger them."
+          exit 1
 
   security-checks:
     name: Security tests
