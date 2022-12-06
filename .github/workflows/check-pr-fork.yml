@@ -1,0 +1,37 @@
+name: Check PR (forks)
+
+on:
+  workflow_dispatch:
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  check-label:
+    name: Check label
+    runs-on: ubuntu-latest
+    # sender.login is needed for runs re-triggered from GitHub UI
+    if: |
+      (github.event.pull_request.user.login == 'dependabot[bot]' && contains(github.event.pull_request.labels.*.name, 'run tests'))
+      || (github.event.pull_request.head.repo.fork && contains(github.event.pull_request.labels.*.name, 'run tests'))
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+      - name: remove labels
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --remove-label "run tests"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  security-checks:
+    name: Security tests
+    needs: [check-label]
+    uses: ./.github/workflows/security-checks.yaml
+    secrets:
+      MONDOO_SECRET: ${{ secrets.MONDOO_SECRET }}
