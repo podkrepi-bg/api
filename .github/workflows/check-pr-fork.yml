@@ -23,13 +23,13 @@ jobs:
           echo "HAS_LABEL=${{ contains(github.event.pull_request.labels.*.name, 'run tests') }}" >> $GITHUB_ENV
       - name: Remove 'run tests' label
         # If the PR is created by dependabot or is a fork and has the 'run tests' label, remove it
-        if: $ {{ env.IS_FORK == 'true' && env.HAS_LABEL == 'true' }}
+        if: ${{ env.IS_FORK == 'true' && env.HAS_LABEL == 'true' }}
         run: |
           gh pr edit ${{ github.event.pull_request.number }} --remove-label "run tests"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Fail workflow
-        if: $ {{ env.IS_FORK == 'true' && env.HAS_LABEL == 'false' }}
+        if: ${{ env.IS_FORK == 'true' && env.HAS_LABEL == 'false' }}
         run: |
           echo "Not all tests have run for this PR. Please add the `run tests` label to trigger them."
           exit 1
