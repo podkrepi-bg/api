@@ -6,6 +6,7 @@ import { toMoney } from '../../common/money'
 export const parseString = require('xml2js').parseString
 
 const regexPaymentRef = /\b[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}\b/g
+const timeZoneGMTEasternEurope = '+0200'
 
 export function parseBankTransactionsFile(
   fileBuffer,
@@ -24,7 +25,11 @@ export function parseBankTransactionsFile(
           payment.currency = items[item].AccountMovement[movement].CCY[0]
           payment.extCustomerId = items[item].AccountMovement[movement].OppositeSideAccount[0]
           payment.extPaymentIntentId = items[item].AccountMovement[movement].DocumentReference[0]
-          payment.createdAt = new Date(items[item].AccountMovement[movement].PaymentDateTime[0])
+          payment.createdAt = new Date(
+            items[item].AccountMovement[movement].PaymentDateTime[0].concat(
+              timeZoneGMTEasternEurope,
+            ),
+          )
           payment.billingName = items[item].AccountMovement[movement].OppositeSideName[0]
 
           const matchedRef = paymentRef.replace(/[ _]+/g, '-').match(regexPaymentRef)
