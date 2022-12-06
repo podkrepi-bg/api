@@ -1,4 +1,10 @@
-import { BeneficiaryType, CampaignState, CampaignTypeCategory, Prisma } from '@prisma/client'
+import {
+  BeneficiaryType,
+  CampaignFileRole,
+  CampaignState,
+  CampaignTypeCategory,
+  Prisma,
+} from '@prisma/client'
 
 export const AdminCampaignListItemSelect = Prisma.validator<Prisma.CampaignArgs>()({
   select: {
@@ -112,6 +118,14 @@ export const CampaignListItemSelect = Prisma.validator<Prisma.CampaignArgs>()({
             email: true,
           },
         },
+      },
+    },
+    campaignFiles: {
+      where: { role: CampaignFileRole.campaignListPhoto },
+      select: {
+        id: true,
+        filename: true,
+        role: true,
       },
     },
   },
