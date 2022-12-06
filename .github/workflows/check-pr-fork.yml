@@ -38,6 +38,7 @@ jobs:
           exit 1
       - name: Update PR comment
         uses: mshick/add-pr-comment@v2
+        if: always()
         with:
           message: |
             ✅ Tests will run for this PR. Once they succeed it can be merged.
