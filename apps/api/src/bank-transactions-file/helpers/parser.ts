@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common'
 import { CreateManyBankPaymentsDto } from '../../donations/dto/create-many-bank-payments.dto'
+import { toMoney } from '../../common/money'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 export const parseString = require('xml2js').parseString
@@ -19,7 +20,7 @@ export function parseBankTransactionsFile(
         ) {
           const payment = new CreateManyBankPaymentsDto()
           const paymentRef = items[item].AccountMovement[movement].NarrativeI02[0]
-          payment.amount = Number(items[item].AccountMovement[movement].Amount[0]) * 100
+          payment.amount = toMoney(items[item].AccountMovement[movement].Amount[0])
           payment.currency = items[item].AccountMovement[movement].CCY[0]
           payment.extCustomerId = items[item].AccountMovement[movement].OppositeSideAccount[0]
           payment.extPaymentIntentId = items[item].AccountMovement[movement].DocumentReference[0]
