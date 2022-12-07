@@ -7,16 +7,16 @@ body:
       label: Which area(s) of Podkrepi.bg are affected? (leave empty if unsure)
       multiple: true
       options:
-        - 'Desktop layout'
-        - 'Mobile layout'
-        - 'Images'
-        - 'Campaigns'
-        - 'Donations'
-        - 'Contacts'
-        - 'SEO & Metadata'
-        - 'Administration'
         - 'Authentication'
-        - 'Translations (i18n)'
+        - 'Database'
+        - 'Prisma'
+        - 'Seeds'
+        - 'Migrations'
+        - 'Keycloak'
+        - 'Storage'
+        - 'Swagger'
+        - 'Security'
+        - 'Testing'
         - 'TypeScript'
   - type: markdown
     attributes:
