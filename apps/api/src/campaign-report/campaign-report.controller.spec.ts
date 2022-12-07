@@ -11,6 +11,7 @@ import { Multer } from 'multer' // why can't it find it without this import?
 import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { S3Service } from '../s3/s3.service'
 import { VaultService } from '../vault/vault.service'
+import { UpdateReportDto } from './dto/update-report.dto'
 
 describe('CampaignReportController', () => {
   let controller: CampaignReportController
@@ -73,19 +74,9 @@ describe('CampaignReportController', () => {
     })
 
     it('should not allow unauthorized users to upload reports', async () => {
-      jest.spyOn(campaignService, 'getCampaignByIdWithPersonIds').mockReturnValueOnce(
-        Promise.resolve({
-          organizer: {
-            person: { keycloakId: '' },
-          },
-          beneficiary: {
-            person: { keycloakId: '' },
-          },
-          coordinator: {
-            person: { keycloakId: '' },
-          },
-        }),
-      )
+      jest
+        .spyOn(campaignService, 'userCanPerformProtectedCampaignAction')
+        .mockResolvedValueOnce(false)
 
       await expect(
         controller.create('1', { photos: [], documents: [] }, new CreateReportDto(), userMock),
@@ -96,19 +87,9 @@ describe('CampaignReportController', () => {
     })
 
     it('should allow authorized users to upload reports', async () => {
-      jest.spyOn(campaignService, 'getCampaignByIdWithPersonIds').mockReturnValueOnce(
-        Promise.resolve({
-          organizer: {
-            person: { keycloakId: 'testKeycloakId' },
-          },
-          beneficiary: {
-            person: { keycloakId: '' },
-          },
-          coordinator: {
-            person: { keycloakId: '' },
-          },
-        }),
-      )
+      jest
+        .spyOn(campaignService, 'userCanPerformProtectedCampaignAction')
+        .mockResolvedValueOnce(true)
 
       const serviceSpy = jest
         .spyOn(campaignReportService, 'createReport')
@@ -124,6 +105,96 @@ describe('CampaignReportController', () => {
       expect(result).toBe('description')
       expect(serviceSpy).toHaveBeenCalledTimes(1)
       expect(serviceSpy).toHaveBeenCalledWith(expect.anything(), '1', 'personIdMock', [], [])
+    })
+  })
+
+  describe('update report', () => {
+    it('should not allow non-existent users to update reports', async () => {
+      jest
+        .spyOn(personServiceMock, 'findOneByKeycloakId')
+        .mockReturnValueOnce(Promise.resolve(null))
+
+      await expect(
+        controller.update(
+          '1',
+          '1,',
+          { photos: [], documents: [] },
+          new UpdateReportDto(),
+          userMock,
+        ),
+      ).rejects.toThrowWithMessage(
+        ForbiddenException,
+        'The user cannot modify the requested campaign',
+      )
+    })
+
+    it('should not allow unauthorized users to update reports', async () => {
+      jest
+        .spyOn(campaignService, 'userCanPerformProtectedCampaignAction')
+        .mockResolvedValueOnce(false)
+
+      await expect(
+        controller.update('1', '1', { photos: [], documents: [] }, new UpdateReportDto(), userMock),
+      ).rejects.toThrowWithMessage(
+        ForbiddenException,
+        'The user cannot modify the requested campaign',
+      )
+    })
+
+    it('should allow authorized users to update reports', async () => {
+      jest
+        .spyOn(campaignService, 'userCanPerformProtectedCampaignAction')
+        .mockResolvedValueOnce(true)
+
+      const serviceSpy = jest
+        .spyOn(campaignReportService, 'updateReport')
+        .mockResolvedValueOnce(undefined)
+
+      const updateReportDto = new UpdateReportDto()
+
+      await controller.update('1', '1', { photos: [], documents: [] }, updateReportDto, userMock)
+
+      expect(serviceSpy).toHaveBeenCalledTimes(1)
+      expect(serviceSpy).toHaveBeenCalledWith('1', '1', 'personIdMock', updateReportDto, [], [])
+    })
+  })
+
+  describe('delete report', () => {
+    it('should not allow non-existent users to delete reports', async () => {
+      jest
+        .spyOn(personServiceMock, 'findOneByKeycloakId')
+        .mockReturnValueOnce(Promise.resolve(null))
+
+      await expect(controller.delete('1', '1,', userMock)).rejects.toThrowWithMessage(
+        ForbiddenException,
+        'The user cannot modify the requested campaign',
+      )
+    })
+
+    it('should not allow unauthorized users to delete reports', async () => {
+      jest
+        .spyOn(campaignService, 'userCanPerformProtectedCampaignAction')
+        .mockResolvedValueOnce(false)
+
+      await expect(controller.delete('1', '1', userMock)).rejects.toThrowWithMessage(
+        ForbiddenException,
+        'The user cannot modify the requested campaign',
+      )
+    })
+
+    it('should allow authorized users to delete reports', async () => {
+      jest
+        .spyOn(campaignService, 'userCanPerformProtectedCampaignAction')
+        .mockResolvedValueOnce(true)
+
+      const serviceSpy = jest
+        .spyOn(campaignReportService, 'softDeleteReport')
+        .mockResolvedValueOnce({} as any)
+
+      await controller.delete('1', '1', userMock)
+
+      expect(serviceSpy).toHaveBeenCalledTimes(1)
+      expect(serviceSpy).toHaveBeenCalledWith('1', '1')
     })
   })
 })
