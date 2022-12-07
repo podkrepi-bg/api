@@ -7,7 +7,7 @@ import { CampaignReportService } from './campaign-report.service'
 import { CreateReportDto } from './dto/create-report.dto'
 import { plainToClass } from 'class-transformer'
 import { Multer } from 'multer' // why can't it find it without this import?
-import { CampaignReportFile, CampaignReportFileType, PrismaClient } from '@prisma/client'
+import { CampaignReportFileType, PrismaClient } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { UpdateReportDto } from './dto/update-report.dto'
 
@@ -337,7 +337,7 @@ describe('CampaignReportService', () => {
         .mockResolvedValueOnce({
           filename: 'wow',
           mimetype: 'jpg',
-          personId: '1',
+          creatorId: '1',
           id: '1',
           reportId: '1',
           isDeleted: false,
@@ -346,7 +346,7 @@ describe('CampaignReportService', () => {
         .mockResolvedValueOnce({
           filename: 'wow',
           mimetype: 'jpg',
-          personId: '1',
+          creatorId: '1',
           id: '2',
           reportId: '1',
           isDeleted: false,
@@ -422,7 +422,7 @@ describe('CampaignReportService', () => {
           reportId: '1',
           filename: '',
           mimetype: '',
-          personId: '1',
+          creatorId: '1',
           type: CampaignReportFileType.document,
           isDeleted: false,
         })

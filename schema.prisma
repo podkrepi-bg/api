@@ -533,15 +533,15 @@ model CampaignReport {
   endDate             DateTime             @map("end_date")
   description         String
   files               CampaignReportFile[]
-  totalFunds          Int?               @map("total_funds") @default(0)
-  fundsForPeriod      Int?               @map("funds_for_period") @default(0)
-  spentFundsForPeriod Int?               @map("spent_funds_for_period") @default(0)
+  totalFunds          Int?                 @default(0) @map("total_funds")
+  fundsForPeriod      Int?                 @default(0) @map("funds_for_period")
+  spentFundsForPeriod Int?                 @default(0) @map("spent_funds_for_period")
   goals               String
   nextSteps           String               @map("next_steps")
   additionalInfo      String               @map("additional_info")
   creatorId           String               @map("creator_id") @db.Uuid
-  creator             Person               @relation(fields: [creatorId], references: [id])
-  isDeleted           Boolean              @map("is_deleted") @default(false)
+  createdBy           Person               @relation(fields: [creatorId], references: [id])
+  isDeleted           Boolean              @default(false) @map("is_deleted")
 
   @@map("campaign_reports")
 }
@@ -560,9 +560,9 @@ model CampaignReportFile {
   filename  String                 @db.VarChar(200)
   mimetype  String                 @db.VarChar(50)
   type      CampaignReportFileType
-  personId  String                 @map("person_id") @db.Uuid
-  person    Person                 @relation(fields: [personId], references: [id])
-  isDeleted Boolean                @map("is_deleted") @default(false)
+  creatorId String                 @map("creator_id") @db.Uuid
+  createdBy Person                 @relation(fields: [creatorId], references: [id])
+  isDeleted Boolean                @default(false) @map("is_deleted")
 
   @@map("campaign_reports_files")
 }

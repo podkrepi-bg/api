@@ -241,7 +241,7 @@ export class CampaignReportService {
       reportId,
       filename: file.filename,
       mimetype: file.mimetype,
-      personId: userId,
+      creatorId: userId,
     })
 
     const insertInDatabase = async (

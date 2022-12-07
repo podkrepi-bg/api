@@ -452,7 +452,7 @@ Table campaign_reports {
   nextSteps String [not null]
   additionalInfo String [not null]
   creatorId String [not null]
-  creator people [not null]
+  createdBy people [not null]
   isDeleted Boolean [not null, default: false]
 }
 
@@ -463,8 +463,8 @@ Table campaign_reports_files {
   filename String [not null]
   mimetype String [not null]
   type CampaignReportFileType [not null]
-  personId String [not null]
-  person people [not null]
+  creatorId String [not null]
+  createdBy people [not null]
   isDeleted Boolean [not null, default: false]
 }
 
@@ -769,4 +769,4 @@ Ref: campaign_reports.creatorId > people.id
 
 Ref: campaign_reports_files.reportId > campaign_reports.id
 
-Ref: campaign_reports_files.personId > people.id
+Ref: campaign_reports_files.creatorId > people.id

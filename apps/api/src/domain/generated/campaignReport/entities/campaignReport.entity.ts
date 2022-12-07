@@ -17,6 +17,6 @@ export class CampaignReport {
   nextSteps: string
   additionalInfo: string
   creatorId: string
-  creator?: Person
+  createdBy?: Person
   isDeleted: boolean
 }

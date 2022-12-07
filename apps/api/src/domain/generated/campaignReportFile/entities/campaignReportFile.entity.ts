@@ -9,7 +9,7 @@ export class CampaignReportFile {
   filename: string
   mimetype: string
   type: CampaignReportFileType
-  personId: string
-  person?: Person
+  creatorId: string
+  createdBy?: Person
   isDeleted: boolean
 }
