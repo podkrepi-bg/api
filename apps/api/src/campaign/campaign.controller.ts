@@ -125,18 +125,15 @@ export class CampaignController {
     @Body() updateCampaignDto: UpdateCampaignDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
-    const campaign = await this.campaignService.getCampaignByIdWithPersonIds(id)
-    if (
-      user.sub === campaign?.beneficiary.person?.keycloakId ||
-      user.sub === campaign?.organizer?.person.keycloakId ||
-      user.sub === campaign?.coordinator.person.keycloakId ||
-      isAdmin(user)
-    )
-      return this.campaignService.update(id, updateCampaignDto)
-    else
+    const userCanPerformProtectedCampaignAction =
+      await this.campaignService.userCanPerformProtectedCampaignAction(id, user.sub)
+    if (!userCanPerformProtectedCampaignAction && !isAdmin(user)) {
       throw new ForbiddenException(
         'The user is not coordinator,organizer or beneficiery to the requested campaign',
       )
+    }
+
+    return this.campaignService.update(id, updateCampaignDto)
   }
 
   @Delete(':id')

@@ -5,7 +5,6 @@ import {
   ForbiddenException,
   Get,
   Logger,
-  NotFoundException,
   Param,
   Patch,
   Post,
@@ -49,19 +48,7 @@ export class CampaignReportController {
     @Param('campaignId') campaignId: string,
     @Param('reportId') reportId: string,
   ): Promise<GetReportDto> {
-    const campaignReports = await this.campaignReportService.getReports(campaignId)
-
-    if (!campaignReports.map((report) => report.id).includes(reportId)) {
-      throw new NotFoundException('The given report is not part of the selected campaign')
-    }
-
-    const report = await this.campaignReportService.getReport(reportId)
-
-    if (report === null) {
-      throw new NotFoundException(`Report with id ${reportId} does not exist`)
-    }
-
-    return report
+    return this.campaignReportService.getReport(campaignId, reportId)
   }
 
   @Get(':campaignId/reports/:reportId/files/:fileId')
@@ -72,23 +59,7 @@ export class CampaignReportController {
     @Param('fileId') fileId: string,
     @Response({ passthrough: true }) res,
   ): Promise<StreamableFile> {
-    const campaignReports = await this.campaignReportService.getReports(campaignId)
-    const report = await this.campaignReportService.getReport(reportId)
-
-    if (!campaignReports.map((report) => report.id).includes(reportId)) {
-      throw new NotFoundException('The given report is not part of the selected campaign')
-    }
-
-    const fileIsInReport = [
-      ...(report?.photos ?? []).map(photo => photo.id),
-      ...(report?.documents ?? []).map(document => document.id)]
-      .includes(fileId)
-
-    if (!fileIsInReport) {
-      throw new NotFoundException('The given file is not part of the report')
-    }
-
-    const file = await this.campaignReportService.getReportFile(fileId)
+    const file = await this.campaignReportService.getReportFile(campaignId, reportId, fileId)
     res.set({
       'Content-Type': file.mimetype,
       'Content-Disposition': 'attachment; filename="' + file.filename + '"',
@@ -155,13 +126,8 @@ export class CampaignReportController {
       throw new ForbiddenException('The user cannot modify the requested campaign')
     }
 
-    const campaignReports = await this.campaignReportService.getReports(campaignId)
-
-    if (!campaignReports.map((report) => report.id).includes(reportId)) {
-      throw new NotFoundException('The given report is not part of the selected campaign')
-    }
-
     await this.campaignReportService.updateReport(
+      campaignId,
       reportId,
       authorizedPerson.id,
       updatedReport,
@@ -181,31 +147,21 @@ export class CampaignReportController {
       throw new ForbiddenException('The user cannot modify the requested campaign')
     }
 
-    const campaignReports = await this.campaignReportService.getReports(campaignId)
-
-    if (!campaignReports.map((report) => report.id).includes(reportId)) {
-      throw new NotFoundException('The given report is not part of the selected campaign')
-    }
-
-    await this.campaignReportService.softDeleteReport(reportId)
+    await this.campaignReportService.softDeleteReport(campaignId, reportId)
   }
 
   private async userCanPerformReportAction(
     campaignId: string,
     user: KeycloakTokenParsed,
   ): Promise<Person | null> {
-    const campaign = await this.campaignService.getCampaignByIdWithPersonIds(campaignId)
-    const userCanUploadReport = [
-      campaign?.beneficiary.person?.keycloakId,
-      campaign?.organizer?.person.keycloakId,
-      campaign?.coordinator.person.keycloakId,
-    ].includes(user.sub)
+    const userCanPerformProtectedCampaignAction =
+      await this.campaignService.userCanPerformProtectedCampaignAction(campaignId, user.sub)
 
     const person = await this.personService.findOneByKeycloakId(user.sub)
     if (!person) {
       Logger.warn('No person record with keycloak ID: ' + user.sub)
     }
 
-    return campaign !== null && person !== null && userCanUploadReport ? person : null
+    return userCanPerformProtectedCampaignAction && person !== null ? person : null
   }
 }

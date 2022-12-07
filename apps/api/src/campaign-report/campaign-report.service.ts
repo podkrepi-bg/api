@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { CampaignReport, CampaignReportFile, CampaignReportFileType } from '@prisma/client'
 import { StreamableFileDto } from '../common/dto/streamable-file.dto'
 import { PrismaService } from '../prisma/prisma.service'
@@ -29,10 +29,15 @@ export class CampaignReportService {
     })
   }
 
-  async getReport(reportId: string, includeDeleted = false): Promise<GetReportDto | null> {
+  async getReport(
+    campaignId: string,
+    reportId: string,
+    includeDeleted = false,
+  ): Promise<GetReportDto> {
     const report = this.prisma.campaignReport.findFirst({
       where: {
         id: reportId,
+        campaignId,
         isDeleted: includeDeleted,
       },
       select: {
@@ -45,7 +50,7 @@ export class CampaignReportService {
     })
 
     if (report === null) {
-      return null
+      throw new NotFoundException(`Report with id ${reportId} does not exist`)
     }
 
     const files = await report.files()
@@ -78,18 +83,26 @@ export class CampaignReportService {
   }
 
   async updateReport(
+    campaignId: string,
     reportId: string,
     userId: string,
     updateReportDto: UpdateReportDto,
     newPhotos: Express.Multer.File[],
     newDocuments: Express.Multer.File[],
   ) {
-    const report = await this.prisma.campaignReport.findUnique({
-      where: { id: reportId },
+    const report = await this.prisma.campaignReport.findFirst({
+      where: {
+        id: reportId,
+        campaignId,
+      },
+      select: {
+        campaignId: true,
+        files: true,
+      },
     })
 
     if (!report) {
-      return undefined
+      throw new NotFoundException('The given report is not part of the selected campaign')
     }
 
     // Update basic report data
@@ -110,19 +123,33 @@ export class CampaignReportService {
 
     // Mark files as deleted
     await Promise.all(
-      updateReportDto.daletedFileIds.map((deletedFileId) => this.softDeleteFile(deletedFileId)),
+      updateReportDto.daletedFileIds
+        .filter((fileId) => report.files?.map((file) => file.id).includes(fileId))
+        .map((deletedFileId) => this.softDeleteFile(reportId, deletedFileId)),
     )
 
     // Upload new files
     await this.uploadFiles(report.campaignId, reportId, userId, newPhotos, newDocuments)
   }
 
-  async getReportFile(fileId: string): Promise<StreamableFileDto> {
-    const file = await this.prisma.campaignReportFile.findFirst({ where: { id: fileId } })
+  async getReportFile(
+    campaignId: string,
+    reportId: string,
+    fileId: string,
+  ): Promise<StreamableFileDto> {
+    const file = await this.prisma.campaignReportFile.findFirst({
+      where: {
+        id: fileId,
+        report: {
+          id: reportId,
+          campaignId: campaignId,
+        },
+      },
+    })
     if (!file) {
-      const errorMessage = `No campaign file record with ID: ${fileId}`
+      const errorMessage = `No campaign file record with ID: ${fileId} part of report with id ${reportId}`
       Logger.warn(errorMessage)
-      throw new Error(errorMessage)
+      throw new NotFoundException(errorMessage)
     }
     return {
       filename: encodeURIComponent(file.filename),
@@ -131,8 +158,19 @@ export class CampaignReportService {
     }
   }
 
-  async softDeleteReport(reportId: string): Promise<CampaignReport> {
-    return this.prisma.campaignReport.update({
+  async softDeleteReport(campaignId: string, reportId: string): Promise<CampaignReport> {
+    const singleReport = await this.prisma.campaignReport.findFirst({
+      where: {
+        campaignId,
+        id: reportId,
+      },
+    })
+
+    if (!singleReport) {
+      throw new NotFoundException('The given report is not part of the selected campaign')
+    }
+
+    const updatedReport = await this.prisma.campaignReport.update({
       where: {
         id: reportId,
       },
@@ -140,12 +178,25 @@ export class CampaignReportService {
         isDeleted: { set: true },
       },
     })
+
+    return updatedReport
   }
 
-  private async softDeleteFile(fileId: string): Promise<CampaignReportFile> {
+  private async softDeleteFile(reportId: string, fileId: string): Promise<CampaignReportFile> {
+    const reportFile = await this.prisma.campaignReportFile.findFirst({
+      where: {
+        reportId,
+        id: fileId,
+      },
+    })
+
+    if (!reportFile) {
+      throw new NotFoundException('The given file is not part of the selected report')
+    }
+
     return this.prisma.campaignReportFile.update({
       where: {
-        id: fileId,
+        id: reportFile.id,
       },
       data: {
         isDeleted: true,

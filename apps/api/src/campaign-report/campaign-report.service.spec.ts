@@ -7,7 +7,7 @@ import { CampaignReportService } from './campaign-report.service'
 import { CreateReportDto } from './dto/create-report.dto'
 import { plainToClass } from 'class-transformer'
 import { Multer } from 'multer' // why can't it find it without this import?
-import { CampaignReportFileType, prisma, PrismaClient } from '@prisma/client'
+import { CampaignReportFile, CampaignReportFileType, PrismaClient } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { UpdateReportDto } from './dto/update-report.dto'
 
@@ -120,7 +120,7 @@ describe('CampaignReportService', () => {
   })
 
   describe('deleteReport', () => {
-    it('should mark the file as deleted', async () => {
+    it('should mark the report as deleted', async () => {
       const reportId = '1'
 
       const report = {
@@ -143,6 +143,22 @@ describe('CampaignReportService', () => {
         .fn()
         .mockImplementationOnce(() => Promise.resolve({}))
 
+      const findSpy = jest.spyOn(prismaService.campaignReport, 'findFirst').mockResolvedValue({
+        id: '1',
+        campaignId: '1',
+        creatorId: '1',
+        description: 'description',
+        startDate: new Date(0),
+        endDate: new Date(0),
+        additionalInfo: 'additional info',
+        totalFunds: 0,
+        fundsForPeriod: 0,
+        spentFundsForPeriod: 0,
+        goals: 'goals',
+        nextSteps: 'next steps',
+        isDeleted: false,
+      })
+
       const spy = jest
         .spyOn(prismaService.campaignReport, 'update')
         .mockResolvedValue({ ...report })
@@ -151,7 +167,9 @@ describe('CampaignReportService', () => {
         .spyOn(prismaService.campaignReport, 'delete')
         .mockResolvedValue({ ...report })
 
-      await service.softDeleteReport(reportId)
+      await service.softDeleteReport('1', reportId)
+
+      expect(findSpy).toHaveBeenCalledTimes(1)
 
       expect(deleteSpy).not.toHaveBeenCalled()
 
@@ -176,34 +194,35 @@ describe('CampaignReportService', () => {
         fundsForPeriod: 1,
         spentFundsForPeriod: 1,
         goals: 'new goals',
-        nextSteps: 'new next steps'
+        nextSteps: 'new next steps',
       }
 
-      const findSpy = jest.spyOn(prismaService.campaignReport, 'findUnique')
-        .mockResolvedValueOnce({
-          id: '1',
-          campaignId: '1',
-          creatorId: '1',
-          description: 'description',
-          startDate: new Date(0),
-          endDate: new Date(0),
-          additionalInfo: 'additional info',
-          totalFunds: 0,
-          fundsForPeriod: 0,
-          spentFundsForPeriod: 0,
-          goals: 'goals',
-          nextSteps: 'next steps',
-          isDeleted: false,
-        })
-      
-      const updateSpy = jest.spyOn(prismaService.campaignReport, 'update')
+      const findSpy = jest.spyOn(prismaService.campaignReport, 'findFirst').mockResolvedValueOnce({
+        id: '1',
+        campaignId: '1',
+        creatorId: '1',
+        description: 'description',
+        startDate: new Date(0),
+        endDate: new Date(0),
+        additionalInfo: 'additional info',
+        totalFunds: 0,
+        fundsForPeriod: 0,
+        spentFundsForPeriod: 0,
+        goals: 'goals',
+        nextSteps: 'next steps',
+        isDeleted: false,
+      })
+
+      const updateSpy = jest
+        .spyOn(prismaService.campaignReport, 'update')
         .mockImplementation(jest.fn())
 
-      await service.updateReport('1', '1',updateReportDto, [], [])
+      await service.updateReport('1', '1', '1', updateReportDto, [], [])
 
       expect(findSpy).toHaveBeenCalledTimes(1)
       expect(findSpy).toHaveBeenCalledWith({
-        where: { id: '1' }
+        where: { id: '1', campaignId: '1' },
+        select: { campaignId: true, files: true },
       })
 
       expect(updateSpy).toHaveBeenCalledTimes(1)
@@ -218,8 +237,8 @@ describe('CampaignReportService', () => {
           fundsForPeriod: updateReportDto.fundsForPeriod,
           spentFundsForPeriod: updateReportDto.spentFundsForPeriod,
           goals: updateReportDto.goals,
-          nextSteps: updateReportDto.nextSteps
-        }
+          nextSteps: updateReportDto.nextSteps,
+        },
       })
     })
 
@@ -235,18 +254,20 @@ describe('CampaignReportService', () => {
         fundsForPeriod: 1,
         spentFundsForPeriod: 1,
         goals: 'new goals',
-        nextSteps: 'new next steps'
+        nextSteps: 'new next steps',
       }
 
-      const findSpy = jest.spyOn(prismaService.campaignReport, 'findUnique')
+      const findSpy = jest
+        .spyOn(prismaService.campaignReport, 'findFirst')
         .mockResolvedValueOnce(null)
 
-      const updateSpy = jest.spyOn(prismaService.campaignReport, 'update')
+      const updateSpy = jest
+        .spyOn(prismaService.campaignReport, 'update')
         .mockImplementation(jest.fn())
 
-      const result = await service.updateReport('1', '1', updateReportDto, [], [])
-
-      expect(result).toBeUndefined()
+      await expect(
+        service.updateReport('1', '1', '1', updateReportDto, [], []),
+      ).rejects.toThrowError()
 
       expect(findSpy).toHaveBeenCalledTimes(1)
       expect(updateSpy).not.toHaveBeenCalled()
@@ -264,48 +285,90 @@ describe('CampaignReportService', () => {
         fundsForPeriod: 1,
         spentFundsForPeriod: 1,
         goals: 'new goals',
-        nextSteps: 'new next steps'
+        nextSteps: 'new next steps',
       }
 
-      const findSpy = jest.spyOn(prismaService.campaignReport, 'findUnique')
+      const findSpy = jest.spyOn(prismaService.campaignReport, 'findFirst').mockResolvedValueOnce({
+        id: '1',
+        campaignId: '1',
+        creatorId: '1',
+        description: 'description',
+        startDate: new Date(0),
+        endDate: new Date(0),
+        additionalInfo: 'additional info',
+        totalFunds: 0,
+        fundsForPeriod: 0,
+        spentFundsForPeriod: 0,
+        goals: 'goals',
+        nextSteps: 'next steps',
+        isDeleted: false,
+        files: [
+          {
+            id: '1',
+            reportId: '1',
+            filename: '',
+            mimetype: '',
+            type: CampaignReportFileType.document,
+            personId: '',
+            isDeleted: false,
+          },
+          {
+            id: '2',
+            reportId: '1',
+            filename: '',
+            mimetype: '',
+            type: CampaignReportFileType.document,
+            personId: '',
+            isDeleted: false,
+          },
+        ] as any,
+      })
+
+      const updateSpy = jest
+        .spyOn(prismaService.campaignReport, 'update')
+        .mockImplementation(jest.fn())
+
+      const softDeleteSpy = jest
+        .spyOn(prismaService.campaignReportFile, 'update')
+        .mockImplementation(jest.fn())
+
+      const findFileSpy = jest
+        .spyOn(prismaService.campaignReportFile, 'findFirst')
         .mockResolvedValueOnce({
+          filename: 'wow',
+          mimetype: 'jpg',
+          personId: '1',
           id: '1',
-          campaignId: '1',
-          creatorId: '1',
-          description: 'description',
-          startDate: new Date(0),
-          endDate: new Date(0),
-          additionalInfo: 'additional info',
-          totalFunds: 0,
-          fundsForPeriod: 0,
-          spentFundsForPeriod: 0,
-          goals: 'goals',
-          nextSteps: 'next steps',
+          reportId: '1',
           isDeleted: false,
+          type: CampaignReportFileType.document,
+        })
+        .mockResolvedValueOnce({
+          filename: 'wow',
+          mimetype: 'jpg',
+          personId: '1',
+          id: '2',
+          reportId: '1',
+          isDeleted: false,
+          type: CampaignReportFileType.document,
         })
 
-      const updateSpy = jest.spyOn(prismaService.campaignReport, 'update')
-        .mockImplementation(jest.fn())
-
-      const softDeleteSpy = jest.spyOn(prismaService.campaignReportFile, 'update')
-        .mockImplementation(jest.fn())
-
-      await service.updateReport('1', '1', updateReportDto, [], [])
+      await service.updateReport('1', '1', '1', updateReportDto, [], [])
 
       expect(findSpy).toHaveBeenCalledTimes(1)
       expect(updateSpy).toHaveBeenCalledTimes(1)
       expect(softDeleteSpy).toHaveBeenCalledTimes(2)
+      expect(findFileSpy).toHaveBeenCalledTimes(2)
 
-      expect(softDeleteSpy)
-        .toHaveBeenNthCalledWith(1, {
-          where: { id: '1' },
-          data: { isDeleted: true }
-        })
+      expect(softDeleteSpy).toHaveBeenNthCalledWith(1, {
+        where: { id: '1' },
+        data: { isDeleted: true },
+      })
 
       expect(softDeleteSpy).toHaveBeenNthCalledWith(2, {
-          where: { id: '2' },
-          data: { isDeleted: true }
-        })
+        where: { id: '2' },
+        data: { isDeleted: true },
+      })
     })
 
     it('should create new files if any', async () => {
@@ -320,7 +383,7 @@ describe('CampaignReportService', () => {
         fundsForPeriod: 1,
         spentFundsForPeriod: 1,
         goals: 'new goals',
-        nextSteps: 'new next steps'
+        nextSteps: 'new next steps',
       }
 
       const photos = [
@@ -331,9 +394,8 @@ describe('CampaignReportService', () => {
       const documents = [
         { mimetype: 'jpg', originalname: 'testName3', buffer: Buffer.from('') },
       ] as Express.Multer.File[]
-        
-      const findSpy = jest.spyOn(prismaService.campaignReport, 'findUnique')
-      .mockResolvedValueOnce({
+
+      const findSpy = jest.spyOn(prismaService.campaignReport, 'findFirst').mockResolvedValueOnce({
         id: '1',
         campaignId: '1',
         creatorId: '1',
@@ -349,10 +411,12 @@ describe('CampaignReportService', () => {
         isDeleted: false,
       })
 
-      const updateSpy = jest.spyOn(prismaService.campaignReport, 'update')
+      const updateSpy = jest
+        .spyOn(prismaService.campaignReport, 'update')
         .mockImplementation(jest.fn())
 
-      const createFileSpy = jest.spyOn(prismaService.campaignReportFile, 'create')
+      const createFileSpy = jest
+        .spyOn(prismaService.campaignReportFile, 'create')
         .mockResolvedValue({
           id: '1',
           reportId: '1',
@@ -360,14 +424,14 @@ describe('CampaignReportService', () => {
           mimetype: '',
           personId: '1',
           type: CampaignReportFileType.document,
-          isDeleted: false
-        }) 
+          isDeleted: false,
+        })
 
       const s3UploadSpy = jest
         .spyOn(s3Service, 'uploadObject')
         .mockImplementation(() => Promise.resolve(''))
 
-      await service.updateReport('1', '1', updateReportDto, photos, documents)
+      await service.updateReport('1', '1', '1', updateReportDto, photos, documents)
 
       expect(findSpy).toHaveBeenCalledTimes(1)
       expect(updateSpy).toHaveBeenCalledTimes(1)

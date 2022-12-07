@@ -219,6 +219,24 @@ export class CampaignService {
     return campaign
   }
 
+  async userCanPerformProtectedCampaignAction(
+    campaignId: string,
+    keycloakId: string,
+  ): Promise<boolean> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: {
+        id: campaignId,
+        OR: [
+          { beneficiary: { person: { keycloakId } } },
+          { organizer: { person: { keycloakId } } },
+          { coordinator: { person: { keycloakId } } },
+        ],
+      },
+    })
+
+    return campaign !== null
+  }
+
   async getCampaignByIdWithPersonIds(id: string) {
     const campaign = await this.prisma.campaign.findFirst({
       where: { id: id },
