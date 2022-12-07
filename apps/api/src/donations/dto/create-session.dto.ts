@@ -25,13 +25,6 @@ export class CreateSessionDto {
 
   @ApiProperty()
   @Expose()
-  @IsNotEmpty()
-  @IsString()
-  @ValidateIf((o) => !o.amount || o.priceId)
-  public readonly priceId: string
-
-  @ApiProperty()
-  @Expose()
   @IsNumber()
   @IsNotEmpty()
   @IsPositive()
@@ -44,6 +37,12 @@ export class CreateSessionDto {
   @IsNotEmpty()
   @IsUUID()
   public readonly campaignId: string
+
+  @Expose()
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  personId: string | null
 
   @Expose()
   @ApiProperty()

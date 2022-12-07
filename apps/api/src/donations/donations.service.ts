@@ -35,8 +35,8 @@ export class DonationsService {
   ) {}
 
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
-    const list = await this.stripeClient.prices.list({ active, type })
-    return list.data
+    const list = await this.stripeClient.prices.list({ active, type, limit: 100 })
+    return list.data.filter((price) => price.active)
   }
 
   /**
@@ -77,7 +77,7 @@ export class DonationsService {
         extPaymentIntentId: paymentIntentId,
         extPaymentMethodId: 'card',
         billingEmail: sessionDto.isAnonymous ? sessionDto.personEmail : null, //set the personal mail to billing which is not public field
-        targetVault: targetVaultData,
+        targetVault: targetVaultData
       },
     })
 
@@ -110,42 +110,76 @@ export class DonationsService {
   }
 
   async createCheckoutSession(
-    sessionDto: CreateSessionDto,
+    sessionDto: CreateSessionDto
   ): Promise<{ session: Stripe.Checkout.Session }> {
     const campaign = await this.campaignService.validateCampaignId(sessionDto.campaignId)
     const { mode } = sessionDto
     const appUrl = this.config.get<string>('APP_URL')
-    const metadata: DonationMetadata = { campaignId: sessionDto.campaignId }
+    const metadata: DonationMetadata = { campaignId: sessionDto.campaignId, personId: sessionDto.personId }
 
-    const session = await this.stripeClient.checkout.sessions.create({
+    const items = await this.prepareSessionItems(sessionDto, campaign)
+
+    const createSessionRequest: Stripe.Checkout.SessionCreateParams = {
       mode,
       customer_email: sessionDto.personEmail,
-      line_items: this.prepareSessionItems(sessionDto, campaign),
+      line_items: items,
       payment_method_types: ['card'],
-      payment_intent_data: mode === 'payment' ? { metadata } : undefined,
-      subscription_data: mode === 'subscription' ? { metadata } : undefined,
+      payment_intent_data: mode == "payment" ? { metadata } : undefined,
+      subscription_data: mode == "subscription" ?  { metadata } : undefined,
       success_url: sessionDto.successUrl ?? `${appUrl}/success`,
       cancel_url: sessionDto.cancelUrl ?? `${appUrl}/canceled`,
       tax_id_collection: { enabled: true },
+    }
+
+    Logger.debug('[ CreateCheckoutSession ]', createSessionRequest)
+
+    const session = await this.stripeClient.checkout.sessions.create(createSessionRequest)
+
+    Logger.log('[ CreateInitialDonation ]', {
+      session: session
     })
 
-    await this.createInitialDonation(campaign, sessionDto, session.payment_intent as string)
+    if (mode == "payment") {
+      await this.createInitialDonation(campaign, sessionDto, session.payment_intent as string ?? session.id)
+    }
 
     return { session }
   }
 
-  private prepareSessionItems(
+  private async findSubscriptionPriceId(amount : number, currency: string): Promise<Stripe.Checkout.SessionCreateParams.LineItem> {
+      const recurringPrices = await this.stripeClient.prices.list({ active: true, type: 'recurring', limit: 100 })
+
+      //try to find a price that matches the amount
+      let price = recurringPrices?.data.find(
+        (price: Stripe.Price) => price.unit_amount == amount && price.currency.toLowerCase() == currency.toLowerCase(),
+      )
+
+      //if we cannot find a full price, try to find a tiered one
+      if (!price) {
+        price = recurringPrices?.data.find(
+          (price: Stripe.Price) => price.billing_scheme == 'tiered',
+        )
+      }
+
+      if (!price) {
+        throw new BadRequestException('No subscription price found with: ' + amount + ' ' + currency)
+      }
+
+      return {
+          price: price.id,
+          quantity: price.billing_scheme == "tiered" ? Math.ceil(amount / 100) : 1,
+      }
+  }
+
+  private async prepareSessionItems(
     sessionDto: CreateSessionDto,
     campaign: Campaign,
-  ): Stripe.Checkout.SessionCreateParams.LineItem[] {
-    // Use priceId if provided
-    if (sessionDto.priceId) {
-      return [
-        {
-          price: sessionDto.priceId,
-          quantity: 1,
-        },
-      ]
+  ): Promise<Stripe.Checkout.SessionCreateParams.LineItem[]> {
+    if (sessionDto.mode == "subscription") {
+      //fund a subscription that matches the amount
+      //if it doesn't exist, create a tiered subscription
+      const stripeItem = await this.findSubscriptionPriceId(sessionDto.amount, campaign.currency)
+      return [ stripeItem ]
     }
     // Create donation with custom amount
     return [

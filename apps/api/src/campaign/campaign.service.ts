@@ -140,6 +140,34 @@ export class CampaignService {
     return campaign
   }
 
+  async getCampaignByIdWithDefaultVault(campaignId: string): Promise<Campaign> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: campaignId },
+      include: {
+        campaignFiles: true,
+        vaults: true,
+        incomingTransfers: { select: { amount: true } },
+      },
+    })
+    if (!campaign) {
+      Logger.warn('No campaign record with ID: ' + campaignId)
+      throw new NotFoundException('No campaign record with ID: ' + campaignId)
+    }
+
+
+    if (campaign.vaults.length == 0) {
+      throw new NotFoundException('No vaults found for campaign: ' + campaignId)
+    }
+
+    for(const vault of campaign.vaults) {
+      campaign['defaultVault'] = vault.id
+      break
+    }
+
+    return campaign
+  }
+
+
   async getUserCampaigns(keycloakId: string): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({
       where: {
@@ -447,6 +475,7 @@ export class CampaignService {
             extPaymentMethodId: paymentData.paymentMethodId ?? '',
             billingName: paymentData.billingName,
             billingEmail: paymentData.billingEmail,
+            person: { connect: { id: paymentData.personId } },
           },
         })
       } catch (error) {
@@ -506,6 +535,8 @@ export class CampaignService {
     const vault = await this.getCampaignVault(campaign.id)
     if (vault) {
       await this.vaultService.incrementVaultAmount(vault.id, paymentData.netAmount)
+    } else {
+      Logger.error('No vault found for campaign: ' + campaign.id)
     }
   }
 
@@ -556,7 +587,6 @@ export class CampaignService {
 
     if (campaign && campaign.state !== CampaignState.complete && campaign.targetAmount) {
       const actualAmount = campaign.vaults.map((vault) => vault.amount).reduce((a, b) => a + b, 0)
-
       if (actualAmount >= campaign.targetAmount) {
         await this.prisma.campaign.update({
           where: {
