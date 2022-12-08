@@ -153,45 +153,25 @@ export class DonationsService {
     return { session }
   }
 
-  private async findSubscriptionPriceId(
-    amount: number,
-    currency: string,
-  ): Promise<Stripe.Checkout.SessionCreateParams.LineItem> {
-    const recurringPrices = await this.stripeClient.prices.list({
-      active: true,
-      type: 'recurring',
-      limit: 100,
-    })
-
-    //try to find a price that matches the amount
-    let price = recurringPrices?.data.find(
-      (price: Stripe.Price) =>
-        price.unit_amount == amount && price.currency.toLowerCase() == currency.toLowerCase(),
-    )
-
-    //if we cannot find a full price, try to find a tiered one
-    if (!price) {
-      price = recurringPrices?.data.find((price: Stripe.Price) => price.billing_scheme == 'tiered')
-    }
-
-    if (!price) {
-      throw new BadRequestException('No subscription price found with: ' + amount + ' ' + currency)
-    }
-
-    return {
-      price: price.id,
-      quantity: price.billing_scheme == 'tiered' ? Math.ceil(amount / 100) : 1,
-    }
-  }
-
   private async prepareSessionItems(
     sessionDto: CreateSessionDto,
     campaign: Campaign,
   ): Promise<Stripe.Checkout.SessionCreateParams.LineItem[]> {
     if (sessionDto.mode == 'subscription') {
-      //fund a subscription that matches the amount
-      //if it doesn't exist, create a tiered subscription
-      const stripeItem = await this.findSubscriptionPriceId(sessionDto.amount, campaign.currency)
+      //use an inline price for subscriptions
+      const stripeItem = {
+        price_data: {
+            currency: campaign.currency,
+            unit_amount: sessionDto.amount,
+            recurring: {
+                interval: "month",
+            },
+            product_data: {
+                name: campaign.title,
+            },
+        },
+        quantity: 1,
+      }
       return [stripeItem]
     }
 
