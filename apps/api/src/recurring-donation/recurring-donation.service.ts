@@ -8,7 +8,7 @@ import { RecurringDonationStatus } from '@prisma/client'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
-import { STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
+import Stripe from 'stripe'
 
 @Injectable()
 export class RecurringDonationService {

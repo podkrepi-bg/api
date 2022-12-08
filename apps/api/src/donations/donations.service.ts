@@ -164,7 +164,8 @@ export class DonationsService {
             currency: campaign.currency,
             unit_amount: sessionDto.amount,
             recurring: {
-                interval: "month",
+                interval: 'month' as Stripe.Price.Recurring.Interval,
+                interval_count: 1,
             },
             product_data: {
                 name: campaign.title,
