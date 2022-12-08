@@ -10,10 +10,11 @@ import { CampaignService } from '../campaign/campaign.service'
 import { ConfigService } from '@nestjs/config'
 import { StripeModule } from '@golevelup/nestjs-stripe'
 import { useFactoryService } from './helpers/use-factory-service'
+import { ExportService } from '../export/export.service'
 
 @Module({
   imports: [
-    StripeModule.forRootAsync(StripeModule, {
+  StripeModule.forRootAsync(StripeModule, {
       inject: [ConfigService],
       useFactory:useFactoryService.useFactory
     }),
@@ -27,6 +28,7 @@ import { useFactoryService } from './helpers/use-factory-service'
     VaultService,
     CampaignService,
     DonationsService,
+    ExportService,
   ],
 })
 export class BankTransactionsFileModule {}

@@ -10,11 +10,14 @@ import {
   PaymentProvider,
   Prisma,
 } from '@prisma/client'
+import { Response } from 'express'
+import { getSpecificTableColumns, getAllColumns } from '../export/helpers/exportableData'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CampaignService } from '../campaign/campaign.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
+import { ExportService } from '../export/export.service'
 import { DonationMetadata } from './dontation-metadata.interface'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
@@ -23,6 +26,7 @@ import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
 import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
+import { createExcelTemplate } from '../export/helpers/createExcelTemplate'
 
 @Injectable()
 export class DonationsService {
@@ -32,6 +36,7 @@ export class DonationsService {
     private campaignService: CampaignService,
     private prisma: PrismaService,
     private vaultService: VaultService,
+    private exportService: ExportService,
   ) {}
 
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
@@ -296,7 +301,6 @@ export class DonationsService {
         this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
       } catch (error) {
         Logger.error('Error while importing bank donation. ', error)
-        throw error
       }
     }
   }
@@ -349,9 +353,11 @@ export class DonationsService {
         },
       })
 
-      if (currentDonation.status !== DonationStatus.succeeded
-        && updatePaymentDto.status === DonationStatus.succeeded
-        && donation.status === DonationStatus.succeeded) {
+      if (
+        currentDonation.status !== DonationStatus.succeeded &&
+        updatePaymentDto.status === DonationStatus.succeeded &&
+        donation.status === DonationStatus.succeeded
+      ) {
         await this.vaultService.incrementVaultAmount(
           currentDonation.targetVaultId,
           currentDonation.amount,
@@ -411,5 +417,20 @@ export class DonationsService {
         personId: person?.id,
       },
     })
+  }
+
+  async exportToExcel(res: Response) {
+    const { items } = await this.listDonations()
+    const donationsMappedForExport = items.map((donation) => ({
+      ...donation,
+      person: donation.person
+        ? `${donation.person.firstName} ${donation.person.lastName}`
+        : 'Unknown',
+    }))
+    const columns = getAllColumns(donationsMappedForExport)
+
+    const donationExcelTemplate = createExcelTemplate(columns, null)
+
+    await this.exportService.exportToExcel(res, donationsMappedForExport, donationExcelTemplate)
   }
 }
