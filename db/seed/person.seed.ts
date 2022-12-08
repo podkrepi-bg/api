@@ -1,4 +1,4 @@
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -54,8 +54,8 @@ export async function personSeed() {
       lastName: faker.name.lastName(),
       email: faker.internet.email(),
       picture: faker.image.imageUrl(),
-      phone: faker.phone.phoneNumber('+359########'),
-      company: faker.company.companyName(),
+      phone: faker.phone.number('+359########'),
+      company: faker.company.name(),
       address: faker.address.streetName() + ', ' + faker.address.cityName(),
       newsletter: faker.datatype.boolean(),
     })),
