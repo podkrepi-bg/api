@@ -24,6 +24,9 @@ import {
   mockPaymentIntentUKIncluded,
 } from './stripe-payment.testdata'
 import { DonationStatus } from '@prisma/client'
+import { RecurringDonationService } from '../../recurring-donation/recurring-donation.service'
+import { HttpService } from '@nestjs/axios'
+import { mockDeep } from 'jest-mock-extended'
 
 const defaultStripeWebhookEndpoint = '/stripe/webhook'
 const stripeSecret = 'wh_123'
@@ -58,6 +61,11 @@ describe('StripePaymentService', () => {
         MockPrismaService,
         VaultService,
         PersonService,
+        RecurringDonationService,
+        {
+          provide: HttpService,
+          useValue: mockDeep<HttpService>(),
+        },
       ],
     }).compile()
 

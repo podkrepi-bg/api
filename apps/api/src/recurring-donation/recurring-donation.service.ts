@@ -8,14 +8,16 @@ import { RecurringDonationStatus } from '@prisma/client'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
-import Stripe from 'stripe'
+import { STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
 
 @Injectable()
 export class RecurringDonationService {
-  constructor(private prisma: PrismaService,
-              private config : ConfigService,
-              private httpService: HttpService,
-              @InjectStripeClient() private stripeClient: Stripe) {}
+  constructor(
+    private prisma: PrismaService,
+    private config: ConfigService,
+    private httpService: HttpService,
+    @InjectStripeClient() private stripeClient: Stripe,
+  ) {}
 
   async create(CreateRecurringDonationDto: CreateRecurringDonationDto): Promise<RecurringDonation> {
     return await this.prisma.recurringDonation.create({
@@ -28,43 +30,43 @@ export class RecurringDonationService {
   }
 
   static defaultSelectFields = {
+    id: true,
+    amount: true,
+    currency: true,
+    status: true,
+    extCustomerId: true,
+    extSubscriptionId: true,
+    vaultId: true,
+    personId: true,
+    createdAt: true,
+    updatedAt: true,
+    sourceVault: {
+      select: {
+        name: true,
         id: true,
-        amount: true,
-        currency: true,
-        status: true,
-        extCustomerId: true,
-        extSubscriptionId: true,
-        vaultId: true,
-        personId: true,
-        createdAt: true,
-        updatedAt: true,
-        sourceVault: {
+        campaign: {
           select: {
-              name: true,
-              id: true,
-              campaign: {
-                  select: {
-                      title: true,
-                      id: true
-                  }
-                }
-              }
+            title: true,
+            id: true,
           },
-        person: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true,
-            address: true,
-            createdAt: true,
-          }
-        }
-      }
+        },
+      },
+    },
+    person: {
+      select: {
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        address: true,
+        createdAt: true,
+      },
+    },
+  }
 
   async findAllWithNames(): Promise<RecurringDonation[]> {
     return await this.prisma.recurringDonation.findMany({
-      select: RecurringDonationService.defaultSelectFields
+      select: RecurringDonationService.defaultSelectFields,
     })
   }
 
@@ -73,10 +75,10 @@ export class RecurringDonationService {
       where: {
         status: RecurringDonationStatus.active,
         sourceVault: {
-          campaignId: campaignId
-        }
+          campaignId: campaignId,
+        },
       },
-      select: RecurringDonationService.defaultSelectFields
+      select: RecurringDonationService.defaultSelectFields,
     })
   }
 
@@ -96,16 +98,16 @@ export class RecurringDonationService {
         updatedAt: true,
         sourceVault: {
           select: {
-              name: true,
-              campaign: {
-                  select: {
-                      title: true,
-                      slug: true,
-                      id: true
-                  }
-                }
-              }
-          }
+            name: true,
+            campaign: {
+              select: {
+                title: true,
+                slug: true,
+                id: true,
+              },
+            },
+          },
+        },
       },
       orderBy: [{ createdAt: 'desc' }],
     })
@@ -114,7 +116,7 @@ export class RecurringDonationService {
   async findOne(id: string): Promise<RecurringDonation | null> {
     const result = await this.prisma.recurringDonation.findUnique({
       where: { id },
-      select: RecurringDonationService.defaultSelectFields
+      select: RecurringDonationService.defaultSelectFields,
     })
     if (!result) throw new NotFoundException('Not found')
     return result
@@ -144,8 +146,8 @@ export class RecurringDonationService {
     const result = await this.prisma.recurringDonation.update({
       where: { id: id },
       data: {
-        status: RecurringDonationStatus.canceled
-      }
+        status: RecurringDonationStatus.canceled,
+      },
     })
     if (!result) throw new NotFoundException('Not found')
     return result
@@ -160,17 +162,20 @@ export class RecurringDonationService {
   async findSubscriptionByExtId(extSubscriptionId: string): Promise<RecurringDonation | null> {
     const result = await this.prisma.recurringDonation.findFirst({
       where: { extSubscriptionId },
-      select: RecurringDonationService.defaultSelectFields
+      select: RecurringDonationService.defaultSelectFields,
     })
     return result
   }
 
-  async updateStatus(id: string, status: RecurringDonationStatus): Promise<RecurringDonation | null> {
+  async updateStatus(
+    id: string,
+    status: RecurringDonationStatus,
+  ): Promise<RecurringDonation | null> {
     const result = await this.prisma.recurringDonation.update({
       where: { id: id },
       data: {
-        status: status
-      }
+        status: status,
+      },
     })
     if (!result) throw new NotFoundException('Not found')
     return result
