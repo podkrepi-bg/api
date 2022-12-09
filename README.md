@@ -62,6 +62,7 @@ If you wish to keep your host clean, it is also possible to develop the module i
 git clone git@github.com:podkrepi-bg/api.git
 cd api
 
+yarn set version berry
 yarn
 ```
 
