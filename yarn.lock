@@ -6194,6 +6194,7 @@ chromedriver@latest:
   linkType: hard
 
 "exceljs@npm:^4.3.0":
+  version: 4.3.0
   resolution: "exceljs@npm:4.3.0"
   dependencies:
     archiver: ^5.0.0

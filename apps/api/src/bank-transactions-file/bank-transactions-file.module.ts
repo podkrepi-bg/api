@@ -14,9 +14,9 @@ import { ExportService } from '../export/export.service'
 
 @Module({
   imports: [
-  StripeModule.forRootAsync(StripeModule, {
+    StripeModule.forRootAsync(StripeModule, {
       inject: [ConfigService],
-      useFactory:useFactoryService.useFactory
+      useFactory: useFactoryService.useFactory,
     }),
   ],
   controllers: [BankTransactionsFileController],
