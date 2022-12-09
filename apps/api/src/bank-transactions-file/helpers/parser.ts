@@ -6,7 +6,6 @@ import { toMoney } from '../../common/money'
 export const parseString = require('xml2js').parseString
 
 const regexPaymentRef = /\b[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}\b/g
-
 export function parseBankTransactionsFile(
   fileBuffer,
 ): { payment: CreateManyBankPaymentsDto; paymentRef: string }[] {
@@ -26,7 +25,7 @@ export function parseBankTransactionsFile(
           payment.extPaymentIntentId = items[item].AccountMovement[movement].DocumentReference[0]
           payment.createdAt = new Date(
             items[item].AccountMovement[movement].PaymentDateTime[0].concat(
-              getCurrentDateTimeZone(),
+              getEasternDateTimeZone(),
             ),
           )
           payment.billingName = items[item].AccountMovement[movement].OppositeSideName[0]
@@ -44,14 +43,15 @@ export function parseBankTransactionsFile(
   return accountMovements
 }
 
-function getCurrentDateTimeZone() {
+function getEasternDateTimeZone() {
   const currentDate = new Date()
+  const timeZoneOffsetSliceFrom = -6
   const offsetEasternEurope = new Intl.DateTimeFormat('en-BG', {
     timeZone: 'Europe/Sofia',
     timeZoneName: 'longOffset',
   })
     .format(currentDate)
-    .slice(-6)
+    .slice(timeZoneOffsetSliceFrom)
 
   return offsetEasternEurope
 }
