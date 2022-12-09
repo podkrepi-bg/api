@@ -6,6 +6,7 @@ import { toMoney } from '../../common/money'
 export const parseString = require('xml2js').parseString
 
 const regexPaymentRef = /\b[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}\b/g
+
 export function parseBankTransactionsFile(
   fileBuffer,
 ): { payment: CreateManyBankPaymentsDto; paymentRef: string }[] {
