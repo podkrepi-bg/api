@@ -26,7 +26,7 @@ export function parseBankTransactionsFile(
           payment.extPaymentIntentId = items[item].AccountMovement[movement].DocumentReference[0]
           payment.createdAt = new Date(
             items[item].AccountMovement[movement].PaymentDateTime[0].concat(
-              getEasternDateTimeZone(),
+              getEasternEuropeRegionTimeZone(),
             ),
           )
           payment.billingName = items[item].AccountMovement[movement].OppositeSideName[0]
@@ -44,7 +44,7 @@ export function parseBankTransactionsFile(
   return accountMovements
 }
 
-function getEasternDateTimeZone() {
+function getEasternEuropeRegionTimeZone() {
   const currentDate = new Date()
   const timeZoneOffsetSliceFrom = -6
   const offsetEasternEurope = new Intl.DateTimeFormat('en-BG', {
