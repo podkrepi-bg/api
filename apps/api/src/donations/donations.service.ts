@@ -11,7 +11,7 @@ import {
   Prisma,
 } from '@prisma/client'
 import { Response } from 'express'
-import { getSpecificTableColumns, getAllColumns } from '../export/helpers/exportableData'
+import { getTemplateByTable } from '../export/helpers/exportableData'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CampaignService } from '../campaign/campaign.service'
@@ -26,7 +26,6 @@ import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
 import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
-import { createExcelTemplate } from '../export/helpers/createExcelTemplate'
 
 @Injectable()
 export class DonationsService {
@@ -427,9 +426,7 @@ export class DonationsService {
         ? `${donation.person.firstName} ${donation.person.lastName}`
         : 'Unknown',
     }))
-    const columns = getAllColumns(donationsMappedForExport)
-
-    const donationExcelTemplate = createExcelTemplate(columns, null)
+    const donationExcelTemplate = getTemplateByTable('donations')
 
     await this.exportService.exportToExcel(res, donationsMappedForExport, donationExcelTemplate)
   }

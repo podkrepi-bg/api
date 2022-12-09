@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { Response } from 'express'
 import { createWorkbook } from './helpers/createWorkbook'
 import { ExportableData } from '@prisma/client'
-import { Template } from './helpers/createExcelTemplate'
+import { Template } from './helpers/exportableData'
 
 @Injectable()
 export class ExportService {
@@ -17,7 +17,7 @@ export class ExportService {
 
       res.set({
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': 'attachment; filename="' + template.fileName + '"',
+        'Content-Disposition': 'attachment;',
       })
 
       workbook.xlsx.write(res).then(() => {
