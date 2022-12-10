@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { Response } from 'express'
 import { createWorkbook } from './helpers/createWorkbook'
-import { ExportableData } from '@prisma/client'
+import { ExportableData } from './helpers/exportableData'
 import { Template } from './helpers/exportableData'
 
 @Injectable()

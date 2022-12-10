@@ -1,7 +1,9 @@
-import { ExportableData } from '@prisma/client'
+import { Donation, Campaign } from '@prisma/client'
 import { Column, Alignment, Style } from 'exceljs'
 
 type NonEmptyArray<T> = [T, ...T[]]
+
+export type ExportableData = Donation[] | Campaign[]
 
 export type ExcelColumns = NonEmptyArray<Column>
 
@@ -36,6 +38,7 @@ const defaultBodyStyle = {
     wrapText: false,
   } as Alignment,
 }
+
 const donationsDefaultCellWidth = 30
 
 const exportableData = {

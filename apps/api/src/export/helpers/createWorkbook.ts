@@ -1,5 +1,5 @@
 import excelJs from 'exceljs'
-import { ExportableData } from '@prisma/client'
+import { ExportableData } from './exportableData'
 import { Template } from './exportableData'
 
 const applySheetDataToRows = (sheet, data: ExportableData) => {
