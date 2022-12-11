@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common'
 import { CreateManyBankPaymentsDto } from '../../donations/dto/create-many-bank-payments.dto'
 import { toMoney } from '../../common/money'
+import { DateTime } from 'luxon'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 export const parseString = require('xml2js').parseString
@@ -45,14 +46,7 @@ export function parseBankTransactionsFile(
 }
 
 function getEasternEuropeRegionTimeZone() {
-  const currentDate = new Date()
   const timeZoneOffsetSliceFrom = -6
-  const offsetEasternEurope = new Intl.DateTimeFormat('en-BG', {
-    timeZone: 'Europe/Sofia',
-    timeZoneName: 'longOffset',
-  })
-    .format(currentDate)
-    .slice(timeZoneOffsetSliceFrom)
-
-  return offsetEasternEurope
+  const dateTime = DateTime.local().setZone('Europe/Sofia').toString()
+  return dateTime.slice(timeZoneOffsetSliceFrom)
 }

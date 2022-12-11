@@ -2826,6 +2826,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/luxon@npm:3":
+  version: 3.1.0
+  resolution: "@types/luxon@npm:3.1.0"
+  checksum: 04768029342ad76fc2a9339436c143ea64797b35cf9b03ddded787c13eae30f0ca1246e51c2c5365ed912f98068e13a967a3931b137eb4585248a0ad7ec3fa86
+  languageName: node
+  linkType: hard
+
 "@types/mime@npm:*":
   version: 3.0.1
   resolution: "@types/mime@npm:3.0.1"
@@ -9479,6 +9486,13 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
+"luxon@npm:3.1.1":
+  version: 3.1.1
+  resolution: "luxon@npm:3.1.1"
+  checksum: 388fb35d3c51a19d8b305a3338e7e74634b08562e7d2f9ed5c05a7f4bc9ee1c1ab6a2546b6d9c4c104516b24043757d65f5f3fe3d78b206fbf55a9586ab62230
+  languageName: node
+  linkType: hard
+
 "macos-release@npm:^2.5.0":
   version: 2.5.0
   resolution: "macos-release@npm:2.5.0"
@@ -11074,6 +11088,7 @@ chromedriver@latest:
     "@types/express": 4.17.13
     "@types/faker": 5.5.9
     "@types/jest": ^29.2.3
+    "@types/luxon": 3
     "@types/mjml": 4.7.0
     "@types/multer": 1.4.7
     "@types/node": 16.9.1
@@ -11095,6 +11110,7 @@ chromedriver@latest:
     joi: 17.6.0
     keycloak-connect: ^18.0.0
     lint-staged: 11.1.2
+    luxon: 3.1.1
     mjml: 4.12.0
     nanoid: ^3.3.4
     nest-keycloak-connect: ^1.8.3
