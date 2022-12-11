@@ -26,6 +26,7 @@ import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
 import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
+import { donationWithPerson, DonationWithPerson } from './validators/donation.validator'
 
 @Injectable()
 export class DonationsService {
@@ -217,16 +218,12 @@ export class DonationsService {
     status?: DonationStatus,
     pageIndex?: number,
     pageSize?: number,
-  ): Promise<ListDonationsDto<Donation>> {
+  ): Promise<ListDonationsDto<DonationWithPerson>> {
     const data = await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
-      orderBy: [{ createdAt: 'desc' }],
-      include: {
-        person: { select: { firstName: true, lastName: true } },
-        targetVault: { select: { name: true } },
-      },
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
+      ...donationWithPerson,
     })
 
     const count = await this.prisma.donation.count({
