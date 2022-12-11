@@ -6,6 +6,7 @@ import { toMoney } from '../../common/money'
 export const parseString = require('xml2js').parseString
 
 const regexPaymentRef = /\b[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}\b/g
+const cashDepositBGString = 'Вноска на каса'
 
 export function parseBankTransactionsFile(
   fileBuffer,
@@ -25,7 +26,13 @@ export function parseBankTransactionsFile(
           payment.extCustomerId = items[item].AccountMovement[movement].OppositeSideAccount[0]
           payment.extPaymentIntentId = items[item].AccountMovement[movement].DocumentReference[0]
           payment.createdAt = new Date(items[item].AccountMovement[movement].PaymentDateTime[0])
-          payment.billingName = items[item].AccountMovement[movement].OppositeSideName[0]
+
+          const movementFunctionalType =
+            items[item].AccountMovement[movement].MovementFunctionalType[0]
+          const billingName = items[item].AccountMovement[movement].OppositeSideName[0]
+          if (isBillingNamePresent(movementFunctionalType, billingName)) {
+            payment.billingName = billingName
+          }
 
           const matchedRef = paymentRef.replace(/[ _]+/g, '-').match(regexPaymentRef)
           if (matchedRef) {
@@ -38,4 +45,12 @@ export function parseBankTransactionsFile(
     }
   })
   return accountMovements
+}
+
+function isBillingNamePresent(movementFunctionalType: string, billingName: string) {
+  return !(
+    movementFunctionalType === cashDepositBGString &&
+    billingName['$'] !== undefined &&
+    billingName['$']['nil']
+  )
 }
