@@ -45,7 +45,7 @@ export function parseBankTransactionsFile(
   return accountMovements
 }
 
-function getEasternEuropeRegionTimeZone() {
+function getEasternEuropeRegionTimeZone(): string {
   const timeZoneOffsetSliceFrom = -6
   const dateTime = DateTime.local().setZone('Europe/Sofia').toString()
   return dateTime.slice(timeZoneOffsetSliceFrom)
