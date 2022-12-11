@@ -45,8 +45,8 @@ To run and develop the module NodeJS 16 is required. In this section 2 ways of c
 The following prerequisites are required in order to be able to run the project:
 
 - [Node.js 16 LTS](https://nodejs.org/en/download/)
-- [Yarn v1.x](https://classic.yarnpkg.com/lang/en/docs/install)
-- [Docker](https://www.docker.com/get-started) (to easily run a local database instance)
+- [Yarn v3.x](https://yarnpkg.com/getting-started/install)
+- [Docker](https://www.docker.com/get-started) with [Docker Compose](https://docs.docker.com/compose/) (to easily run a local database instance)
 
 ## Development container
 
@@ -62,6 +62,7 @@ If you wish to keep your host clean, it is also possible to develop the module i
 git clone git@github.com:podkrepi-bg/api.git
 cd api
 
+yarn set version berry
 yarn
 ```
 
@@ -158,7 +159,7 @@ Run `nx dep-graph` to see a diagram of the dependencies of your projects.
 We recommend using [Nestjs generators](https://docs.nestjs.com/cli/usages#nest-generate) to create different nestsj components in generic way.
 
 ```shell
-yarn nest #will print all generators
+yarn nest # will print all generators
 ```
 
 Use the [Nest resource generator](https://docs.nestjs.com/recipes/crud-generator) to create all interfaces for CRUD operations around a new entity/resource
