@@ -419,6 +419,7 @@ export class DonationsService {
     const { items } = await this.listDonations()
     const donationsMappedForExport = items.map((donation) => ({
       ...donation,
+      amount: donation.amount / 100,
       person: donation.person
         ? `${donation.person.firstName} ${donation.person.lastName}`
         : 'Unknown',
