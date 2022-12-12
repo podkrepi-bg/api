@@ -35,7 +35,7 @@ export function parseBankTransactionsFile(
           const movementFunctionalType =
             items[item].AccountMovement[movement].MovementFunctionalType[0]
           const billingName = items[item].AccountMovement[movement].OppositeSideName[0]
-          if (isBillingNamePresent(movementFunctionalType, billingName)) {
+          if (!isBillingNameNil(movementFunctionalType, billingName)) {
             payment.billingName = billingName
           }
 
@@ -52,8 +52,17 @@ export function parseBankTransactionsFile(
   return accountMovements
 }
 
-function isBillingNamePresent(movementFunctionalType: string, billingName: string) {
-  return !(
+/**
+ * The function checks if the movementType is cash deposit and if billing name is present
+ * @param movementFunctionalType - transaction type
+ * @param billingName - name of the billing if present, otherwise a json object
+ * @returns boolean
+ **/
+function isBillingNameNil(
+  movementFunctionalType: string,
+  billingName: string | { [x: string]: unknown },
+): boolean {
+  return (
     movementFunctionalType === cashDepositBGString &&
     billingName['$'] !== undefined &&
     billingName['$']['nil']
