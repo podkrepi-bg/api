@@ -75,7 +75,7 @@ export class DonationsService {
         status: DonationStatus.initial,
         extCustomerId: sessionDto.personEmail ?? '',
         extPaymentIntentId: paymentIntentId,
-        extPaymentMethodId: 'card',
+        extPaymentMethodId: sessionDto.mode === 'subscription' ?  'subscription' : 'card',
         billingEmail: sessionDto.isAnonymous ? sessionDto.personEmail : null, //set the personal mail to billing which is not public field
         targetVault: targetVaultData,
       },
@@ -142,13 +142,11 @@ export class DonationsService {
       session: session,
     })
 
-    if (mode == 'payment') {
-      await this.createInitialDonation(
-        campaign,
-        sessionDto,
-        (session.payment_intent as string) ?? session.id,
-      )
-    }
+    await this.createInitialDonation(
+      campaign,
+      sessionDto,
+      (session.payment_intent as string) ?? session.id,
+    )
 
     return { session }
   }

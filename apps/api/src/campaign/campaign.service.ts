@@ -149,11 +149,11 @@ export class CampaignService {
         incomingTransfers: { select: { amount: true } },
       },
     })
-
     if (!campaign) {
       Logger.warn('No campaign record with ID: ' + campaignId)
       throw new NotFoundException('No campaign record with ID: ' + campaignId)
     }
+
 
     if (campaign.vaults.length == 0) {
       throw new NotFoundException('No vaults found for campaign: ' + campaignId)
@@ -443,10 +443,30 @@ export class CampaignService {
 
     // Find donation by extPaymentIntentId and update if status allows
 
-    const donation = await this.prisma.donation.findUnique({
+    let donation = await this.prisma.donation.findUnique({
       where: { extPaymentIntentId: paymentData.paymentIntentId },
       select: { id: true, status: true },
     })
+
+    if (!donation) {
+      // search for a subscription donation
+      // for subscriptions, we don't have a paymentIntentId
+      donation = await this.prisma.donation.findFirst({
+        where: {
+          status: DonationStatus.initial,
+          personId: paymentData.personId,
+          chargedAmount: paymentData.chargedAmount,
+          extPaymentMethodId: 'subscription',
+        },
+        select: { id: true, status: true, extPaymentMethodId: true },
+      })
+
+      if (donation) {
+        donation.status = newDonationStatus
+      }
+
+      Logger.debug('Donation found by subscription: ', donation)
+    }
 
     //if missing create the donation with the incoming status
     if (!donation) {
