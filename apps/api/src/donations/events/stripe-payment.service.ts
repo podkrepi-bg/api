@@ -152,9 +152,6 @@ export class StripePaymentService {
 
     if (priceItem.price.unit_amount) {
       rdDto.amount = priceItem.price.unit_amount as number
-    } else if (priceItem.plan.billing_scheme == 'tiered' && priceItem.quantity) {
-      //for tiered plans - we have price of 1 BGN and the quantity matches the amount
-      rdDto.amount = priceItem.quantity * 100
     } else {
       throw new BadRequestException('Subscription does not contain amount. Subscription is: ' + subscription)
     }

@@ -82,6 +82,15 @@ export class RecurringDonationService {
     })
   }
 
+  async donationBelongsTo(id: string, keycloakId: string): Promise<boolean> {
+    const count = await this.prisma.recurringDonation.count({
+      where: { id, person: { keycloakId } },
+    })
+
+    return count > 0
+  }
+
+
   async findUserRecurringDonations(keycloakId: string): Promise<RecurringDonation[]> {
     return await this.prisma.recurringDonation.findMany({
       where: { person: { keycloakId } },
@@ -143,14 +152,7 @@ export class RecurringDonationService {
   }
 
   async cancel(id: string): Promise<RecurringDonation | null> {
-    const result = await this.prisma.recurringDonation.update({
-      where: { id: id },
-      data: {
-        status: RecurringDonationStatus.canceled,
-      },
-    })
-    if (!result) throw new NotFoundException('Not found')
-    return result
+    return await this.updateStatus(id, RecurringDonationStatus.canceled)
   }
 
   async remove(id: string): Promise<RecurringDonation | null> {
@@ -183,6 +185,19 @@ export class RecurringDonationService {
 
   async cancelSubscription(subscriptionId: string) {
     Logger.log(`Canceling subscription with api request to cancel: ${subscriptionId}`)
-    this.stripeClient.subscriptions.cancel(subscriptionId)
+    return this.stripeClient.subscriptions.cancel(subscriptionId).then((result) => {
+      if (result.status !== 'canceled') {
+        Logger.log(`Subscription cancel attempt failed with status of ${result.id}: ${result.status}`)
+        return
+      }
+
+      // the webhook will handle this as well.
+      // but we cancel it here, in case the webhook is slow.
+      this.findSubscriptionByExtId(result.id).then((rd) => {
+        if (rd) {
+          return this.cancel(rd.id)
+        }
+      })
+    })
   }
 }

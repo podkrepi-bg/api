@@ -149,11 +149,11 @@ export class CampaignService {
         incomingTransfers: { select: { amount: true } },
       },
     })
+
     if (!campaign) {
       Logger.warn('No campaign record with ID: ' + campaignId)
       throw new NotFoundException('No campaign record with ID: ' + campaignId)
     }
-
 
     if (campaign.vaults.length == 0) {
       throw new NotFoundException('No vaults found for campaign: ' + campaignId)

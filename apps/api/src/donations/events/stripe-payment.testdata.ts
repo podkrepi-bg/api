@@ -1207,7 +1207,8 @@ export const mockedRecurringDonation: RecurringDonation = {
   personId: '81a1feb2-baa0-4e40-8e34-f15d86196114',
   extCustomerId: 'cus_Mwl321',
   extSubscriptionId: 'sub_1MCs22FIrMXL5nkaztW6rLaD',
-  createdAt: Date(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
 }
 
 export const mockInvoicePaidEvent: Stripe.Event = {

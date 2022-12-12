@@ -15,14 +15,9 @@ export class RecurringDonationController {
     private readonly recurringDonationService: RecurringDonationService
   ) {}
 
-  @Post()
-  create(@Body() createRecurringDonationDto: CreateRecurringDonationDto) {
-    return this.recurringDonationService.create(createRecurringDonationDto)
-  }
-
   @Get('list')
   @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    roles: [RealmViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
   findAll() {
@@ -50,7 +45,7 @@ export class RecurringDonationController {
 
   @Patch(':id')
   @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    roles: [RealmViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
   update(@Param('id') id: string, @Body() updateRecurringDonationDto: UpdateRecurringDonationDto) {
@@ -62,23 +57,26 @@ export class RecurringDonationController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  cancel(@Param('id') id: string) {
+  async cancel(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
     Logger.log(`Cancelling recurring donation with id ${id}`)
-    const recurringDonation = this.recurringDonationService.findOne(id)
-    recurringDonation.then((rd) => {
-      if (rd) {
-        Logger.log(`Cancelling recurring donation to stripe with id ${id}`)
-        this.recurringDonationService.cancelSubscription(rd.extSubscriptionId)
-      }
-    }).then((response) => {
-      Logger.debug("Cancel subscription response: ", response)
-    })
-    return this.recurringDonationService.cancel(id)
+    const rd = await this.recurringDonationService.findOne(id)
+    if (!rd) {
+      throw new Error(`Recurring donation with id ${id} not found`)
+    }
+
+    const isAdmin = user.realm_access?.roles.includes(RealmViewSupporters.role)
+
+    if (!isAdmin && !this.recurringDonationService.donationBelongsTo(rd.id, user.sub)) {
+      throw new Error(`User ${user.sub} is not allowed to cancel recurring donation with id ${id} of person: ${rd.personId}`)
+    }
+
+    Logger.log(`Cancelling recurring donation to stripe with id ${id}`)
+    return this.recurringDonationService.cancelSubscription(rd.extSubscriptionId)
   }
 
   @Delete(':id')
   @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    roles: [RealmViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
   remove(@Param('id') id: string) {
