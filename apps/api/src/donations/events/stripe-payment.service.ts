@@ -136,6 +136,10 @@ export class StripePaymentService {
       throw new BadRequestException('Subscription metadata does not contain target campaignId. Subscription is: ' + subscription)
     }
 
+    if (!metadata.personId) {
+      throw new BadRequestException('Subscription metadata does not contain target personId. Subscription is: ' + subscription)
+    }
+
     const campaign = await this.campaignService.getCampaignByIdWithDefaultVault(metadata.campaignId)
 
     const rdDto: CreateRecurringDonationDto = new CreateRecurringDonationDto()
@@ -175,6 +179,10 @@ export class StripePaymentService {
     const metadata: DonationMetadata = subscription.metadata as DonationMetadata
     if (!metadata.campaignId) {
       throw new BadRequestException('Subscription metadata does not contain target campaignId. Subscription is: ' + subscription)
+    }
+
+    if (!metadata.personId) {
+      throw new BadRequestException('Subscription metadata does not contain target personId. Subscription is: ' + subscription)
     }
 
     const recurringDonation = await this.recurringDonationService.findSubscriptionByExtId(subscription.id)

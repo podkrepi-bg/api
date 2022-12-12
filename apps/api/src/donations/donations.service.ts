@@ -441,4 +441,17 @@ export class DonationsService {
       },
     })
   }
+
+  async getUserId(email: string): Promise<string | null> {
+    const user = await this.prisma.person.findFirst({
+      where: { email },
+      select: { id: true },
+    })
+
+    if (!user) {
+      return null
+    }
+
+    return user.id
+  }
 }

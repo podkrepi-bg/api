@@ -448,7 +448,9 @@ export class CampaignService {
       select: { id: true, status: true },
     })
 
-    if (!donation) {
+    // check for UUID length of personId
+    // subscriptions always have a personId
+    if (!donation && paymentData.personId && paymentData.personId.length === 36) {
       // search for a subscription donation
       // for subscriptions, we don't have a paymentIntentId
       donation = await this.prisma.donation.findFirst({
