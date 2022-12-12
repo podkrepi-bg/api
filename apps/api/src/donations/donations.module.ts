@@ -5,6 +5,7 @@ import { useFactoryService } from '../bank-transactions-file/helpers/use-factory
 import { CampaignModule } from '../campaign/campaign.module'
 import { CampaignService } from '../campaign/campaign.service'
 import { RecurringDonationService } from '../recurring-donation/recurring-donation.service'
+import { ExportService } from '../export/export.service'
 import { PersonModule } from '../person/person.module'
 import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
@@ -14,6 +15,7 @@ import { DonationsController } from './donations.controller'
 import { DonationsService } from './donations.service'
 import { StripePaymentService } from './events/stripe-payment.service'
 import { HttpModule } from '@nestjs/axios'
+import { ExportModule } from './../export/export.module'
 
 @Module({
   imports: [
@@ -25,6 +27,7 @@ import { HttpModule } from '@nestjs/axios'
     CampaignModule,
     PersonModule,
     HttpModule,
+    ExportModule,
   ],
   controllers: [DonationsController],
   providers: [
@@ -35,6 +38,7 @@ import { HttpModule } from '@nestjs/axios'
     PrismaService,
     VaultService,
     PersonService,
+    ExportService,
   ],
 })
 export class DonationsModule {}

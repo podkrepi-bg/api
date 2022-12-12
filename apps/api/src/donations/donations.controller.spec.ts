@@ -12,6 +12,7 @@ import {
   Prisma,
 } from '@prisma/client'
 import { CampaignService } from '../campaign/campaign.service'
+import { ExportService } from '../export/export.service'
 import { PersonService } from '../person/person.service'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { VaultService } from '../vault/vault.service'
@@ -83,6 +84,7 @@ describe('DonationsController', () => {
           useValue: stripeMock,
         },
         PersonService,
+        ExportService,
       ],
     }).compile()
 

@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common'
 import { CreateManyBankPaymentsDto } from '../../donations/dto/create-many-bank-payments.dto'
 import { toMoney } from '../../common/money'
+import { DateTime } from 'luxon'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 export const parseString = require('xml2js').parseString
@@ -24,7 +25,11 @@ export function parseBankTransactionsFile(
           payment.currency = items[item].AccountMovement[movement].CCY[0]
           payment.extCustomerId = items[item].AccountMovement[movement].OppositeSideAccount[0]
           payment.extPaymentIntentId = items[item].AccountMovement[movement].DocumentReference[0]
-          payment.createdAt = new Date(items[item].AccountMovement[movement].PaymentDateTime[0])
+          payment.createdAt = new Date(
+            items[item].AccountMovement[movement].PaymentDateTime[0].concat(
+              getEasternEuropeRegionTimeZone(),
+            ),
+          )
           payment.billingName = items[item].AccountMovement[movement].OppositeSideName[0]
 
           const matchedRef = paymentRef.replace(/[ _]+/g, '-').match(regexPaymentRef)
@@ -38,4 +43,10 @@ export function parseBankTransactionsFile(
     }
   })
   return accountMovements
+}
+
+function getEasternEuropeRegionTimeZone(): string {
+  const timeZoneOffsetSliceFrom = -6
+  const dateTime = DateTime.local().setZone('Europe/Sofia').toString()
+  return dateTime.slice(timeZoneOffsetSliceFrom)
 }

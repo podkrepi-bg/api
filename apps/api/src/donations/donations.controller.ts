@@ -10,10 +10,12 @@ import {
   UnauthorizedException,
   Query,
   Logger,
+  Res,
 } from '@nestjs/common'
 import { ApiQuery } from '@nestjs/swagger'
+import { Response } from 'express'
 
-import { KeycloakTokenParsed } from '../auth/keycloak'
+import { isAdmin, KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
@@ -27,6 +29,17 @@ import { ApiTags } from '@nestjs/swagger'
 @Controller('donation')
 export class DonationsController {
   constructor(private readonly donationsService: DonationsService) {}
+
+  @Get('export-excel')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async exportToExcel(@Res() res: Response, @AuthenticatedUser() user: KeycloakTokenParsed) {
+    if (isAdmin(user)) {
+      await this.donationsService.exportToExcel(res)
+    }
+  }
 
   @Post('create-checkout-session')
   @Public()
@@ -81,7 +94,6 @@ export class DonationsController {
     @Query('status') status?: DonationStatus,
     @Query() query?: PagingQueryDto,
   ) {
-    console.log(query)
     return this.donationsService.listDonationsPublic(
       campaignId,
       status,

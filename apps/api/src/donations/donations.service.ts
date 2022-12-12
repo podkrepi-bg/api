@@ -10,11 +10,14 @@ import {
   PaymentProvider,
   Prisma,
 } from '@prisma/client'
+import { Response } from 'express'
+import { getTemplateByTable } from '../export/helpers/exportableData'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CampaignService } from '../campaign/campaign.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
+import { ExportService } from '../export/export.service'
 import { DonationMetadata } from './dontation-metadata.interface'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
@@ -23,6 +26,7 @@ import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
 import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
+import { donationWithPerson, DonationWithPerson } from './validators/donation.validator'
 
 @Injectable()
 export class DonationsService {
@@ -32,6 +36,7 @@ export class DonationsService {
     private campaignService: CampaignService,
     private prisma: PrismaService,
     private vaultService: VaultService,
+    private exportService: ExportService,
   ) {}
 
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
@@ -240,16 +245,12 @@ export class DonationsService {
     status?: DonationStatus,
     pageIndex?: number,
     pageSize?: number,
-  ): Promise<ListDonationsDto<Donation>> {
+  ): Promise<ListDonationsDto<DonationWithPerson>> {
     const data = await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
-      orderBy: [{ createdAt: 'desc' }],
-      include: {
-        person: { select: { firstName: true, lastName: true } },
-        targetVault: { select: { name: true } },
-      },
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
+      ...donationWithPerson,
     })
 
     const count = await this.prisma.donation.count({
@@ -323,7 +324,6 @@ export class DonationsService {
         this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
       } catch (error) {
         Logger.error('Error while importing bank donation. ', error)
-        throw error
       }
     }
   }
@@ -453,5 +453,19 @@ export class DonationsService {
     }
 
     return user.id
+  }
+
+  async exportToExcel(res: Response) {
+    const { items } = await this.listDonations()
+    const donationsMappedForExport = items.map((donation) => ({
+      ...donation,
+      amount: donation.amount / 100,
+      person: donation.person
+        ? `${donation.person.firstName} ${donation.person.lastName}`
+        : 'Unknown',
+    }))
+    const donationExcelTemplate = getTemplateByTable('donations')
+
+    await this.exportService.exportToExcel(res, donationsMappedForExport, donationExcelTemplate)
   }
 }

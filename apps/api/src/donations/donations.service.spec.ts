@@ -2,6 +2,7 @@ import { STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
 import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignService } from '../campaign/campaign.service'
+import { ExportService } from '../export/export.service'
 import { PersonService } from '../person/person.service'
 import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { VaultModule } from '../vault/vault.module'
@@ -25,6 +26,7 @@ describe('DonationsService', () => {
           useValue: jest.fn(),
         },
         PersonService,
+        ExportService,
       ],
     }).compile()
 
