@@ -159,10 +159,7 @@ export class CampaignService {
       throw new NotFoundException('No vaults found for campaign: ' + campaignId)
     }
 
-    for(const vault of campaign.vaults) {
-      campaign['defaultVault'] = vault.id
-      break
-    }
+    campaign['defaultVault'] = campaign.vaults[0].id
 
     return campaign
   }
