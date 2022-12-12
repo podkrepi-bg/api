@@ -46,6 +46,7 @@ import { OrganizerModule } from '../organizer/organizer.module'
 import { DonationWishModule } from '../donation-wish/donation-wish.module'
 import { ApiLoggerMiddleware } from './middleware/apilogger.middleware'
 import { PaypalModule } from '../paypal/paypal.module'
+import { ExportModule } from '../export/export.module'
 
 @Module({
   imports: [
@@ -90,6 +91,7 @@ import { PaypalModule } from '../paypal/paypal.module'
     OrganizerModule,
     DonationWishModule,
     PaypalModule,
+    ExportModule,
   ],
   controllers: [AppController],
   providers: [

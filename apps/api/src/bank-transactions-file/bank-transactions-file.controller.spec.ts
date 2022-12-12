@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignService } from '../campaign/campaign.service'
 import { DonationsService } from '../donations/donations.service'
+import { ExportService } from '../export/export.service'
 import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { S3Service } from '../s3/s3.service'
@@ -36,6 +37,7 @@ describe('BankTransactionsFileController', () => {
         PersonService,
         PrismaService,
         S3Service,
+        ExportService,
       ],
     }).compile()
 
