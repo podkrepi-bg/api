@@ -8,7 +8,7 @@ import Stripe from 'stripe'
 import { STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
 import { INestApplication } from '@nestjs/common'
 import { RecurringDonationStatus } from '@prisma/client'
-
+import { CreateRecurringDonationDto } from './dto/create-recurring-donation.dto'
 import { Observable } from 'rxjs'
 
 describe('RecurringDonationService', () => {
@@ -51,10 +51,10 @@ describe('RecurringDonationService', () => {
   })
 
   it('should return all recurring donations', async () => {
-    prisma.recurringDonation.findMany.mockResolvedValueOnce([1,2,3])
+    prisma.recurringDonation.findMany.mockResolvedValueOnce([1, 2, 3])
     const result = await service.findAll()
     expect(result).toBeDefined()
-    expect(result).toStrictEqual([1,2,3])
+    expect(result).toStrictEqual([1, 2, 3])
   })
 
   it('should return a recurring donation by id', async () => {
@@ -78,6 +78,43 @@ describe('RecurringDonationService', () => {
       where: { id: '1' },
       data: {
         status: RecurringDonationStatus.canceled,
+      },
+    })
+  })
+
+  it('should create  a subscription in db', async () => {
+    prisma.recurringDonation.create.mockResolvedValueOnce(1)
+
+    const dto: CreateRecurringDonationDto = new CreateRecurringDonationDto()
+    dto.amount = 1
+    dto.currency = 'USD'
+    dto.personId = '1'
+    dto.extCustomerId = '1'
+    dto.extSubscriptionId = '1'
+    dto.vaultId = '1'
+    dto.sourceVault = '1'
+    dto.campaign = '1'
+    dto.status = RecurringDonationStatus.active
+
+    await service.create(dto)
+    const updateDbSpy = jest.spyOn(prisma.recurringDonation, 'create')
+    expect(updateDbSpy).toHaveBeenCalledWith({
+      data: {
+        amount: 1,
+        currency: 'USD',
+        person: {
+          connect: {
+            id: '1',
+          },
+        },
+        sourceVault: {
+          connect: {
+            id: '1',
+          },
+        },
+        extCustomerId: '1',
+        extSubscriptionId: '1',
+        status: RecurringDonationStatus.active,
       },
     })
   })
