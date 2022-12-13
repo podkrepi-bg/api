@@ -7,6 +7,7 @@ import { DateTime } from 'luxon'
 export const parseString = require('xml2js').parseString
 
 const regexPaymentRef = /\b[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}\b/g
+const cashDepositBGString = 'Вноска на каса'
 
 export function parseBankTransactionsFile(
   fileBuffer,
@@ -30,7 +31,13 @@ export function parseBankTransactionsFile(
               getEasternEuropeRegionTimeZone(),
             ),
           )
-          payment.billingName = items[item].AccountMovement[movement].OppositeSideName[0]
+
+          const movementFunctionalType =
+            items[item].AccountMovement[movement].MovementFunctionalType[0]
+          const billingName = items[item].AccountMovement[movement].OppositeSideName[0]
+          if (!isBillingNameNil(movementFunctionalType, billingName)) {
+            payment.billingName = billingName
+          }
 
           const matchedRef = paymentRef.replace(/[ _]+/g, '-').match(regexPaymentRef)
           if (matchedRef) {
@@ -43,6 +50,23 @@ export function parseBankTransactionsFile(
     }
   })
   return accountMovements
+}
+
+/**
+ * The function checks if the movementType is cash deposit and if billing name is present
+ * @param movementFunctionalType - transaction type
+ * @param billingName - name of the billing if present, otherwise a json object
+ * @returns boolean
+ **/
+function isBillingNameNil(
+  movementFunctionalType: string,
+  billingName: string | { [x: string]: unknown },
+): boolean {
+  return (
+    movementFunctionalType === cashDepositBGString &&
+    billingName['$'] !== undefined &&
+    billingName['$']['nil']
+  )
 }
 
 function getEasternEuropeRegionTimeZone(): string {
