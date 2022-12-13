@@ -9,12 +9,17 @@ export class DonationWishService {
     return await this.prisma.donationWish.create({ data: createDonationWishDto })
   }
 
-  async findWishesByCampaignId(campaignId: string) {
-    const list = await this.prisma.donationWish.findMany({
+  async findWishesByCampaignId(campaignId: string, pageIndex?: number, pageSize?: number) {
+    const donationWishes = this.prisma.donationWish.findMany({
+      skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
+      take: pageSize ? pageSize : undefined,
       where: { campaignId },
       orderBy: { createdAt: 'desc' },
       include: { person: { select: { id: true, firstName: true, lastName: true } } },
     })
-    return list
+    const rowCount = this.prisma.donationWish.count({ where: { campaignId } })
+
+    const [items, totalCount] = await this.prisma.$transaction([donationWishes, rowCount])
+    return { items: items, totalCount: totalCount }
   }
 }
