@@ -85,7 +85,7 @@ export function getInvoiceData(invoice: Stripe.Invoice): PaymentData {
     billingName: invoice.account_name ?? undefined,
     billingEmail: invoice.customer_email ?? undefined,
     paymentMethodId: invoice.collection_method,
-    stripeCustomerId: invoice.subscription as string,
+    stripeCustomerId: invoice.customer as string,
     personId,
   }
 }

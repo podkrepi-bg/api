@@ -6,13 +6,15 @@ import { DonationMetadata } from '../dontation-metadata.interface'
 import { CampaignService } from '../../campaign/campaign.service'
 import { RecurringDonationService } from '../../recurring-donation/recurring-donation.service'
 import { CreateRecurringDonationDto } from '../../recurring-donation/dto/create-recurring-donation.dto'
+
 import {
   getPaymentData,
   string2Currency,
   string2RecurringDonationStatus,
   getInvoiceData,
+  PaymentData,
 } from '../helpers/payment-intent-helpers'
-import { DonationStatus, CampaignState } from '@prisma/client'
+import { DonationStatus, CampaignState, Campaign } from '@prisma/client'
 
 /** Testing Stripe on localhost is described here:
  * https://github.com/podkrepi-bg/api/blob/master/TESTING.md#testing-stripe
@@ -290,7 +292,7 @@ export class StripePaymentService {
     await this.donateToCampaign(campaign, billingData, metadata.campaignId)
   }
 
-  async donateToCampaign(campaign: Campaign, billingData: BillingData, campaignId: string) {
+  async donateToCampaign(campaign: Campaign, billingData: PaymentData, campaignId: string) {
     await this.campaignService.donateToCampaign(campaign, billingData)
     await this.checkForCompletedCampaign(campaignId)
   }

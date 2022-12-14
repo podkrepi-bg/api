@@ -521,6 +521,7 @@ export class CampaignService {
             amount: paymentData.netAmount,
             extCustomerId: paymentData.stripeCustomerId,
             extPaymentMethodId: paymentData.paymentMethodId,
+            extPaymentIntentId: paymentData.paymentIntentId,
             billingName: paymentData.billingName,
             billingEmail: paymentData.billingEmail,
           },
