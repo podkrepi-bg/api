@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common'
-import { RecurringDonation } from '@prisma/client'
+import { Injectable, NotFoundException, Logger, BadRequestException } from '@nestjs/common'
+import { Prisma, RecurringDonation } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateRecurringDonationDto } from './dto/create-recurring-donation.dto'
 import { UpdateRecurringDonationDto } from './dto/update-recurring-donation.dto'
@@ -29,17 +29,7 @@ export class RecurringDonationService {
     return await this.prisma.recurringDonation.findMany()
   }
 
-  static defaultSelectFields = {
-    id: true,
-    amount: true,
-    currency: true,
-    status: true,
-    extCustomerId: true,
-    extSubscriptionId: true,
-    vaultId: true,
-    personId: true,
-    createdAt: true,
-    updatedAt: true,
+  static defaultIncludeFields = Prisma.validator<Prisma.RecurringDonationInclude>()({
     sourceVault: {
       select: {
         name: true,
@@ -62,11 +52,11 @@ export class RecurringDonationService {
         createdAt: true,
       },
     },
-  }
+  })
 
   async findAllWithNames(): Promise<RecurringDonation[]> {
     return await this.prisma.recurringDonation.findMany({
-      select: RecurringDonationService.defaultSelectFields,
+      include: RecurringDonationService.defaultIncludeFields,
     })
   }
 
@@ -78,7 +68,7 @@ export class RecurringDonationService {
           campaignId: campaignId,
         },
       },
-      select: RecurringDonationService.defaultSelectFields,
+      include: RecurringDonationService.defaultIncludeFields,
     })
   }
 
@@ -89,7 +79,6 @@ export class RecurringDonationService {
 
     return count > 0
   }
-
 
   async findUserRecurringDonations(keycloakId: string): Promise<RecurringDonation[]> {
     return await this.prisma.recurringDonation.findMany({
@@ -125,7 +114,7 @@ export class RecurringDonationService {
   async findOne(id: string): Promise<RecurringDonation | null> {
     const result = await this.prisma.recurringDonation.findUnique({
       where: { id },
-      select: RecurringDonationService.defaultSelectFields,
+      include: RecurringDonationService.defaultIncludeFields,
     })
     if (!result) throw new NotFoundException('Not found')
     return result
@@ -164,7 +153,7 @@ export class RecurringDonationService {
   async findSubscriptionByExtId(extSubscriptionId: string): Promise<RecurringDonation | null> {
     const result = await this.prisma.recurringDonation.findFirst({
       where: { extSubscriptionId },
-      select: RecurringDonationService.defaultSelectFields,
+      include: RecurringDonationService.defaultIncludeFields,
     })
     return result
   }
@@ -179,25 +168,25 @@ export class RecurringDonationService {
         status: status,
       },
     })
-    if (!result) throw new NotFoundException('Not found')
+    if (!result) {
+      throw new BadRequestException(`Unable to find and update status of ${id} to ${status}`)
+    }
     return result
   }
 
   async cancelSubscription(subscriptionId: string) {
     Logger.log(`Canceling subscription with api request to cancel: ${subscriptionId}`)
-    return this.stripeClient.subscriptions.cancel(subscriptionId).then((result) => {
-      if (result.status !== 'canceled') {
-        Logger.log(`Subscription cancel attempt failed with status of ${result.id}: ${result.status}`)
-        return
-      }
+    const result = await this.stripeClient.subscriptions.cancel(subscriptionId)
+    if (result.status !== 'canceled') {
+      Logger.log(`Subscription cancel attempt failed with status of ${result.id}: ${result.status}`)
+      return
+    }
 
-      // the webhook will handle this as well.
-      // but we cancel it here, in case the webhook is slow.
-      this.findSubscriptionByExtId(result.id).then((rd) => {
-        if (rd) {
-          return this.cancel(rd.id)
-        }
-      })
-    })
+    // the webhook will handle this as well.
+    // but we cancel it here, in case the webhook is slow.
+    const rd = await this.findSubscriptionByExtId(result.id)
+    if (rd) {
+      return this.cancel(rd.id)
+    }
   }
 }

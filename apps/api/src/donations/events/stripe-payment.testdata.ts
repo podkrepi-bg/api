@@ -1144,7 +1144,7 @@ export const mockCustomerSubscriptionCreated: Stripe.Event = {
       latest_invoice: 'in_1MCs22FIrMXL5nkaXZpWAd4Y',
       livemode: false,
       metadata: {
-        campaignId: '1f42761b-85df-4b37-942d-350fd5f8ce7a',
+        campaignId: campaignId,
         personId: '81a1feb2-baa0-4e40-8e34-f15d86196114',
       },
       next_pending_invoice_item_invoice: null,
@@ -1287,7 +1287,7 @@ export const mockInvoicePaidEvent: Stripe.Event = {
             discounts: [],
             livemode: false,
             metadata: {
-              campaignId: '1f42761b-85df-4b37-942d-350fd5f8ce7a',
+              campaignId: campaignId,
               personId: '81a1feb2-baa0-4e40-8e34-f15d86196114',
             },
             period: {
