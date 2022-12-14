@@ -31,12 +31,11 @@ export function parseBankTransactionsFile(
               getEasternEuropeRegionTimeZone(),
             ),
           )
-
+          const oppositeSide = items[item].AccountMovement[movement].OppositeSideName[0]
           const movementFunctionalType =
             items[item].AccountMovement[movement].MovementFunctionalType[0]
-          const billingName = items[item].AccountMovement[movement].OppositeSideName[0]
-          if (!isBillingNameNil(movementFunctionalType, billingName)) {
-            payment.billingName = billingName
+          if (isCashDeposit(movementFunctionalType) && !isOppositeSideNil(oppositeSide)) {
+            payment.billingName = oppositeSide
           }
 
           const matchedRef = paymentRef.replace(/[ _]+/g, '-').match(regexPaymentRef)
@@ -53,20 +52,17 @@ export function parseBankTransactionsFile(
 }
 
 /**
- * The function checks if the movementType is cash deposit and if billing name is present
- * @param movementFunctionalType - transaction type
+ * The function checks if oppositeSide is present in the bank transaction file
  * @param billingName - name of the billing if present, otherwise a json object
  * @returns boolean
  **/
-function isBillingNameNil(
-  movementFunctionalType: string,
-  billingName: string | { [x: string]: unknown },
-): boolean {
-  return (
-    movementFunctionalType === cashDepositBGString &&
-    billingName['$'] !== undefined &&
-    billingName['$']['nil']
-  )
+
+function isOppositeSideNil(oppositeSide: string | { [x: string]: unknown }): boolean {
+  return oppositeSide['$'] !== undefined && oppositeSide['$']['nil']
+}
+
+function isCashDeposit(movementFunctionalType: string): boolean {
+  return movementFunctionalType === cashDepositBGString
 }
 
 function getEasternEuropeRegionTimeZone(): string {
