@@ -53,7 +53,7 @@ export function parseBankTransactionsFile(
 
 /**
  * The function checks if oppositeSide is present in the bank transaction file
- * @param billingName - name of the billing if present, otherwise a json object
+ * @param oppositeSide - name of the oppositeSide if present, otherwise a json object
  * @returns boolean
  **/
 
