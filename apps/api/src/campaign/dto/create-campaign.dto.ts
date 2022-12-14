@@ -41,7 +41,7 @@ export class CreateCampaignDto {
   @IsOptional()
   @Expose()
   @IsUUID()
-  companyId: string
+  companyId?: string
 
   @ApiProperty()
   @IsOptional()
@@ -132,7 +132,7 @@ export class CreateCampaignDto {
       beneficiary: { connect: { id: this.beneficiaryId } },
       coordinator: { connect: { id: this.coordinatorId } },
       organizer: { connect: { id: this.organizerId } },
-      company: { connect: { id: this.companyId } },
+      // company: { connect: { id: this.companyId } }, // uncomment when this one gets fixed: https://github.com/podkrepi-bg/frontend/issues/1087
     }
   }
 }
