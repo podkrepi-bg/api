@@ -17,6 +17,7 @@
     "format": "nx format affected",
     "migrate": "yarn prisma migrate deploy",
     "generate-schema": "yarn prisma generate && yarn format",
+    "seed": "yarn prisma db seed",
     "studio": "yarn prisma studio",
     "release": "./manifests/release.sh",
     "release:patch": "./manifests/release.sh patch",
