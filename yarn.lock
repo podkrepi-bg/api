@@ -6611,6 +6611,15 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
+"fishery@npm:^2.2.2":
+  version: 2.2.2
+  resolution: "fishery@npm:2.2.2"
+  dependencies:
+    lodash.mergewith: ^4.6.2
+  checksum: 270a90bb69c16b73e4dc3df20e0c9d7f54feed3658114c0fcdeda726634b624b89cfa39d3858170db85d9f5ef6fe130ffb16b0056e3dbe6a1473629e754f14cb
+  languageName: node
+  linkType: hard
+
 "flat-cache@npm:^3.0.4":
   version: 3.0.4
   resolution: "flat-cache@npm:3.0.4"
@@ -9611,6 +9620,13 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
+"lodash.mergewith@npm:^4.6.2":
+  version: 4.6.2
+  resolution: "lodash.mergewith@npm:4.6.2"
+  checksum: a6db2a9339752411f21b956908c404ec1e088e783a65c8b29e30ae5b3b6384f82517662d6f425cc97c2070b546cc2c7daaa8d33f78db7b6e9be06cd834abdeb8
+  languageName: node
+  linkType: hard
+
 "lodash.once@npm:^4.0.0":
   version: 4.1.1
   resolution: "lodash.once@npm:4.1.1"
@@ -11323,6 +11339,7 @@ chromedriver@latest:
     eslint: 8.7.0
     eslint-config-prettier: 8.3.0
     exceljs: 4.3.0
+    fishery: 2.2.2
     handlebars: 4.7.7
     helmet: 5.0.2
     husky: 7.0.2

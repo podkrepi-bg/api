@@ -23,7 +23,6 @@ export async function campaignTypesSeed() {
     update: {},
     create: { name: 'Better society', slug: 'better-society', category: 'others' },
   })
-  console.log({ treatment, helping, society })
 
   const campaignTypes = await prisma.campaignType.createMany({
     data: [

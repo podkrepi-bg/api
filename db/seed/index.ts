@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 
 import { citiesSeed } from './cities.seed'
-import { personSeed } from './person.seed'
+import { personSeed } from './person/seed'
 import { campaignSeed } from './campaign.seed'
 import { countriesSeed } from './countries.seed'
 import { supportersSeed } from './supporters.seed'
@@ -18,11 +18,27 @@ import { companySeed } from './company.seed'
 const prisma = new PrismaClient()
 
 async function main() {
-  await Promise.all([await countriesSeed(), await citiesSeed(), await campaignTypesSeed()])
+  await seedEssentialData()
+  await seedDevData()
+}
 
+/**
+ * Seed all essential tables which are required for the normal operation
+ * of the system and are not dependant on the environment
+ */
+async function seedEssentialData() {
+  console.warn('\x1b[33m Executing essential seeds: \x1b[0m')
+  return Promise.all([await countriesSeed(), await citiesSeed(), await campaignTypesSeed()])
+}
+
+/**
+ * Seed demo data which can be used by the developers to interact with
+ * a preview of the system and showcase the different features easily
+ */
+async function seedDevData() {
   const isDevConfig = process.env.NODE_ENV == 'development'
   if (isDevConfig) {
-    console.warn('Executing development seeds')
+    console.warn('\x1b[33m Executing development seeds: \x1b[0m')
     await personSeed()
     await companySeed()
     await infoRequestSeed()

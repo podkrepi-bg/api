@@ -5,8 +5,6 @@ export async function citiesSeed() {
   console.log('Cities seed')
 
   const bg = await prisma.country.findFirst({ where: { countryCode: 'BG' } })
-  console.log(bg)
-
   if (!bg) {
     throw new Error('No country BG')
   }
