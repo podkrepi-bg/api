@@ -1,0 +1,23 @@
+commit b17c5d89ca44c91aedf18cc437eaa56e472b07e2
+Author: quantum-grit <quantum-grit@gmail.com>
+Date:   Sun Dec 18 16:30:09 2022 +0200
+
+    fill BillingName with 'cash payment' if OppositeSideName is empty
+
+diff --git a/apps/api/src/bank-transactions-file/helpers/parser.ts b/apps/api/src/bank-transactions-file/helpers/parser.ts
+index 0382675..342a106 100644
+--- a/apps/api/src/bank-transactions-file/helpers/parser.ts
++++ b/apps/api/src/bank-transactions-file/helpers/parser.ts
+@@ -34,8 +34,10 @@ export function parseBankTransactionsFile(
+           const oppositeSide = items[item].AccountMovement[movement].OppositeSideName[0]
+           const movementFunctionalType =
+             items[item].AccountMovement[movement].MovementFunctionalType[0]
+-          if (isCashDeposit(movementFunctionalType) && !isOppositeSideNil(oppositeSide)) {
+-            payment.billingName = oppositeSide
++          if (isCashDeposit(movementFunctionalType)) {
++            payment.billingName = !isOppositeSideNil(oppositeSide)
++              ? oppositeSide
++              : cashDepositBGString
+           }
+ 
+           const matchedRef = paymentRef.replace(/[ _]+/g, '-').match(regexPaymentRef)
