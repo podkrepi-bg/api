@@ -54,7 +54,6 @@ export const campaignTypeNursingHomes = (parentId: string): CampaignType => {
       name: 'Nursing homes',
       slug: 'nursing-homes',
       category: CampaignTypeCategory.medical,
-      parentId,
     },
     { associations: { parentId } },
   )

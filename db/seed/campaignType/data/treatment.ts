@@ -64,7 +64,6 @@ export const campaignTypeRehabilitation = (parentId: string): CampaignType => {
     {
       name: 'Rehabilitation',
       slug: 'rehabilitation',
-
       category: CampaignTypeCategory.medical,
     },
     { associations: { parentId } },
