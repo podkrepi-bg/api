@@ -2,7 +2,7 @@ import { Person } from '.prisma/client'
 import { personFactory } from './factory'
 
 /**
- * List with pre-defined default users
+ * List with pre-defined default users (Persons)
  */
 
 export const adminUser: Person = personFactory.build({
