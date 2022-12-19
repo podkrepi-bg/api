@@ -267,6 +267,7 @@ export class DonationsService {
         },
         targetVault: {
           select: {
+            id: true,
             campaign: {
               select: {
                 id: true,
