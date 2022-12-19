@@ -133,7 +133,7 @@ export class RecurringDonationService {
         extCustomerId: updateRecurringDonationDto.extCustomerId,
         amount: updateRecurringDonationDto.amount,
         currency: updateRecurringDonationDto.currency,
-        vaultId: updateRecurringDonationDto.vaultId,
+        vaultId: updateRecurringDonationDto.sourceVault,
       },
     })
     if (!result) throw new NotFoundException('Not found')

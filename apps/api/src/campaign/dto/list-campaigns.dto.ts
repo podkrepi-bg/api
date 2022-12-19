@@ -128,6 +128,11 @@ export const CampaignListItemSelect = Prisma.validator<Prisma.CampaignArgs>()({
         role: true,
       },
     },
+    vaults: {
+      select: {
+        id: true,
+      },
+    },
   },
 })
 

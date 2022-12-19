@@ -185,7 +185,7 @@ export class StripePaymentService {
 
     rdDto.currency = string2Currency(subscription.currency as string)
     rdDto.status = string2RecurringDonationStatus(subscription.status)
-    rdDto.vaultId = campaign['defaultVault']
+    rdDto.sourceVault = campaign['defaultVault']
     rdDto.personId = metadata.personId as string
 
     Logger.debug('Creating recurring donation with data for ' + rdDto.campaign)

@@ -5,15 +5,13 @@ import { RecurringDonationService } from './recurring-donation.service'
 import { CreateRecurringDonationDto } from './dto/create-recurring-donation.dto'
 import { UpdateRecurringDonationDto } from './dto/update-recurring-donation.dto'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 
 @ApiTags('recurring-donation')
 @Controller('recurring-donation')
 export class RecurringDonationController {
-  constructor(
-    private readonly recurringDonationService: RecurringDonationService
-  ) {}
+  constructor(private readonly recurringDonationService: RecurringDonationService) {}
 
   @Get('list')
   @Roles({
@@ -33,7 +31,6 @@ export class RecurringDonationController {
     return this.recurringDonationService.findUserRecurringDonations(user.sub)
   }
 
-
   @Get(':id')
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],
@@ -41,6 +38,15 @@ export class RecurringDonationController {
   })
   findOne(@Param('id') id: string) {
     return this.recurringDonationService.findOne(id)
+  }
+
+  @Post()
+  @Roles({
+    roles: [RealmViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  create(@Body() createRecurringDonationDto: CreateRecurringDonationDto) {
+    return this.recurringDonationService.create(createRecurringDonationDto)
   }
 
   @Patch(':id')
@@ -67,7 +73,9 @@ export class RecurringDonationController {
     const isAdmin = user.realm_access?.roles.includes(RealmViewSupporters.role)
 
     if (!isAdmin && !this.recurringDonationService.donationBelongsTo(rd.id, user.sub)) {
-      throw new Error(`User ${user.sub} is not allowed to cancel recurring donation with id ${id} of person: ${rd.personId}`)
+      throw new Error(
+        `User ${user.sub} is not allowed to cancel recurring donation with id ${id} of person: ${rd.personId}`,
+      )
     }
 
     Logger.log(`Cancelling recurring donation to stripe with id ${id}`)

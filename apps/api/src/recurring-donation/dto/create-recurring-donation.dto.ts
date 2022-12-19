@@ -11,11 +11,6 @@ export class CreateRecurringDonationDto {
   status: RecurringDonationStatus
 
   @ApiProperty()
-  @IsUUID()
-  @Expose()
-  vaultId: string
-
-  @ApiProperty()
   @Expose()
   @IsUUID()
   personId: string
