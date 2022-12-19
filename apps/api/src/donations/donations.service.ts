@@ -260,6 +260,7 @@ export class DonationsService {
       include: {
         person: {
           select: {
+            id: true,
             firstName: true,
             lastName: true,
           },
