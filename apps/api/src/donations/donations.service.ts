@@ -257,7 +257,25 @@ export class DonationsService {
   ): Promise<(Donation & { person: Person | null }) | null> {
     return await this.prisma.donation.findFirst({
       where: { id, person: { keycloakId }, status: DonationStatus.succeeded },
-      include: { person: true },
+      include: {
+        person: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        targetVault: {
+          select: {
+            campaign: {
+              select: {
+                id: true,
+                slug: true,
+                title: true,
+              },
+            },
+          },
+        },
+      },
     })
   }
 
