@@ -140,31 +140,6 @@ export class CampaignService {
     return campaign
   }
 
-  async getCampaignByIdWithDefaultVault(campaignId: string): Promise<Campaign> {
-    const campaign = await this.prisma.campaign.findFirst({
-      where: { id: campaignId },
-      include: {
-        campaignFiles: true,
-        vaults: true,
-        incomingTransfers: { select: { amount: true } },
-      },
-    })
-    if (!campaign) {
-      Logger.warn('No campaign record with ID: ' + campaignId)
-      throw new NotFoundException('No campaign record with ID: ' + campaignId)
-    }
-
-
-    if (campaign.vaults.length == 0) {
-      throw new NotFoundException('No vaults found for campaign: ' + campaignId)
-    }
-
-    campaign['defaultVault'] = campaign.vaults[0].id
-
-    return campaign
-  }
-
-
   async getUserCampaigns(keycloakId: string): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({
       where: {

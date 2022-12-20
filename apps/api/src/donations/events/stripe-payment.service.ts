@@ -159,13 +159,16 @@ export class StripePaymentService {
       )
     }
 
-    const campaign = await this.campaignService.getCampaignByIdWithDefaultVault(metadata.campaignId)
+    const vault = await this.campaignService.getCampaignVault(metadata.campaignId)
+    if (!vault) {
+      throw new BadRequestException('Vault for campaign ' + metadata.campaignId + ' does not exist')
+    }
 
     const rdDto: CreateRecurringDonationDto = new CreateRecurringDonationDto()
     rdDto.campaign = metadata.campaignId
     rdDto.extSubscriptionId = subscription.id
     rdDto.extCustomerId = subscription.customer as string
-    rdDto.sourceVault = campaign['defaultVault']
+    rdDto.sourceVault = vault.id
 
     if (subscription.items.data.length == 0) {
       throw new BadRequestException(
@@ -185,7 +188,7 @@ export class StripePaymentService {
 
     rdDto.currency = string2Currency(subscription.currency as string)
     rdDto.status = string2RecurringDonationStatus(subscription.status)
-    rdDto.sourceVault = campaign['defaultVault']
+    rdDto.sourceVault = vault.id
     rdDto.personId = metadata.personId as string
 
     Logger.debug('Creating recurring donation with data for ' + rdDto.campaign)

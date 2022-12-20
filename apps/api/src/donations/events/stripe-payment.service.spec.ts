@@ -29,6 +29,7 @@ import {
   mockedRecurringDonation,
   mockInvoicePaidEvent,
   mockedCampaignCompeleted,
+  mockedVault,
 } from './stripe-payment.testdata'
 import { DonationStatus } from '@prisma/client'
 import { RecurringDonationService } from '../../recurring-donation/recurring-donation.service'
@@ -235,8 +236,8 @@ describe('StripePaymentService', () => {
     const campaignService = app.get<CampaignService>(CampaignService)
     const recurring = app.get<RecurringDonationService>(RecurringDonationService)
     const mockedCampaignById = jest
-      .spyOn(campaignService, 'getCampaignByIdWithDefaultVault')
-      .mockImplementation(() => Promise.resolve(mockedCampaign))
+      .spyOn(campaignService, 'getCampaignVault')
+      .mockImplementation(() => Promise.resolve(mockedVault))
 
     //this is executed twice, the first time it returns null, the second time it returns the created subscription
     let created = false

@@ -1,4 +1,4 @@
-import { Campaign, CampaignState, RecurringDonation } from '@prisma/client'
+import { Vault, Campaign, CampaignState, RecurringDonation } from '@prisma/client'
 import { randomUUID } from 'crypto'
 import Stripe from 'stripe'
 
@@ -26,6 +26,17 @@ export const mockedCampaign: Campaign = {
   createdAt: new Date(),
   updatedAt: null,
   deletedAt: null,
+}
+
+export const mockedVault: Vault = {
+  id: randomUUID(),
+  campaignId: campaignId,
+  amount: 1000000,
+  currency: 'BGN',
+  createdAt: new Date(),
+  updatedAt: null,
+  name: 'test vault',
+  blockedAmount: 0,
 }
 
 export const mockedCampaignCompeleted: Campaign = {
