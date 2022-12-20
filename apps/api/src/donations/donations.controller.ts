@@ -44,7 +44,7 @@ export class DonationsController {
   @Post('create-checkout-session')
   @Public()
   async createCheckoutSession(@Body() sessionDto: CreateSessionDto) {
-    if (sessionDto.mode == 'subscription' && (sessionDto.personId == null || sessionDto.personId.length == 0)) {
+    if (sessionDto.mode === 'subscription' && (sessionDto.personId === null || sessionDto.personId.length === 0)) {
       // in case of a intermediate (step 2) login, we might end up with no personId
       // not able to fetch the current logged user here (due to @Public())
       sessionDto.personId = await this.donationsService.getUserId(sessionDto.personEmail)
