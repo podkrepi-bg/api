@@ -163,4 +163,13 @@ export async function donationsSeed() {
 
   console.log('Updating heavily funded campaign vault')
   await updateVault(heavilyFundedCampaignVault.id)
+
+  const wishes = await prisma.donationWish.createMany({
+    data: [...Array(25).keys()].map((key) => ({
+      campaignId: campaign.id,
+      personId: person?.id ?? undefined,
+      message: key % 2 === 0 ? faker.lorem.sentence() : faker.lorem.paragraph(),
+    })),
+  })
+  console.log(`Adding donation wishes to campaign: ${campaign.slug}`, wishes)
 }
