@@ -6611,7 +6611,7 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"fishery@npm:^2.2.2":
+"fishery@npm:2.2.2":
   version: 2.2.2
   resolution: "fishery@npm:2.2.2"
   dependencies:
