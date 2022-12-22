@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { faker } from '@faker-js/faker'
 
 import { citiesSeed } from './city/seed'
 import { personSeed } from './person/seed'
@@ -18,6 +19,7 @@ import { companySeed } from './company/seed'
 const prisma = new PrismaClient()
 
 async function main() {
+  faker.seed(1)
   await seedEssentialData()
   await seedDevData()
 }
