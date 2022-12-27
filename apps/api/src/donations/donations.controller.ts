@@ -23,6 +23,7 @@ import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { DonationStatus } from '@prisma/client'
 import { PagingQueryDto } from '../common/dto/paging-query-dto'
 import { ApiTags } from '@nestjs/swagger'
+import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
 
 @ApiTags('donation')
 @Controller('donation')
@@ -133,6 +134,20 @@ export class DonationsController {
     }
 
     return this.donationsService.create(createPaymentDto, user)
+  }
+
+  //Create a post request for createing a paymentIntent
+  @Post('create-payment-intent')
+  createPaymentIntent(
+    @AuthenticatedUser()
+    user: KeycloakTokenParsed,
+    @Body()
+    createPaymentIntentDto: CreatePaymentIntentDto,
+  ) {
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+    return this.donationsService.createPaymentIntent(createPaymentIntentDto)
   }
 
   @Post('create-bank-payment')
