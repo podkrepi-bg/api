@@ -20,7 +20,7 @@ import { CreateSessionDto } from './dto/create-session.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
-import { DonationStatus } from '@prisma/client'
+import { DonationStatus, DonationType } from '@prisma/client'
 import { PagingQueryDto } from '../common/dto/paging-query-dto'
 import { ApiTags } from '@nestjs/swagger'
 
@@ -94,17 +94,27 @@ export class DonationsController {
     mode: RoleMatchingMode.ANY,
   })
   @ApiQuery({ name: 'campaignId', required: false, type: String })
-  @ApiQuery({ name: 'status', required: false, enum: DonationStatus })
+  @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'type', required: false })
   @ApiQuery({ name: 'pageindex', required: false, type: Number })
   @ApiQuery({ name: 'pagesize', required: false, type: Number })
+  @ApiQuery({ name: 'from', required: false, type: Date })
+  @ApiQuery({ name: 'to', required: false, type: Date })
   findAll(
     @Query('campaignId') campaignId?: string,
     @Query('status') status?: DonationStatus,
+    @Query('type') type?: DonationType & string,
+    @Query('from') from?: Date | null,
+    @Query('to') to?: Date | null,
     @Query() query?: PagingQueryDto,
   ) {
+    console.log('findAll', campaignId, status, type, from, to)
     return this.donationsService.listDonations(
       campaignId,
       status,
+      type,
+      from,
+      to,
       query?.pageindex,
       query?.pagesize,
     )
