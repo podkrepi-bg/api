@@ -1,4 +1,6 @@
-export class ConnectOrganizerDto {
-  id?: string
-  personId?: string
-}
+
+  export class ConnectOrganizerDto {
+    id?: string;
+personId?: string;
+  }
+  

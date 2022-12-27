@@ -1,1 +1,2 @@
-export * from './benefactor.entity'
+
+export * from './benefactor.entity';

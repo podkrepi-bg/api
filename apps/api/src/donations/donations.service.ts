@@ -237,6 +237,12 @@ export class DonationsService {
     return result
   }
 
+  /**
+   *  Get donation by id
+   * @param id Donation id
+   * @returns  {Promise<Donation>} Donation
+   * @throws NotFoundException if no donation is found
+   */
   async getDonationById(id: string): Promise<Donation> {
     try {
       const donation = await this.prisma.donation.findFirst({
@@ -251,6 +257,12 @@ export class DonationsService {
     }
   }
 
+  /**
+   * Get donation by id with person data attached
+   * @param id Donation id
+   * @param keycloakId Keycloak id of the user
+   * @returns {Promise<Donation & { person: Person | null }>} Donation
+   */
   async getUserDonationById(
     id: string,
     keycloakId: string,
@@ -281,6 +293,12 @@ export class DonationsService {
     })
   }
 
+  /** Describe the function below
+   * @param inputDto
+   * @param user
+   * @returns {Promise<Donation>}
+   *
+   */
   async create(inputDto: CreatePaymentDto, user: KeycloakTokenParsed): Promise<Donation> {
     const donation = await this.prisma.donation.create({ data: inputDto.toEntity(user) })
 
@@ -289,6 +307,15 @@ export class DonationsService {
     }
 
     return donation
+  }
+
+  /**
+   * Used by the administrators to manually add donations executed by bank payments to a campaign.
+   */
+  async createPaymentIntent(
+    inputDto: Stripe.PaymentIntentCreateParams,
+  ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
+    return this.stripeClient.paymentIntents.create(inputDto)
   }
 
   /**
@@ -435,6 +462,9 @@ export class DonationsService {
     })
   }
 
+  /**
+   *  @param res  - Response object to be used for the export to excel file
+   */
   async exportToExcel(res: Response) {
     const { items } = await this.listDonations()
     const donationsMappedForExport = items.map((donation) => ({

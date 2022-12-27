@@ -1,3 +1,5 @@
-export class ConnectRecurringDonationDto {
-  id: string
-}
+
+  export class ConnectRecurringDonationDto {
+    id: string;
+  }
+  

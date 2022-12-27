@@ -1,4 +1,10 @@
+
+
+
+
+
+
 export class UpdateDonationWishDto {
-  message?: string
-  donationId?: string
+  message?: string;
+donationId?: string;
 }
