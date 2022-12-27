@@ -1,6 +1,4 @@
-
-  export class ConnectDonationWishDto {
-    id?: string;
-donationId?: string;
-  }
-  
+export class ConnectDonationWishDto {
+  id?: string
+  donationId?: string
+}

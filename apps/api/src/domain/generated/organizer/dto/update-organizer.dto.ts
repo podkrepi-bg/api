@@ -1,9 +1,1 @@
-
-
-
-
-
-
-export class UpdateOrganizerDto {
-  
-}
+export class UpdateOrganizerDto {}

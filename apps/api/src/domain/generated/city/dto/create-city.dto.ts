@@ -1,10 +1,4 @@
-
-
-
-
-
-
 export class CreateCityDto {
-  name: string;
-postalCode: string;
+  name: string
+  postalCode: string
 }

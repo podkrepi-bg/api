@@ -138,15 +138,11 @@ export class DonationsController {
 
   //Create a post request for createing a paymentIntent
   @Post('create-payment-intent')
+  @Public()
   createPaymentIntent(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
     @Body()
     createPaymentIntentDto: CreatePaymentIntentDto,
   ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
     return this.donationsService.createPaymentIntent(createPaymentIntentDto)
   }
 

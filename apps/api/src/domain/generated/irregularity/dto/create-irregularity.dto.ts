@@ -1,9 +1,3 @@
-
-
-
-
-
-
 export class CreateIrregularityDto {
-  description: string;
+  description: string
 }

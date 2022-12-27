@@ -1,5 +1,3 @@
-
-  export class ConnectCampaignFileDto {
-    id: string;
-  }
-  
+export class ConnectCampaignFileDto {
+  id: string
+}

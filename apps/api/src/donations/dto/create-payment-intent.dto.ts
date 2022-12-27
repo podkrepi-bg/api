@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 import { ApiProperty } from '@nestjs/swagger'
-import { Currency, PaymentProvider } from '@prisma/client'
+import { Currency } from '@prisma/client'
 import { Expose } from 'class-transformer'
 import { IsNumber } from 'class-validator'
 
@@ -14,8 +14,4 @@ export class CreatePaymentIntentDto implements Stripe.PaymentIntentCreateParams 
   @ApiProperty()
   @Expose()
   currency: Currency
-
-  @ApiProperty()
-  @Expose()
-  payment_method_types: PaymentProvider[]
 }
