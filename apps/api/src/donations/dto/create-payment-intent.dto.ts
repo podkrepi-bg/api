@@ -4,7 +4,6 @@ import { Currency } from '@prisma/client'
 import { Expose } from 'class-transformer'
 import { IsNumber } from 'class-validator'
 
-//Create a dto pased on Stripe.PaymentIntentCreateParams
 export class CreatePaymentIntentDto implements Stripe.PaymentIntentCreateParams {
   @ApiProperty()
   @Expose()
