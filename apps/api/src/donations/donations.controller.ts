@@ -135,7 +135,6 @@ export class DonationsController {
     return this.donationsService.create(createPaymentDto, user)
   }
 
-  //Create a post request for createing a paymentIntent
   @Post('create-payment-intent')
   @Public()
   createPaymentIntent(
