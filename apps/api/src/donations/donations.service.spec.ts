@@ -1,4 +1,4 @@
-import { StripeModule, STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
+import { STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
 import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignService } from '../campaign/campaign.service'
