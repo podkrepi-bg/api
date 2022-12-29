@@ -310,7 +310,9 @@ export class DonationsService {
   }
 
   /**
-   * Used by the administrators to manually add donations executed by bank payments to a campaign.
+   * Create a payment intent for a donation
+   * @param inputDto Payment intent create params
+   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
   async createPaymentIntent(
     inputDto: Stripe.PaymentIntentCreateParams,
