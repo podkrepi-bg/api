@@ -1,5 +1,4 @@
-import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { Response } from 'express'
 import {
   Body,
   Controller,
@@ -11,18 +10,19 @@ import {
   Query,
   Res,
 } from '@nestjs/common'
-import { ApiQuery } from '@nestjs/swagger'
-import { Response } from 'express'
+import { ApiQuery, ApiTags } from '@nestjs/swagger'
+import { DonationStatus } from '@prisma/client'
+import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { isAdmin, KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
-import { DonationStatus } from '@prisma/client'
+import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
 import { PagingQueryDto } from '../common/dto/paging-query-dto'
-import { ApiTags } from '@nestjs/swagger'
 
 @ApiTags('donation')
 @Controller('donation')
@@ -133,6 +133,15 @@ export class DonationsController {
     }
 
     return this.donationsService.create(createPaymentDto, user)
+  }
+
+  @Post('create-payment-intent')
+  @Public()
+  createPaymentIntent(
+    @Body()
+    createPaymentIntentDto: CreatePaymentIntentDto,
+  ) {
+    return this.donationsService.createPaymentIntent(createPaymentIntentDto)
   }
 
   @Post('create-bank-payment')
