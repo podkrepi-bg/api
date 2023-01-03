@@ -264,6 +264,12 @@ export class DonationsService {
     return result
   }
 
+  /**
+   *  Get donation by id
+   * @param id Donation id
+   * @returns  {Promise<Donation>} Donation
+   * @throws NotFoundException if no donation is found
+   */
   async getDonationById(id: string): Promise<Donation> {
     try {
       const donation = await this.prisma.donation.findFirst({
@@ -278,16 +284,48 @@ export class DonationsService {
     }
   }
 
+  /**
+   * Get donation by id with person data attached
+   * @param id Donation id
+   * @param keycloakId Keycloak id of the user
+   * @returns {Promise<Donation & { person: Person | null }>} Donation
+   */
   async getUserDonationById(
     id: string,
     keycloakId: string,
   ): Promise<(Donation & { person: Person | null }) | null> {
     return await this.prisma.donation.findFirst({
       where: { id, person: { keycloakId }, status: DonationStatus.succeeded },
-      include: { person: true },
+      include: {
+        person: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        targetVault: {
+          select: {
+            id: true,
+            campaign: {
+              select: {
+                id: true,
+                slug: true,
+                title: true,
+              },
+            },
+          },
+        },
+      },
     })
   }
 
+  /** Describe the function below
+   * @param inputDto
+   * @param user
+   * @returns {Promise<Donation>}
+   *
+   */
   async create(inputDto: CreatePaymentDto, user: KeycloakTokenParsed): Promise<Donation> {
     const donation = await this.prisma.donation.create({ data: inputDto.toEntity(user) })
 
@@ -296,6 +334,17 @@ export class DonationsService {
     }
 
     return donation
+  }
+
+  /**
+   * Create a payment intent for a donation
+   * @param inputDto Payment intent create params
+   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
+   */
+  async createPaymentIntent(
+    inputDto: Stripe.PaymentIntentCreateParams,
+  ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
+    return this.stripeClient.paymentIntents.create(inputDto)
   }
 
   /**
@@ -442,6 +491,9 @@ export class DonationsService {
     })
   }
 
+  /**
+   *  @param res  - Response object to be used for the export to excel file
+   */
   async exportToExcel(res: Response) {
     const { items } = await this.listDonations()
     const donationsMappedForExport = items.map((donation) => ({
