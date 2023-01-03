@@ -108,7 +108,6 @@ export class DonationsController {
     @Query('to') to?: Date | null,
     @Query() query?: PagingQueryDto,
   ) {
-    console.log('findAll', campaignId, status, type, from, to)
     return this.donationsService.listDonations(
       campaignId,
       status,
