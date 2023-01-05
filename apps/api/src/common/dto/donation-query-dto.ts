@@ -10,27 +10,27 @@ interface ToNumberOptions {
 export class DonationQueryDto {
   @Expose()
   @IsOptional()
-  @Transform(({ value }) => toUndefined(value))
+  @Transform(({ value }) => falsyToUndefined(value))
   campaignId?: string
 
   @Expose()
   @IsOptional()
-  @Transform(({ value }) => toUndefined(value))
+  @Transform(({ value }) => falsyToUndefined(value))
   status?: DonationStatus
 
   @Expose()
   @IsOptional()
-  @Transform(({ value }) => toUndefined(value))
+  @Transform(({ value }) => falsyToUndefined(value))
   type?: DonationType
 
   @Expose()
   @IsOptional()
-  @Transform(({ value }) => toUndefined(value))
+  @Transform(({ value }) => handleDateTransform(value))
   from?: Date
 
   @Expose()
   @IsOptional()
-  @Transform(({ value }) => toUndefined(value))
+  @Transform(({ value }) => handleDateTransform(value))
   to?: Date
 
   @Expose()
@@ -56,6 +56,14 @@ function toNumber(value: string, opts: ToNumberOptions = {}): number | undefined
   return newValue
 }
 
-function toUndefined(value: any): any | undefined {
+function falsyToUndefined(value: any): any | undefined {
   return !value ? undefined : value
+}
+
+function handleDateTransform(value: any): Date | undefined {
+  if (!value) {
+    return undefined
+  }
+
+  return new Date(value)
 }

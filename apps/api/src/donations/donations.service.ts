@@ -231,8 +231,8 @@ export class DonationsService {
         status,
         type,
         createdAt: {
-          gte: from ? new Date(from) : undefined,
-          lte: to ? new Date(to) : undefined,
+          gte: from,
+          lte: to,
         },
         targetVault: { campaign: { id: campaignId } },
       },
@@ -246,8 +246,8 @@ export class DonationsService {
         status,
         type,
         createdAt: {
-          gte: from ? new Date(from) : undefined,
-          lte: to ? new Date(to) : undefined,
+          gte: from,
+          lte: to,
         },
         targetVault: { campaign: { id: campaignId } },
       },
