@@ -221,21 +221,19 @@ export class DonationsService {
     campaignId?: string,
     status?: DonationStatus,
     type?: DonationType,
-    from?: Date | null,
-    to?: Date | null,
+    from?: Date,
+    to?: Date,
     pageIndex?: number,
     pageSize?: number,
   ): Promise<ListDonationsDto<DonationWithPerson>> {
     const data = await this.prisma.donation.findMany({
       where: {
-        ...(status && { status }),
-        ...(type && { type }),
-        ...((from || to) && {
-          createdAt: {
-            ...(from && { gte: new Date(from) }),
-            ...(to && { lte: new Date(to) }),
-          },
-        }),
+        status,
+        type,
+        createdAt: {
+          gte: from ? new Date(from) : undefined,
+          lte: to ? new Date(to) : undefined,
+        },
         targetVault: { campaign: { id: campaignId } },
       },
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
@@ -245,14 +243,12 @@ export class DonationsService {
 
     const count = await this.prisma.donation.count({
       where: {
-        ...(status && { status }),
-        ...(type && { type }),
-        ...((from || to) && {
-          createdAt: {
-            ...(from && { gte: new Date(from) }),
-            ...(to && { lte: new Date(to) }),
-          },
-        }),
+        status,
+        type,
+        createdAt: {
+          gte: from ? new Date(from) : undefined,
+          lte: to ? new Date(to) : undefined,
+        },
         targetVault: { campaign: { id: campaignId } },
       },
     })

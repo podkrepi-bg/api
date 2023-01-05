@@ -21,7 +21,7 @@ import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { DonationStatus, DonationType } from '@prisma/client'
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
-import { PagingQueryDto } from '../common/dto/paging-query-dto'
+import { DonationQueryDto } from '../common/dto/donation-query-dto'
 
 @ApiTags('donation')
 @Controller('donation')
@@ -77,7 +77,7 @@ export class DonationsController {
   findAllPublic(
     @Query('campaignId') campaignId?: string,
     @Query('status') status?: DonationStatus,
-    @Query() query?: PagingQueryDto,
+    @Query() query?: DonationQueryDto,
   ) {
     return this.donationsService.listDonationsPublic(
       campaignId,
@@ -99,20 +99,13 @@ export class DonationsController {
   @ApiQuery({ name: 'pagesize', required: false, type: Number })
   @ApiQuery({ name: 'from', required: false, type: Date })
   @ApiQuery({ name: 'to', required: false, type: Date })
-  findAll(
-    @Query('campaignId') campaignId?: string,
-    @Query('status') status?: DonationStatus,
-    @Query('type') type?: DonationType & string,
-    @Query('from') from?: Date | null,
-    @Query('to') to?: Date | null,
-    @Query() query?: PagingQueryDto,
-  ) {
+  findAll(@Query() query?: DonationQueryDto) {
     return this.donationsService.listDonations(
-      campaignId,
-      status,
-      type,
-      from,
-      to,
+      query?.campaignId,
+      query?.status,
+      query?.type,
+      query?.from,
+      query?.to,
       query?.pageindex,
       query?.pagesize,
     )
