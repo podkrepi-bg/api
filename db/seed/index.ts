@@ -12,7 +12,7 @@ import { infoRequestSeed } from './infoRequest/seed'
 import { campaignTypesSeed } from './campaignType/seed'
 import { bankAccountSeed } from './bankAccount/seed'
 import { vaultSeed } from './vault/seed'
-import { expenseSeed } from './expense.seed'
+import { expenseSeed } from './expense/seed'
 import { donationsSeed } from './donations.seed'
 import { companySeed } from './company/seed'
 
