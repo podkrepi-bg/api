@@ -99,6 +99,7 @@ export class DonationsController {
   @ApiQuery({ name: 'pagesize', required: false, type: Number })
   @ApiQuery({ name: 'from', required: false, type: Date })
   @ApiQuery({ name: 'to', required: false, type: Date })
+  @ApiQuery({ name: 'search', required: false, type: String })
   findAll(@Query() query?: DonationQueryDto) {
     return this.donationsService.listDonations(
       query?.campaignId,
@@ -106,6 +107,7 @@ export class DonationsController {
       query?.type,
       query?.from,
       query?.to,
+      query?.search,
       query?.pageindex,
       query?.pagesize,
     )
