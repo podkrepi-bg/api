@@ -57,11 +57,15 @@ function toNumber(value: string, opts: ToNumberOptions = {}): number | undefined
 }
 
 function falsyToUndefined(value: any): any | undefined {
-  return !value ? undefined : value
+  if (!value || value === 'undefined') {
+    return undefined
+  }
+
+  return value
 }
 
 function handleDateTransform(value: any): Date | undefined {
-  if (!value) {
+  if (!value || value === 'undefined') {
     return undefined
   }
 
