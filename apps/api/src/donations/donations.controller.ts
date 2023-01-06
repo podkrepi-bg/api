@@ -11,9 +11,7 @@ import {
   Res,
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
-import { DonationStatus } from '@prisma/client'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
-
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { isAdmin, KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
@@ -21,8 +19,9 @@ import { CreateSessionDto } from './dto/create-session.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
+import { DonationStatus, DonationType } from '@prisma/client'
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
-import { PagingQueryDto } from '../common/dto/paging-query-dto'
+import { DonationQueryDto } from '../common/dto/donation-query-dto'
 
 @ApiTags('donation')
 @Controller('donation')
@@ -78,7 +77,7 @@ export class DonationsController {
   findAllPublic(
     @Query('campaignId') campaignId?: string,
     @Query('status') status?: DonationStatus,
-    @Query() query?: PagingQueryDto,
+    @Query() query?: DonationQueryDto,
   ) {
     return this.donationsService.listDonationsPublic(
       campaignId,
@@ -94,17 +93,19 @@ export class DonationsController {
     mode: RoleMatchingMode.ANY,
   })
   @ApiQuery({ name: 'campaignId', required: false, type: String })
-  @ApiQuery({ name: 'status', required: false, enum: DonationStatus })
+  @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'type', required: false })
   @ApiQuery({ name: 'pageindex', required: false, type: Number })
   @ApiQuery({ name: 'pagesize', required: false, type: Number })
-  findAll(
-    @Query('campaignId') campaignId?: string,
-    @Query('status') status?: DonationStatus,
-    @Query() query?: PagingQueryDto,
-  ) {
+  @ApiQuery({ name: 'from', required: false, type: Date })
+  @ApiQuery({ name: 'to', required: false, type: Date })
+  findAll(@Query() query?: DonationQueryDto) {
     return this.donationsService.listDonations(
-      campaignId,
-      status,
+      query?.campaignId,
+      query?.status,
+      query?.type,
+      query?.from,
+      query?.to,
       query?.pageindex,
       query?.pagesize,
     )

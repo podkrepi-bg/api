@@ -169,6 +169,7 @@ export class DonationsService {
    * @param status (Optional) Filter by campaign status
    * @param pageIndex (Optional)
    * @param pageSize (Optional)
+   * @param type (Optional) Filter by type
    */
   async listDonationsPublic(
     campaignId?: string,
@@ -210,24 +211,46 @@ export class DonationsService {
    * Lists all donations with all fields only for admin roles
    * @param campaignId (Optional) Filter by campaign id
    * @param status (Optional) Filter by campaign status
+   * @param type (Optional) Filter by donation type
+   * @param from (Optional) Filter by creation date
+   * @param to (Optional) Filter by creation date
    * @param pageIndex (Optional)
    * @param pageSize (Optional)
    */
   async listDonations(
     campaignId?: string,
     status?: DonationStatus,
+    type?: DonationType,
+    from?: Date,
+    to?: Date,
     pageIndex?: number,
     pageSize?: number,
   ): Promise<ListDonationsDto<DonationWithPerson>> {
     const data = await this.prisma.donation.findMany({
-      where: { status, targetVault: { campaign: { id: campaignId } } },
+      where: {
+        status,
+        type,
+        createdAt: {
+          gte: from,
+          lte: to,
+        },
+        targetVault: { campaign: { id: campaignId } },
+      },
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
       ...donationWithPerson,
     })
 
     const count = await this.prisma.donation.count({
-      where: { status, targetVault: { campaign: { id: campaignId } } },
+      where: {
+        status,
+        type,
+        createdAt: {
+          gte: from,
+          lte: to,
+        },
+        targetVault: { campaign: { id: campaignId } },
+      },
     })
 
     const result = {
