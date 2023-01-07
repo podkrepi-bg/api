@@ -34,8 +34,10 @@ export function parseBankTransactionsFile(
           const oppositeSide = items[item].AccountMovement[movement].OppositeSideName[0]
           const movementFunctionalType =
             items[item].AccountMovement[movement].MovementFunctionalType[0]
-          if (isCashDeposit(movementFunctionalType) && !isOppositeSideNil(oppositeSide)) {
-            payment.billingName = oppositeSide
+          if (isCashDeposit(movementFunctionalType)) {
+            payment.billingName = !isOppositeSideNil(oppositeSide)
+              ? oppositeSide
+              : cashDepositBGString
           }
 
           const matchedRef = paymentRef.replace(/[ _]+/g, '-').match(regexPaymentRef)

@@ -1,28 +1,46 @@
 import { PrismaClient } from '@prisma/client'
+import { faker } from '@faker-js/faker'
 
-import { citiesSeed } from './cities.seed'
-import { personSeed } from './person.seed'
+import { citiesSeed } from './city/seed'
+import { personSeed } from './person/seed'
 import { campaignSeed } from './campaign.seed'
-import { countriesSeed } from './countries.seed'
-import { supportersSeed } from './supporters.seed'
-import { coordinatorSeed } from './coordinator.seed'
+import { countriesSeed } from './country/seed'
+import { supportersSeed } from './supporter/seed'
+import { coordinatorSeed } from './coordinator/seed'
 import { beneficiarySeed } from './beneficiary.seed'
-import { infoRequestSeed } from './infoRequest.seed'
-import { campaignTypesSeed } from './campaign-type.seed'
+import { infoRequestSeed } from './infoRequest/seed'
+import { campaignTypesSeed } from './campaignType/seed'
 import { bankAccountSeed } from './bankaccount.seed'
 import { vaultSeed } from './vault.seed'
 import { expenseSeed } from './expense.seed'
 import { donationsSeed } from './donations.seed'
-import { companySeed } from './company.seed'
+import { companySeed } from './company/seed'
 
 const prisma = new PrismaClient()
 
 async function main() {
-  await Promise.all([await countriesSeed(), await citiesSeed(), await campaignTypesSeed()])
+  faker.seed(1)
+  await seedEssentialData()
+  await seedDevData()
+}
 
+/**
+ * Seed all essential tables which are required for the normal operation
+ * of the system and are not dependant on the environment
+ */
+async function seedEssentialData() {
+  console.warn('\x1b[33m Executing essential seeds: \x1b[0m')
+  return Promise.all([await countriesSeed(), await citiesSeed(), await campaignTypesSeed()])
+}
+
+/**
+ * Seed demo data which can be used by the developers to interact with
+ * a preview of the system and showcase the different features easily
+ */
+async function seedDevData() {
   const isDevConfig = process.env.NODE_ENV == 'development'
   if (isDevConfig) {
-    console.warn('Executing development seeds')
+    console.warn('\x1b[33m Executing development seeds: \x1b[0m')
     await personSeed()
     await companySeed()
     await infoRequestSeed()

@@ -24,7 +24,7 @@ import { UpdateCampaignDto } from '../campaign/dto/update-campaign.dto'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { PersonService } from '../person/person.service'
 import { ApiQuery } from '@nestjs/swagger'
-import { PagingQueryDto } from '../common/dto/paging-query-dto'
+import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { ApiTags } from '@nestjs/swagger'
 
 @ApiTags('campaign')
@@ -111,7 +111,7 @@ export class CampaignController {
   @ApiQuery({ name: 'pageindex', required: false, type: Number })
   @ApiQuery({ name: 'pagesize', required: false, type: Number })
   @Public()
-  async getDonations(@Param('id') id: string, @Query() query?: PagingQueryDto) {
+  async getDonations(@Param('id') id: string, @Query() query?: DonationQueryDto) {
     return await this.campaignService.getDonationsForCampaign(id, query?.pageindex, query?.pagesize)
   }
 

@@ -196,6 +196,7 @@ export class DonationsService {
    * @param status (Optional) Filter by campaign status
    * @param pageIndex (Optional)
    * @param pageSize (Optional)
+   * @param type (Optional) Filter by type
    */
   async listDonationsPublic(
     campaignId?: string,
@@ -237,24 +238,46 @@ export class DonationsService {
    * Lists all donations with all fields only for admin roles
    * @param campaignId (Optional) Filter by campaign id
    * @param status (Optional) Filter by campaign status
+   * @param type (Optional) Filter by donation type
+   * @param from (Optional) Filter by creation date
+   * @param to (Optional) Filter by creation date
    * @param pageIndex (Optional)
    * @param pageSize (Optional)
    */
   async listDonations(
     campaignId?: string,
     status?: DonationStatus,
+    type?: DonationType,
+    from?: Date,
+    to?: Date,
     pageIndex?: number,
     pageSize?: number,
   ): Promise<ListDonationsDto<DonationWithPerson>> {
     const data = await this.prisma.donation.findMany({
-      where: { status, targetVault: { campaign: { id: campaignId } } },
+      where: {
+        status,
+        type,
+        createdAt: {
+          gte: from,
+          lte: to,
+        },
+        targetVault: { campaign: { id: campaignId } },
+      },
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
       ...donationWithPerson,
     })
 
     const count = await this.prisma.donation.count({
-      where: { status, targetVault: { campaign: { id: campaignId } } },
+      where: {
+        status,
+        type,
+        createdAt: {
+          gte: from,
+          lte: to,
+        },
+        targetVault: { campaign: { id: campaignId } },
+      },
     })
 
     const result = {
@@ -264,6 +287,12 @@ export class DonationsService {
     return result
   }
 
+  /**
+   *  Get donation by id
+   * @param id Donation id
+   * @returns  {Promise<Donation>} Donation
+   * @throws NotFoundException if no donation is found
+   */
   async getDonationById(id: string): Promise<Donation> {
     try {
       const donation = await this.prisma.donation.findFirst({
@@ -278,6 +307,12 @@ export class DonationsService {
     }
   }
 
+  /**
+   * Get donation by id with person data attached
+   * @param id Donation id
+   * @param keycloakId Keycloak id of the user
+   * @returns {Promise<Donation & { person: Person | null }>} Donation
+   */
   async getUserDonationById(
     id: string,
     keycloakId: string,
@@ -308,6 +343,12 @@ export class DonationsService {
     })
   }
 
+  /** Describe the function below
+   * @param inputDto
+   * @param user
+   * @returns {Promise<Donation>}
+   *
+   */
   async create(inputDto: CreatePaymentDto, user: KeycloakTokenParsed): Promise<Donation> {
     const donation = await this.prisma.donation.create({ data: inputDto.toEntity(user) })
 
@@ -316,6 +357,17 @@ export class DonationsService {
     }
 
     return donation
+  }
+
+  /**
+   * Create a payment intent for a donation
+   * @param inputDto Payment intent create params
+   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
+   */
+  async createPaymentIntent(
+    inputDto: Stripe.PaymentIntentCreateParams,
+  ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
+    return this.stripeClient.paymentIntents.create(inputDto)
   }
 
   /**
@@ -475,6 +527,9 @@ export class DonationsService {
     return user.id
   }
 
+  /**
+   *  @param res  - Response object to be used for the export to excel file
+   */
   async exportToExcel(res: Response) {
     const { items } = await this.listDonations()
     const donationsMappedForExport = items.map((donation) => ({
