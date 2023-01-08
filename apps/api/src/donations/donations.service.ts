@@ -236,7 +236,24 @@ export class DonationsService {
           gte: from,
           lte: to,
         },
-        // OR: [{ name: { contains: search } }, { email: { contains: search } }],
+        ...(search && {
+          OR: [
+            { billingName: { contains: search } },
+            { billingEmail: { contains: search } },
+            {
+              person: {
+                OR: [
+                  {
+                    firstName: { contains: search },
+                  },
+                  {
+                    lastName: { contains: search },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
         targetVault: { campaign: { id: campaignId } },
       },
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
@@ -252,6 +269,24 @@ export class DonationsService {
           gte: from,
           lte: to,
         },
+        ...(search && {
+          OR: [
+            { billingName: { contains: search } },
+            { billingEmail: { contains: search } },
+            {
+              person: {
+                OR: [
+                  {
+                    firstName: { contains: search },
+                  },
+                  {
+                    lastName: { contains: search },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
         targetVault: { campaign: { id: campaignId } },
       },
     })
