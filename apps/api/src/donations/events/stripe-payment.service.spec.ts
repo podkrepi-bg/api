@@ -11,6 +11,9 @@ import { INestApplication } from '@nestjs/common'
 import request from 'supertest'
 import { StripeModule, StripeModuleConfig, StripePayloadService } from '@golevelup/nestjs-stripe'
 
+import { RecurringDonationStatus } from '@prisma/client'
+import { CreateRecurringDonationDto } from '../../recurring-donation/dto/create-recurring-donation.dto'
+
 import {
   campaignId,
   mockedCampaign,
@@ -22,8 +25,16 @@ import {
   mockPaymentIntentBGIncludedNot,
   mockPaymentIntentUSIncluded,
   mockPaymentIntentUKIncluded,
+  mockCustomerSubscriptionCreated,
+  mockedRecurringDonation,
+  mockInvoicePaidEvent,
+  mockedCampaignCompeleted,
+  mockedVault,
 } from './stripe-payment.testdata'
 import { DonationStatus } from '@prisma/client'
+import { RecurringDonationService } from '../../recurring-donation/recurring-donation.service'
+import { HttpService } from '@nestjs/axios'
+import { mockDeep } from 'jest-mock-extended'
 
 const defaultStripeWebhookEndpoint = '/stripe/webhook'
 const stripeSecret = 'wh_123'
@@ -58,6 +69,11 @@ describe('StripePaymentService', () => {
         MockPrismaService,
         VaultService,
         PersonService,
+        RecurringDonationService,
+        {
+          provide: HttpService,
+          useValue: mockDeep<HttpService>(),
+        },
       ],
     }).compile()
 
@@ -207,6 +223,142 @@ describe('StripePaymentService', () => {
     const billingDetails = getPaymentData(mockPaymentIntentBGIncluded)
     expect(billingDetails.netAmount).toEqual(1000)
     expect(billingDetails.chargedAmount).toEqual(1063)
+  })
+
+  it('should handle customer.subscription.created', () => {
+    const payloadString = JSON.stringify(mockCustomerSubscriptionCreated, null, 2)
+
+    const header = stripe.webhooks.generateTestHeaderString({
+      payload: payloadString,
+      secret: stripeSecret,
+    })
+
+    const campaignService = app.get<CampaignService>(CampaignService)
+    const recurring = app.get<RecurringDonationService>(RecurringDonationService)
+    const mockedCampaignById = jest
+      .spyOn(campaignService, 'getCampaignVault')
+      .mockImplementation(() => Promise.resolve(mockedVault))
+
+    //this is executed twice, the first time it returns null, the second time it returns the created subscription
+    let created = false
+
+    const mockedCreateRecurringDonation = jest.spyOn(recurring, 'create').mockImplementation(() => {
+      created = true
+      return Promise.resolve(mockedRecurringDonation)
+    })
+
+    const mockedfindSubscriptionByExtId = jest
+      .spyOn(recurring, 'findSubscriptionByExtId')
+      .mockImplementation(() => {
+        if (created) {
+          return Promise.resolve(mockedRecurringDonation)
+        }
+        return Promise.resolve(null)
+      })
+
+    const mockedUpdateRecurringService = jest
+      .spyOn(recurring, 'updateStatus')
+      .mockImplementation(() => {
+        return Promise.resolve(mockedRecurringDonation)
+      })
+
+    return request(app.getHttpServer())
+      .post(defaultStripeWebhookEndpoint)
+      .set('stripe-signature', header)
+      .type('json')
+      .send(payloadString)
+      .expect(201)
+      .then(() => {
+        expect(mockedCampaignById).toHaveBeenCalledWith(
+          mockCustomerSubscriptionCreated.data.object.metadata.campaignId,
+        ) //campaignId from the Stripe Event
+        expect(mockedfindSubscriptionByExtId).toHaveBeenCalledWith(
+          mockCustomerSubscriptionCreated.data.object.id,
+        )
+        expect(mockedUpdateRecurringService).toHaveBeenCalledWith(
+          mockedRecurringDonation.id,
+          RecurringDonationStatus.incomplete,
+        )
+        expect(mockedCreateRecurringDonation).toHaveBeenCalled()
+      })
+  })
+
+  it('should handle invoice.paid', () => {
+    const payloadString = JSON.stringify(mockInvoicePaidEvent, null, 2)
+
+    const header = stripe.webhooks.generateTestHeaderString({
+      payload: payloadString,
+      secret: stripeSecret,
+    })
+
+    const campaignService = app.get<CampaignService>(CampaignService)
+    const mockedCampaignById = jest
+      .spyOn(campaignService, 'getCampaignById')
+      .mockImplementation(() => Promise.resolve(mockedCampaign))
+
+    const mockedDonateToCampaign = jest
+      .spyOn(campaignService, 'donateToCampaign')
+      .mockImplementation(() => Promise.resolve(mockedCampaign))
+
+    return request(app.getHttpServer())
+      .post(defaultStripeWebhookEndpoint)
+      .set('stripe-signature', header)
+      .type('json')
+      .send(payloadString)
+      .expect(201)
+      .then(() => {
+        expect(mockedCampaignById).toHaveBeenCalledWith(
+          mockCustomerSubscriptionCreated.data.object.metadata.campaignId,
+        ) //campaignId from the Stripe Event
+        expect(mockedDonateToCampaign).toHaveBeenCalled()
+      })
+  })
+
+  it('should cancel all active subscriptions if the campaign is completed', () => {
+    const payloadString = JSON.stringify(mockInvoicePaidEvent, null, 2)
+
+    const header = stripe.webhooks.generateTestHeaderString({
+      payload: payloadString,
+      secret: stripeSecret,
+    })
+
+    const campaignService = app.get<CampaignService>(CampaignService)
+    const recurring = app.get<RecurringDonationService>(RecurringDonationService)
+
+    const mockCancelSubscription = jest
+      .spyOn(recurring, 'cancelSubscription')
+      .mockImplementation(() => Promise.resolve(null))
+
+    const mockedCampaignById = jest
+      .spyOn(campaignService, 'getCampaignById')
+      .mockImplementation(() => Promise.resolve(mockedCampaignCompeleted))
+
+    const mockedDonateToCampaign = jest
+      .spyOn(campaignService, 'donateToCampaign')
+      .mockImplementation(() => Promise.resolve(mockedCampaignCompeleted))
+
+    const mockFindAllRecurringDonations = jest
+      .spyOn(recurring, 'findAllActiveRecurringDonationsByCampaignId')
+      .mockImplementation(() => Promise.resolve([mockedRecurringDonation]))
+
+    return request(app.getHttpServer())
+      .post(defaultStripeWebhookEndpoint)
+      .set('stripe-signature', header)
+      .type('json')
+      .send(payloadString)
+      .expect(201)
+      .then(() => {
+        expect(mockedCampaignById).toHaveBeenCalledWith(
+          mockCustomerSubscriptionCreated.data.object.metadata.campaignId,
+        ) //campaignId from the Stripe Event
+        expect(mockedDonateToCampaign).toHaveBeenCalled()
+        expect(mockCancelSubscription).toHaveBeenCalledWith(
+          mockedRecurringDonation.extSubscriptionId,
+        )
+        expect(mockFindAllRecurringDonations).toHaveBeenCalledWith(
+          mockCustomerSubscriptionCreated.data.object.metadata.campaignId,
+        )
+      })
   })
 })
 

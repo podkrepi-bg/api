@@ -8,6 +8,7 @@ import {
   Post,
   UnauthorizedException,
   Query,
+  Logger,
   Res,
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
@@ -41,7 +42,20 @@ export class DonationsController {
 
   @Post('create-checkout-session')
   @Public()
-  createCheckoutSession(@Body() sessionDto: CreateSessionDto) {
+  async createCheckoutSession(@Body() sessionDto: CreateSessionDto) {
+    if (sessionDto.mode === 'subscription' && (sessionDto.personId === null || sessionDto.personId.length === 0)) {
+      // in case of a intermediate (step 2) login, we might end up with no personId
+      // not able to fetch the current logged user here (due to @Public())
+      sessionDto.personId = await this.donationsService.getUserId(sessionDto.personEmail)
+    }
+
+    if (sessionDto.mode == 'subscription' && (sessionDto.personId == null || sessionDto.personId.length == 0)) {
+      Logger.error(`No personId found for email ${sessionDto.personEmail}. Unable to create a checkout session for a recurring donation`)
+      throw new UnauthorizedException("You must be logged in to create a recurring donation")
+    }
+
+    Logger.debug(`Creating checkout session with data ${JSON.stringify(sessionDto)}`)
+
     return this.donationsService.createCheckoutSession(sessionDto)
   }
 

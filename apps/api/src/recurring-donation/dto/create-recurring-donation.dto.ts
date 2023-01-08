@@ -10,11 +10,6 @@ export class CreateRecurringDonationDto {
   @IsEnum(RecurringDonationStatus)
   status: RecurringDonationStatus
 
-  // @ApiProperty()
-  // @IsUUID()
-  // @Expose()
-  // vaultId: string
-
   @ApiProperty()
   @Expose()
   @IsUUID()
@@ -23,12 +18,10 @@ export class CreateRecurringDonationDto {
   @ApiProperty()
   @Expose()
   @IsString()
-  @IsUUID()
   extSubscriptionId: string
 
   @ApiProperty()
   @Expose()
-  @IsUUID()
   extCustomerId: string
 
   @ApiProperty()
@@ -45,6 +38,11 @@ export class CreateRecurringDonationDto {
   @Expose()
   @IsUUID()
   sourceVault: string
+
+  @ApiProperty()
+  @Expose()
+  @IsUUID()
+  campaign: string
 
   public toEntity(): Prisma.RecurringDonationCreateInput {
     return {

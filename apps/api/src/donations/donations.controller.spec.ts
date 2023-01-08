@@ -29,7 +29,7 @@ describe('DonationsController', () => {
 
   const mockSession = {
     mode: 'payment',
-    priceId: 'testPriceId',
+    amount: 100,
     campaignId: 'testCampaignId',
     successUrl: 'http://test.com',
     cancelUrl: 'http://test.com',
@@ -109,11 +109,19 @@ describe('DonationsController', () => {
     expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
     expect(stripeMock.checkout.sessions.create).toHaveBeenCalledWith({
       mode: mockSession.mode,
-      line_items: [{ price: mockSession.priceId, quantity: 1 }],
+      line_items: [
+        {
+          amount: 100,
+          currency: undefined,
+          name: undefined,
+          quantity: 1,
+        },
+      ],
       payment_method_types: ['card'],
       payment_intent_data: {
         metadata: {
           campaignId: mockSession.campaignId,
+          personId: undefined,
         },
       },
       subscription_data: undefined,
