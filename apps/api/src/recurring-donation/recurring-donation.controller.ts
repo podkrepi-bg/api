@@ -23,10 +23,6 @@ export class RecurringDonationController {
   }
 
   @Get('user-donations')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
   findUserDonations(@AuthenticatedUser() user: KeycloakTokenParsed) {
     return this.recurringDonationService.findUserRecurringDonations(user.sub)
   }
@@ -59,10 +55,6 @@ export class RecurringDonationController {
   }
 
   @Get('cancel/:id')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
   async cancel(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
     Logger.log(`Cancelling recurring donation with id ${id}`)
     const rd = await this.recurringDonationService.findOne(id)

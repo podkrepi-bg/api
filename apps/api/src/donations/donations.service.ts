@@ -80,7 +80,7 @@ export class DonationsService {
         status: DonationStatus.initial,
         extCustomerId: sessionDto.personEmail ?? '',
         extPaymentIntentId: paymentIntentId,
-        extPaymentMethodId: sessionDto.mode === 'subscription' ?  'subscription' : 'card',
+        extPaymentMethodId: sessionDto.mode === 'subscription' ? 'subscription' : 'card',
         billingEmail: sessionDto.isAnonymous ? sessionDto.personEmail : null, //set the personal mail to billing which is not public field
         targetVault: targetVaultData,
       },
@@ -164,15 +164,15 @@ export class DonationsService {
       //use an inline price for subscriptions
       const stripeItem = {
         price_data: {
-            currency: campaign.currency,
-            unit_amount: sessionDto.amount,
-            recurring: {
-                interval: 'month' as Stripe.Price.Recurring.Interval,
-                interval_count: 1,
-            },
-            product_data: {
-                name: campaign.title,
-            },
+          currency: campaign.currency,
+          unit_amount: sessionDto.amount,
+          recurring: {
+            interval: 'month' as Stripe.Price.Recurring.Interval,
+            interval_count: 1,
+          },
+          product_data: {
+            name: campaign.title,
+          },
         },
         quantity: 1,
       }

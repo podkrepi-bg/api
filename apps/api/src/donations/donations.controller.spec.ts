@@ -127,6 +127,7 @@ describe('DonationsController', () => {
       subscription_data: undefined,
       success_url: mockSession.successUrl,
       cancel_url: mockSession.cancelUrl,
+      customer_email: undefined,
       tax_id_collection: {
         enabled: true,
       },
