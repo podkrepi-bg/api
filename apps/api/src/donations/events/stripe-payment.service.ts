@@ -37,11 +37,10 @@ export class StripePaymentService {
     )
 
     const metadata: DonationMetadata = paymentIntent.metadata as DonationMetadata
+
     if (!metadata.campaignId) {
-      throw new BadRequestException(
-        'Payment intent metadata does not contain target campaignId. Probably wrong session initiation. Payment intent is:  ' +
-          paymentIntent.id,
-      )
+      Logger.debug('[ handlePaymentIntentCreated ] No campaignId in metadata ' + paymentIntent.id)
+      return
     }
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
@@ -103,11 +102,10 @@ export class StripePaymentService {
     )
 
     const metadata: DonationMetadata = paymentIntent.metadata as DonationMetadata
+
     if (!metadata.campaignId) {
-      throw new BadRequestException(
-        'Payment intent metadata does not contain target campaignId. Probably wrong session initiation. Payment intent is:  ' +
-          paymentIntent.id,
-      )
+      Logger.debug('[ handlePaymentIntentCreated ] No campaignId in metadata ' + paymentIntent.id)
+      return
     }
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
@@ -165,7 +163,7 @@ export class StripePaymentService {
     }
 
     const rdDto: CreateRecurringDonationDto = new CreateRecurringDonationDto()
-    rdDto.campaign = metadata.campaignId
+    rdDto.campaignId = metadata.campaignId
     rdDto.extSubscriptionId = subscription.id
     rdDto.extCustomerId = subscription.customer as string
     rdDto.sourceVault = vault.id
@@ -191,7 +189,7 @@ export class StripePaymentService {
     rdDto.sourceVault = vault.id
     rdDto.personId = metadata.personId as string
 
-    Logger.debug('Creating recurring donation with data for ' + rdDto.campaign)
+    Logger.debug('Creating recurring donation with data for ' + rdDto.campaignId)
 
     await this.recurringDonationService.create(rdDto)
     this.handleSubscriptionUpdated(event)

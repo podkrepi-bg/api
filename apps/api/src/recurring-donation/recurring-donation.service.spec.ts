@@ -97,7 +97,7 @@ describe('RecurringDonationService', () => {
     dto.extSubscriptionId = '1'
     dto.vaultId = '1'
     dto.sourceVault = '1'
-    dto.campaign = '1'
+    dto.campaignId = '1'
     dto.status = RecurringDonationStatus.active
 
     await service.create(dto)
