@@ -35,6 +35,11 @@ export class DonationQueryDto {
 
   @Expose()
   @IsOptional()
+  @Transform(({ value }) => falsyToUndefined(value))
+  search?: string
+
+  @Expose()
+  @IsOptional()
   @Transform(({ value }) => toNumber(value))
   pageindex?: number
 

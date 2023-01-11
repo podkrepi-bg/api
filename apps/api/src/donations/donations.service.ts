@@ -241,6 +241,7 @@ export class DonationsService {
    * @param type (Optional) Filter by donation type
    * @param from (Optional) Filter by creation date
    * @param to (Optional) Filter by creation date
+   * @param search (Optional) Search by name or email
    * @param pageIndex (Optional)
    * @param pageSize (Optional)
    */
@@ -250,6 +251,7 @@ export class DonationsService {
     type?: DonationType,
     from?: Date,
     to?: Date,
+    search?: string,
     pageIndex?: number,
     pageSize?: number,
   ): Promise<ListDonationsDto<DonationWithPerson>> {
@@ -261,6 +263,24 @@ export class DonationsService {
           gte: from,
           lte: to,
         },
+        ...(search && {
+          OR: [
+            { billingName: { contains: search } },
+            { billingEmail: { contains: search } },
+            {
+              person: {
+                OR: [
+                  {
+                    firstName: { contains: search },
+                  },
+                  {
+                    lastName: { contains: search },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
         targetVault: { campaign: { id: campaignId } },
       },
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
@@ -276,6 +296,24 @@ export class DonationsService {
           gte: from,
           lte: to,
         },
+        ...(search && {
+          OR: [
+            { billingName: { contains: search } },
+            { billingEmail: { contains: search } },
+            {
+              person: {
+                OR: [
+                  {
+                    firstName: { contains: search },
+                  },
+                  {
+                    lastName: { contains: search },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
         targetVault: { campaign: { id: campaignId } },
       },
     })
