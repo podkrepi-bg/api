@@ -44,7 +44,7 @@
     "@sentry/node": "6.19.7",
     "aws-sdk": "2.1199.0",
     "class-transformer": "0.5.1",
-    "class-validator": "0.13.2",
+    "class-validator": "0.14.0",
     "exceljs": "4.3.0",
     "handlebars": "4.7.7",
     "helmet": "5.0.2",
