@@ -41,7 +41,7 @@ export class CreateCampaignDto {
   @IsOptional()
   @Expose()
   @IsUUID()
-  companyId?: string
+  companyId: string | null
 
   @ApiProperty()
   @IsOptional()
