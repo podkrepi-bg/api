@@ -1,4 +1,4 @@
-import { Prisma } from '.prisma/client'
+import { Prisma } from '@prisma/client'
 import { Expose } from 'class-transformer'
 import { IsNotEmpty, IsString } from 'class-validator'
 import { ApiProperty, PickType } from '@nestjs/swagger'

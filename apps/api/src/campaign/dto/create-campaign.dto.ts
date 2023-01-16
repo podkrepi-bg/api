@@ -11,7 +11,7 @@ import {
 } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose, Transform, Type } from 'class-transformer'
-import { CampaignState, Currency, Prisma } from '.prisma/client'
+import { CampaignState, Currency, Prisma } from '@prisma/client'
 import { getPaymentReference } from '../helpers/payment-reference'
 
 @Expose()

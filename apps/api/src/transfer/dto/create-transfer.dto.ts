@@ -2,7 +2,7 @@ import { Expose, Type } from 'class-transformer'
 import { ApiProperty } from '@nestjs/swagger/dist/decorators'
 import { IsDate, IsEnum, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator'
 
-import { TransferStatus, Currency } from '.prisma/client'
+import { TransferStatus, Currency } from '@prisma/client'
 
 @Expose()
 export class CreateTransferDto {

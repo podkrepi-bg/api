@@ -1,7 +1,7 @@
 import { Factory } from 'fishery'
 import { faker } from '@faker-js/faker'
 
-import { CampaignType, CampaignTypeCategory } from '.prisma/client'
+import { CampaignType, CampaignTypeCategory } from '@prisma/client'
 
 export const campaignTypeFactory = Factory.define<CampaignType>(({ associations }) => ({
   id: faker.datatype.uuid(),

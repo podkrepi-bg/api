@@ -1,5 +1,5 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common'
-import { Currency } from '.prisma/client'
+import { Currency } from '@prisma/client'
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignState } from '@prisma/client'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'

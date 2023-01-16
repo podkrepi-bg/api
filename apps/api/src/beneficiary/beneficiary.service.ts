@@ -1,4 +1,4 @@
-import { Beneficiary } from '.prisma/client'
+import { Beneficiary } from '@prisma/client'
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateBeneficiaryDto } from './dto/create-beneficiary.dto'

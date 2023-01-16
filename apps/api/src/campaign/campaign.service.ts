@@ -6,7 +6,7 @@ import {
   DonationStatus,
   DonationType,
   Vault,
-} from '.prisma/client'
+} from '@prisma/client'
 import {
   forwardRef,
   Inject,

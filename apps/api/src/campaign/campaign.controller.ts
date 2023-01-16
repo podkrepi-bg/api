@@ -1,4 +1,4 @@
-import { Campaign, CampaignState } from '.prisma/client'
+import { Campaign, CampaignState } from '@prisma/client'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import {

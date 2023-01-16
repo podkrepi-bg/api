@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 
-import { Person } from '.prisma/client'
+import { Person } from '@prisma/client'
 import { personFactory } from './factory'
 import { adminUser, coordinatorUser, giverUser, receiverUser, reviewerUser } from './data'
 

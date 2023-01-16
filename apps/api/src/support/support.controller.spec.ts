@@ -1,4 +1,4 @@
-import { InfoRequest, PrismaPromise, Supporter } from '.prisma/client'
+import { InfoRequest, PrismaPromise, Supporter } from '@prisma/client'
 import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { EmailService } from '../email/email.service'

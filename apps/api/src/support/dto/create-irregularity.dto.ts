@@ -1,4 +1,4 @@
-import { Prisma, IrregularityReason, IrregularityStatus } from '.prisma/client'
+import { Prisma, IrregularityReason, IrregularityStatus } from '@prisma/client'
 import { Expose, Type } from 'class-transformer'
 import { IsEnum, IsNotEmpty, IsObject, IsString, IsUUID, ValidateNested } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'

@@ -8,7 +8,7 @@ import { TransferController } from './transfer.controller'
 import { CreateTransferDto } from './dto/create-transfer.dto'
 import { UpdateTransferDto } from './dto/update-transfer.dto'
 
-import { TransferStatus, Currency } from '.prisma/client'
+import { TransferStatus, Currency } from '@prisma/client'
 
 const mockData = [
   {

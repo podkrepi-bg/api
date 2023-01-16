@@ -1759,18 +1759,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nrwl/cli@npm:15.0.4":
-  version: 15.0.4
-  resolution: "@nrwl/cli@npm:15.0.4"
+"@nrwl/cli@npm:15.5.1, @nrwl/cli@npm:^15.5.1":
+  version: 15.5.1
+  resolution: "@nrwl/cli@npm:15.5.1"
   dependencies:
-    nx: 15.0.4
-  checksum: 4541f88135a83089b94f628be721c3803ba158eed28c67da977e0dffdb8304624f78e10b569ad97dc482939dd7851795d6738475226ef8fdfa73aaac06f24652
+    nx: 15.5.1
+  checksum: 6fac24afa5bb7dcaf05a974342d79337e359be6cc52e600d83598729527a3005d28d2697b44acca422bc1967e760008e930c6b32026c34f3fe9d67e2f4faf61e
   languageName: node
   linkType: hard
 
-"@nrwl/devkit@npm:15.0.4":
-  version: 15.0.4
-  resolution: "@nrwl/devkit@npm:15.0.4"
+"@nrwl/devkit@npm:15.5.1":
+  version: 15.5.1
+  resolution: "@nrwl/devkit@npm:15.5.1"
   dependencies:
     "@phenomnomnominal/tsquery": 4.1.1
     ejs: ^3.1.7
@@ -1779,16 +1779,15 @@ __metadata:
     tslib: ^2.3.0
   peerDependencies:
     nx: ">= 14 <= 16"
-  checksum: 468beba3c96e4dcd2107a437cca8dedfea033cfaebec43bc715e592e210b0dc542cb210deb1f062ac45f56ad4aa9cfbcf02dceaf50cb7faabc0541af30b88ddd
+  checksum: b556fe5079ad7c5b7e768b392454f9182004c2744d63c5c49bc534a59db4408f779fca59c1928e468b7fd9e804d3c0bd43f62538489eb7cfe3aa02802763a6c9
   languageName: node
   linkType: hard
 
-"@nrwl/eslint-plugin-nx@npm:15.0.4":
-  version: 15.0.4
-  resolution: "@nrwl/eslint-plugin-nx@npm:15.0.4"
+"@nrwl/eslint-plugin-nx@npm:^15.5.1":
+  version: 15.5.1
+  resolution: "@nrwl/eslint-plugin-nx@npm:15.5.1"
   dependencies:
-    "@nrwl/devkit": 15.0.4
-    "@nrwl/workspace": 15.0.4
+    "@nrwl/devkit": 15.5.1
     "@typescript-eslint/utils": ^5.36.1
     chalk: 4.1.0
     confusing-browser-globals: ^1.0.9
@@ -1799,17 +1798,17 @@ __metadata:
   peerDependenciesMeta:
     eslint-config-prettier:
       optional: true
-  checksum: 3ee3a984babe1a05d661149bae5c7cedff24ef5428e83ee9b601ef27a03c20ace0d4b11bbc0d4cc62d8e4a3b9e1f7bc50db4ac858fd0af009406e026f304c5ca
+  checksum: bde0f6c69b7d24dffa7ccaaefdad16e6cd193c696070fb6cdcfef9897b8a34bd933739c5c043399e03d40eaebcdc7076d0301363735c85ff87f85c612cffee16
   languageName: node
   linkType: hard
 
-"@nrwl/jest@npm:15.0.4":
-  version: 15.0.4
-  resolution: "@nrwl/jest@npm:15.0.4"
+"@nrwl/jest@npm:15.5.1, @nrwl/jest@npm:^15.5.1":
+  version: 15.5.1
+  resolution: "@nrwl/jest@npm:15.5.1"
   dependencies:
     "@jest/reporters": 28.1.1
     "@jest/test-result": 28.1.1
-    "@nrwl/devkit": 15.0.4
+    "@nrwl/devkit": 15.5.1
     "@phenomnomnominal/tsquery": 4.1.1
     chalk: 4.1.0
     dotenv: ~10.0.0
@@ -1819,39 +1818,36 @@ __metadata:
     jest-util: 28.1.1
     resolve.exports: 1.1.0
     tslib: ^2.3.0
-  checksum: 349570b2b0551dcf1a9409f26ed57c076c25741ee91f2f39def8764d531c984d3eee3f3209b5a25e76a50959115d84ca64a91d286f4a3162e2753f6cffde59fe
+  checksum: a3b1d5f1ce173e2b85097020e169c80cf7438feea2e7dca2d86f4d0eb9db340f4a7948bd252a8be01063a29cbbb2434c00e6d75b11a89a240fe3117c4f9e3764
   languageName: node
   linkType: hard
 
-"@nrwl/js@npm:15.0.4":
-  version: 15.0.4
-  resolution: "@nrwl/js@npm:15.0.4"
+"@nrwl/js@npm:15.5.1":
+  version: 15.5.1
+  resolution: "@nrwl/js@npm:15.5.1"
   dependencies:
-    "@nrwl/devkit": 15.0.4
-    "@nrwl/jest": 15.0.4
-    "@nrwl/linter": 15.0.4
-    "@nrwl/workspace": 15.0.4
-    "@parcel/watcher": 2.0.4
+    "@nrwl/devkit": 15.5.1
+    "@nrwl/linter": 15.5.1
+    "@nrwl/workspace": 15.5.1
     chalk: 4.1.0
     fast-glob: 3.2.7
-    fs-extra: ^10.1.0
+    fs-extra: ^11.1.0
     ignore: ^5.0.4
     js-tokens: ^4.0.0
     minimatch: 3.0.5
     source-map-support: 0.5.19
     tree-kill: 1.2.2
-  checksum: 464f83f62f4acfe0ee813350845bec384047c6c31483e665f8fbc9228b9c96ce6cd388afe3260b638d97ef98ba53be1ee6faedc1a1b3d1cf23148dd3a0fa6559
+    tslib: ^2.3.0
+  checksum: 83ad0365ed6673092d20a086c5fb2e7b35b3efe0a42f4afd813fd8d50d63e96826c0421e6ef9314c7fe50213bc7999ac1b4a22fdd71df7740177fc41b0f2153d
   languageName: node
   linkType: hard
 
-"@nrwl/linter@npm:15.0.4":
-  version: 15.0.4
-  resolution: "@nrwl/linter@npm:15.0.4"
+"@nrwl/linter@npm:15.5.1, @nrwl/linter@npm:^15.5.1":
+  version: 15.5.1
+  resolution: "@nrwl/linter@npm:15.5.1"
   dependencies:
-    "@nrwl/devkit": 15.0.4
-    "@nrwl/jest": 15.0.4
+    "@nrwl/devkit": 15.5.1
     "@phenomnomnominal/tsquery": 4.1.1
-    nx: 15.0.4
     tmp: ~0.2.1
     tslib: ^2.3.0
   peerDependencies:
@@ -1859,112 +1855,109 @@ __metadata:
   peerDependenciesMeta:
     eslint:
       optional: true
-  checksum: b22e16f03655352c37e7d873af1b71476e7cd40e50614ffa28ac4f86975e2afe15e54596769326b9c213dc1085deea1fb4c6831a43806db9511cae51470f4107
+  checksum: 1bbe0c2c99f96f83c81094b533ecf83e9fccdcb1794fa2a206c3e650d18e6f7c3a30efdf20bf6f7d9efd57ba52f5610ddf5bc906e7d42c570db565c364eab68e
   languageName: node
   linkType: hard
 
-"@nrwl/nest@npm:15.0.4":
-  version: 15.0.4
-  resolution: "@nrwl/nest@npm:15.0.4"
+"@nrwl/nest@npm:^15.5.1":
+  version: 15.5.1
+  resolution: "@nrwl/nest@npm:15.5.1"
   dependencies:
     "@nestjs/schematics": ^9.0.0
-    "@nrwl/devkit": 15.0.4
-    "@nrwl/js": 15.0.4
-    "@nrwl/linter": 15.0.4
-    "@nrwl/node": 15.0.4
+    "@nrwl/devkit": 15.5.1
+    "@nrwl/js": 15.5.1
+    "@nrwl/linter": 15.5.1
+    "@nrwl/node": 15.5.1
     enquirer: ~2.3.6
-  checksum: dfaf2f7104cfa71312c18b35e8f7da3725e7a1d2166d590542af540f3022702af9cd03fbc960ff6b382a56280d2d909861a426e3f2f4d1a975c68940b0b5d029
+  checksum: 9d980d3b3556799a72c474fa130857055e03d0cd0b7cee32531e3ec5380b429899e44673c036e55f39d75e29d0ddb262228d86a47708d366b304797872b475a1
   languageName: node
   linkType: hard
 
-"@nrwl/node@npm:15.0.4":
-  version: 15.0.4
-  resolution: "@nrwl/node@npm:15.0.4"
+"@nrwl/node@npm:15.5.1, @nrwl/node@npm:^15.5.1":
+  version: 15.5.1
+  resolution: "@nrwl/node@npm:15.5.1"
   dependencies:
-    "@nrwl/devkit": 15.0.4
-    "@nrwl/jest": 15.0.4
-    "@nrwl/js": 15.0.4
-    "@nrwl/linter": 15.0.4
-    "@nrwl/webpack": 15.0.4
-    "@nrwl/workspace": 15.0.4
+    "@nrwl/devkit": 15.5.1
+    "@nrwl/jest": 15.5.1
+    "@nrwl/js": 15.5.1
+    "@nrwl/linter": 15.5.1
+    "@nrwl/webpack": 15.5.1
+    "@nrwl/workspace": 15.5.1
     chalk: 4.1.0
+    enquirer: ~2.3.6
     tslib: ^2.3.0
-  checksum: c1a433a5170351e8a1008a30127b8a40895f3a99c4157597c8a83ab0db7cb775554a6a6f7d9010615c3244463b3847fcc5da97d126b06b2353cb0a841502f270
+  checksum: fd3aa077b303f565df8b33fe0d54394be5203c0048302dd75e2d20b0393edafadfeacf80bced194c77a5ec08b5b7ff23d940998861e671d93185e4b73a3e7582
   languageName: node
   linkType: hard
 
-"@nrwl/tao@npm:15.0.4":
-  version: 15.0.4
-  resolution: "@nrwl/tao@npm:15.0.4"
+"@nrwl/tao@npm:15.5.1, @nrwl/tao@npm:^15.5.1":
+  version: 15.5.1
+  resolution: "@nrwl/tao@npm:15.5.1"
   dependencies:
-    nx: 15.0.4
+    nx: 15.5.1
   bin:
     tao: index.js
-  checksum: 342ca77d317d64ea30c5e9299d6266afa4fb302cf8e6a47ae42f028d784fe363ecaaa94780ac86f92a52849b7042db271ab2bfeb1534a09dbbe4f072423e6efd
+  checksum: d884a8a62356dd7babdd26789531499ad95cc5c37dd22c04a381896d8f70a95b1eba52e3792d04df862cc0cad22ec2d609c9ab47a995413cdf4add9ac7ce628e
   languageName: node
   linkType: hard
 
-"@nrwl/webpack@npm:15.0.4":
-  version: 15.0.4
-  resolution: "@nrwl/webpack@npm:15.0.4"
+"@nrwl/webpack@npm:15.5.1":
+  version: 15.5.1
+  resolution: "@nrwl/webpack@npm:15.5.1"
   dependencies:
-    "@nrwl/devkit": 15.0.4
-    "@nrwl/js": 15.0.4
-    "@nrwl/workspace": 15.0.4
+    "@nrwl/devkit": 15.5.1
+    "@nrwl/js": 15.5.1
+    "@nrwl/workspace": 15.5.1
     autoprefixer: ^10.4.9
     babel-loader: ^8.2.2
-    browserslist: ^4.16.6
-    caniuse-lite: ^1.0.30001394
     chalk: 4.1.0
     chokidar: ^3.5.1
     copy-webpack-plugin: ^10.2.4
+    css-loader: ^6.4.0
     css-minimizer-webpack-plugin: ^3.4.1
     dotenv: ~10.0.0
     file-loader: ^6.2.0
     fork-ts-checker-webpack-plugin: 7.2.13
-    fs-extra: ^10.1.0
+    fs-extra: ^11.1.0
     ignore: ^5.0.4
     less: 3.12.2
-    less-loader: ^10.1.0
+    less-loader: ^11.1.0
     license-webpack-plugin: ^4.0.2
-    loader-utils: 1.2.3
+    loader-utils: ^2.0.3
     mini-css-extract-plugin: ~2.4.7
     parse5: 4.0.0
     parse5-html-rewriting-stream: 6.0.1
     postcss: ^8.4.14
     postcss-import: ~14.1.0
     postcss-loader: ^6.1.1
-    raw-loader: ^4.0.2
     rxjs: ^6.5.4
     sass: ^1.42.1
     sass-loader: ^12.2.0
     source-map-loader: ^3.0.0
     style-loader: ^3.3.0
     stylus: ^0.55.0
-    stylus-loader: ^6.2.0
+    stylus-loader: ^7.1.0
     terser-webpack-plugin: ^5.3.3
     ts-loader: ^9.3.1
     ts-node: 10.9.1
-    tsconfig-paths: ^3.9.0
-    tsconfig-paths-webpack-plugin: 3.5.2
+    tsconfig-paths: ^4.1.2
+    tsconfig-paths-webpack-plugin: 4.0.0
     tslib: ^2.3.0
-    webpack: ^5.58.1
+    webpack: ^5.75.0
     webpack-dev-server: ^4.9.3
     webpack-merge: ^5.8.0
     webpack-node-externals: ^3.0.0
-    webpack-sources: ^3.2.3
     webpack-subresource-integrity: ^5.1.0
-  checksum: c7ae36adb98a5560640b5b6212d0d8940b315bb51adb679f6722d6e53c57e5dc0b7769f1062b96f85edba89058c40237a656e10ddc97a07457c486d495f6a6bb
+  checksum: d26946ba11a1def85b647d99da561c530d0fd886838944d6b1d45ff018ada9dcfcb2901f33bad6cd8cc5c463bc0b0cbf96c71f7d19e153d3bad499fc42323319
   languageName: node
   linkType: hard
 
-"@nrwl/workspace@npm:15.0.4":
-  version: 15.0.4
-  resolution: "@nrwl/workspace@npm:15.0.4"
+"@nrwl/workspace@npm:15.5.1, @nrwl/workspace@npm:^15.5.1":
+  version: 15.5.1
+  resolution: "@nrwl/workspace@npm:15.5.1"
   dependencies:
-    "@nrwl/devkit": 15.0.4
-    "@nrwl/jest": 15.0.4
-    "@nrwl/linter": 15.0.4
+    "@nrwl/devkit": 15.5.1
+    "@nrwl/linter": 15.5.1
     "@parcel/watcher": 2.0.4
     chalk: 4.1.0
     chokidar: ^3.5.1
@@ -1974,25 +1967,26 @@ __metadata:
     enquirer: ~2.3.6
     figures: 3.2.0
     flat: ^5.0.2
-    fs-extra: ^10.1.0
+    fs-extra: ^11.1.0
     glob: 7.1.4
     ignore: ^5.0.4
+    jsonc-parser: 3.2.0
     minimatch: 3.0.5
     npm-run-path: ^4.0.1
-    nx: 15.0.4
+    nx: 15.5.1
     open: ^8.4.0
     rxjs: ^6.5.4
     semver: 7.3.4
     tmp: ~0.2.1
     tslib: ^2.3.0
-    yargs: ^17.4.0
-    yargs-parser: 21.0.1
+    yargs: ^17.6.2
+    yargs-parser: 21.1.1
   peerDependencies:
     prettier: ^2.6.2
   peerDependenciesMeta:
     prettier:
       optional: true
-  checksum: a7bc87c7565cd7045df2da663a0d92650dde2ee204230839c38500623c10ecffc76804612b1e922961b68dc45894f7b25e17554d18965cb9f8adc6cc621b9e8e
+  checksum: 2c9025c9fb0e850e287367796e9043d78dda8c30571c4ce7bb67574426f226e2737fdb1605d3904287d9e2ac613c9801554baac9a93ea62f345f5bc7e919aa8a
   languageName: node
   linkType: hard
 
@@ -2836,13 +2830,6 @@ __metadata:
   version: 7.0.11
   resolution: "@types/json-schema@npm:7.0.11"
   checksum: 527bddfe62db9012fccd7627794bd4c71beb77601861055d87e3ee464f2217c85fca7a4b56ae677478367bbd248dbde13553312b7d4dbc702a2f2bbf60c4018d
-  languageName: node
-  linkType: hard
-
-"@types/json5@npm:^0.0.29":
-  version: 0.0.29
-  resolution: "@types/json5@npm:0.0.29"
-  checksum: e60b153664572116dfea673c5bda7778dbff150498f44f998e34b5886d8afc47f16799280e4b6e241c0472aef1bc36add771c569c68fc5125fc2ae519a3eb9ac
   languageName: node
   linkType: hard
 
@@ -4454,7 +4441,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001394, caniuse-lite@npm:^1.0.30001400, caniuse-lite@npm:^1.0.30001426":
+"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001400, caniuse-lite@npm:^1.0.30001426":
   version: 1.0.30001426
   resolution: "caniuse-lite@npm:1.0.30001426"
   checksum: e8b9c14ee33410d95b27da619f50648f373a7be712748970643f25d95fa80687b4755ba365f34a7a1cea00f9137193943aa6e742eedf0a4d7857f83809f49435
@@ -5195,6 +5182,24 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
+"css-loader@npm:^6.4.0":
+  version: 6.7.3
+  resolution: "css-loader@npm:6.7.3"
+  dependencies:
+    icss-utils: ^5.1.0
+    postcss: ^8.4.19
+    postcss-modules-extract-imports: ^3.0.0
+    postcss-modules-local-by-default: ^4.0.0
+    postcss-modules-scope: ^3.0.0
+    postcss-modules-values: ^4.0.0
+    postcss-value-parser: ^4.2.0
+    semver: ^7.3.8
+  peerDependencies:
+    webpack: ^5.0.0
+  checksum: 473cc32b6c837c2848e2051ad1ba331c1457449f47442e75a8c480d9891451434ada241f7e3de2347e57de17fcd84610b3bcfc4a9da41102cdaedd1e17902d31
+  languageName: node
+  linkType: hard
+
 "css-minimizer-webpack-plugin@npm:^3.4.1":
   version: 3.4.1
   resolution: "css-minimizer-webpack-plugin@npm:3.4.1"
@@ -5815,13 +5820,6 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"emojis-list@npm:^2.0.0":
-  version: 2.1.0
-  resolution: "emojis-list@npm:2.1.0"
-  checksum: fb61fa6356dfcc9fbe6db8e334c29da365a34d3d82a915cb59621883d3023d804fd5edad5acd42b8eec016936e81d3b38e2faf921b32e073758374253afe1272
-  languageName: node
-  linkType: hard
-
 "emojis-list@npm:^3.0.0":
   version: 3.0.0
   resolution: "emojis-list@npm:3.0.0"
@@ -6415,7 +6413,7 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"fast-glob@npm:3.2.12":
+"fast-glob@npm:3.2.12, fast-glob@npm:^3.2.12":
   version: 3.2.12
   resolution: "fast-glob@npm:3.2.12"
   dependencies:
@@ -6768,7 +6766,7 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"fs-extra@npm:10.1.0, fs-extra@npm:^10.0.0, fs-extra@npm:^10.1.0":
+"fs-extra@npm:10.1.0, fs-extra@npm:^10.0.0":
   version: 10.1.0
   resolution: "fs-extra@npm:10.1.0"
   dependencies:
@@ -6776,6 +6774,17 @@ chromedriver@latest:
     jsonfile: ^6.0.1
     universalify: ^2.0.0
   checksum: dc94ab37096f813cc3ca12f0f1b5ad6744dfed9ed21e953d72530d103cea193c2f81584a39e9dee1bea36de5ee66805678c0dddc048e8af1427ac19c00fffc50
+  languageName: node
+  linkType: hard
+
+"fs-extra@npm:^11.1.0":
+  version: 11.1.0
+  resolution: "fs-extra@npm:11.1.0"
+  dependencies:
+    graceful-fs: ^4.2.0
+    jsonfile: ^6.0.1
+    universalify: ^2.0.0
+  checksum: 5ca476103fa1f5ff4a9b3c4f331548f8a3c1881edaae323a4415d3153b5dc11dc6a981c8d1dd93eec8367ceee27b53f8bd27eecbbf66ffcdd04927510c171e7f
   languageName: node
   linkType: hard
 
@@ -7488,6 +7497,15 @@ chromedriver@latest:
   dependencies:
     safer-buffer: ">= 2.1.2 < 3.0.0"
   checksum: 3f60d47a5c8fc3313317edfd29a00a692cc87a19cac0159e2ce711d0ebc9019064108323b5e493625e25594f11c6236647d8e256fbe7a58f4a3b33b89e6d30bf
+  languageName: node
+  linkType: hard
+
+"icss-utils@npm:^5.0.0, icss-utils@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "icss-utils@npm:5.1.0"
+  peerDependencies:
+    postcss: ^8.1.0
+  checksum: 5c324d283552b1269cfc13a503aaaa172a280f914e5b81544f3803bc6f06a3b585fb79f66f7c771a2c052db7982c18bf92d001e3b47282e3abbbb4c4cc488d68
   languageName: node
   linkType: hard
 
@@ -9127,23 +9145,21 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"json5@npm:^1.0.1":
-  version: 1.0.2
-  resolution: "json5@npm:1.0.2"
-  dependencies:
-    minimist: ^1.2.0
-  bin:
-    json5: lib/cli.js
-  checksum: 866458a8c58a95a49bef3adba929c625e82532bcff1fe93f01d29cb02cac7c3fe1f4b79951b7792c2da9de0b32871a8401a6e3c5b36778ad852bf5b8a61165d7
-  languageName: node
-  linkType: hard
-
 "json5@npm:^2.1.2, json5@npm:^2.2.1":
   version: 2.2.1
   resolution: "json5@npm:2.2.1"
   bin:
     json5: lib/cli.js
   checksum: 74b8a23b102a6f2bf2d224797ae553a75488b5adbaee9c9b6e5ab8b510a2fc6e38f876d4c77dea672d4014a44b2399e15f2051ac2b37b87f74c0c7602003543b
+  languageName: node
+  linkType: hard
+
+"json5@npm:^2.2.2":
+  version: 2.2.3
+  resolution: "json5@npm:2.2.3"
+  bin:
+    json5: lib/cli.js
+  checksum: 2a7436a93393830bce797d4626275152e37e877b265e94ca69c99e3d20c2b9dab021279146a39cdb700e71b2dd32a4cebd1514cd57cee102b1af906ce5040349
   languageName: node
   linkType: hard
 
@@ -9304,15 +9320,15 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"less-loader@npm:^10.1.0":
-  version: 10.2.0
-  resolution: "less-loader@npm:10.2.0"
+"less-loader@npm:^11.1.0":
+  version: 11.1.0
+  resolution: "less-loader@npm:11.1.0"
   dependencies:
     klona: ^2.0.4
   peerDependencies:
     less: ^3.5.0 || ^4.0.0
     webpack: ^5.0.0
-  checksum: 42a2b56a9d474c066b22423e8ed82821ed6dbc5effad8d84b2a3d8651fb4c5027f32ac770a0fe4810e3e6d0595be576a2f7f2341f2603bdf795cff4e94d7340b
+  checksum: 041216e0a6d95e24c9724f470719db3eb70b3888c45b1a1e9cd55edabe8ae79709522cd6c6713b466b3e9948544074e2a5b2be50ac3ced5ff41dfa9675f3b182
   languageName: node
   linkType: hard
 
@@ -9410,6 +9426,13 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
+"lines-and-columns@npm:~2.0.3":
+  version: 2.0.3
+  resolution: "lines-and-columns@npm:2.0.3"
+  checksum: 5955363dfd7d3d7c476d002eb47944dbe0310d57959e2112dce004c0dc76cecfd479cf8c098fd479ff344acdf04ee0e82b455462a26492231ac152f6c48d17a1
+  languageName: node
+  linkType: hard
+
 "lint-staged@npm:11.1.2":
   version: 11.1.2
   resolution: "lint-staged@npm:11.1.2"
@@ -9469,17 +9492,6 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"loader-utils@npm:1.2.3":
-  version: 1.2.3
-  resolution: "loader-utils@npm:1.2.3"
-  dependencies:
-    big.js: ^5.2.2
-    emojis-list: ^2.0.0
-    json5: ^1.0.1
-  checksum: 385407fc2683b6d664276fd41df962296de4a15030bb24389de77b175570c3b56bd896869376ba14cf8b33a9e257e17a91d395739ba7e23b5b68a8749a41df7e
-  languageName: node
-  linkType: hard
-
 "loader-utils@npm:^2.0.0":
   version: 2.0.3
   resolution: "loader-utils@npm:2.0.3"
@@ -9488,6 +9500,17 @@ chromedriver@latest:
     emojis-list: ^3.0.0
     json5: ^2.1.2
   checksum: d055c61ce5927b64cb4af40218606603a7d3a39adb7b6eec116bb31d19203875950e478152dea056de404eced8e87e9bfd336ec636591ded040ea451f63c7d88
+  languageName: node
+  linkType: hard
+
+"loader-utils@npm:^2.0.3":
+  version: 2.0.4
+  resolution: "loader-utils@npm:2.0.4"
+  dependencies:
+    big.js: ^5.2.2
+    emojis-list: ^3.0.0
+    json5: ^2.1.2
+  checksum: a5281f5fff1eaa310ad5e1164095689443630f3411e927f95031ab4fb83b4a98f388185bb1fe949e8ab8d4247004336a625e9255c22122b815bb9a4c5d8fc3b7
   languageName: node
   linkType: hard
 
@@ -10787,19 +10810,18 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"nx@npm:15.0.4":
-  version: 15.0.4
-  resolution: "nx@npm:15.0.4"
+"nx@npm:15.5.1, nx@npm:^15.5.1":
+  version: 15.5.1
+  resolution: "nx@npm:15.5.1"
   dependencies:
-    "@nrwl/cli": 15.0.4
-    "@nrwl/tao": 15.0.4
+    "@nrwl/cli": 15.5.1
+    "@nrwl/tao": 15.5.1
     "@parcel/watcher": 2.0.4
     "@yarnpkg/lockfile": ^1.1.0
     "@yarnpkg/parsers": ^3.0.0-rc.18
     "@zkochan/js-yaml": 0.0.6
     axios: ^1.0.0
     chalk: 4.1.0
-    chokidar: ^3.5.1
     cli-cursor: 3.1.0
     cli-spinners: 2.6.1
     cliui: ^7.0.2
@@ -10808,11 +10830,12 @@ chromedriver@latest:
     fast-glob: 3.2.7
     figures: 3.2.0
     flat: ^5.0.2
-    fs-extra: ^10.1.0
+    fs-extra: ^11.1.0
     glob: 7.1.4
     ignore: ^5.0.4
     js-yaml: 4.1.0
     jsonc-parser: 3.2.0
+    lines-and-columns: ~2.0.3
     minimatch: 3.0.5
     npm-run-path: ^4.0.1
     open: ^8.4.0
@@ -10821,11 +10844,11 @@ chromedriver@latest:
     strong-log-transformer: ^2.1.0
     tar-stream: ~2.2.0
     tmp: ~0.2.1
-    tsconfig-paths: ^3.9.0
+    tsconfig-paths: ^4.1.2
     tslib: ^2.3.0
     v8-compile-cache: 2.3.0
-    yargs: ^17.4.0
-    yargs-parser: 21.0.1
+    yargs: ^17.6.2
+    yargs-parser: 21.1.1
   peerDependencies:
     "@swc-node/register": ^1.4.2
     "@swc/core": ^1.2.173
@@ -10836,7 +10859,7 @@ chromedriver@latest:
       optional: true
   bin:
     nx: bin/nx.js
-  checksum: 00def43fa750159b32a6bebc13a90ebeaef4f6d65b51c556389c7a004f9d71d7231f66ffedf2ea64ec3877e36671dda1550f3cf4cdd208ea2868229e83da4a10
+  checksum: 010a38660eaff660aa13080c1247ed7606e35eb6eb5eb9cf6b921d6354f1590b84b2af4d8524a068dc804584cda0f61f3f2940c0aecee6214bfdd580a5aedf6e
   languageName: node
   linkType: hard
 
@@ -11318,14 +11341,14 @@ chromedriver@latest:
     "@nestjs/swagger": 6.1.2
     "@nestjs/terminus": 9.1.2
     "@nestjs/testing": 9.2.1
-    "@nrwl/cli": 15.0.4
-    "@nrwl/eslint-plugin-nx": 15.0.4
-    "@nrwl/jest": 15.0.4
-    "@nrwl/linter": 15.0.4
-    "@nrwl/nest": 15.0.4
-    "@nrwl/node": 15.0.4
-    "@nrwl/tao": 15.0.4
-    "@nrwl/workspace": 15.0.4
+    "@nrwl/cli": ^15.5.1
+    "@nrwl/eslint-plugin-nx": ^15.5.1
+    "@nrwl/jest": ^15.5.1
+    "@nrwl/linter": ^15.5.1
+    "@nrwl/nest": ^15.5.1
+    "@nrwl/node": ^15.5.1
+    "@nrwl/tao": ^15.5.1
+    "@nrwl/workspace": ^15.5.1
     "@ntegral/nestjs-sentry": 4.0.0
     "@prisma/client": 4.3.1
     "@sendgrid/client": 7.6.2
@@ -11362,7 +11385,7 @@ chromedriver@latest:
     mjml: 4.12.0
     nanoid: 3.3.4
     nest-keycloak-connect: 1.9.0
-    nx: 15.0.4
+    nx: ^15.5.1
     prettier: 2.6.0
     prisma: 4.3.1
     prisma-dbml-generator: 0.9.1
@@ -11553,6 +11576,50 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
+"postcss-modules-extract-imports@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "postcss-modules-extract-imports@npm:3.0.0"
+  peerDependencies:
+    postcss: ^8.1.0
+  checksum: 4b65f2f1382d89c4bc3c0a1bdc5942f52f3cb19c110c57bd591ffab3a5fee03fcf831604168205b0c1b631a3dce2255c70b61aaae3ef39d69cd7eb450c2552d2
+  languageName: node
+  linkType: hard
+
+"postcss-modules-local-by-default@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "postcss-modules-local-by-default@npm:4.0.0"
+  dependencies:
+    icss-utils: ^5.0.0
+    postcss-selector-parser: ^6.0.2
+    postcss-value-parser: ^4.1.0
+  peerDependencies:
+    postcss: ^8.1.0
+  checksum: 6cf570badc7bc26c265e073f3ff9596b69bb954bc6ac9c5c1b8cba2995b80834226b60e0a3cbb87d5f399dbb52e6466bba8aa1d244f6218f99d834aec431a69d
+  languageName: node
+  linkType: hard
+
+"postcss-modules-scope@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "postcss-modules-scope@npm:3.0.0"
+  dependencies:
+    postcss-selector-parser: ^6.0.4
+  peerDependencies:
+    postcss: ^8.1.0
+  checksum: 330b9398dbd44c992c92b0dc612c0626135e2cc840fee41841eb61247a6cfed95af2bd6f67ead9dd9d0bb41f5b0367129d93c6e434fa3e9c58ade391d9a5a138
+  languageName: node
+  linkType: hard
+
+"postcss-modules-values@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "postcss-modules-values@npm:4.0.0"
+  dependencies:
+    icss-utils: ^5.0.0
+  peerDependencies:
+    postcss: ^8.1.0
+  checksum: f7f2cdf14a575b60e919ad5ea52fed48da46fe80db2733318d71d523fc87db66c835814940d7d05b5746b0426e44661c707f09bdb83592c16aea06e859409db6
+  languageName: node
+  linkType: hard
+
 "postcss-normalize-charset@npm:^5.1.0":
   version: 5.1.0
   resolution: "postcss-normalize-charset@npm:5.1.0"
@@ -11687,6 +11754,16 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
+"postcss-selector-parser@npm:^6.0.2":
+  version: 6.0.11
+  resolution: "postcss-selector-parser@npm:6.0.11"
+  dependencies:
+    cssesc: ^3.0.0
+    util-deprecate: ^1.0.2
+  checksum: 0b01aa9c2d2c8dbeb51e9b204796b678284be9823abc8d6d40a8b16d4149514e922c264a8ed4deb4d6dbced564b9be390f5942c058582d8656351516d6c49cde
+  languageName: node
+  linkType: hard
+
 "postcss-selector-parser@npm:^6.0.4, postcss-selector-parser@npm:^6.0.5, postcss-selector-parser@npm:^6.0.9":
   version: 6.0.10
   resolution: "postcss-selector-parser@npm:6.0.10"
@@ -11720,7 +11797,7 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"postcss-value-parser@npm:^4.0.0, postcss-value-parser@npm:^4.2.0":
+"postcss-value-parser@npm:^4.0.0, postcss-value-parser@npm:^4.1.0, postcss-value-parser@npm:^4.2.0":
   version: 4.2.0
   resolution: "postcss-value-parser@npm:4.2.0"
   checksum: 819ffab0c9d51cf0acbabf8996dffbfafbafa57afc0e4c98db88b67f2094cb44488758f06e5da95d7036f19556a4a732525e84289a425f4f6fd8e412a9d7442f
@@ -11735,6 +11812,17 @@ chromedriver@latest:
     picocolors: ^1.0.0
     source-map-js: ^1.0.2
   checksum: 9349fd99849b2e3d2e134ff949b7770ecb12375f352723ce2bcc06167eba3850ea7844c1b191a85cd915d6a396b4e8ee9a5267e6cc5d8d003d0cbc7a97555d39
+  languageName: node
+  linkType: hard
+
+"postcss@npm:^8.4.19":
+  version: 8.4.21
+  resolution: "postcss@npm:8.4.21"
+  dependencies:
+    nanoid: ^3.3.4
+    picocolors: ^1.0.0
+    source-map-js: ^1.0.2
+  checksum: e39ac60ccd1542d4f9d93d894048aac0d686b3bb38e927d8386005718e6793dbbb46930f0a523fe382f1bbd843c6d980aaea791252bf5e176180e5a4336d9679
   languageName: node
   linkType: hard
 
@@ -11987,18 +12075,6 @@ chromedriver@latest:
     iconv-lite: 0.4.24
     unpipe: 1.0.0
   checksum: 5362adff1575d691bb3f75998803a0ffed8c64eabeaa06e54b4ada25a0cd1b2ae7f4f5ec46565d1bec337e08b5ac90c76eaa0758de6f72a633f025d754dec29e
-  languageName: node
-  linkType: hard
-
-"raw-loader@npm:^4.0.2":
-  version: 4.0.2
-  resolution: "raw-loader@npm:4.0.2"
-  dependencies:
-    loader-utils: ^2.0.0
-    schema-utils: ^3.0.0
-  peerDependencies:
-    webpack: ^4.0.0 || ^5.0.0
-  checksum: 51cc1b0d0e8c37c4336b5318f3b2c9c51d6998ad6f56ea09612afcfefc9c1f596341309e934a744ae907177f28efc9f1654eacd62151e82853fcc6d37450e795
   languageName: node
   linkType: hard
 
@@ -12531,6 +12607,17 @@ chromedriver@latest:
   bin:
     semver: ./bin/semver.js
   checksum: 1b26ecf6db9e8292dd90df4e781d91875c0dcc1b1909e70f5d12959a23c7eebb8f01ea581c00783bbee72ceeaad9505797c381756326073850dc36ed284b21b9
+  languageName: node
+  linkType: hard
+
+"semver@npm:^7.3.8":
+  version: 7.3.8
+  resolution: "semver@npm:7.3.8"
+  dependencies:
+    lru-cache: ^6.0.0
+  bin:
+    semver: bin/semver.js
+  checksum: ba9c7cbbf2b7884696523450a61fee1a09930d888b7a8d7579025ad93d459b2d1949ee5bbfeb188b2be5f4ac163544c5e98491ad6152df34154feebc2cc337c1
   languageName: node
   linkType: hard
 
@@ -13156,17 +13243,17 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"stylus-loader@npm:^6.2.0":
-  version: 6.2.0
-  resolution: "stylus-loader@npm:6.2.0"
+"stylus-loader@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "stylus-loader@npm:7.1.0"
   dependencies:
-    fast-glob: ^3.2.7
-    klona: ^2.0.4
+    fast-glob: ^3.2.12
+    klona: ^2.0.5
     normalize-path: ^3.0.0
   peerDependencies:
     stylus: ">=0.52.4"
     webpack: ^5.0.0
-  checksum: 0a7bf31f1d8b0c0a0733509523ec542216e17088d01405d0e5e2dca6c5bacca3863cf5d40f4a2ffd8722c471e2e15db553dd8c65512602242533617b4a0fd70a
+  checksum: 1406fd7ee08d2113659eae66a602e32a26a7c14036110da8287a38bb7142591cb26150d67178752a4949f40f7bad0bc8c07fdb4d4ba03008c35bd60c30645400
   languageName: node
   linkType: hard
 
@@ -13732,17 +13819,6 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"tsconfig-paths-webpack-plugin@npm:3.5.2":
-  version: 3.5.2
-  resolution: "tsconfig-paths-webpack-plugin@npm:3.5.2"
-  dependencies:
-    chalk: ^4.1.0
-    enhanced-resolve: ^5.7.0
-    tsconfig-paths: ^3.9.0
-  checksum: e7872f45b10684204d4a6cbc7989073d885c99e0c9eb5222de6b2b83d2e1594bccb647f52d2f8e00c53da5b9a3084e47a2de44f41c6f7a607ec2b17330a8d9e9
-  languageName: node
-  linkType: hard
-
 "tsconfig-paths-webpack-plugin@npm:4.0.0":
   version: 4.0.0
   resolution: "tsconfig-paths-webpack-plugin@npm:4.0.0"
@@ -13765,15 +13841,14 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"tsconfig-paths@npm:^3.9.0":
-  version: 3.14.1
-  resolution: "tsconfig-paths@npm:3.14.1"
+"tsconfig-paths@npm:^4.1.2":
+  version: 4.1.2
+  resolution: "tsconfig-paths@npm:4.1.2"
   dependencies:
-    "@types/json5": ^0.0.29
-    json5: ^1.0.1
+    json5: ^2.2.2
     minimist: ^1.2.6
     strip-bom: ^3.0.0
-  checksum: 8afa01c673ebb4782ba53d3a12df97fa837ce524f8ad38ee4e2b2fd57f5ac79abc21c574e9e9eb014d93efe7fe8214001b96233b5c6ea75bd1ea82afe17a4c6d
+  checksum: 3d9151ecea139594e25618717de15769ab9f38f8e6d510ac16e592b23e7f7105ea13cec5694c3de7e132c98277b775e18edd1651964164ee6d75737c408494cc
   languageName: node
   linkType: hard
 
@@ -14342,7 +14417,7 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"webpack@npm:5.74.0, webpack@npm:^5.58.1":
+"webpack@npm:5.74.0":
   version: 5.74.0
   resolution: "webpack@npm:5.74.0"
   dependencies:
@@ -14376,6 +14451,43 @@ chromedriver@latest:
   bin:
     webpack: bin/webpack.js
   checksum: 320c41369a75051b19e18c63f408b3dcc481852e992f83d311771c5ec0f05f2946385e8ebef62030cf3587f0a3d2f12779ffdb191569a966847289ba7313f946
+  languageName: node
+  linkType: hard
+
+"webpack@npm:^5.75.0":
+  version: 5.75.0
+  resolution: "webpack@npm:5.75.0"
+  dependencies:
+    "@types/eslint-scope": ^3.7.3
+    "@types/estree": ^0.0.51
+    "@webassemblyjs/ast": 1.11.1
+    "@webassemblyjs/wasm-edit": 1.11.1
+    "@webassemblyjs/wasm-parser": 1.11.1
+    acorn: ^8.7.1
+    acorn-import-assertions: ^1.7.6
+    browserslist: ^4.14.5
+    chrome-trace-event: ^1.0.2
+    enhanced-resolve: ^5.10.0
+    es-module-lexer: ^0.9.0
+    eslint-scope: 5.1.1
+    events: ^3.2.0
+    glob-to-regexp: ^0.4.1
+    graceful-fs: ^4.2.9
+    json-parse-even-better-errors: ^2.3.1
+    loader-runner: ^4.2.0
+    mime-types: ^2.1.27
+    neo-async: ^2.6.2
+    schema-utils: ^3.1.0
+    tapable: ^2.1.1
+    terser-webpack-plugin: ^5.1.3
+    watchpack: ^2.4.0
+    webpack-sources: ^3.2.3
+  peerDependenciesMeta:
+    webpack-cli:
+      optional: true
+  bin:
+    webpack: bin/webpack.js
+  checksum: 2bcc5f3c195f375944e8af2f00bf2feea39cb9fda5f763b0d1b00077f1c51783db25c94d3fae96a07dead9fa085e6ae7474417e5ab31719c9776ea5969ceb83a
   languageName: node
   linkType: hard
 
@@ -14643,14 +14755,7 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"yargs-parser@npm:21.0.1":
-  version: 21.0.1
-  resolution: "yargs-parser@npm:21.0.1"
-  checksum: c3ea2ed12cad0377ce3096b3f138df8267edf7b1aa7d710cd502fe16af417bafe4443dd71b28158c22fcd1be5dfd0e86319597e47badf42ff83815485887323a
-  languageName: node
-  linkType: hard
-
-"yargs-parser@npm:21.1.1, yargs-parser@npm:^21.0.0, yargs-parser@npm:^21.0.1, yargs-parser@npm:^21.1.1":
+"yargs-parser@npm:21.1.1, yargs-parser@npm:^21.0.1, yargs-parser@npm:^21.1.1":
   version: 21.1.1
   resolution: "yargs-parser@npm:21.1.1"
   checksum: ed2d96a616a9e3e1cc7d204c62ecc61f7aaab633dcbfab2c6df50f7f87b393993fe6640d017759fe112d0cb1e0119f2b4150a87305cc873fd90831c6a58ccf1c
@@ -14679,7 +14784,7 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"yargs@npm:^17.3.1":
+"yargs@npm:^17.3.1, yargs@npm:^17.6.2":
   version: 17.6.2
   resolution: "yargs@npm:17.6.2"
   dependencies:
@@ -14691,21 +14796,6 @@ chromedriver@latest:
     y18n: ^5.0.5
     yargs-parser: ^21.1.1
   checksum: 47da1b0d854fa16d45a3ded57b716b013b2179022352a5f7467409da5a04a1eef5b3b3d97a2dfc13e8bbe5f2ffc0afe3bc6a4a72f8254e60f5a4bd7947138643
-  languageName: node
-  linkType: hard
-
-"yargs@npm:^17.4.0":
-  version: 17.6.0
-  resolution: "yargs@npm:17.6.0"
-  dependencies:
-    cliui: ^8.0.1
-    escalade: ^3.1.1
-    get-caller-file: ^2.0.5
-    require-directory: ^2.1.1
-    string-width: ^4.2.3
-    y18n: ^5.0.5
-    yargs-parser: ^21.0.0
-  checksum: 604bdb4a6395a870540d2f3fea083c8e28441f12da8fd05b172b1e68480f00ed73d76be4a05fac19de9bf55ec7729b41e81cf555cccaed700aa192e4fff64872
   languageName: node
   linkType: hard
 
