@@ -270,7 +270,8 @@ describe('StripePaymentService', () => {
       .expect(201)
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(
-          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata.campaignId,
+          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata
+            .campaignId,
         ) //campaignId from the Stripe Event
         expect(mockedfindSubscriptionByExtId).toHaveBeenCalledWith(
           (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).id,
@@ -308,7 +309,8 @@ describe('StripePaymentService', () => {
       .expect(201)
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(
-          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata.campaignId,
+          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata
+            .campaignId,
         ) //campaignId from the Stripe Event
         expect(mockedDonateToCampaign).toHaveBeenCalled()
       })
@@ -349,14 +351,16 @@ describe('StripePaymentService', () => {
       .expect(201)
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(
-          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata.campaignId,
+          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata
+            .campaignId,
         ) //campaignId from the Stripe Event
         expect(mockedDonateToCampaign).toHaveBeenCalled()
         expect(mockCancelSubscription).toHaveBeenCalledWith(
           mockedRecurringDonation.extSubscriptionId,
         )
         expect(mockFindAllRecurringDonations).toHaveBeenCalledWith(
-          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata.campaignId,
+          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata
+            .campaignId,
         )
       })
   })
