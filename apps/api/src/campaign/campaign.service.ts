@@ -60,8 +60,9 @@ export class CampaignService {
 
   async listAllCampaigns(): Promise<AdminCampaignListItem[]> {
     const campaigns = await this.prisma.campaign.findMany({
+      where: { NOT: { state: { in: [CampaignState.deleted] } } },
       orderBy: {
-        endDate: 'asc',
+        updatedAt: 'desc',
       },
       ...AdminCampaignListItemSelect,
     })
@@ -605,7 +606,10 @@ export class CampaignService {
   }
 
   async removeCampaign(campaignId: string) {
-    return await this.prisma.campaign.delete({ where: { id: campaignId } })
+    return await this.prisma.campaign.update({
+      where: { id: campaignId },
+      data: { state: CampaignState.deleted },
+    })
   }
 
   async checkCampaignOwner(keycloakId: string, campaignId: string) {
