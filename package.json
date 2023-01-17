@@ -57,7 +57,7 @@
     "reflect-metadata": "0.1.13",
     "rxjs": "7.5.5",
     "stripe": "9.16.0",
-    "supertest": "6.2.4",
+    "supertest": "^6.3.3",
     "swagger-ui-express": "4.5.0",
     "tslib": "2.4.0"
   },
