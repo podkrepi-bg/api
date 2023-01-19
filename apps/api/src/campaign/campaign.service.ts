@@ -531,7 +531,7 @@ export class CampaignService {
     if (vault) {
       await this.vaultService.incrementVaultAmount(vault.id, paymentData.netAmount)
     } else {
-      Logger.error('No vault found for campaign: ' + campaign.id)
+      //vault is already checked and created if not existing in updateDonationPayment() above
     }
   }
 
