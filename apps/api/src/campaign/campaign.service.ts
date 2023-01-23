@@ -80,19 +80,19 @@ export class CampaignService {
     if (campaignIds && campaignIds.length > 0) {
       const result = await this.prisma.$queryRaw<CampaignSummaryDto[]>`
       SELECT
-      MAX(d.total)::INTEGER as "reachedAmount",
-      SUM(v.amount)::INTEGER as "currentAmount",
+      SUM(d.reached)::INTEGER as "reachedAmount",
+      (SUM(v.amount) - SUM(v."blockedAmount"))::INTEGER as "currentAmount",
       SUM(v."blockedAmount")::INTEGER as "blockedAmount",
-      MAX(d.donors)::INTEGER as donors,
+      SUM(d.donors)::INTEGER as donors,
       v.campaign_id as id
       FROM api.vaults v
-      LEFT join (
-          select target_vault_id, sum(amount) as total, count(id) as donors
-          from api.donations d
-          where status = 'succeeded'
-          group by target_vault_id
+      JOIN (
+          SELECT target_vault_id, sum(amount) as reached, count(id) as donors
+          FROM api.donations d
+          WHERE status = 'succeeded'
+          GROUP BY target_vault_id
         ) as d
-        on d.target_vault_id = v.id
+        ON d.target_vault_id = v.id
       GROUP BY v.campaign_id
       HAVING v.campaign_id::TEXT in (${Prisma.join(campaignIds)})
       `
@@ -100,19 +100,19 @@ export class CampaignService {
     } else {
       const result = await this.prisma.$queryRaw<CampaignSummaryDto[]>`
       SELECT
-      MAX(d.total)::INTEGER as "reachedAmount",
-      SUM(v.amount)::INTEGER as "currentAmount",
+      SUM(d.reached)::INTEGER as "reachedAmount",
+      (SUM(v.amount) - SUM(v."blockedAmount"))::INTEGER as "currentAmount",
       SUM(v."blockedAmount")::INTEGER as "blockedAmount",
-      MAX(d.donors)::INTEGER as donors,
+      SUM(d.donors)::INTEGER as donors,
       v.campaign_id as id
       FROM api.vaults v
-      LEFT join (
-          select target_vault_id, sum(amount) as total, count(id) as donors
-          from api.donations d
-          where status = 'succeeded'
-          group by target_vault_id
+      JOIN (
+          SELECT target_vault_id, sum(amount) as reached, count(id) as donors
+          FROM api.donations d
+          WHERE status = 'succeeded'
+          GROUP BY target_vault_id
         ) as d
-        on d.target_vault_id = v.id
+        ON d.target_vault_id = v.id
       GROUP BY v.campaign_id
       `
       campaignSums = result || []
