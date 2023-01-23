@@ -423,17 +423,25 @@ export class DonationsService {
   async createManyBankPayments(donationsDto: CreateManyBankPaymentsDto[]) {
     for (const donation of donationsDto) {
       try {
-        //upserting so that if we import the same file again with additional fields the records to be updated accordingly
-        await this.prisma.donation.upsert({
-          where: { extPaymentIntentId: donation.extPaymentIntentId },
-          update: donation,
-          create: donation,
+        //to avoid incrementing vault amount twice we first try to create
+        await this.prisma.donation.create({
+          data: donation,
         })
 
-        //now update the Vault amounts too
+        //and if unique constraint on extPaymentIntentId fails this line will be skipped
         this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
       } catch (error) {
-        Logger.error('Error while importing bank donation. ', error)
+        //check for unique constraint error P2002
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+          //Record exists, so updating with incoming donation without increasing vault amounts
+          await this.prisma.donation.update({
+            where: { extPaymentIntentId: donation.extPaymentIntentId },
+            data: donation,
+          })
+        } else {
+          Logger.error('Error while importing bank donation. ', error)
+          throw error
+        }
       }
     }
   }
