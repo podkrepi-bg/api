@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 
 import { cityPlovdiv, citySofia, cityVarna } from './data'
-import { City } from '.prisma/client'
+import { City } from '@prisma/client'
 
 const prisma = new PrismaClient()
 

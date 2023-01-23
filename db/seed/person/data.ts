@@ -1,4 +1,4 @@
-import { Person } from '.prisma/client'
+import { Person } from '@prisma/client'
 import { personFactory } from './factory'
 
 /**

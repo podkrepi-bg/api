@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 
-import { CampaignType } from '.prisma/client'
+import { CampaignType } from '@prisma/client'
 import {
   campaignTypeCancer,
   campaignTypeGeneticDiseases,
