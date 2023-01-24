@@ -47,7 +47,9 @@ import { DonationWishModule } from '../donation-wish/donation-wish.module'
 import { ApiLoggerMiddleware } from './middleware/apilogger.middleware'
 import { PaypalModule } from '../paypal/paypal.module'
 import { ExportModule } from '../export/export.module'
+import { JwtModule } from '@nestjs/jwt'
 
+import { WebSocketModule } from '../sockets/socket.module'
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -92,6 +94,8 @@ import { ExportModule } from '../export/export.module'
     DonationWishModule,
     PaypalModule,
     ExportModule,
+    JwtModule,
+    WebSocketModule,
   ],
   controllers: [AppController],
   providers: [
