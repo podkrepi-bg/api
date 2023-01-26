@@ -16,5 +16,8 @@ export class CampaignSummaryDto {
   blockedAmount: number
 
   @ApiProperty()
+  withdrawnAmount: number
+
+  @ApiProperty()
   donors: number
 }
