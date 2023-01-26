@@ -82,6 +82,7 @@ export class CampaignService {
     SUM(d.reached)::INTEGER as "reachedAmount",
     (SUM(v.amount) - SUM(v."blockedAmount"))::INTEGER as "currentAmount",
     SUM(v."blockedAmount")::INTEGER as "blockedAmount",
+    SUM(w."withdrawnAmount")::INTEGER as "withdrawnAmount",
     SUM(d.donors)::INTEGER as donors,
     v.campaign_id as id
     FROM api.vaults v
@@ -92,8 +93,19 @@ export class CampaignService {
         GROUP BY target_vault_id
       ) as d
       ON d.target_vault_id = v.id
+    JOIN (
+      SELECT source_vault_id, sum(amount) as "withdrawnAmount"
+        FROM api.withdrawals w
+        WHERE status = 'succeeded'
+        GROUP BY source_vault_id
+      ) as w
+      ON w.source_vault_id = v.id
     GROUP BY v.campaign_id
-    ${(campaignIds && campaignIds.length > 0) ? Prisma.sql`HAVING v.campaign_id::TEXT in (${Prisma.join(campaignIds)})` : Prisma.empty }`
+    ${
+      campaignIds && campaignIds.length > 0
+        ? Prisma.sql`HAVING v.campaign_id::TEXT in (${Prisma.join(campaignIds)})`
+        : Prisma.empty
+    }`
 
     campaignSums = result || []
 
