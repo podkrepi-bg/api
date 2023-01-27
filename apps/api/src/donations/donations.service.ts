@@ -422,27 +422,26 @@ export class DonationsService {
 
   async createManyBankPayments(donationsDto: CreateManyBankPaymentsDto[]) {
     for (const donation of donationsDto) {
-      try {
-        //to avoid incrementing vault amount twice we first try to create
-        await this.prisma.donation.create({
-          data: donation,
+      await this.prisma.$transaction(async (tx) => {
+        //to avoid incrementing vault amount twice we first check if there is such donation
+        const existingDonation = await tx.donation.findUnique({
+          where: { extPaymentIntentId: donation.extPaymentIntentId },
         })
 
-        //and if unique constraint on extPaymentIntentId fails this line will be skipped
-        this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
-      } catch (error) {
-        //check for unique constraint error P2002
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-          //Record exists, so updating with incoming donation without increasing vault amounts
+        if (!existingDonation) {
+          await tx.donation.create({
+            data: donation,
+          })
+
+          await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount, tx)
+        } else {
+          //Donation exists, so updating with incoming donation without increasing vault amounts
           await this.prisma.donation.update({
             where: { extPaymentIntentId: donation.extPaymentIntentId },
             data: donation,
           })
-        } else {
-          Logger.error('Error while importing bank donation. ', error)
-          throw error
         }
-      }
+      })
     }
   }
 
