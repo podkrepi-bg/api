@@ -169,7 +169,7 @@ async function updateVault(vaultId: string) {
     },
     where: {
       targetVaultId: vaultId,
-      status: DonationStatus.succeeded
+      status: DonationStatus.succeeded,
     },
   })
 
