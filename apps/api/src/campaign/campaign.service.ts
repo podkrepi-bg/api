@@ -86,14 +86,14 @@ export class CampaignService {
     SUM(d.donors)::INTEGER as donors,
     v.campaign_id as id
     FROM api.vaults v
-    JOIN (
+    LEFT JOIN (
         SELECT target_vault_id, sum(amount) as reached, count(id) as donors
         FROM api.donations d
         WHERE status = 'succeeded'
         GROUP BY target_vault_id
       ) as d
       ON d.target_vault_id = v.id
-    JOIN (
+    LEFT JOIN (
       SELECT source_vault_id, sum(amount) as "withdrawnAmount"
         FROM api.withdrawals w
         WHERE status = 'succeeded'
