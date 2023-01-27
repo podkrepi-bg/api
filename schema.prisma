@@ -1,6 +1,7 @@
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native"]
+  previewFeatures = ["interactiveTransactions"]
 }
 
 generator dbml {
@@ -121,7 +122,7 @@ model Benefactor {
   personId      String    @map("person_id") @db.Uuid
   /// Payment provider customer id
   extCustomerId String?   @unique @map("ext_customer_id") @db.VarChar(50)
-  /// 
+  ///
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   person        Person    @relation(fields: [personId], references: [id])
@@ -353,7 +354,7 @@ model Donation {
   extCustomerId      String          @map("ext_customer_id") @db.VarChar(50)
   extPaymentIntentId String          @unique @map("ext_payment_intent_id")
   extPaymentMethodId String          @map("ext_payment_method_id")
-  /// 
+  ///
   createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
   amount             Int             @default(0)
@@ -391,7 +392,7 @@ model RecurringDonation {
   /// Payment provider Subscription id
   extSubscriptionId String                  @map("ext_subscription_id") @db.VarChar(50)
   extCustomerId     String?                 @map("ext_customer_id") @db.VarChar(50)
-  /// 
+  ///
   createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime?               @updatedAt @map("updated_at") @db.Timestamptz(6)
   amount            Int                     @default(0)
