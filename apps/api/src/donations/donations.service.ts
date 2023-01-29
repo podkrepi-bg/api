@@ -48,7 +48,7 @@ export class DonationsService {
   /**
    * Create initial donation object for tracking purposes
    */
-  async createInitialDonation(
+  async createInitialDonationFromSession(
     campaign: Campaign,
     sessionDto: CreateSessionDto,
     paymentIntentId: string,
@@ -139,11 +139,13 @@ export class DonationsService {
         { connect: { id: vault.id } }
       : // Create new vault for the campaign
         { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
+
     /**
-     * Create initial donation object
+     * Create or update initial donation object
      */
-    const donation = await this.prisma.donation.create({
-      data: {
+    const donation = await this.prisma.donation.upsert({
+      where: { extPaymentIntentId: paymentIntent.id },
+      create: {
         amount: 0, //this will be updated on successful payment event
         chargedAmount: paymentIntent.amount,
         currency: campaign.currency,
@@ -152,6 +154,18 @@ export class DonationsService {
         status: DonationStatus.initial,
         extCustomerId: stripePaymentDto.personEmail ?? '',
         extPaymentIntentId: paymentIntent.id,
+        extPaymentMethodId: 'card',
+        billingEmail: stripePaymentDto.isAnonymous ? stripePaymentDto.personEmail : null, //set the personal mail to billing which is not public field
+        targetVault: targetVaultData,
+      },
+      update: {
+        amount: 0, //this will be updated on successful payment event
+        chargedAmount: paymentIntent.amount,
+        currency: campaign.currency,
+        provider: PaymentProvider.stripe,
+        type: DonationType.donation,
+        status: DonationStatus.waiting,
+        extCustomerId: stripePaymentDto.personEmail ?? '',
         extPaymentMethodId: 'card',
         billingEmail: stripePaymentDto.isAnonymous ? stripePaymentDto.personEmail : null, //set the personal mail to billing which is not public field
         targetVault: targetVaultData,
@@ -202,7 +216,11 @@ export class DonationsService {
       tax_id_collection: { enabled: true },
     })
 
-    await this.createInitialDonation(campaign, sessionDto, session.payment_intent as string)
+    await this.createInitialDonationFromSession(
+      campaign,
+      sessionDto,
+      session.payment_intent as string,
+    )
 
     return { session }
   }
@@ -395,7 +413,7 @@ export class DonationsService {
    */
   async createStripePayment(inputDto: CreateStripePaymentDto): Promise<Donation> {
     const intent = await this.stripeClient.paymentIntents.retrieve(inputDto.paymentIntentId)
-    if (!intent.metadata.camapaignId) {
+    if (!intent.metadata.campaignId) {
       throw new BadRequestException('Campaign id is missing from payment intent metadata')
     }
     const campaignId = intent.metadata.camapaignId
