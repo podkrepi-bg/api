@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 
-import { Coordinator } from '.prisma/client'
+import { Coordinator } from '@prisma/client'
 import { coordinatorFactory } from './factory'
 
 const prisma = new PrismaClient()

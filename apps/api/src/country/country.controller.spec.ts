@@ -119,7 +119,6 @@ describe('CountryController', () => {
       id: '00000000-0000-0000-0000-000000000001',
       name: 'Germany',
       countryCode: 'DE',
-      cities: ['Sofia', 'Varna', 'Plovdiv'],
     }
 
     prismaMock.country.update.mockResolvedValue(updatedCountry)

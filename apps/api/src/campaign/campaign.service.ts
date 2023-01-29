@@ -6,7 +6,7 @@ import {
   DonationStatus,
   DonationType,
   Vault,
-} from '.prisma/client'
+} from '@prisma/client'
 import {
   forwardRef,
   Inject,
@@ -60,8 +60,9 @@ export class CampaignService {
 
   async listAllCampaigns(): Promise<AdminCampaignListItem[]> {
     const campaigns = await this.prisma.campaign.findMany({
+      where: { NOT: { state: { in: [CampaignState.deleted] } } },
       orderBy: {
-        endDate: 'asc',
+        updatedAt: 'desc',
       },
       ...AdminCampaignListItemSelect,
     })
@@ -418,10 +419,32 @@ export class CampaignService {
 
     // Find donation by extPaymentIntentId and update if status allows
 
-    const donation = await this.prisma.donation.findUnique({
+    let donation = await this.prisma.donation.findUnique({
       where: { extPaymentIntentId: paymentData.paymentIntentId },
       select: { id: true, status: true },
     })
+
+    // check for UUID length of personId
+    // subscriptions always have a personId
+    if (!donation && paymentData.personId && paymentData.personId.length === 36) {
+      // search for a subscription donation
+      // for subscriptions, we don't have a paymentIntentId
+      donation = await this.prisma.donation.findFirst({
+        where: {
+          status: DonationStatus.initial,
+          personId: paymentData.personId,
+          chargedAmount: paymentData.chargedAmount,
+          extPaymentMethodId: 'subscription',
+        },
+        select: { id: true, status: true, extPaymentMethodId: true },
+      })
+
+      if (donation) {
+        donation.status = newDonationStatus
+      }
+
+      Logger.debug('Donation found by subscription: ', donation)
+    }
 
     //if missing create the donation with the incoming status
     if (!donation) {
@@ -447,6 +470,7 @@ export class CampaignService {
             extPaymentMethodId: paymentData.paymentMethodId ?? '',
             billingName: paymentData.billingName,
             billingEmail: paymentData.billingEmail,
+            person: { connect: { id: paymentData.personId } },
           },
         })
       } catch (error) {
@@ -473,6 +497,7 @@ export class CampaignService {
             amount: paymentData.netAmount,
             extCustomerId: paymentData.stripeCustomerId,
             extPaymentMethodId: paymentData.paymentMethodId,
+            extPaymentIntentId: paymentData.paymentIntentId,
             billingName: paymentData.billingName,
             billingEmail: paymentData.billingEmail,
           },
@@ -506,6 +531,8 @@ export class CampaignService {
     const vault = await this.getCampaignVault(campaign.id)
     if (vault) {
       await this.vaultService.incrementVaultAmount(vault.id, paymentData.netAmount)
+    } else {
+      //vault is already checked and created if not existing in updateDonationPayment() above
     }
   }
 
@@ -556,7 +583,6 @@ export class CampaignService {
 
     if (campaign && campaign.state !== CampaignState.complete && campaign.targetAmount) {
       const actualAmount = campaign.vaults.map((vault) => vault.amount).reduce((a, b) => a + b, 0)
-
       if (actualAmount >= campaign.targetAmount) {
         await this.prisma.campaign.update({
           where: {
@@ -580,7 +606,10 @@ export class CampaignService {
   }
 
   async removeCampaign(campaignId: string) {
-    return await this.prisma.campaign.delete({ where: { id: campaignId } })
+    return await this.prisma.campaign.update({
+      where: { id: campaignId },
+      data: { state: CampaignState.deleted },
+    })
   }
 
   async checkCampaignOwner(keycloakId: string, campaignId: string) {

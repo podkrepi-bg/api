@@ -3,18 +3,19 @@ import { faker } from '@faker-js/faker'
 
 import { citiesSeed } from './city/seed'
 import { personSeed } from './person/seed'
-import { campaignSeed } from './campaign.seed'
+import { campaignSeed } from './campaign/seed'
 import { countriesSeed } from './country/seed'
 import { supportersSeed } from './supporter/seed'
 import { coordinatorSeed } from './coordinator/seed'
-import { beneficiarySeed } from './beneficiary.seed'
+import { beneficiarySeed } from './beneficiary/seed'
 import { infoRequestSeed } from './infoRequest/seed'
 import { campaignTypesSeed } from './campaignType/seed'
-import { bankAccountSeed } from './bankaccount.seed'
-import { vaultSeed } from './vault.seed'
-import { expenseSeed } from './expense.seed'
-import { donationsSeed } from './donations.seed'
+import { bankAccountSeed } from './bankAccount/seed'
+import { vaultSeed } from './vault/seed'
+import { expenseSeed } from './expense/seed'
+import { donationsSeed } from './donation/seed'
 import { companySeed } from './company/seed'
+import { donationsWishesSeed } from './donationWish/seed'
 
 const prisma = new PrismaClient()
 
@@ -52,6 +53,7 @@ async function seedDevData() {
     await vaultSeed()
     await expenseSeed()
     await donationsSeed()
+    await donationsWishesSeed()
   }
 }
 

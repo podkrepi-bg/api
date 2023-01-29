@@ -9,7 +9,7 @@ import {
 } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose } from 'class-transformer'
-import { BeneficiaryType, PersonRelation, Prisma } from '.prisma/client'
+import { BeneficiaryType, PersonRelation, Prisma } from '@prisma/client'
 
 @Expose()
 export class UpdateBeneficiaryDto {

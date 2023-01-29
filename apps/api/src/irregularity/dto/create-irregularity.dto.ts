@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose, Type } from 'class-transformer'
 import { CreatePersonDto } from '@podkrepi-bg/podkrepi-types'
-import { Prisma, IrregularityReason, IrregularityStatus, NotifierType } from '.prisma/client'
+import { Prisma, IrregularityReason, IrregularityStatus, NotifierType } from '@prisma/client'
 import { IsEnum, IsNotEmpty, IsObject, IsString, IsUUID, ValidateNested } from 'class-validator'
 
 @Expose()

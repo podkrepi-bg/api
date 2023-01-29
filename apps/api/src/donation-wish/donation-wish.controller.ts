@@ -3,7 +3,7 @@ import { Public } from 'nest-keycloak-connect'
 import { DonationWishService } from './donation-wish.service'
 import { CreateDonationWishDto } from './dto/create-donation-wish.dto'
 import { ApiTags, ApiQuery } from '@nestjs/swagger'
-import { PagingQueryDto } from '../common/dto/paging-query-dto'
+import { DonationQueryDto } from '../common/dto/donation-query-dto'
 
 @ApiTags('donation-wish')
 @Controller('donation-wish')
@@ -20,7 +20,7 @@ export class DonationWishController {
   @Public()
   @ApiQuery({ name: 'pageindex', required: false, type: Number })
   @ApiQuery({ name: 'pagesize', required: false, type: Number })
-  findList(@Param('campaignId') campaignId: string, @Query() query?: PagingQueryDto) {
+  findList(@Param('campaignId') campaignId: string, @Query() query?: DonationQueryDto) {
     return this.donationWishService.findWishesByCampaignId(
       campaignId,
       query?.pageindex,

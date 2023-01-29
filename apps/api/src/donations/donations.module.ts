@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { useFactoryService } from '../bank-transactions-file/helpers/use-factory-service'
 import { CampaignModule } from '../campaign/campaign.module'
 import { CampaignService } from '../campaign/campaign.service'
+import { RecurringDonationService } from '../recurring-donation/recurring-donation.service'
 import { ExportService } from '../export/export.service'
 import { PersonModule } from '../person/person.module'
 import { PersonService } from '../person/person.service'
@@ -13,6 +14,7 @@ import { VaultService } from '../vault/vault.service'
 import { DonationsController } from './donations.controller'
 import { DonationsService } from './donations.service'
 import { StripePaymentService } from './events/stripe-payment.service'
+import { HttpModule } from '@nestjs/axios'
 import { ExportModule } from './../export/export.module'
 
 @Module({
@@ -24,6 +26,7 @@ import { ExportModule } from './../export/export.module'
     VaultModule,
     CampaignModule,
     PersonModule,
+    HttpModule,
     ExportModule,
   ],
   controllers: [DonationsController],
@@ -31,6 +34,7 @@ import { ExportModule } from './../export/export.module'
     DonationsService,
     StripePaymentService,
     CampaignService,
+    RecurringDonationService,
     PrismaService,
     VaultService,
     PersonService,

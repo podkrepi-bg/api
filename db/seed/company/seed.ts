@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { PrismaClient } from '@prisma/client'
 
-import { Company } from '.prisma/client'
+import { Company } from '@prisma/client'
 import { companyFactory } from './factory'
 
 const prisma = new PrismaClient()

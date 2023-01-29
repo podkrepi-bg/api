@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { RecurringDonationStatus, Currency, Person, Vault, Prisma } from '@prisma/client'
+import { RecurringDonationStatus, Currency, Prisma } from '@prisma/client'
 import { Expose } from 'class-transformer'
 import { IsEnum, IsNumber, IsString, IsUUID } from 'class-validator'
 
@@ -10,11 +10,6 @@ export class CreateRecurringDonationDto {
   @IsEnum(RecurringDonationStatus)
   status: RecurringDonationStatus
 
-  // @ApiProperty()
-  // @IsUUID()
-  // @Expose()
-  // vaultId: string
-
   @ApiProperty()
   @Expose()
   @IsUUID()
@@ -23,12 +18,10 @@ export class CreateRecurringDonationDto {
   @ApiProperty()
   @Expose()
   @IsString()
-  @IsUUID()
   extSubscriptionId: string
 
   @ApiProperty()
   @Expose()
-  @IsUUID()
   extCustomerId: string
 
   @ApiProperty()
@@ -45,6 +38,11 @@ export class CreateRecurringDonationDto {
   @Expose()
   @IsUUID()
   sourceVault: string
+
+  @ApiProperty()
+  @Expose()
+  @IsUUID()
+  campaignId: string
 
   public toEntity(): Prisma.RecurringDonationCreateInput {
     return {
