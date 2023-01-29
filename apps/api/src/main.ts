@@ -10,18 +10,18 @@ import { setupValidation } from './config/validation.config'
 import { setupShutdownHooks } from './config/shutdown.config'
 
 const globalPrefix = process.env.GLOBAL_PREFIX ?? 'api/v1'
-const logLevels: LogLevel[] = ['error', 'log', 'warn']
+const logLevels: LogLevel[] = ['error', 'warn']
 
 async function bootstrap() {
   const isDevConfig = process.env.NODE_ENV === 'development'
   if (isDevConfig) {
-    Logger.warn('Running with development configuration')
+    Logger.debug('Running with development configuration')
   }
 
   const app = await NestFactory.create(AppModule, {
     bodyParser: false, // Body parsing is enabled later on via middlewares
     rawBody: true,
-    logger: isDevConfig ? ['debug', 'verbose', ...logLevels] : logLevels,
+    logger: isDevConfig ? ['debug', 'log', 'verbose', ...logLevels] : logLevels,
   })
 
   app.setGlobalPrefix(globalPrefix)
