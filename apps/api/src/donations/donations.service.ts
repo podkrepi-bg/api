@@ -321,6 +321,18 @@ export class DonationsService {
   }
 
   /**
+   * Update a payment intent for a donation
+   * @param inputDto Payment intent create params
+   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
+   */
+  async updatePaymentIntent(
+    id: string,
+    inputDto: Stripe.PaymentIntentUpdateParams,
+  ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
+    return this.stripeClient.paymentIntents.update(id, inputDto)
+  }
+
+  /**
    * Used by the administrators to manually add donations executed by bank payments to a campaign.
    */
   async createBankPayment(inputDto: CreateBankPaymentDto): Promise<Donation> {
