@@ -22,13 +22,9 @@ import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
-<<<<<<< Updated upstream
 import { PagingQueryDto } from '../common/dto/paging-query-dto'
-=======
-import { DonationQueryDto } from '../common/dto/donation-query-dto'
-import { CreateStripeDonationDto } from './dto/create-stripe-donation.dto'
 import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto'
->>>>>>> Stashed changes
+import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 
 @ApiTags('donation')
 @Controller('donation')
@@ -158,6 +154,15 @@ export class DonationsController {
     updatePaymentIntentDto: UpdatePaymentIntentDto,
   ) {
     return this.donationsService.updatePaymentIntent(id, updatePaymentIntentDto)
+  }
+
+  @Post('create-stripe-payment')
+  @Public()
+  createStripePayment(
+    @Body()
+    stripePaymentDto: CreateStripePaymentDto,
+  ) {
+    return this.donationsService.createStripePayment(stripePaymentDto)
   }
 
   @Post('create-bank-payment')

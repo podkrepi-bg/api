@@ -27,6 +27,7 @@ import { Person } from '../person/entities/person.entity'
 import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
 import { donationWithPerson, DonationWithPerson } from './validators/donation.validator'
+import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 
 @Injectable()
 export class DonationsService {
@@ -109,6 +110,73 @@ export class DonationsService {
 
     if (sessionDto.message) {
       await this.createDonationWish(sessionDto.message, donation.id, campaign.id)
+    }
+
+    return donation
+  }
+
+  /**
+   * Create initial donation object for tracking purposes
+   * This is used when the payment is created from the payment intent
+   */
+  async createInitialDonationFromIntent(
+    campaign: Campaign,
+    stripePaymentDto: CreateStripePaymentDto,
+    paymentIntent: Stripe.PaymentIntent,
+  ): Promise<Donation> {
+    Logger.debug('[ CreateInitialDonationFromIntent]', {
+      campaignId: campaign.id,
+      amount: paymentIntent.amount,
+      paymentIntentId: paymentIntent.id,
+    })
+
+    /**
+     * Create or connect campaign vault
+     */
+    const vault = await this.prisma.vault.findFirst({ where: { campaignId: campaign.id } })
+    const targetVaultData = vault
+      ? // Connect the existing vault to this donation
+        { connect: { id: vault.id } }
+      : // Create new vault for the campaign
+        { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
+    /**
+     * Create initial donation object
+     */
+    const donation = await this.prisma.donation.create({
+      data: {
+        amount: 0, //this will be updated on successful payment event
+        chargedAmount: paymentIntent.amount,
+        currency: campaign.currency,
+        provider: PaymentProvider.stripe,
+        type: DonationType.donation,
+        status: DonationStatus.initial,
+        extCustomerId: stripePaymentDto.personEmail ?? '',
+        extPaymentIntentId: paymentIntent.id,
+        extPaymentMethodId: 'card',
+        billingEmail: stripePaymentDto.isAnonymous ? stripePaymentDto.personEmail : null, //set the personal mail to billing which is not public field
+        targetVault: targetVaultData,
+      },
+    })
+
+    if (!stripePaymentDto.isAnonymous) {
+      await this.prisma.donation.update({
+        where: { id: donation.id },
+        data: {
+          person: {
+            connectOrCreate: {
+              where: {
+                email: stripePaymentDto.personEmail,
+              },
+              create: {
+                firstName: stripePaymentDto.firstName ?? '',
+                lastName: stripePaymentDto.lastName ?? '',
+                email: stripePaymentDto.personEmail,
+                phone: stripePaymentDto.phone,
+              },
+            },
+          },
+        },
+      })
     }
 
     return donation
@@ -317,7 +385,22 @@ export class DonationsService {
   async createPaymentIntent(
     inputDto: Stripe.PaymentIntentCreateParams,
   ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
-    return this.stripeClient.paymentIntents.create(inputDto)
+    return await this.stripeClient.paymentIntents.create(inputDto)
+  }
+
+  /**
+   * Create a payment intent for a donation
+   * @param inputDto Payment intent create params
+   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
+   */
+  async createStripePayment(inputDto: CreateStripePaymentDto): Promise<Donation> {
+    const intent = await this.stripeClient.paymentIntents.retrieve(inputDto.paymentIntentId)
+    if (!intent.metadata.camapaignId) {
+      throw new BadRequestException('Campaign id is missing from payment intent metadata')
+    }
+    const campaignId = intent.metadata.camapaignId
+    const campaign = await this.campaignService.validateCampaignId(campaignId)
+    return this.createInitialDonationFromIntent(campaign, inputDto, intent)
   }
 
   /**
