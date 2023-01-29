@@ -1,7 +1,7 @@
+import Stripe from 'stripe'
 import { Expose } from 'class-transformer'
 import { ApiProperty } from '@nestjs/swagger'
 import { IsBoolean, IsEmail, IsOptional, IsString } from 'class-validator'
-import Stripe from 'stripe'
 
 export class CreateStripePaymentDto {
   @Expose()
