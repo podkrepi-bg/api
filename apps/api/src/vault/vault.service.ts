@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common'
-import { Vault } from '@prisma/client'
+import { Prisma, Vault } from '@prisma/client'
 import { CampaignService } from '../campaign/campaign.service'
 import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
@@ -113,21 +113,30 @@ export class VaultService {
 
   /**
    * Increment vault amount
-   * TODO: Replace with joined view
+   * TODO: Vault amount increment to happen in transacton only
    */
-  public async incrementVaultAmount(vaultId: string, amount: number): Promise<Vault> {
+  public async incrementVaultAmount(
+    vaultId: string,
+    amount: number,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Vault> {
     if (amount <= 0) {
       throw new Error('Amount cannot be negative or zero.')
     }
 
-    const vault = await this.prisma.vault.update({
+    const updateStatement = {
       where: { id: vaultId },
       data: {
         amount: {
           increment: amount,
         },
       },
-    })
+    }
+
+    //TODO: here we should only use the transaction mode
+    const vault = tx
+      ? await tx.vault.update(updateStatement)
+      : await this.prisma.vault.update(updateStatement)
 
     await this.campaignService.updateCampaignStatusIfTargetReached(vault.campaignId)
 

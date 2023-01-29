@@ -531,19 +531,26 @@ export class DonationsService {
 
   async createManyBankPayments(donationsDto: CreateManyBankPaymentsDto[]) {
     for (const donation of donationsDto) {
-      try {
-        //upserting so that if we import the same file again with additional fields the records to be updated accordingly
-        await this.prisma.donation.upsert({
+      await this.prisma.$transaction(async (tx) => {
+        //to avoid incrementing vault amount twice we first check if there is such donation
+        const existingDonation = await tx.donation.findUnique({
           where: { extPaymentIntentId: donation.extPaymentIntentId },
-          update: donation,
-          create: donation,
         })
 
-        //now update the Vault amounts too
-        this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
-      } catch (error) {
-        Logger.error('Error while importing bank donation. ', error)
-      }
+        if (!existingDonation) {
+          await tx.donation.create({
+            data: donation,
+          })
+
+          await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount, tx)
+        } else {
+          //Donation exists, so updating with incoming donation without increasing vault amounts
+          await this.prisma.donation.update({
+            where: { extPaymentIntentId: donation.extPaymentIntentId },
+            data: donation,
+          })
+        }
+      })
     }
   }
 

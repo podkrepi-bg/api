@@ -6,6 +6,8 @@ class ApiLoggerMiddleware implements NestMiddleware {
   private readonly logger = new Logger('HTTP')
 
   use(request: Request, response: Response, next: NextFunction) {
+    if (process.env.NODE_ENV != 'development') return
+
     response.on('finish', () => {
       const { method, originalUrl } = request
       const { statusCode, statusMessage } = response
