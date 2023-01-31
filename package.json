@@ -28,7 +28,7 @@
     "@golevelup/nestjs-stripe": "0.3.4",
     "@golevelup/nestjs-webhooks": "0.2.14",
     "@keycloak/keycloak-admin-client": "18.0.0",
-    "@nestjs/axios": "^1.0.1",
+    "@nestjs/axios": "0.1.0",
     "@nestjs/cli": "^9.1.8",
     "@nestjs/common": "^9.2.1",
     "@nestjs/config": "^2.2.0",
