@@ -82,7 +82,7 @@ export class DonationsService {
         extCustomerId: sessionDto.personEmail ?? '',
         extPaymentIntentId: paymentIntentId,
         extPaymentMethodId: sessionDto.mode === 'subscription' ? 'subscription' : 'card',
-        billingEmail: sessionDto.isAnonymous ? sessionDto.personEmail : null, //set the personal mail to billing which is not public field
+        billingEmail: sessionDto.personEmail, //set the personal mail to billing which is not public field
         targetVault: targetVaultData,
       },
     })
@@ -146,16 +146,16 @@ export class DonationsService {
     const donation = await this.prisma.donation.upsert({
       where: { extPaymentIntentId: paymentIntent.id },
       create: {
-        amount: 0, //this will be updated on successful payment event
+        amount: 0,
         chargedAmount: paymentIntent.amount,
         currency: campaign.currency,
         provider: PaymentProvider.stripe,
         type: DonationType.donation,
         status: DonationStatus.initial,
-        extCustomerId: stripePaymentDto.personEmail ?? '',
+        extCustomerId: stripePaymentDto.personEmail,
         extPaymentIntentId: paymentIntent.id,
         extPaymentMethodId: 'card',
-        billingEmail: stripePaymentDto.isAnonymous ? stripePaymentDto.personEmail : null, //set the personal mail to billing which is not public field
+        billingEmail: stripePaymentDto.personEmail,
         targetVault: targetVaultData,
       },
       update: {
@@ -165,9 +165,9 @@ export class DonationsService {
         provider: PaymentProvider.stripe,
         type: DonationType.donation,
         status: DonationStatus.waiting,
-        extCustomerId: stripePaymentDto.personEmail ?? '',
+        extCustomerId: stripePaymentDto.personEmail,
         extPaymentMethodId: 'card',
-        billingEmail: stripePaymentDto.isAnonymous ? stripePaymentDto.personEmail : null, //set the personal mail to billing which is not public field
+        billingEmail: stripePaymentDto.personEmail,
         targetVault: targetVaultData,
       },
     })
