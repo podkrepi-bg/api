@@ -5,8 +5,8 @@ import { SocketGateway } from './gateway'
 export class WebSocketService {
   constructor(private readonly socketGateway: SocketGateway) {}
 
-  sendNotification(eventName: string, notification: string) {
-    this.socketGateway.server.emit(eventName, notification)
+  sendNotification(eventName: string, notificationData: any) {
+    this.socketGateway.server.emit(eventName, notificationData)
   }
 
   sendMessage(eventName: string, clientId: string, message: string) {

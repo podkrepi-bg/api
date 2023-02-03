@@ -10,7 +10,7 @@ import { PersonService } from '../person/person.service'
 import { Person } from '@prisma/client'
 import { Logger } from '@nestjs/common'
 
-@WebSocketGateway({ transport: 'websocket' })
+@WebSocketGateway({ namespace: '/api/v1', transport: 'websocket' })
 export class SocketGateway implements OnGatewayConnection, OnGatewayInit, OnGatewayDisconnect {
   constructor(private jwtService: JwtService, private personService: PersonService) {}
   @WebSocketServer() server
@@ -39,6 +39,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayInit, OnGate
       this.connectedClients.set(client.id, person)
 
       Logger.log(`${person.firstName} ${person.lastName} --> connected`)
+      Logger.log(this.connectedClients.size, 'total connected clients')
     } catch (error) {
       Logger.error(error, 'ERROR in connection')
       client.disconnect()

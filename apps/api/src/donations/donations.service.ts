@@ -324,6 +324,7 @@ export class DonationsService {
       items: data,
       total: count,
     }
+
     return result
   }
 
@@ -393,7 +394,7 @@ export class DonationsService {
     const donation = await this.prisma.donation.create({ data: inputDto.toEntity(user) })
 
     if (donation.status === DonationStatus.succeeded) {
-      this.webSocketService.sendNotification('successfulDonation', JSON.stringify(donation))
+      this.webSocketService.sendNotification('successfulDonation', donation)
       await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
     }
 
