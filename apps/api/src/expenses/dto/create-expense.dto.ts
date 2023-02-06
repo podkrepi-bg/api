@@ -9,7 +9,7 @@ import {
 } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose } from 'class-transformer'
-import { Currency, ExpenseType, ExpenseStatus } from '.prisma/client'
+import { Currency, ExpenseType, ExpenseStatus } from '@prisma/client'
 
 @Expose()
 export class CreateExpenseDto {

@@ -1,4 +1,4 @@
-import { Person } from '.prisma/client'
+import { Person } from '@prisma/client'
 import { mockDeep } from 'jest-mock-extended'
 import { ConfigService } from '@nestjs/config'
 import { HttpService } from '@nestjs/axios'

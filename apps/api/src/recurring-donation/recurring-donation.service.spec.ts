@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { MockPrismaService } from '../prisma/prisma-client.mock'
+import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { mockDeep } from 'jest-mock-extended'
 import { RecurringDonationService } from './recurring-donation.service'
 import { ConfigService } from '@nestjs/config'
@@ -9,12 +9,35 @@ import { STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
 import { INestApplication } from '@nestjs/common'
 import { RecurringDonationStatus } from '@prisma/client'
 import { CreateRecurringDonationDto } from './dto/create-recurring-donation.dto'
-import { Observable } from 'rxjs'
+import { RecurringDonation } from '../domain/generated/recurringDonation/entities/recurringDonation.entity'
+
+const mockCreateRecurring = new CreateRecurringDonationDto()
+mockCreateRecurring.amount = 1
+mockCreateRecurring.currency = 'EUR'
+mockCreateRecurring.personId = '1'
+mockCreateRecurring.extCustomerId = '1'
+mockCreateRecurring.extSubscriptionId = '1'
+mockCreateRecurring.sourceVault = '1'
+mockCreateRecurring.campaignId = '1'
+mockCreateRecurring.status = RecurringDonationStatus.active
+
+const mockRecurring = {
+  id: '1',
+  vaultId: '1',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  amount: 1,
+  currency: 'EUR',
+  personId: '1',
+  extCustomerId: '1',
+  extSubscriptionId: '1',
+  campaignId: '1',
+  status: RecurringDonationStatus.active,
+} as RecurringDonation
 
 describe('RecurringDonationService', () => {
   let service: RecurringDonationService
   let app: INestApplication
-  let prisma: MockPrismaService.provide
 
   const stripeMock = {
     checkout: { sessions: { create: jest.fn() } },
@@ -40,7 +63,6 @@ describe('RecurringDonationService', () => {
     }).compile()
 
     service = module.get<RecurringDonationService>(RecurringDonationService)
-    prisma = module.get<MockPrismaService.provide>(MockPrismaService.provide)
 
     app = module.createNestApplication()
     await app.init()
@@ -51,17 +73,17 @@ describe('RecurringDonationService', () => {
   })
 
   it('should return all recurring donations', async () => {
-    prisma.recurringDonation.findMany.mockResolvedValueOnce([1, 2, 3])
+    prismaMock.recurringDonation.findMany.mockResolvedValue([mockRecurring])
     const result = await service.findAll()
     expect(result).toBeDefined()
-    expect(result).toStrictEqual([1, 2, 3])
+    expect(result).toStrictEqual([mockRecurring])
   })
 
   it('should return a recurring donation by id', async () => {
-    prisma.recurringDonation.findUnique.mockResolvedValueOnce(1)
-    const result = await service.findOne(1)
+    prismaMock.recurringDonation.findUnique.mockResolvedValueOnce(mockRecurring)
+    const result = await service.findOne('1')
     expect(result).toBeDefined()
-    expect(result).toStrictEqual(1)
+    expect(result).toStrictEqual(mockRecurring)
   })
 
   it('should call stripe cancel service my subscription id', async () => {
@@ -75,9 +97,9 @@ describe('RecurringDonationService', () => {
   })
 
   it('should cancel a subscription in db', async () => {
-    prisma.recurringDonation.update.mockResolvedValueOnce(1)
+    prismaMock.recurringDonation.update.mockResolvedValueOnce(mockRecurring)
     await service.cancel('1')
-    const updateDbSpy = jest.spyOn(prisma.recurringDonation, 'update')
+    const updateDbSpy = jest.spyOn(prismaMock.recurringDonation, 'update')
     expect(updateDbSpy).toHaveBeenCalledWith({
       where: { id: '1' },
       data: {
@@ -87,25 +109,14 @@ describe('RecurringDonationService', () => {
   })
 
   it('should create  a subscription in db', async () => {
-    prisma.recurringDonation.create.mockResolvedValueOnce(1)
+    prismaMock.recurringDonation.create.mockResolvedValueOnce(mockRecurring)
 
-    const dto: CreateRecurringDonationDto = new CreateRecurringDonationDto()
-    dto.amount = 1
-    dto.currency = 'USD'
-    dto.personId = '1'
-    dto.extCustomerId = '1'
-    dto.extSubscriptionId = '1'
-    dto.vaultId = '1'
-    dto.sourceVault = '1'
-    dto.campaignId = '1'
-    dto.status = RecurringDonationStatus.active
-
-    await service.create(dto)
-    const updateDbSpy = jest.spyOn(prisma.recurringDonation, 'create')
+    await service.create(mockCreateRecurring)
+    const updateDbSpy = jest.spyOn(prismaMock.recurringDonation, 'create')
     expect(updateDbSpy).toHaveBeenCalledWith({
       data: {
         amount: 1,
-        currency: 'USD',
+        currency: 'EUR',
         person: {
           connect: {
             id: '1',

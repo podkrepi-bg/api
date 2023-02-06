@@ -1,4 +1,4 @@
-import { CampaignType, CampaignTypeCategory } from '.prisma/client'
+import { CampaignType, CampaignTypeCategory } from '@prisma/client'
 import { campaignTypeFactory } from '../factory'
 
 /**

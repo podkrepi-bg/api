@@ -6,7 +6,7 @@ import {
   DonationStatus,
   DonationType,
   Vault,
-} from '.prisma/client'
+} from '@prisma/client'
 import {
   forwardRef,
   Inject,
@@ -62,8 +62,9 @@ export class CampaignService {
 
   async listAllCampaigns(): Promise<AdminCampaignListItem[]> {
     const campaigns = await this.prisma.campaign.findMany({
+      where: { NOT: { state: { in: [CampaignState.deleted] } } },
       orderBy: {
-        endDate: 'asc',
+        updatedAt: 'desc',
       },
       ...AdminCampaignListItemSelect,
     })
@@ -79,46 +80,36 @@ export class CampaignService {
   async getCampaignSums(campaignIds?: string[]): Promise<CampaignSummaryDto[]> {
     let campaignSums: CampaignSummaryDto[] = []
 
-    if (campaignIds && campaignIds.length > 0) {
-      const result = await this.prisma.$queryRaw<CampaignSummaryDto[]>`
-      SELECT
-      MAX(d.total)::INTEGER as "reachedAmount",
-      SUM(v.amount)::INTEGER as "currentAmount",
-      SUM(v."blockedAmount")::INTEGER as "blockedAmount",
-      MAX(d.donors)::INTEGER as donors,
-      v.campaign_id as id
-      FROM api.vaults v
-      LEFT join (
-          select target_vault_id, sum(amount) as total, count(id) as donors
-          from api.donations d
-          where status = 'succeeded'
-          group by target_vault_id
-        ) as d
-        on d.target_vault_id = v.id
-      GROUP BY v.campaign_id
-      HAVING v.campaign_id::TEXT in (${Prisma.join(campaignIds)})
-      `
-      campaignSums = result || []
-    } else {
-      const result = await this.prisma.$queryRaw<CampaignSummaryDto[]>`
-      SELECT
-      MAX(d.total)::INTEGER as "reachedAmount",
-      SUM(v.amount)::INTEGER as "currentAmount",
-      SUM(v."blockedAmount")::INTEGER as "blockedAmount",
-      MAX(d.donors)::INTEGER as donors,
-      v.campaign_id as id
-      FROM api.vaults v
-      LEFT join (
-          select target_vault_id, sum(amount) as total, count(id) as donors
-          from api.donations d
-          where status = 'succeeded'
-          group by target_vault_id
-        ) as d
-        on d.target_vault_id = v.id
-      GROUP BY v.campaign_id
-      `
-      campaignSums = result || []
-    }
+    const result = await this.prisma.$queryRaw<CampaignSummaryDto[]>`SELECT
+    SUM(d.reached)::INTEGER as "reachedAmount",
+    (SUM(v.amount) - SUM(v."blockedAmount"))::INTEGER as "currentAmount",
+    SUM(v."blockedAmount")::INTEGER as "blockedAmount",
+    SUM(w."withdrawnAmount")::INTEGER as "withdrawnAmount",
+    SUM(d.donors)::INTEGER as donors,
+    v.campaign_id as id
+    FROM api.vaults v
+    LEFT JOIN (
+        SELECT target_vault_id, sum(amount) as reached, count(id) as donors
+        FROM api.donations d
+        WHERE status = 'succeeded'
+        GROUP BY target_vault_id
+      ) as d
+      ON d.target_vault_id = v.id
+    LEFT JOIN (
+      SELECT source_vault_id, sum(amount) as "withdrawnAmount"
+        FROM api.withdrawals w
+        WHERE status = 'succeeded'
+        GROUP BY source_vault_id
+      ) as w
+      ON w.source_vault_id = v.id
+    GROUP BY v.campaign_id
+    ${
+      campaignIds && campaignIds.length > 0
+        ? Prisma.sql`HAVING v.campaign_id::TEXT in (${Prisma.join(campaignIds)})`
+        : Prisma.empty
+    }`
+
+    campaignSums = result || []
 
     return campaignSums
   }
@@ -557,7 +548,7 @@ export class CampaignService {
     if (vault) {
       await this.vaultService.incrementVaultAmount(vault.id, paymentData.netAmount)
     } else {
-      Logger.error('No vault found for campaign: ' + campaign.id)
+      //vault is already checked and created if not existing in updateDonationPayment() above
     }
   }
 
@@ -631,7 +622,10 @@ export class CampaignService {
   }
 
   async removeCampaign(campaignId: string) {
-    return await this.prisma.campaign.delete({ where: { id: campaignId } })
+    return await this.prisma.campaign.update({
+      where: { id: campaignId },
+      data: { state: CampaignState.deleted },
+    })
   }
 
   async checkCampaignOwner(keycloakId: string, campaignId: string) {
@@ -653,6 +647,7 @@ export class CampaignService {
       reachedAmount: csum?.reachedAmount || 0,
       currentAmount: csum?.currentAmount || 0,
       blockedAmount: csum?.blockedAmount || 0,
+      withdrawnAmount: csum?.withdrawnAmount || 0,
       donors: csum?.donors || 0,
     }
   }

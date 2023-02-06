@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { InfoRequest, Supporter, Irregularity } from '.prisma/client'
+import { InfoRequest, Supporter, Irregularity } from '@prisma/client'
 
 import {
   InquiryReceivedEmailDto,

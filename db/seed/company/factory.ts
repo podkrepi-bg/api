@@ -1,7 +1,7 @@
 import { Factory } from 'fishery'
 import { faker } from '@faker-js/faker'
 
-import { Company } from '.prisma/client'
+import { Company } from '@prisma/client'
 
 export const companyFactory = Factory.define<Company>(({ associations }) => ({
   id: faker.datatype.uuid(),

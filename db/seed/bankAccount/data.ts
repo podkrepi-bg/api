@@ -1,4 +1,4 @@
-import { BankAccount } from '.prisma/client'
+import { BankAccount } from '@prisma/client'
 import { AccountHolderType, BankAccountStatus } from '@prisma/client'
 import { bankAccountFactory } from './factory'
 
