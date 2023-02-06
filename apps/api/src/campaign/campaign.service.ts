@@ -32,11 +32,13 @@ import {
   CampaignListItem,
   CampaignListItemSelect,
 } from './dto/list-campaigns.dto'
+import { WebSocketService } from '../sockets/socket.service'
 
 @Injectable()
 export class CampaignService {
   constructor(
     private prisma: PrismaService,
+    private webSocketService: WebSocketService,
     @Inject(forwardRef(() => VaultService)) private vaultService: VaultService,
     @Inject(forwardRef(() => PersonService)) private personService: PersonService,
   ) {}
@@ -400,6 +402,7 @@ export class CampaignService {
     paymentData: PaymentData,
     newDonationStatus: DonationStatus,
   ) {
+
     const campaignId = campaign.id
     Logger.debug('Update donation to status: ' + newDonationStatus, {
       campaignId,
@@ -417,10 +420,25 @@ export class CampaignService {
         { create: { campaignId, currency: campaign.currency, name: campaign.title } }
 
     // Find donation by extPaymentIntentId and update if status allows
+    const donationNotificationSelect = {
+      id: true,
+      status: true,
+      currency: true,
+      amount: true,
+      createdAt: true,
+      extPaymentMethodId: true,
+      person: {
+        select: {
+          firstName: true,
+          lastName: true,
+          picture: true,
+        },
+      },
+    }
 
     let donation = await this.prisma.donation.findUnique({
       where: { extPaymentIntentId: paymentData.paymentIntentId },
-      select: { id: true, status: true },
+      select: donationNotificationSelect,
     })
 
     // check for UUID length of personId
@@ -435,11 +453,12 @@ export class CampaignService {
           chargedAmount: paymentData.chargedAmount,
           extPaymentMethodId: 'subscription',
         },
-        select: { id: true, status: true, extPaymentMethodId: true },
+        select: donationNotificationSelect
       })
 
       if (donation) {
         donation.status = newDonationStatus
+        this.webSocketService.sendNotification('successfulDonation', donation)
       }
 
       Logger.debug('Donation found by subscription: ', donation)
@@ -455,7 +474,7 @@ export class CampaignService {
       )
 
       try {
-        await this.prisma.donation.create({
+        const donation = await this.prisma.donation.create({
           data: {
             amount: paymentData.netAmount,
             chargedAmount: paymentData.chargedAmount,
@@ -472,6 +491,8 @@ export class CampaignService {
             person: { connect: { id: paymentData.personId } },
           },
         })
+
+        this.webSocketService.sendNotification('successfulDonation', donation)
       } catch (error) {
         Logger.error(
           `Error while creating donation with paymentIntentId: ${paymentData.paymentIntentId} and status: ${newDonationStatus} . Error is: ${error}`,
@@ -487,7 +508,7 @@ export class CampaignService {
       donation?.status === getAllowedPreviousStatus(newDonationStatus)
     ) {
       try {
-        await this.prisma.donation.update({
+        const updatedDonation = await this.prisma.donation.update({
           where: {
             id: donation.id,
           },
@@ -500,6 +521,11 @@ export class CampaignService {
             billingName: paymentData.billingName,
             billingEmail: paymentData.billingEmail,
           },
+        })
+
+        this.webSocketService.sendNotification('successfulDonation', {
+          ...updatedDonation,
+          person: donation.person,
         })
       } catch (error) {
         Logger.error(

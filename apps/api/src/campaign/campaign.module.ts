@@ -7,9 +7,10 @@ import { VaultService } from '../vault/vault.service'
 import { CampaignTypeController } from './campaign-type.controller'
 import { CampaignController } from './campaign.controller'
 import { CampaignService } from './campaign.service'
-
+import { WebSocketModule } from './../sockets/socket.module'
 @Module({
-  imports: [forwardRef(() => VaultModule)],
+  imports: [forwardRef(() => VaultModule), WebSocketModule],
+
   controllers: [CampaignController, CampaignTypeController],
   providers: [CampaignService, PrismaService, VaultService, PersonService, ConfigService],
   exports: [CampaignService],

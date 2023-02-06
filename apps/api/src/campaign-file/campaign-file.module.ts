@@ -6,8 +6,11 @@ import { S3Service } from '../s3/s3.service'
 import { PersonService } from '../person/person.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { VaultService } from '../vault/vault.service'
+import { WebSocketModule } from './../sockets/socket.module'
 
 @Module({
+  imports: [WebSocketModule],
+
   controllers: [CampaignFileController],
   providers: [
     CampaignFileService,

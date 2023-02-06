@@ -6,10 +6,11 @@ import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultController } from './vault.controller'
 import { VaultService } from './vault.service'
-
+import { WebSocketModule } from './../sockets/socket.module'
 @Module({
-  imports: [forwardRef(() => CampaignModule)],
-  controllers: [VaultController],
+  imports: [forwardRef(() => CampaignModule), WebSocketModule],
+
+controllers: [VaultController],
   providers: [VaultService, CampaignService, PrismaService, PersonService, ConfigService],
   exports: [VaultService],
 })
