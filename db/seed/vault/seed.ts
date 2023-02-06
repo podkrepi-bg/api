@@ -42,7 +42,7 @@ async function seedVaultsForRandomCampaign() {
   console.log({ insertRandomCampaignVaults })
 }
 
-async function seedVaultForHeavilyFundedCampaign() {
+async function seedVaultForCompletedCampaign() {
   const completedCampaign = await prisma.campaign.findFirst({
     where: {
       state: CampaignState.complete,
@@ -51,6 +51,17 @@ async function seedVaultForHeavilyFundedCampaign() {
 
   if (!completedCampaign) {
     throw new Error('There is no completed campaign created')
+  }
+
+  const completedCampaignVault = await prisma.vault.findFirst({
+    where: {
+      campaignId: completedCampaign.id,
+    },
+  })
+
+  if (completedCampaignVault) {
+    console.log('{ Completed campaign vault already exists }')
+    return
   }
 
   const completedCampaignVaultData: Vault = vaultFactory.build(
@@ -73,7 +84,7 @@ async function seedVaultForHeavilyFundedCampaign() {
   console.log(`{ insertCompletedCampaignVault: ${!!insertCompletedCampaignVault} }`)
 }
 
-async function seedVaultForCompletedCampaign() {
+async function seedVaultForHeavilyFundedCampaign() {
   const heavilyFundedCampaign = await prisma.campaign.findFirst({
     where: {
       title: {
@@ -84,6 +95,17 @@ async function seedVaultForCompletedCampaign() {
 
   if (!heavilyFundedCampaign) {
     throw new Error('There is no heavily funded campaign created')
+  }
+
+  const heavilyFundedCampaignVault = await prisma.vault.findFirst({
+    where: {
+      campaignId: heavilyFundedCampaign.id,
+    },
+  })
+
+  if (heavilyFundedCampaignVault) {
+    console.log('{ Heavily-funded campaign vault already exists }')
+    return
   }
 
   const heavilyFundedCampaignVaultData: Vault = vaultFactory.build(

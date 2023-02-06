@@ -17,7 +17,7 @@ import { RequiredActionAlias } from '@keycloak/keycloak-admin-client/lib/defs/re
 import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
 import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth'
 
-import { Person } from '.prisma/client'
+import { Person } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'

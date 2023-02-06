@@ -1,7 +1,7 @@
 import { Factory } from 'fishery'
 import { faker } from '@faker-js/faker'
 
-import { BankAccount } from '.prisma/client'
+import { BankAccount } from '@prisma/client'
 import { AccountHolderType, BankAccountStatus } from '@prisma/client'
 
 export const bankAccountFactory = Factory.define<BankAccount>(() => ({

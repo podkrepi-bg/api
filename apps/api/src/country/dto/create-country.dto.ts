@@ -16,9 +16,4 @@ export class CreateCountryDto {
   @IsISO31661Alpha2()
   @IsUppercase()
   countryCode: string
-
-  @ApiProperty()
-  @Expose()
-  @IsOptional()
-  cities?: City[]
 }

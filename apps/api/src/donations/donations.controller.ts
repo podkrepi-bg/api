@@ -12,15 +12,18 @@ import {
   Res,
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
+import { DonationStatus } from '@prisma/client'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
+
 import { isAdmin, KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
-import { DonationStatus, DonationType } from '@prisma/client'
+import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto'
+import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
 
@@ -43,15 +46,23 @@ export class DonationsController {
   @Post('create-checkout-session')
   @Public()
   async createCheckoutSession(@Body() sessionDto: CreateSessionDto) {
-    if (sessionDto.mode === 'subscription' && (sessionDto.personId === null || sessionDto.personId.length === 0)) {
+    if (
+      sessionDto.mode === 'subscription' &&
+      (sessionDto.personId === null || sessionDto.personId.length === 0)
+    ) {
       // in case of a intermediate (step 2) login, we might end up with no personId
       // not able to fetch the current logged user here (due to @Public())
       sessionDto.personId = await this.donationsService.getUserId(sessionDto.personEmail)
     }
 
-    if (sessionDto.mode == 'subscription' && (sessionDto.personId == null || sessionDto.personId.length == 0)) {
-      Logger.error(`No personId found for email ${sessionDto.personEmail}. Unable to create a checkout session for a recurring donation`)
-      throw new UnauthorizedException("You must be logged in to create a recurring donation")
+    if (
+      sessionDto.mode == 'subscription' &&
+      (sessionDto.personId == null || sessionDto.personId.length == 0)
+    ) {
+      Logger.error(
+        `No personId found for email ${sessionDto.personEmail}. Unable to create a checkout session for a recurring donation`,
+      )
+      throw new UnauthorizedException('You must be logged in to create a recurring donation')
     }
 
     Logger.debug(`Creating checkout session with data ${JSON.stringify(sessionDto)}`)
@@ -152,13 +163,32 @@ export class DonationsController {
     return this.donationsService.create(createPaymentDto, user)
   }
 
-  @Post('create-payment-intent')
+  @Post('payment-intent')
   @Public()
   createPaymentIntent(
     @Body()
     createPaymentIntentDto: CreatePaymentIntentDto,
   ) {
     return this.donationsService.createPaymentIntent(createPaymentIntentDto)
+  }
+
+  @Post('payment-intent/:id')
+  @Public()
+  updatePaymentIntent(
+    @Param('id') id: string,
+    @Body()
+    updatePaymentIntentDto: UpdatePaymentIntentDto,
+  ) {
+    return this.donationsService.updatePaymentIntent(id, updatePaymentIntentDto)
+  }
+
+  @Post('create-stripe-payment')
+  @Public()
+  createStripePayment(
+    @Body()
+    stripePaymentDto: CreateStripePaymentDto,
+  ) {
+    return this.donationsService.createStripePayment(stripePaymentDto)
   }
 
   @Post('create-bank-payment')

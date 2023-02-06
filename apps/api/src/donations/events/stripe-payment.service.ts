@@ -54,7 +54,6 @@ export class StripePaymentService {
     }
 
     const billingDetails = getPaymentData(paymentIntent)
-
     /*
      * Handle the create event
      */

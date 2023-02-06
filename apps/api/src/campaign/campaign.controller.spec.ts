@@ -1,5 +1,5 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common'
-import { Currency } from '.prisma/client'
+import { Currency } from '@prisma/client'
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignState } from '@prisma/client'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
@@ -101,6 +101,7 @@ describe('CampaignController', () => {
     reachedAmount: 110,
     currentAmount: 0,
     blockedAmount: 0,
+    withdrawnAmount: 0,
     donors: 2,
   } as CampaignSummaryDto
 
@@ -136,7 +137,13 @@ describe('CampaignController', () => {
       expect(await controller.getData()).toEqual([
         {
           ...mockCampaign,
-          summary: { reachedAmount: 110, currentAmount: 0, blockedAmount: 0, donors: 2 },
+          summary: {
+            reachedAmount: 110,
+            currentAmount: 0,
+            blockedAmount: 0,
+            withdrawnAmount: 0,
+            donors: 2,
+          },
         },
       ])
       expect(prismaService.campaign.findMany).toHaveBeenCalled()
@@ -167,7 +174,13 @@ describe('CampaignController', () => {
       expect(await controller.getAdminList()).toEqual([
         {
           ...mockAdminCampaign,
-          summary: { reachedAmount: 110, currentAmount: 0, blockedAmount: 0, donors: 2 },
+          summary: {
+            reachedAmount: 110,
+            currentAmount: 0,
+            blockedAmount: 0,
+            withdrawnAmount: 0,
+            donors: 2,
+          },
         },
       ])
       expect(prismaService.campaign.findMany).toHaveBeenCalled()
@@ -187,7 +200,13 @@ describe('CampaignController', () => {
       expect(await controller.viewBySlug(slug)).toEqual({
         campaign: {
           ...mockCampaign,
-          summary: { reachedAmount: 110, currentAmount: 0, blockedAmount: 0, donors: 2 },
+          summary: {
+            reachedAmount: 110,
+            currentAmount: 0,
+            blockedAmount: 0,
+            withdrawnAmount: 0,
+            donors: 2,
+          },
         },
       })
       expect(prismaService.campaign.findFirst).toHaveBeenCalledWith(

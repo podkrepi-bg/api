@@ -1,7 +1,7 @@
 import { Factory } from 'fishery'
 import { faker } from '@faker-js/faker'
 
-import { Beneficiary } from '.prisma/client'
+import { Beneficiary } from '@prisma/client'
 import { BeneficiaryType, PersonRelation } from '@prisma/client'
 
 export const beneficiaryFactory = Factory.define<Beneficiary>(({ associations }) => ({

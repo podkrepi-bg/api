@@ -1,4 +1,4 @@
-import { City } from '.prisma/client'
+import { City } from '@prisma/client'
 import { cityFactory } from './factory'
 
 /**
