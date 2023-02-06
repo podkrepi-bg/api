@@ -453,7 +453,7 @@ export class CampaignService {
           chargedAmount: paymentData.chargedAmount,
           extPaymentMethodId: 'subscription',
         },
-        select: donationNotificationSelect
+        select: donatio
       })
 
       if (donation) {
