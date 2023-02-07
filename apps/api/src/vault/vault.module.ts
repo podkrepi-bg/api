@@ -10,7 +10,7 @@ import { WebSocketModule } from './../sockets/socket.module'
 @Module({
   imports: [forwardRef(() => CampaignModule), WebSocketModule],
 
-controllers: [VaultController],
+  controllers: [VaultController],
   providers: [VaultService, CampaignService, PrismaService, PersonService, ConfigService],
   exports: [VaultService],
 })

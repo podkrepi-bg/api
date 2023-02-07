@@ -2,6 +2,7 @@ import { HttpModule } from '@nestjs/axios'
 import { ConfigModule } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignModule } from '../campaign/campaign.module'
+import { WebSocketModule } from '../sockets/socket.module'
 import { PaypalModule } from './paypal.module'
 import { PaypalService } from './paypal.service'
 
@@ -10,7 +11,7 @@ describe('PaypalService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [PaypalModule, CampaignModule, ConfigModule, HttpModule],
+      imports: [PaypalModule, CampaignModule, ConfigModule, HttpModule, WebSocketModule],
       providers: [PaypalService],
     }).compile()
 

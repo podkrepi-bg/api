@@ -5,13 +5,14 @@ import { PaypalModule } from './paypal.module'
 import { CampaignModule } from '../campaign/campaign.module'
 import { ConfigModule } from '@nestjs/config'
 import { HttpModule } from '@nestjs/axios'
+import { WebSocketModule } from '../sockets/socket.module'
 
 describe('PaypalController', () => {
   let controller: PaypalController
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [PaypalModule, CampaignModule, ConfigModule, HttpModule],
+      imports: [PaypalModule, CampaignModule, ConfigModule, HttpModule, WebSocketModule],
       controllers: [PaypalController],
       providers: [PaypalService],
     }).compile()

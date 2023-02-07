@@ -393,7 +393,6 @@ export class CampaignService {
     paymentData: PaymentData,
     newDonationStatus: DonationStatus,
   ) {
-
     const campaignId = campaign.id
     Logger.debug('Update donation to status: ' + newDonationStatus, {
       campaignId,
@@ -444,7 +443,7 @@ export class CampaignService {
           chargedAmount: paymentData.chargedAmount,
           extPaymentMethodId: 'subscription',
         },
-        select: donationNotificationSelect
+        select: donationNotificationSelect,
       })
 
       if (donation) {

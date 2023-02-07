@@ -29,7 +29,6 @@ import { WebSocketModule } from '../sockets/socket.module'
     PersonModule,
     HttpModule,
     ExportModule,
-    WebSocketModule,
   ],
   controllers: [DonationsController],
   providers: [

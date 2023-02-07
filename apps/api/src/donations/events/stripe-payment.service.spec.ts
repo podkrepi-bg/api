@@ -35,6 +35,7 @@ import { DonationStatus } from '@prisma/client'
 import { RecurringDonationService } from '../../recurring-donation/recurring-donation.service'
 import { HttpService } from '@nestjs/axios'
 import { mockDeep } from 'jest-mock-extended'
+import { WebSocketModule } from '../../sockets/socket.module'
 
 const defaultStripeWebhookEndpoint = '/stripe/webhook'
 const stripeSecret = 'wh_123'
@@ -61,6 +62,7 @@ describe('StripePaymentService', () => {
         StripeModule.forRootAsync(StripeModule, {
           useFactory: () => moduleConfig,
         }),
+        WebSocketModule,
       ],
       providers: [
         ConfigService,
