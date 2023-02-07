@@ -1,1 +1,2 @@
-export * from './withdrawal.entity'
+
+export * from './withdrawal.entity';
