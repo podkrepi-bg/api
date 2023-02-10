@@ -492,6 +492,7 @@ export class DonationsService {
 
   /**
    * Create a payment intent for a donation
+   * https://stripe.com/docs/api/payment_intents/create
    * @param inputDto Payment intent create params
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
@@ -507,6 +508,7 @@ export class DonationsService {
 
   /**
    * Update a payment intent for a donation
+   * https://stripe.com/docs/api/payment_intents/update
    * @param inputDto Payment intent create params
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
@@ -515,6 +517,19 @@ export class DonationsService {
     inputDto: Stripe.PaymentIntentUpdateParams,
   ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
     return this.stripeClient.paymentIntents.update(id, inputDto)
+  }
+
+  /**
+   * Cancel a payment intent for a donation
+   * https://stripe.com/docs/api/payment_intents/cancel
+   * @param inputDto Payment intent create params
+   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
+   */
+  async cancelPaymentIntent(
+    id: string,
+    inputDto: Stripe.PaymentIntentCancelParams,
+  ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
+    return this.stripeClient.paymentIntents.cancel(id, inputDto)
   }
 
   /**
