@@ -3,10 +3,7 @@ import { NotificationGateway } from './gateway'
 import { NotificationService } from './notification.service'
 
 @Module({
-  providers: [
-    NotificationGateway,
-    NotificationService,
-  ],
+  providers: [NotificationGateway, NotificationService],
   exports: [NotificationService],
 })
 export class NotificationModule {}

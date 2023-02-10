@@ -8,5 +8,4 @@ export class NotificationService {
   sendNotification(eventName: string, notificationData: any) {
     this.notificationGateway.server.emit(eventName, notificationData)
   }
-
 }

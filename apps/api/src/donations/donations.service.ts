@@ -27,14 +27,12 @@ import { Person } from '../person/entities/person.entity'
 import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
 import { donationWithPerson, DonationWithPerson } from './validators/donation.validator'
-import { WebSocketService } from '../sockets/socket.service'
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 
 @Injectable()
 export class DonationsService {
   constructor(
     @InjectStripeClient() private stripeClient: Stripe,
-    private webSocketService: WebSocketService,
     private config: ConfigService,
     private campaignService: CampaignService,
     private prisma: PrismaService,
@@ -315,6 +313,7 @@ export class DonationsService {
       items: data,
       total: count,
     }
+
     return result
   }
 
@@ -476,7 +475,6 @@ export class DonationsService {
     const donation = await this.prisma.donation.create({ data: inputDto.toEntity(user) })
 
     if (donation.status === DonationStatus.succeeded) {
-      this.webSocketService.sendNotification('successfulDonation', donation)
       await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
     }
 
