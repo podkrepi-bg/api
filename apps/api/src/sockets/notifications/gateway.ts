@@ -21,6 +21,7 @@ export class NotificationGateway
   async handleConnection(client) {
     Logger.warn(`New Client Connected: ${client.id}`)
   }
+
   handleDisconnect(client) {
     client.disconnect()
     Logger.warn(`${client.id} disconnected`)
