@@ -1,20 +1,20 @@
 import { Module } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { SocketGateway } from './gateway'
-import { WebSocketService } from './socket.service'
 import { PersonService } from './../person/person.service'
 import { PrismaService } from './../prisma/prisma.service'
 import { ConfigService } from '@nestjs/config'
+import { NotificationGateway } from './gateways/gateway'
+import { NotificationService } from './services/notification.service'
 
 @Module({
   providers: [
-    SocketGateway,
-    WebSocketService,
+    NotificationGateway,
+    NotificationService,
     JwtService,
     PersonService,
     PrismaService,
     ConfigService,
   ],
-  exports: [WebSocketService],
+  exports: [NotificationService],
 })
 export class WebSocketModule {}
