@@ -32,13 +32,13 @@ import {
   CampaignListItem,
   CampaignListItemSelect,
 } from './dto/list-campaigns.dto'
-import { WebSocketService } from '../sockets/socket.service'
+import { NotificationService } from '../sockets/notifications/notification.service'
 
 @Injectable()
 export class CampaignService {
   constructor(
     private prisma: PrismaService,
-    private webSocketService: WebSocketService,
+    private notificationService: NotificationService,
     @Inject(forwardRef(() => VaultService)) private vaultService: VaultService,
     @Inject(forwardRef(() => PersonService)) private personService: PersonService,
   ) {}
@@ -448,7 +448,7 @@ export class CampaignService {
 
       if (donation) {
         donation.status = newDonationStatus
-        this.webSocketService.sendNotification('successfulDonation', donation)
+        this.notificationService.sendNotification('successfulDonation', donation)
       }
 
       Logger.debug('Donation found by subscription: ', donation)
@@ -480,9 +480,10 @@ export class CampaignService {
             billingEmail: paymentData.billingEmail,
             person: { connect: { id: paymentData.personId } },
           },
+          select: donationNotificationSelect,
         })
 
-        this.webSocketService.sendNotification('successfulDonation', donation)
+        this.notificationService.sendNotification('successfulDonation', donation)
       } catch (error) {
         Logger.error(
           `Error while creating donation with paymentIntentId: ${paymentData.paymentIntentId} and status: ${newDonationStatus} . Error is: ${error}`,
@@ -511,9 +512,10 @@ export class CampaignService {
             billingName: paymentData.billingName,
             billingEmail: paymentData.billingEmail,
           },
+          select: donationNotificationSelect,
         })
 
-        this.webSocketService.sendNotification('successfulDonation', {
+        this.notificationService.sendNotification('successfulDonation', {
           ...updatedDonation,
           person: donation.person,
         })

@@ -48,8 +48,8 @@ import { ApiLoggerMiddleware } from './middleware/apilogger.middleware'
 import { PaypalModule } from '../paypal/paypal.module'
 import { ExportModule } from '../export/export.module'
 import { JwtModule } from '@nestjs/jwt'
+import { NotificationModule } from '../sockets/notifications/notification.module'
 
-import { WebSocketModule } from '../sockets/socket.module'
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -95,7 +95,7 @@ import { WebSocketModule } from '../sockets/socket.module'
     PaypalModule,
     ExportModule,
     JwtModule,
-    WebSocketModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [

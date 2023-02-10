@@ -11,7 +11,7 @@ import { ConfigService } from '@nestjs/config'
 import { StripeModule } from '@golevelup/nestjs-stripe'
 import { useFactoryService } from './helpers/use-factory-service'
 import { ExportService } from '../export/export.service'
-import { WebSocketModule } from '../sockets/socket.module'
+import { NotificationModule } from '../sockets/notifications/notification.module'
 
 @Module({
   imports: [
@@ -19,7 +19,7 @@ import { WebSocketModule } from '../sockets/socket.module'
       inject: [ConfigService],
       useFactory: useFactoryService.useFactory,
     }),
-    WebSocketModule,
+    NotificationModule,
   ],
   controllers: [BankTransactionsFileController],
   providers: [

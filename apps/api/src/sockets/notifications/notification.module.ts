@@ -9,4 +9,4 @@ import { NotificationService } from './notification.service'
   ],
   exports: [NotificationService],
 })
-export class WebSocketModule {}
+export class NotificationModule {}

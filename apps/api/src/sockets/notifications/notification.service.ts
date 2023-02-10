@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { NotificationGateway } from '../gateways/gateway'
+import { NotificationGateway } from './gateway'
 
 @Injectable()
 export class NotificationService {

@@ -16,7 +16,7 @@ import { DonationsService } from './donations.service'
 import { StripePaymentService } from './events/stripe-payment.service'
 import { HttpModule } from '@nestjs/axios'
 import { ExportModule } from './../export/export.module'
-import { WebSocketModule } from '../sockets/socket.module'
+import { NotificationModule } from '../sockets/notifications/notification.module'
 
 @Module({
   imports: [
@@ -29,7 +29,7 @@ import { WebSocketModule } from '../sockets/socket.module'
     PersonModule,
     HttpModule,
     ExportModule,
-    WebSocketModule,
+    NotificationModule,
   ],
   controllers: [DonationsController],
   providers: [
