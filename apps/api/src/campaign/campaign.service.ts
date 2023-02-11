@@ -23,7 +23,6 @@ import { VaultService } from '../vault/vault.service'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from './dto/update-campaign.dto'
 import { PaymentData } from '../donations/helpers/payment-intent-helpers'
-import { getAllowedPreviousStatus } from '../donations/helpers/donation-status-updates'
 import { Prisma } from '@prisma/client'
 import { CampaignSummaryDto } from './dto/campaign-summary.dto'
 import {
