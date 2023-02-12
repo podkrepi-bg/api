@@ -28,7 +28,7 @@ import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
 import { donationWithPerson, DonationWithPerson } from './validators/donation.validator'
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
-import { ImportStatus, TransactionStatus } from './dto/bank-transactions-import-status.dto'
+import { BankImportStatus, TransactionStatus } from './dto/bank-transactions-import-status.dto'
 
 @Injectable()
 export class DonationsService {
@@ -545,10 +545,10 @@ export class DonationsService {
     return donation
   }
 
-  async createManyBankPayments(donationsDto: CreateManyBankPaymentsDto[]): Promise<ImportStatus[]> {
-    const bankDonationImportStatus: ImportStatus[] = []
+  async createManyBankPayments(donationsDto: CreateManyBankPaymentsDto[]): Promise<BankImportStatus[]> {
+    const bankDonationImportStatus: BankImportStatus[] = []
     for (const donation of donationsDto) {
-      const importStatus: ImportStatus = {
+      const importStatus: BankImportStatus = {
         status: TransactionStatus.SUCCESS,
         amount: donation.amount,
         currency: donation.currency,

@@ -1,9 +1,9 @@
 import { DateTime } from 'aws-sdk/clients/devicefarm'
 
 export enum TransactionStatus {
-  SUCCESS = 'success',
-  FAILED = 'failed',
-  UPDATED = 'updated',
+  SUCCESS = 'SUCCESS',
+  FAILED = 'FAILED',
+  UPDATED = 'UPDATED',
 }
 
 export type BankImportStatus = {
