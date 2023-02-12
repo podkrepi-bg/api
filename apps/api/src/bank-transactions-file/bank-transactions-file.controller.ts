@@ -27,7 +27,11 @@ import { DonationsService } from '../donations/donations.service'
 import { parseBankTransactionsFile } from './helpers/parser'
 import { DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
 import { CreateManyBankPaymentsDto } from '../donations/dto/create-many-bank-payments.dto'
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger'
+import {
+  BankImportStatus,
+  TransactionStatus,
+} from '../donations/dto/bank-transactions-import-status.dto'
 
 @ApiTags('bank-transactions-file')
 @Controller('bank-transactions-file')
@@ -47,7 +51,7 @@ export class BankTransactionsFileController {
     @Body() body: FilesTypesDto,
     @UploadedFiles() files: Express.Multer.File[],
     @AuthenticatedUser() user: KeycloakTokenParsed,
-  ) {
+  ): Promise<BankImportStatus[]> {
     const keycloakId = user.sub as string
     const person = await this.personService.findOneByKeycloakId(keycloakId)
     if (!person) {
@@ -55,15 +59,12 @@ export class BankTransactionsFileController {
       throw new NotFoundException('No person record with keycloak ID: ' + keycloakId)
     }
 
-    const allMovementsFromAllFiles: { payment: CreateManyBankPaymentsDto; paymentRef: string }[][] =
+    const allMovementsFromAllFiles: { payment: CreateManyBankPaymentsDto; paymentRef: string }[] =
       []
-    let accountMovementsFromFile: { payment: CreateManyBankPaymentsDto; paymentRef: string }[] = []
-
     //parse files and save them to S3
-    const promises = await Promise.all(
+    await Promise.all(
       files.map((file, key) => {
-        accountMovementsFromFile = parseBankTransactionsFile(file.buffer)
-        allMovementsFromAllFiles.push(accountMovementsFromFile)
+        allMovementsFromAllFiles.push(...parseBankTransactionsFile(file.buffer))
         const filesType = body.types
         return this.bankTransactionsFileService.create(
           Array.isArray(filesType) ? filesType[key] : filesType,
@@ -75,32 +76,40 @@ export class BankTransactionsFileController {
         )
       }),
     )
-
     //now import the parsed donations
     const donations: CreateManyBankPaymentsDto[] = []
-    for (const fileOfBankMovements of allMovementsFromAllFiles) {
-      for await (const movement of fileOfBankMovements) {
-        const campaign = await this.campaignService.getCampaignByPaymentReference(
-          movement.paymentRef,
-        )
+    const bankDonationImportStatus: BankImportStatus[] = []
+    for (const movement of allMovementsFromAllFiles) {
+      const campaign = await this.campaignService.getCampaignByPaymentReference(movement.paymentRef)
 
-        if (!campaign) {
-          Logger.warn('No campaign with payment reference: ' + movement.paymentRef)
-          throw new NotFoundException('No campaign with payment reference: ' + movement.paymentRef)
+      if (!campaign) {
+        const errorMsg = 'No campaign with payment reference: ' + movement.paymentRef
+        const importStatus: BankImportStatus = {
+          status: TransactionStatus.FAILED,
+          message: errorMsg,
+          amount: movement.payment.amount,
+          currency: movement.payment.currency,
+          createdAt: movement.payment.createdAt,
+          extPaymentIntentId: movement.payment.extPaymentIntentId,
         }
-
-        const vault = await this.vaultService.findByCampaignId(campaign.id)
-        movement.payment.extPaymentMethodId = 'imported bank payment'
-        movement.payment.targetVaultId = vault[0].id
-        movement.payment.type = DonationType.donation
-        movement.payment.status = DonationStatus.succeeded
-        movement.payment.provider = PaymentProvider.bank
-        donations.push(movement.payment)
+        bankDonationImportStatus.push(importStatus)
+        Logger.warn(errorMsg)
+        continue
       }
-    }
-    await this.donationsService.createManyBankPayments(donations)
 
-    return promises
+      const vault = await this.vaultService.findByCampaignId(campaign.id)
+      movement.payment.extPaymentMethodId = 'imported bank payment'
+      movement.payment.targetVaultId = vault[0].id
+      movement.payment.type = DonationType.donation
+      movement.payment.status = DonationStatus.succeeded
+      movement.payment.provider = PaymentProvider.bank
+
+      donations.push(movement.payment)
+    }
+    bankDonationImportStatus.push(
+      ...(await this.donationsService.createManyBankPayments(donations)),
+    )
+    return bankDonationImportStatus
   }
 
   @Get()

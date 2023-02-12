@@ -28,7 +28,7 @@ export class BankTransactionsFileService {
     const dbFile = await this.prisma.bankTransactionsFile.create({ data: file })
     // Use the DB primary key as the S3 key. This will make sure if is always unique.
 
-    await this.s3.uploadObject(
+    /*await this.s3.uploadObject(
       this.bucketName,
       dbFile.id,
       filename,
@@ -38,7 +38,7 @@ export class BankTransactionsFileService {
       bankTransactionsFileId,
       person.id,
     ) // need key from s3 access
-
+    */
     return dbFile.id
   }
 

@@ -28,6 +28,7 @@ import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
 import { donationWithPerson, DonationWithPerson } from './validators/donation.validator'
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
+import { ImportStatus, TransactionStatus } from './dto/bank-transactions-import-status.dto'
 
 @Injectable()
 export class DonationsService {
@@ -544,8 +545,16 @@ export class DonationsService {
     return donation
   }
 
-  async createManyBankPayments(donationsDto: CreateManyBankPaymentsDto[]) {
+  async createManyBankPayments(donationsDto: CreateManyBankPaymentsDto[]): Promise<ImportStatus[]> {
+    const bankDonationImportStatus: ImportStatus[] = []
     for (const donation of donationsDto) {
+      const importStatus: ImportStatus = {
+        status: TransactionStatus.SUCCESS,
+        amount: donation.amount,
+        currency: donation.currency,
+        createdAt: donation.createdAt,
+        extPaymentIntentId: donation.extPaymentIntentId,
+      }
       await this.prisma.$transaction(async (tx) => {
         //to avoid incrementing vault amount twice we first check if there is such donation
         const existingDonation = await tx.donation.findUnique({
@@ -564,9 +573,12 @@ export class DonationsService {
             where: { extPaymentIntentId: donation.extPaymentIntentId },
             data: donation,
           })
+          importStatus.status = TransactionStatus.UPDATED
         }
+        bankDonationImportStatus.push(importStatus)
       })
     }
+    return bankDonationImportStatus
   }
 
   /**
