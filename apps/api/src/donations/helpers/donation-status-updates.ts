@@ -35,7 +35,7 @@ export function shouldAllowStatusChange(
   oldStatus: DonationStatus,
   newStatus: DonationStatus,
 ): boolean {
-  if (isFinal(oldStatus)) {
+  if (isFinal(oldStatus) || isInitial(newStatus)) {
     return false
   }
 
@@ -46,5 +46,5 @@ export function shouldAllowStatusChange(
     return true
   }
 
-  return false
+  throw new Error(`Unhandled donation status change from ${oldStatus} to ${newStatus}`)
 }
