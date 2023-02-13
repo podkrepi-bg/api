@@ -32,7 +32,7 @@ import {
   CampaignListItem,
   CampaignListItemSelect,
 } from './dto/list-campaigns.dto'
-import { NotificationService } from '../sockets/notifications/notification.service'
+import { NotificationService, donationNotificationSelect } from '../sockets/notifications/notification.service'
 
 @Injectable()
 export class CampaignService {
@@ -410,21 +410,6 @@ export class CampaignService {
         { create: { campaignId, currency: campaign.currency, name: campaign.title } }
 
     // Find donation by extPaymentIntentId and update if status allows
-    const donationNotificationSelect = {
-      id: true,
-      status: true,
-      currency: true,
-      amount: true,
-      createdAt: true,
-      extPaymentMethodId: true,
-      person: {
-        select: {
-          firstName: true,
-          lastName: true,
-          picture: true,
-        },
-      },
-    }
 
     let donation = await this.prisma.donation.findUnique({
       where: { extPaymentIntentId: paymentData.paymentIntentId },
