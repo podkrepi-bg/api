@@ -57,9 +57,20 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
    */
   catchUniqueConstraint(exception: Prisma.PrismaClientKnownRequestError, response: Response) {
     const status = HttpStatus.CONFLICT
+    const targets = exception?.meta?.target as string[]
+    const message =
+      targets &&
+      targets.length &&
+      targets.map((el) => {
+        const constraints = {}
+        constraints[el] = `Unique constraint violation for field {${el}}`
+        return { property: el, children: [], constraints }
+      })
+
     response.status(status).json({
       statusCode: status,
-      message: this.cleanUpException(exception),
+      message,
+      error: this.cleanUpException(exception),
     })
   }
 
