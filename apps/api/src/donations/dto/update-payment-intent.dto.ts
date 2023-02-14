@@ -13,4 +13,8 @@ export class UpdatePaymentIntentDto implements Stripe.PaymentIntentUpdateParams 
   @ApiProperty()
   @Expose()
   currency: Currency
+
+  @ApiProperty()
+  @Expose()
+  metadata: Stripe.MetadataParam
 }

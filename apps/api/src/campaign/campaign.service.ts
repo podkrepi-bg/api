@@ -1,4 +1,5 @@
 import {
+  Prisma,
   Campaign,
   CampaignState,
   CampaignType,
@@ -20,11 +21,10 @@ import {
 import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
+import { shouldAllowStatusChange } from '../donations/helpers/donation-status-updates'
+import { PaymentData } from '../donations/helpers/payment-intent-helpers'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from './dto/update-campaign.dto'
-import { PaymentData } from '../donations/helpers/payment-intent-helpers'
-import { getAllowedPreviousStatus } from '../donations/helpers/donation-status-updates'
-import { Prisma } from '@prisma/client'
 import { CampaignSummaryDto } from './dto/campaign-summary.dto'
 import {
   AdminCampaignListItem,
@@ -479,10 +479,7 @@ export class CampaignService {
       return
     }
     //donation exists, so check if it is safe to update it
-    else if (
-      donation?.status === newDonationStatus ||
-      donation?.status === getAllowedPreviousStatus(newDonationStatus)
-    ) {
+    else if (shouldAllowStatusChange(donation.status, newDonationStatus)) {
       try {
         const updatedDonation = await this.prisma.donation.update({
           where: {
