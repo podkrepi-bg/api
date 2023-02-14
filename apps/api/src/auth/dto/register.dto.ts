@@ -26,4 +26,10 @@ export class RegisterDto {
   @IsNotEmpty()
   @IsString()
   public readonly lastName: string
+
+  @ApiProperty()
+  @Expose()
+  @IsNotEmpty()
+  @IsString()
+  public readonly picture: string
 }

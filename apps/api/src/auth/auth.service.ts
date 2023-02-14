@@ -228,6 +228,7 @@ export class AuthService {
         email: registerDto.email,
         firstName: registerDto.firstName,
         lastName: registerDto.lastName,
+        picture: registerDto.picture
       },
       // Store keycloakId to the person with same email
       update: { keycloakId },
