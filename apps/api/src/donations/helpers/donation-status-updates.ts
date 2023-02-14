@@ -35,6 +35,10 @@ export function shouldAllowStatusChange(
   oldStatus: DonationStatus,
   newStatus: DonationStatus,
 ): boolean {
+  if (oldStatus === newStatus) {
+    return true
+  }
+
   if (isFinal(oldStatus) || isInitial(newStatus)) {
     return false
   }
