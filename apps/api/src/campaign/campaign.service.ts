@@ -473,10 +473,7 @@ export class CampaignService {
       return
     }
     //donation exists, so check if it is safe to update it
-    else if (
-      donation?.status !== newDonationStatus &&
-      shouldAllowStatusChange(donation?.status, newDonationStatus)
-    ) {
+    else if (shouldAllowStatusChange(donation.status, newDonationStatus)) {
       try {
         await this.prisma.donation.update({
           where: {
