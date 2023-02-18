@@ -38,7 +38,7 @@ export class BankTransactionsFileService {
       bankTransactionsFileId,
       person.id,
     ) // need key from s3 access
-    
+
     return dbFile.id
   }
 
