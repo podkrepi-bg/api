@@ -71,13 +71,13 @@ yarn
 Use below command for `docker-compose` version `>=2.5`
 
 ```shell
-docker-compose --profile local-keycloak up -d --build
+docker-compose --profile local-keycloak up -d
 ```
 
 or with earlier versions of docker-compose:
 
 ```shell
-docker compose up --build -d pg-db keycloak
+docker compose up -d pg-db keycloak
 ```
 
 This will start the following services in your local docker:

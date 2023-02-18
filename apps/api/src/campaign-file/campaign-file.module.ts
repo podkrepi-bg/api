@@ -6,8 +6,11 @@ import { S3Service } from '../s3/s3.service'
 import { PersonService } from '../person/person.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { VaultService } from '../vault/vault.service'
+import { NotificationModule } from '../sockets/notifications/notification.module'
 
 @Module({
+  imports: [NotificationModule],
+
   controllers: [CampaignFileController],
   providers: [
     CampaignFileService,
