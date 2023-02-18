@@ -28,10 +28,7 @@ import { parseBankTransactionsFile } from './helpers/parser'
 import { DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
 import { CreateManyBankPaymentsDto } from '../donations/dto/create-many-bank-payments.dto'
 import { ApiTags } from '@nestjs/swagger'
-import {
-  BankImportStatus,
-  TransactionStatus,
-} from '../donations/dto/bank-transactions-import-status.dto'
+import { BankImportStatus, BankTransactionStatus } from './dto/bank-transactions-import-status.dto'
 
 @ApiTags('bank-transactions-file')
 @Controller('bank-transactions-file')
@@ -85,7 +82,7 @@ export class BankTransactionsFileController {
       if (!campaign) {
         const errorMsg = 'No campaign with payment reference: ' + movement.paymentRef
         const importStatus: BankImportStatus = {
-          status: TransactionStatus.FAILED,
+          status: BankTransactionStatus.FAILED,
           message: errorMsg,
           amount: movement.payment.amount,
           currency: movement.payment.currency,

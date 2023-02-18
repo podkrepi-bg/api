@@ -28,7 +28,10 @@ import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
 import { donationWithPerson, DonationWithPerson } from './validators/donation.validator'
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
-import { BankImportStatus, TransactionStatus } from './dto/bank-transactions-import-status.dto'
+import {
+  BankImportStatus,
+  BankTransactionStatus,
+} from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
 
 @Injectable()
 export class DonationsService {
@@ -545,38 +548,52 @@ export class DonationsService {
     return donation
   }
 
-  async createManyBankPayments(donationsDto: CreateManyBankPaymentsDto[]): Promise<BankImportStatus[]> {
+  async createManyBankPayments(
+    donationsDto: CreateManyBankPaymentsDto[],
+  ): Promise<BankImportStatus[]> {
     const bankDonationImportStatus: BankImportStatus[] = []
     for (const donation of donationsDto) {
       const importStatus: BankImportStatus = {
-        status: TransactionStatus.SUCCESS,
+        status: BankTransactionStatus.UNPROCESSED,
         amount: donation.amount,
         currency: donation.currency,
         createdAt: donation.createdAt,
         extPaymentIntentId: donation.extPaymentIntentId,
       }
-      await this.prisma.$transaction(async (tx) => {
-        //to avoid incrementing vault amount twice we first check if there is such donation
-        const existingDonation = await tx.donation.findUnique({
-          where: { extPaymentIntentId: donation.extPaymentIntentId },
-        })
 
-        if (!existingDonation) {
-          await tx.donation.create({
-            data: donation,
-          })
-
-          await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount, tx)
-        } else {
-          //Donation exists, so updating with incoming donation without increasing vault amounts
-          await this.prisma.donation.update({
+      try {
+        await this.prisma.$transaction(async (tx) => {
+          //to avoid incrementing vault amount twice we first check if there is such donation
+          const existingDonation = await tx.donation.findUnique({
             where: { extPaymentIntentId: donation.extPaymentIntentId },
-            data: donation,
           })
-          importStatus.status = TransactionStatus.UPDATED
-        }
+
+          if (!existingDonation) {
+            await tx.donation.create({
+              data: donation,
+            })
+
+            await this.vaultService.incrementVaultAmount(
+              donation.targetVaultId,
+              donation.amount,
+              tx,
+            )
+            importStatus.status = BankTransactionStatus.SUCCESS
+          } else {
+            //Donation exists, so updating with incoming donation without increasing vault amounts
+            await this.prisma.donation.update({
+              where: { extPaymentIntentId: donation.extPaymentIntentId },
+              data: donation,
+            })
+            importStatus.status = BankTransactionStatus.UPDATED
+          }
+        })
+      } catch (e) {
+        importStatus.status = BankTransactionStatus.FAILED
+        importStatus.message = 'Database import failed with error' + e
+      } finally {
         bankDonationImportStatus.push(importStatus)
-      })
+      }
     }
     return bankDonationImportStatus
   }
