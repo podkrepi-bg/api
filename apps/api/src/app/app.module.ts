@@ -47,6 +47,8 @@ import { DonationWishModule } from '../donation-wish/donation-wish.module'
 import { ApiLoggerMiddleware } from './middleware/apilogger.middleware'
 import { PaypalModule } from '../paypal/paypal.module'
 import { ExportModule } from '../export/export.module'
+import { JwtModule } from '@nestjs/jwt'
+import { NotificationModule } from '../sockets/notifications/notification.module'
 
 @Module({
   imports: [
@@ -92,6 +94,8 @@ import { ExportModule } from '../export/export.module'
     DonationWishModule,
     PaypalModule,
     ExportModule,
+    JwtModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [

@@ -15,6 +15,7 @@ import { CampaignService } from '../campaign/campaign.service'
 import { ExportService } from '../export/export.service'
 import { PersonService } from '../person/person.service'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
+import { NotificationModule } from '../sockets/notifications/notification.module'
 import { VaultService } from '../vault/vault.service'
 import { DonationsController } from './donations.controller'
 import { DonationsService } from './donations.service'
@@ -64,6 +65,7 @@ describe('DonationsController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [NotificationModule],
       controllers: [DonationsController],
       providers: [
         {

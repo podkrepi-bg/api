@@ -13,7 +13,7 @@ import { ConfigService } from '@nestjs/config'
 import { PersonService } from '../person/person.service'
 import * as paymentReferenceGenerator from './helpers/payment-reference'
 import { CampaignSummaryDto } from './dto/campaign-summary.dto'
-import { devNull } from 'os'
+import { NotificationModule } from '../sockets/notifications/notification.module'
 
 describe('CampaignController', () => {
   let controller: CampaignController
@@ -110,6 +110,7 @@ describe('CampaignController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [NotificationModule],
       controllers: [CampaignController],
       providers: [CampaignService, MockPrismaService, VaultService, PersonService, ConfigService],
     })
