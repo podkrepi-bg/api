@@ -1,5 +1,5 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common'
-import { Currency } from '@prisma/client'
+import { Currency, SlugArchive } from '@prisma/client'
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignState } from '@prisma/client'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
@@ -13,6 +13,7 @@ import { ConfigService } from '@nestjs/config'
 import { PersonService } from '../person/person.service'
 import * as paymentReferenceGenerator from './helpers/payment-reference'
 import { CampaignSummaryDto } from './dto/campaign-summary.dto'
+import { devNull } from 'os'
 
 describe('CampaignController', () => {
   let controller: CampaignController
@@ -209,8 +210,50 @@ describe('CampaignController', () => {
           },
         },
       })
+
       expect(prismaService.campaign.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({ where: { slug } }),
+      )
+      // Since the url was found as current, the archive must not have been checked
+      expect(prismaService.slugArchive.findUnique).not.toHaveBeenCalled()
+    })
+
+    it('should return campaign if older slug was used', async () => {
+      const olderSlug = 'older-slug'
+
+      const mockObject = {
+        id: 'someId',
+        slug: 'updated-slug',
+        campaignId: 'campaign-id',
+        campaign: { ...mockCampaign },
+      } as SlugArchive
+
+      // Pretend the url was not found(no campaign uses it currently)
+      prismaMock.campaign.findFirst.mockResolvedValue(null)
+      // Check if it was used before
+      prismaMock.slugArchive.findUnique.mockResolvedValue(mockObject)
+      prismaMock.$queryRaw.mockResolvedValue([mockSummary])
+
+      expect(await controller.viewBySlug(olderSlug)).toEqual({
+        campaign: {
+          ...mockCampaign,
+          summary: {
+            reachedAmount: 110,
+            currentAmount: 0,
+            blockedAmount: 0,
+            withdrawnAmount: 0,
+            donors: 2,
+          },
+        },
+      })
+
+      expect(prismaService.campaign.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { slug: olderSlug } }),
+      )
+
+      // Since the url was not found as current, the archive must have been checked
+      expect(prismaService.slugArchive.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { slug: olderSlug } }),
       )
     })
 

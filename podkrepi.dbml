@@ -168,6 +168,16 @@ Table campaigns {
   incomingTransfers transfers [not null]
   vaults vaults [not null]
   withdrawals withdrawals [not null]
+  slugArchive slug_archive [not null]
+}
+
+Table slug_archive {
+  id String [pk]
+  slug String [unique, not null]
+  campaignId String [not null, note: 'Stores the id of the last campaign that has used it']
+  campaign campaigns [not null]
+
+  Note: 'Keeps track of previous slugs that are not used currently in any active campaign'
 }
 
 Table irregularities {
@@ -665,6 +675,8 @@ Ref: campaigns.coordinatorId > coordinators.id
 Ref: campaigns.organizerId > organizers.id
 
 Ref: campaigns.companyId > companies.id
+
+Ref: slug_archive.campaignId > campaigns.id
 
 Ref: irregularities.campaignId > campaigns.id
 
