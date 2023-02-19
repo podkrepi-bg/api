@@ -16,4 +16,7 @@ describe('BenefactorService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined()
   })
+  it('should fail', () => {
+    expect(1).toEqual(2)
+  })
 })
