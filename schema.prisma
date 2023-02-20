@@ -216,8 +216,7 @@ model Campaign {
 
 /// Keeps track of previous slugs that are not used currently in any active campaign
 model SlugArchive {
- id                      String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
- slug                    String         @unique @db.VarChar(250)
+ slug                    String         @id @unique @db.VarChar(250)
  /// Stores the id of the last campaign that has used it
  campaignId              String         @map("campaign_id") @db.Uuid
  campaign                Campaign       @relation(fields: [campaignId], references: [id])

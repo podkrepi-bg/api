@@ -172,8 +172,7 @@ Table campaigns {
 }
 
 Table slug_archive {
-  id String [pk]
-  slug String [unique, not null]
+  slug String [pk, unique]
   campaignId String [not null, note: 'Stores the id of the last campaign that has used it']
   campaign campaigns [not null]
 
