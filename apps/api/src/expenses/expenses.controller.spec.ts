@@ -22,6 +22,7 @@ const mockData = [
     approvedById: '00000000-0000-0000-0000-000000000012',
     createdAt: new Date('2022-04-2T09:12:13.511Z'),
     updatedAt: new Date('2022-04-2T09:12:13.511Z'),
+    spentAt: new Date('2022-06-02T09:00:00.511Z'),
   },
 ]
 

@@ -4,43 +4,60 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common'
-import { Expense, ExpenseStatus } from '@prisma/client'
+import { Expense, ExpenseFile, ExpenseStatus } from '@prisma/client'
 
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateExpenseDto } from './dto/create-expense.dto'
 import { UpdateExpenseDto } from './dto/update-expense.dto'
+import { CreateExpenseFileDto } from './dto/create-expense-file.dto'
+import { S3Service } from '../s3/s3.service'
 
 @Injectable()
 export class ExpensesService {
-  constructor(private prisma: PrismaService) {}
+  private readonly bucketName: string = 'expenses-files'
+  constructor(private prisma: PrismaService, private s3: S3Service) {}
 
   /**
    * Creates an expense, while blocking the corresponding amount in the source vault.
    */
-  async createExpense(createExpenseDto: CreateExpenseDto) {
-    const sourceVault = await this.prisma.vault.findFirst({
-      where: {
-        id: createExpenseDto.vaultId,
-      },
-      rejectOnNotFound: true,
-    })
-
-    if (sourceVault.amount - sourceVault.blockedAmount - createExpenseDto.amount < 0) {
-      throw new BadRequestException('Insufficient amount in vault.')
-    }
-
+  async createExpense(createExpenseDto: CreateExpenseDto, files: Express.Multer.File[]) {
     const writeExpense = this.prisma.expense.create({ data: createExpenseDto })
-    const writeVault = this.prisma.vault.update({
-      where: { id: sourceVault.id },
-      data: { blockedAmount: { increment: createExpenseDto.amount } },
-    })
-    const [result] = await this.prisma.$transaction([writeExpense, writeVault])
+    const [result] = await this.prisma.$transaction([writeExpense])
     return result
+  }
+
+  async uploadFiles(id: string, files: Express.Multer.File[]) {
+    files = files || []
+    await Promise.all(
+      files.map((file) => {
+        console.log("File uploading: ", id, file.filename, file.mimetype, file.originalname)
+        this.create_expense_file(id, file.mimetype, file.originalname, file.buffer)
+        /*
+        return this.irregularityFileService.create(
+          irregularityId,
+          file.mimetype,
+          file.originalname,
+          person,
+          file.buffer,
+          )*/
+      })
+    )
   }
 
   async listExpenses(returnDeleted = false): Promise<Expense[]> {
     return this.prisma.expense.findMany({ where: { deleted: returnDeleted } })
   }
+
+  async listCampaignExpenses(slug: string): Promise<Expense[]> {
+    return this.prisma.expense.findMany({ where:
+      { vault:
+        { campaign:
+          { slug: slug }
+        }
+      }
+    })
+  }
+
 
   async findOne(id: string, returnDeleted = false) {
     try {
@@ -75,9 +92,9 @@ export class ExpensesService {
     ) {
       throw new BadRequestException('Expense has already been finilized and cannot be updated.')
     }
-    if (expense.vaultId !== dto.vaultId || expense.amount !== dto.amount) {
+    if (expense.vaultId !== dto.vaultId) {
       throw new BadRequestException(
-        'Vault or amount cannot be changed, please decline the withdrawal instead.',
+        'Vault or amount cannot be changed.',
       )
     }
 
@@ -121,5 +138,45 @@ export class ExpensesService {
 
     const [result] = await this.prisma.$transaction([writeExpense, writeVault])
     return result
+  }
+
+  async create_expense_file(
+    expenseId: string,
+    mimetype: string,
+    filename: string,
+    // uploadedBy: string,
+    buffer: Buffer,
+  ): Promise<string> {
+    const file: CreateExpenseFileDto = {
+      filename,
+      mimetype,
+      expenseId,
+      uploaderId: '9b26b247-c275-4320-9831-fb7a0d243758' /*TODO: get user id from context*/,
+    }
+
+    const dbFile = await this.prisma.expenseFile.create({ data: file })
+
+    // Use the DB primary key as the S3 key. This will make sure iт is always unique.
+    await this.s3.uploadObject(
+      this.bucketName,
+      dbFile.id,
+      encodeURIComponent(filename),
+      mimetype,
+      buffer,
+      'expenses',
+      expenseId,
+      file.uploaderId,
+    )
+    return dbFile.id
+  }
+
+  async listUploadedFiles(id: string): Promise<ExpenseFile[]> {
+    return this.prisma.expenseFile.findMany({ where:
+      { expenseId: id }
+    })
+  }
+
+  async downloadFile(id: string): Promise<string> {
+    return "File " + id
   }
 }

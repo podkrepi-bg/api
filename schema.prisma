@@ -62,6 +62,7 @@ model Person {
   infoRequests       InfoRequest[]
   irregularities     Irregularity[]
   irregularityFiles  IrregularityFile[]
+  expenseFiles       ExpenseFile[]
   organizer          Organizer?
   recurringDonations RecurringDonation[]
   supporters         Supporter[]
@@ -491,8 +492,22 @@ model Expense {
   approvedBy   Person?       @relation(fields: [approvedById], references: [id])
   document     Document?     @relation(fields: [documentId], references: [id])
   vault        Vault         @relation(fields: [vaultId], references: [id])
+  spentAt      DateTime    @default(now()) @map("spent_at") @db.Timestamptz(6)
+  expenseFiles ExpenseFile[]
 
   @@map("expenses")
+}
+
+model ExpenseFile {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename       String       @db.VarChar(200)
+  mimetype       String       @db.VarChar(100)
+  expenseId      String       @map("expense_id") @db.Uuid
+  uploaderId     String       @map("uploader_id") @db.Uuid
+  expense        Expense      @relation(fields: [expenseId], references: [id])
+  uploadedBy     Person       @relation(fields: [uploaderId], references: [id])
+
+  @@map("expense_files")
 }
 
 model Document {

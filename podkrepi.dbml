@@ -37,6 +37,7 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   infoRequests info_requests [not null]
   irregularities irregularities [not null]
   irregularityFiles irregularity_files [not null]
+  expenseFiles expense_files [not null]
   organizer organizers
   recurringDonations recurring_donations [not null]
   supporters supporters [not null]
@@ -408,8 +409,20 @@ Table expenses {
   approvedBy people
   document documents
   vault vaults [not null]
+  spentAt DateTime [default: `now()`, not null]
+  expenseFiles expense_files [not null]
 
   Note: 'Pay for something from a given vault'
+}
+
+Table expense_files {
+  id String [pk]
+  filename String [not null]
+  mimetype String [not null]
+  expenseId String [not null]
+  uploaderId String [not null]
+  expense expenses [not null]
+  uploadedBy people [not null]
 }
 
 Table documents {
@@ -721,5 +734,9 @@ Ref: expenses.approvedById > people.id
 Ref: expenses.documentId > documents.id
 
 Ref: expenses.vaultId > vaults.id
+
+Ref: expense_files.expenseId > expenses.id
+
+Ref: expense_files.uploaderId > people.id
 
 Ref: documents.ownerId > people.id

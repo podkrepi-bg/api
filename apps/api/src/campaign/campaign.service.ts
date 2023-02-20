@@ -274,6 +274,12 @@ export class CampaignService {
     const campaignSums = await this.getCampaignSums([campaign.id])
 
     campaign['summary'] = this.getVaultAndDonationSummaries(campaign.id, campaignSums)
+
+    const vault = await this.getCampaignVault(campaign.id)
+    if (vault) {
+      campaign['defaultVault'] = vault?.id
+    }
+
     return campaign
   }
 
