@@ -8,7 +8,7 @@ export enum ImportStatus {
 }
 
 export type BankImport = {
-  status?: ImportStatus
+  status: ImportStatus
   message?: string
   amount: number
   currency: string
