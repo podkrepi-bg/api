@@ -28,7 +28,10 @@ import { parseBankTransactionsFile } from './helpers/parser'
 import { DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
 import { CreateManyBankPaymentsDto } from '../donations/dto/create-many-bank-payments.dto'
 import { ApiTags } from '@nestjs/swagger'
-import { BankImportStatus, BankTransactionStatus } from './dto/bank-transactions-import-status.dto'
+import {
+  BankImport,
+  ImportStatus,
+} from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
 
 @ApiTags('bank-transactions-file')
 @Controller('bank-transactions-file')
@@ -48,7 +51,7 @@ export class BankTransactionsFileController {
     @Body() body: FilesTypesDto,
     @UploadedFiles() files: Express.Multer.File[],
     @AuthenticatedUser() user: KeycloakTokenParsed,
-  ): Promise<BankImportStatus[]> {
+  ): Promise<BankImport[]> {
     const keycloakId = user.sub as string
     const person = await this.personService.findOneByKeycloakId(keycloakId)
     if (!person) {
@@ -74,23 +77,23 @@ export class BankTransactionsFileController {
       }),
     )
     //now import the parsed donations
-    const donations: CreateManyBankPaymentsDto[] = []
-    const bankDonationImportStatus: BankImportStatus[] = []
+    const bankImportRecords: BankImport[] = []
     for (const movement of allMovementsFromAllFiles) {
       const campaign = await this.campaignService.getCampaignByPaymentReference(movement.paymentRef)
+      const donationImportRecord: BankImport = {
+        status: ImportStatus.UNPROCESSED,
+        amount: movement.payment.amount,
+        currency: movement.payment.currency,
+        createdAt: movement.payment.createdAt,
+        extPaymentIntentId: movement.payment.extPaymentIntentId,
+      }
 
       if (!campaign) {
         const errorMsg = 'No campaign with payment reference: ' + movement.paymentRef
-        const importStatus: BankImportStatus = {
-          status: BankTransactionStatus.FAILED,
-          message: errorMsg,
-          amount: movement.payment.amount,
-          currency: movement.payment.currency,
-          createdAt: movement.payment.createdAt,
-          extPaymentIntentId: movement.payment.extPaymentIntentId,
-        }
-        bankDonationImportStatus.push(importStatus)
+        donationImportRecord.status = ImportStatus.FAILED
+        donationImportRecord.message = errorMsg
         Logger.warn(errorMsg)
+        bankImportRecords.push(donationImportRecord)
         continue
       }
 
@@ -101,12 +104,19 @@ export class BankTransactionsFileController {
       movement.payment.status = DonationStatus.succeeded
       movement.payment.provider = PaymentProvider.bank
 
-      donations.push(movement.payment)
+      try {
+        donationImportRecord.status = await this.donationsService.createUpdateBankPayment(
+          movement.payment,
+        )
+      } catch (e) {
+        const errorMsg = `Error during database import ${movement.paymentRef} : ${e}`
+        donationImportRecord.status = ImportStatus.FAILED
+        donationImportRecord.message = errorMsg
+        Logger.warn(errorMsg)
+      }
+      bankImportRecords.push(donationImportRecord)
     }
-    bankDonationImportStatus.push(
-      ...(await this.donationsService.createManyBankPayments(donations)),
-    )
-    return bankDonationImportStatus
+    return bankImportRecords
   }
 
   @Get()
