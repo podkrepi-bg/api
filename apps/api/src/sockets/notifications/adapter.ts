@@ -14,7 +14,7 @@ export class PostgresIoAdapter extends IoAdapter {
       user: DB_USER,
       host: DB_HOST,
       database: 'postgres',
-      password: DB_PASS || 'postgrespass',
+      password: DB_PASS,
       port: Number(DB_PORT) || 5432,
     })
 
