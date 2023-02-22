@@ -78,6 +78,7 @@ export class BankTransactionsFileController {
     )
     //now import the parsed donations
     const bankImportResults: BankImportResult[] = []
+    let errCountImportResults = 0
     for (const movement of allMovementsFromAllFiles) {
       const campaign = await this.campaignService.getCampaignByPaymentReference(movement.paymentRef)
       const bankImportResult: BankImportResult = {
@@ -92,8 +93,9 @@ export class BankTransactionsFileController {
         const errorMsg = 'No campaign with payment reference: ' + movement.paymentRef
         bankImportResult.status = ImportStatus.FAILED
         bankImportResult.message = errorMsg
-        Logger.warn(errorMsg)
+        Logger.debug(errorMsg)
         bankImportResults.push(bankImportResult)
+        errCountImportResults++
         continue
       }
 
@@ -112,9 +114,12 @@ export class BankTransactionsFileController {
         const errorMsg = `Error during database import ${movement.paymentRef} : ${e}`
         bankImportResult.status = ImportStatus.FAILED
         bankImportResult.message = errorMsg
-        Logger.warn(errorMsg)
+        Logger.debug(errorMsg)
       }
       bankImportResults.push(bankImportResult)
+    }
+    if (errCountImportResults > 0) {
+      Logger.warn('Number of errors during bank imports: ' + errCountImportResults)
     }
     return bankImportResults
   }
