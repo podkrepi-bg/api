@@ -29,7 +29,7 @@ import { DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
 import { CreateManyBankPaymentsDto } from '../donations/dto/create-many-bank-payments.dto'
 import { ApiTags } from '@nestjs/swagger'
 import {
-  BankImport,
+  BankImportResult,
   ImportStatus,
 } from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
 
@@ -51,7 +51,7 @@ export class BankTransactionsFileController {
     @Body() body: FilesTypesDto,
     @UploadedFiles() files: Express.Multer.File[],
     @AuthenticatedUser() user: KeycloakTokenParsed,
-  ): Promise<BankImport[]> {
+  ): Promise<BankImportResult[]> {
     const keycloakId = user.sub as string
     const person = await this.personService.findOneByKeycloakId(keycloakId)
     if (!person) {
@@ -77,10 +77,10 @@ export class BankTransactionsFileController {
       }),
     )
     //now import the parsed donations
-    const bankImportRecords: BankImport[] = []
+    const bankImportResults: BankImportResult[] = []
     for (const movement of allMovementsFromAllFiles) {
       const campaign = await this.campaignService.getCampaignByPaymentReference(movement.paymentRef)
-      const donationImportRecord: BankImport = {
+      const bankImportResult: BankImportResult = {
         status: ImportStatus.UNPROCESSED,
         amount: movement.payment.amount,
         currency: movement.payment.currency,
@@ -90,10 +90,10 @@ export class BankTransactionsFileController {
 
       if (!campaign) {
         const errorMsg = 'No campaign with payment reference: ' + movement.paymentRef
-        donationImportRecord.status = ImportStatus.FAILED
-        donationImportRecord.message = errorMsg
+        bankImportResult.status = ImportStatus.FAILED
+        bankImportResult.message = errorMsg
         Logger.warn(errorMsg)
-        bankImportRecords.push(donationImportRecord)
+        bankImportResults.push(bankImportResult)
         continue
       }
 
@@ -105,18 +105,18 @@ export class BankTransactionsFileController {
       movement.payment.provider = PaymentProvider.bank
 
       try {
-        donationImportRecord.status = await this.donationsService.createUpdateBankPayment(
+        bankImportResult.status = await this.donationsService.createUpdateBankPayment(
           movement.payment,
         )
       } catch (e) {
         const errorMsg = `Error during database import ${movement.paymentRef} : ${e}`
-        donationImportRecord.status = ImportStatus.FAILED
-        donationImportRecord.message = errorMsg
+        bankImportResult.status = ImportStatus.FAILED
+        bankImportResult.message = errorMsg
         Logger.warn(errorMsg)
       }
-      bankImportRecords.push(donationImportRecord)
+      bankImportResults.push(bankImportResult)
     }
-    return bankImportRecords
+    return bankImportResults
   }
 
   @Get()

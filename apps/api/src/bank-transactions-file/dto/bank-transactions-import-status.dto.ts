@@ -7,7 +7,7 @@ export enum ImportStatus {
   UPDATED = 'UPDATED',
 }
 
-export type BankImport = {
+export type BankImportResult = {
   status: ImportStatus
   message?: string
   amount: number
