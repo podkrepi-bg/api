@@ -78,7 +78,7 @@ export class BankTransactionsFileController {
     )
     //now import the parsed donations
     const bankImportResults: BankImportResult[] = []
-    let errCountImportResults = 0
+    let errCountbankImportResults = 0
     for (const movement of allMovementsFromAllFiles) {
       const campaign = await this.campaignService.getCampaignByPaymentReference(movement.paymentRef)
       const bankImportResult: BankImportResult = {
@@ -95,7 +95,7 @@ export class BankTransactionsFileController {
         bankImportResult.message = errorMsg
         Logger.debug(errorMsg)
         bankImportResults.push(bankImportResult)
-        errCountImportResults++
+        errCountbankImportResults++
         continue
       }
 
@@ -118,8 +118,8 @@ export class BankTransactionsFileController {
       }
       bankImportResults.push(bankImportResult)
     }
-    if (errCountImportResults > 0) {
-      Logger.warn('Number of errors during bank imports: ' + errCountImportResults)
+    if (errCountbankImportResults > 0) {
+      Logger.warn('Number of errors during bank imports: ' + errCountbankImportResults)
     }
     return bankImportResults
   }
