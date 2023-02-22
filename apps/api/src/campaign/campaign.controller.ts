@@ -132,7 +132,7 @@ export class CampaignController {
       user.sub === campaign?.coordinator.person.keycloakId ||
       isAdmin(user)
     )
-      return this.campaignService.update(id, updateCampaignDto)
+      return this.campaignService.update(id, updateCampaignDto, campaign)
     else
       throw new ForbiddenException(
         'The user is not coordinator,organizer or beneficiery to the requested campaign',

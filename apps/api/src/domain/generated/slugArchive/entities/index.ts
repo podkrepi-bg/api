@@ -1,0 +1,2 @@
+
+export * from './slugArchive.entity';

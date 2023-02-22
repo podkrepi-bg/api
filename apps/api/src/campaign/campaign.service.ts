@@ -219,6 +219,8 @@ export class CampaignService {
         beneficiary: { select: { person: { select: { keycloakId: true } } } },
         coordinator: { select: { person: { select: { keycloakId: true } } } },
         organizer: { select: { person: { select: { keycloakId: true } } } },
+        state: true,
+        slug: true,
       },
     })
 
@@ -237,36 +239,56 @@ export class CampaignService {
   }
 
   async getCampaignBySlug(slug: string): Promise<Campaign> {
-    const campaign = await this.prisma.campaign.findFirst({
-      where: { slug },
-      include: {
-        campaignType: {
-          select: { name: true, slug: true, category: true },
-        },
-        beneficiary: {
-          select: {
-            id: true,
-            type: true,
-            publicData: true,
-            person: { select: { id: true, firstName: true, lastName: true } },
-            company: { select: { id: true, companyName: true } },
-          },
-        },
-        coordinator: {
-          select: {
-            id: true,
-            person: { select: { id: true, firstName: true, lastName: true, email: true } },
-          },
-        },
-        organizer: {
-          select: {
-            id: true,
-            person: { select: { id: true, firstName: true, lastName: true, email: true } },
-          },
-        },
-        campaignFiles: true,
+    const includeFilter = {
+      campaignType: {
+        select: { name: true, slug: true, category: true },
       },
+      beneficiary: {
+        select: {
+          id: true,
+          type: true,
+          publicData: true,
+          person: { select: { id: true, firstName: true, lastName: true } },
+          company: { select: { id: true, companyName: true } },
+        },
+      },
+      coordinator: {
+        select: {
+          id: true,
+          person: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      },
+      organizer: {
+        select: {
+          id: true,
+          person: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      },
+      campaignFiles: true,
+    }
+
+    let campaign = await this.prisma.campaign.findFirst({
+      where: { slug },
+      include: { ...includeFilter },
     })
+
+    // Check the Archive
+    if (!campaign) {
+      try {
+        const result = await this.prisma.slugArchive.findUnique({
+          where: {
+            slug,
+          },
+          select: {
+            campaign: { include: { ...includeFilter } },
+          },
+        })
+
+        campaign = result?.campaign || null
+      } catch {
+        // Continue on error
+      }
+    }
 
     if (campaign === null) {
       Logger.warn('No campaign record with slug: ' + slug)
@@ -595,12 +617,39 @@ export class CampaignService {
     }
   }
 
-  async update(id: string, updateCampaignDto: UpdateCampaignDto): Promise<Campaign | null> {
+  async update(
+    id: string,
+    updateCampaignDto: UpdateCampaignDto,
+    campaign: Partial<Campaign> | null,
+  ): Promise<Campaign | null> {
     const result = await this.prisma.campaign.update({
       where: { id: id },
       data: updateCampaignDto,
     })
+
     if (!result) throw new NotFoundException(`Not found campaign with id: ${id}`)
+
+    // Make old slug redirect to this campaign
+    if (
+      campaign?.state === CampaignState.active &&
+      result?.state === CampaignState.active &&
+      campaign?.slug &&
+      updateCampaignDto.slug !== campaign.slug
+    ) {
+      await this.prisma.slugArchive.upsert({
+        where: {
+          slug: campaign.slug,
+        },
+        update: {
+          campaignId: id,
+        },
+        create: {
+          slug: campaign.slug,
+          campaignId: id,
+        },
+      })
+    }
+
     return result
   }
 
