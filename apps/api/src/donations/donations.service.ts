@@ -24,7 +24,6 @@ import { CreatePaymentDto } from './dto/create-payment.dto'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
-import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
 import { donationWithPerson, DonationWithPerson } from './validators/donation.validator'
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
@@ -539,7 +538,7 @@ export class DonationsService {
    * Used by the administrators to manually add donations executed by bank payments to a campaign.
    */
   async createBankPayment(inputDto: CreateBankPaymentDto): Promise<Donation> {
-    const donation = await this.prisma.donation.create({ data: inputDto.toEntity() })
+    const donation = await this.prisma.donation.create({ data: inputDto })
 
     // Donation status check is not needed, because bank payments are only added by admins if the bank transfer was successful.
     await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
@@ -547,7 +546,7 @@ export class DonationsService {
     return donation
   }
 
-  async createUpdateBankPayment(donationsDto: CreateManyBankPaymentsDto): Promise<ImportStatus> {
+  async createUpdateBankPayment(donationsDto: CreateBankPaymentDto): Promise<ImportStatus> {
     return await this.prisma.$transaction(async (tx) => {
       //to avoid incrementing vault amount twice we first check if there is such donation
       const existingDonation = await tx.donation.findUnique({
@@ -555,15 +554,7 @@ export class DonationsService {
       })
 
       if (!existingDonation) {
-        await tx.donation.create({
-          data: donationsDto,
-        })
-
-        await this.vaultService.incrementVaultAmount(
-          donationsDto.targetVaultId,
-          donationsDto.amount,
-          tx,
-        )
+        this.createBankPayment(donationsDto)
         return ImportStatus.SUCCESS
       }
 
