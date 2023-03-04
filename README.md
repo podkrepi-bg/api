@@ -104,11 +104,13 @@ yarn prisma db seed
 
 ## Setup local environment
 
-Copy the provided .env.local.example to .env.local
+Copy the provided `.env.example` to `.env`
 
 ```shell
-cp .env.local.example .env.local
+cp .env.example .env
 ```
+
+**Note:** _To avoid modifying the original file, you can create `.env.local` and add overrides for the variables that are specific to your local environment. This approach allows you to keep your customizations separate from the default values._
 
 ### Run the tests
 

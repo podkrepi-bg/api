@@ -27,6 +27,8 @@ jobs:
         with:
           node-version: '18'
           cache: 'yarn'
+      - name: Copy env file
+        run: cp .env.example .env
       - name: Run database
         run: docker-compose up -d pg-db
       - run: yarn
