@@ -537,8 +537,8 @@ export class DonationsService {
   /**
    * Used by the administrators to manually add donations executed by bank payments to a campaign.
    */
-  async createBankPayment(inputDto: CreateBankPaymentDto): Promise<Donation> {
-    const donation = await this.prisma.donation.create({ data: inputDto })
+  async createBankPayment(donationDto: CreateBankPaymentDto): Promise<Donation> {
+    const donation = await this.prisma.donation.create({ data: donationDto })
 
     // Donation status check is not needed, because bank payments are only added by admins if the bank transfer was successful.
     await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
@@ -546,22 +546,22 @@ export class DonationsService {
     return donation
   }
 
-  async createUpdateBankPayment(donationsDto: CreateBankPaymentDto): Promise<ImportStatus> {
+  async createUpdateBankPayment(donationDto: CreateBankPaymentDto): Promise<ImportStatus> {
     return await this.prisma.$transaction(async (tx) => {
       //to avoid incrementing vault amount twice we first check if there is such donation
       const existingDonation = await tx.donation.findUnique({
-        where: { extPaymentIntentId: donationsDto.extPaymentIntentId },
+        where: { extPaymentIntentId: donationDto.extPaymentIntentId },
       })
 
       if (!existingDonation) {
-        this.createBankPayment(donationsDto)
+        this.createBankPayment(donationDto)
         return ImportStatus.SUCCESS
       }
 
       //Donation exists, so updating with incoming donation without increasing vault amounts
       await this.prisma.donation.update({
-        where: { extPaymentIntentId: donationsDto.extPaymentIntentId },
-        data: donationsDto,
+        where: { extPaymentIntentId: donationDto.extPaymentIntentId },
+        data: donationDto,
       })
       return ImportStatus.UPDATED
     })
