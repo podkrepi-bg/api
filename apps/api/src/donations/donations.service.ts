@@ -534,18 +534,6 @@ export class DonationsService {
     return this.stripeClient.paymentIntents.cancel(id, inputDto)
   }
 
-  /**
-   * Used by the administrators to manually add donations executed by bank payments to a campaign.
-   */
-  async createBankPayment(donationDto: CreateBankPaymentDto): Promise<Donation> {
-    const donation = await this.prisma.donation.create({ data: donationDto })
-
-    // Donation status check is not needed, because bank payments are only added by admins if the bank transfer was successful.
-    await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
-
-    return donation
-  }
-
   async createUpdateBankPayment(donationDto: CreateBankPaymentDto): Promise<ImportStatus> {
     return await this.prisma.$transaction(async (tx) => {
       //to avoid incrementing vault amount twice we first check if there is such donation
@@ -554,7 +542,15 @@ export class DonationsService {
       })
 
       if (!existingDonation) {
-        this.createBankPayment(donationDto)
+        await tx.donation.create({
+          data: donationDto,
+        })
+
+        await this.vaultService.incrementVaultAmount(
+          donationDto.targetVaultId,
+          donationDto.amount,
+          tx,
+        )
         return ImportStatus.SUCCESS
       }
 
