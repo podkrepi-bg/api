@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
   ForbiddenException,
@@ -11,6 +12,7 @@ import { CreateExpenseDto } from './dto/create-expense.dto'
 import { UpdateExpenseDto } from './dto/update-expense.dto'
 import { CreateExpenseFileDto } from './dto/create-expense-file.dto'
 import { S3Service } from '../s3/s3.service'
+import { Readable } from 'stream'
 
 @Injectable()
 export class ExpensesService {
@@ -53,7 +55,8 @@ export class ExpensesService {
       { vault:
         { campaign:
           { slug: slug }
-        }
+        },
+        deleted: false
       }
     })
   }
@@ -68,14 +71,8 @@ export class ExpensesService {
     }
   }
 
-  // Functionality will be reworked soon
   async remove(id: string) {
-    throw new ForbiddenException()
-    try {
       return await this.prisma.expense.delete({ where: { id } })
-    } catch (error) {
-      throw new NotFoundException('No expense with this id exists.')
-    }
   }
 
   /**
@@ -176,7 +173,31 @@ export class ExpensesService {
     })
   }
 
-  async downloadFile(id: string): Promise<string> {
-    return "File " + id
+  async downloadFile(id: string): Promise<{
+    filename: string,
+    mimetype: string,
+    stream: Readable
+  }> {
+    const file = await this.prisma.expenseFile.findFirst({ where: { id: id } })
+    if (!file) {
+      Logger.warn('No expenseFile file record with ID: ' + id)
+      throw new NotFoundException('No expenseFile file record with ID: ' + id)
+    }
+    return {
+      filename: encodeURIComponent(file.filename),
+      mimetype: file.mimetype,
+      stream: await this.s3.streamFile(this.bucketName, id),
+    }
+  }
+
+  async removeFile(id: string) {
+    const file = await this.prisma.expenseFile.findFirst({ where: { id: id } })
+    if (!file) {
+      Logger.warn('No expenseFile file record with ID: ' + id)
+      throw new NotFoundException('No expenseFile file record with ID: ' + id)
+    }
+
+    await this.s3.deleteObject(this.bucketName, id)
+    await this.prisma.expenseFile.delete({ where: { id: id } })
   }
 }

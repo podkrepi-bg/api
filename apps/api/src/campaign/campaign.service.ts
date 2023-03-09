@@ -131,6 +131,21 @@ export class CampaignService {
     return campaign
   }
 
+  async isUserCampaign(keycloakId: string, slug: string): Promise<boolean> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: {
+        slug,
+        OR: [
+          { beneficiary: { person: { keycloakId } } },
+          { coordinator: { person: { keycloakId } } },
+          { organizer: { person: { keycloakId } } },
+        ],
+      },
+    })
+
+    return !!campaign
+  }
+
   async getUserCampaigns(keycloakId: string): Promise<Campaign[]> {
     const campaigns = await this.prisma.campaign.findMany({
       where: {

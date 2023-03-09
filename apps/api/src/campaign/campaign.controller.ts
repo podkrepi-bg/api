@@ -55,6 +55,18 @@ export class CampaignController {
     return this.campaignService.getUserCampaigns(user.sub)
   }
 
+  // only the user who created the campaign can update it
+  // or the user is in admin role
+  @Get('can-edit/:slug')
+  async canEditCampaign(
+    @Param('slug') slug: string,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    const isOwner = await this.campaignService.isUserCampaign(user.sub, slug)
+
+    return isOwner || isAdmin(user)
+  }
+
   @Get('user-donations-campaigns')
   async getUserDonatedCampaigns(@AuthenticatedUser() user: KeycloakTokenParsed) {
     return await this.campaignService.getUserDonatedCampaigns(user.sub)

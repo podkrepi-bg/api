@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Delete, Patch, Response, StreamableFile } from '@nestjs/common'
 import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
@@ -51,10 +51,6 @@ export class ExpensesController {
   }
 
   @Delete(':id')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
   remove(@Param('id') id: string) {
     return this.expensesService.remove(id)
   }
@@ -84,5 +80,28 @@ export class ExpensesController {
   @Get('files/:id')
   getUploadedFiles(@Param('id') id: string) {
     return this.expensesService.listUploadedFiles(id)
+  }
+
+  @Get('download-file/:fileId')
+  @Public()
+  async downloadFile(
+    @Param('fileId') fileId: string,
+    @Response({ passthrough: true }) res
+  ): Promise<StreamableFile> {
+    const file = await this.expensesService.downloadFile(fileId)
+    res.set({
+      'Content-Type': file.mimetype,
+      'Content-Disposition': 'attachment; filename="' + file.filename + '"',
+    })
+    return new StreamableFile(file.stream)
+  }
+
+  @Delete('file/:id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  removeFile(@Param('id') id: string) {
+    return this.expensesService.removeFile(id)
   }
 }

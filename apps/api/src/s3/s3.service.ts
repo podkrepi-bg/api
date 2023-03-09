@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { S3, Endpoint, config } from 'aws-sdk'
 import { Readable } from 'stream'
 
@@ -30,6 +30,7 @@ export class S3Service {
     personId: string,
     metadata?: Record<string, string>,
   ): Promise<string> {
+
     return await this.s3
       .upload({
         Bucket: bucketName,
@@ -45,7 +46,10 @@ export class S3Service {
         },
       })
       .promise()
-      .then((x) => x.Key)
+      .then((x) => {
+        Logger.log(`Uploading file ${filename} to S3 bucket ${bucketName} with key ${fileId}: ${x.Key}, loc: ${x.Location}`)
+        return x.Key
+      })
   }
 
   async deleteObject(bucketName: string, fileId: string): Promise<boolean | undefined> {
