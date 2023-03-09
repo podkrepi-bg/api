@@ -26,12 +26,12 @@ import { CampaignService } from '../campaign/campaign.service'
 import { DonationsService } from '../donations/donations.service'
 import { parseBankTransactionsFile } from './helpers/parser'
 import { DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
-import { CreateManyBankPaymentsDto } from '../donations/dto/create-many-bank-payments.dto'
 import { ApiTags } from '@nestjs/swagger'
 import {
   BankImportResult,
   ImportStatus,
 } from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
+import { CreateBankPaymentDto } from '../donations/dto/create-bank-payment.dto'
 
 @ApiTags('bank-transactions-file')
 @Controller('bank-transactions-file')
@@ -59,8 +59,7 @@ export class BankTransactionsFileController {
       throw new NotFoundException('No person record with keycloak ID: ' + keycloakId)
     }
 
-    const allMovementsFromAllFiles: { payment: CreateManyBankPaymentsDto; paymentRef: string }[] =
-      []
+    const allMovementsFromAllFiles: { payment: CreateBankPaymentDto; paymentRef: string }[] = []
     //parse files and save them to S3
     await Promise.all(
       files.map((file, key) => {
