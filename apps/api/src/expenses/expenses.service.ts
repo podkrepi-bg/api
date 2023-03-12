@@ -34,14 +34,6 @@ export class ExpensesService {
       files.map((file) => {
         console.log("File uploading: ", id, file.filename, file.mimetype, file.originalname)
         this.create_expense_file(id, file.mimetype, file.originalname, file.buffer)
-        /*
-        return this.irregularityFileService.create(
-          irregularityId,
-          file.mimetype,
-          file.originalname,
-          person,
-          file.buffer,
-          )*/
       })
     )
   }
@@ -61,6 +53,19 @@ export class ExpensesService {
     })
   }
 
+  async listCampaignApprovedExpenses(slug: string): Promise<Expense[]> {
+    return this.prisma.expense.findMany({ where:
+      { vault:
+        { campaign:
+          { slug: slug }
+        },
+        deleted: false
+      },
+      include: {
+        expenseFiles: true
+      }
+    })
+  }
 
   async findOne(id: string, returnDeleted = false) {
     try {

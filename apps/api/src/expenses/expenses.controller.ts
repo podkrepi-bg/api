@@ -64,6 +64,12 @@ export class ExpensesController {
     return this.expensesService.listCampaignExpenses(slug)
   }
 
+  @Get('campaign/approved/:slug')
+  @Public()
+  async listCampaignApprovedExpenses(@Param('slug') slug: string) {
+    return this.expensesService.listCampaignApprovedExpenses(slug)
+  }
+
   @Post('upload-files/:id')
   @UseInterceptors(FilesInterceptor('file', 5, { limits: { fileSize: 10485760 } })) //limit uploaded files to 5 at once and 10MB each
   @Roles({
