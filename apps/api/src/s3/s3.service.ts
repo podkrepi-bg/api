@@ -30,7 +30,6 @@ export class S3Service {
     personId: string,
     metadata?: Record<string, string>,
   ): Promise<string> {
-
     return await this.s3
       .upload({
         Bucket: bucketName,
@@ -47,7 +46,9 @@ export class S3Service {
       })
       .promise()
       .then((x) => {
-        Logger.log(`Uploading file ${filename} to S3 bucket ${bucketName} with key ${fileId}: ${x.Key}, loc: ${x.Location}`)
+        Logger.log(
+          `Uploading file ${filename} to S3 bucket ${bucketName} with key ${fileId}: ${x.Key}, loc: ${x.Location}`,
+        )
         return x.Key
       })
   }

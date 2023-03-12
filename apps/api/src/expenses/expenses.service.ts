@@ -32,9 +32,9 @@ export class ExpensesService {
     files = files || []
     await Promise.all(
       files.map((file) => {
-        console.log("File uploading: ", id, file.filename, file.mimetype, file.originalname)
+        console.log('File uploading: ', id, file.filename, file.mimetype, file.originalname)
         this.create_expense_file(id, file.mimetype, file.originalname, file.buffer)
-      })
+      }),
     )
   }
 
@@ -43,27 +43,17 @@ export class ExpensesService {
   }
 
   async listCampaignExpenses(slug: string): Promise<Expense[]> {
-    return this.prisma.expense.findMany({ where:
-      { vault:
-        { campaign:
-          { slug: slug }
-        },
-        deleted: false
-      }
+    return this.prisma.expense.findMany({
+      where: { vault: { campaign: { slug: slug } }, deleted: false },
     })
   }
 
   async listCampaignApprovedExpenses(slug: string): Promise<Expense[]> {
-    return this.prisma.expense.findMany({ where:
-      { vault:
-        { campaign:
-          { slug: slug }
-        },
-        deleted: false
-      },
+    return this.prisma.expense.findMany({
+      where: { vault: { campaign: { slug: slug } }, deleted: false },
       include: {
-        expenseFiles: true
-      }
+        expenseFiles: true,
+      },
     })
   }
 
@@ -77,7 +67,7 @@ export class ExpensesService {
   }
 
   async remove(id: string) {
-      return await this.prisma.expense.delete({ where: { id } })
+    return await this.prisma.expense.delete({ where: { id } })
   }
 
   /**
@@ -89,15 +79,14 @@ export class ExpensesService {
       rejectOnNotFound: true,
     })
     if (
-      [ExpenseStatus.approved.valueOf(), ExpenseStatus.canceled.valueOf()]
-      .includes(expense.status.valueOf())
+      [ExpenseStatus.approved.valueOf(), ExpenseStatus.canceled.valueOf()].includes(
+        expense.status.valueOf(),
+      )
     ) {
       throw new BadRequestException('Expense has already been finilized and cannot be updated.')
     }
     if (expense.vaultId !== dto.vaultId) {
-      throw new BadRequestException(
-        'Vault or amount cannot be changed.',
-      )
+      throw new BadRequestException('Vault or amount cannot be changed.')
     }
 
     const vault = await this.prisma.vault.findFirst({
@@ -173,14 +162,12 @@ export class ExpensesService {
   }
 
   async listUploadedFiles(id: string): Promise<ExpenseFile[]> {
-    return this.prisma.expenseFile.findMany({ where:
-      { expenseId: id }
-    })
+    return this.prisma.expenseFile.findMany({ where: { expenseId: id } })
   }
 
   async downloadFile(id: string): Promise<{
-    filename: string,
-    mimetype: string,
+    filename: string
+    mimetype: string
     stream: Readable
   }> {
     const file = await this.prisma.expenseFile.findFirst({ where: { id: id } })

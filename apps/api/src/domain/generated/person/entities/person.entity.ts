@@ -10,6 +10,7 @@ import { Expense } from '../../expense/entities/expense.entity'
 import { InfoRequest } from '../../infoRequest/entities/infoRequest.entity'
 import { Irregularity } from '../../irregularity/entities/irregularity.entity'
 import { IrregularityFile } from '../../irregularityFile/entities/irregularityFile.entity'
+import { ExpenseFile } from '../../expenseFile/entities/expenseFile.entity'
 import { Organizer } from '../../organizer/entities/organizer.entity'
 import { RecurringDonation } from '../../recurringDonation/entities/recurringDonation.entity'
 import { Supporter } from '../../supporter/entities/supporter.entity'
@@ -45,6 +46,7 @@ export class Person {
   infoRequests?: InfoRequest[]
   irregularities?: Irregularity[]
   irregularityFiles?: IrregularityFile[]
+  expenseFiles?: ExpenseFile[]
   organizer?: Organizer | null
   recurringDonations?: RecurringDonation[]
   supporters?: Supporter[]

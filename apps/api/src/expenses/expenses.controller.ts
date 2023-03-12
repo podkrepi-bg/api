@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch, Response, StreamableFile } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Patch,
+  Response,
+  StreamableFile,
+} from '@nestjs/common'
 import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
@@ -31,7 +41,8 @@ export class ExpensesController {
   })
   create(
     @Body() createExpenseDto: CreateExpenseDto,
-    @UploadedFiles() files: Express.Multer.File[]) {
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
     return this.expensesService.createExpense(createExpenseDto, files)
   }
 
@@ -76,12 +87,9 @@ export class ExpensesController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  uploadFiles(
-    @Param('id') id: string,
-    @UploadedFiles() files: Express.Multer.File[]) {
+  uploadFiles(@Param('id') id: string, @UploadedFiles() files: Express.Multer.File[]) {
     return this.expensesService.uploadFiles(id, files)
   }
-
 
   @Get('files/:id')
   getUploadedFiles(@Param('id') id: string) {
@@ -92,7 +100,7 @@ export class ExpensesController {
   @Public()
   async downloadFile(
     @Param('fileId') fileId: string,
-    @Response({ passthrough: true }) res
+    @Response({ passthrough: true }) res,
   ): Promise<StreamableFile> {
     const file = await this.expensesService.downloadFile(fileId)
     res.set({
