@@ -25,7 +25,7 @@
     "lint": "yarn nx lint api"
   },
   "dependencies": {
-    "@golevelup/nestjs-stripe": "0.3.4",
+    "@golevelup/nestjs-stripe": "0.6.0",
     "@golevelup/nestjs-webhooks": "0.2.14",
     "@keycloak/keycloak-admin-client": "18.0.0",
     "@nestjs/axios": "0.1.0",
@@ -58,7 +58,7 @@
     "nest-keycloak-connect": "1.9.0",
     "reflect-metadata": "0.1.13",
     "rxjs": "7.5.5",
-    "stripe": "9.16.0",
+    "stripe": "11.14.0",
     "swagger-ui-express": "4.5.0",
     "tslib": "2.4.0"
   },

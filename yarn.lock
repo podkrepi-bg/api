@@ -1546,7 +1546,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@golevelup/nestjs-modules@npm:^0.6.0, @golevelup/nestjs-modules@npm:^0.6.1":
+"@golevelup/nestjs-modules@npm:^0.6.1":
   version: 0.6.1
   resolution: "@golevelup/nestjs-modules@npm:0.6.1"
   dependencies:
@@ -1558,16 +1558,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@golevelup/nestjs-stripe@npm:0.3.4":
-  version: 0.3.4
-  resolution: "@golevelup/nestjs-stripe@npm:0.3.4"
+"@golevelup/nestjs-stripe@npm:0.6.0":
+  version: 0.6.0
+  resolution: "@golevelup/nestjs-stripe@npm:0.6.0"
   dependencies:
     "@golevelup/nestjs-common": ^1.4.4
     "@golevelup/nestjs-discovery": ^3.0.0
-    "@golevelup/nestjs-modules": ^0.6.0
+    "@golevelup/nestjs-modules": ^0.6.1
   peerDependencies:
-    stripe: ^8.39.0
-  checksum: f0bd284829d3abf85ab712e041268380593115a0807c0cd93e8c32718e573967ad194a6fac6839e57b349dd54232bc2693cca0c5ed62380ad67dce49a45245d2
+    stripe: ^10.8.0
+  checksum: 7965adb0f4b3f2c8307747b9f1e293a8facc7894ec9bb9d93646e1462dcc8bf92eee6d2880931ccccdf5a30504c95c3f23763351205bff9815312820e8848df2
   languageName: node
   linkType: hard
 
@@ -12123,7 +12123,7 @@ __metadata:
   resolution: "podkrepi-bg-api@workspace:."
   dependencies:
     "@faker-js/faker": 7.6.0
-    "@golevelup/nestjs-stripe": 0.3.4
+    "@golevelup/nestjs-stripe": 0.6.0
     "@golevelup/nestjs-webhooks": 0.2.14
     "@keycloak/keycloak-admin-client": 18.0.0
     "@nestjs/axios": 0.1.0
@@ -12189,7 +12189,7 @@ __metadata:
     prisma-dbml-generator: 0.9.1
     reflect-metadata: 0.1.13
     rxjs: 7.5.5
-    stripe: 9.16.0
+    stripe: 11.14.0
     supertest: ^6.3.3
     swagger-ui-express: 4.5.0
     ts-jest: ^29.0.5
@@ -12776,7 +12776,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:6.11.0, qs@npm:^6.10.3, qs@npm:^6.11.0":
+"qs@npm:6.11.0, qs@npm:^6.11.0":
   version: 6.11.0
   resolution: "qs@npm:6.11.0"
   dependencies:
@@ -14009,13 +14009,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stripe@npm:9.16.0":
-  version: 9.16.0
-  resolution: "stripe@npm:9.16.0"
+"stripe@npm:11.14.0":
+  version: 11.14.0
+  resolution: "stripe@npm:11.14.0"
   dependencies:
     "@types/node": ">=8.1.0"
-    qs: ^6.10.3
-  checksum: d84eb9ef3fa0c50e1b62271bf822d3e9da22272ec7364ae8334db7277e42f657c42c10f6fa535c634c36081e17d1c8c5a1efc509b3747f84bfbe4cf2a94ade4b
+    qs: ^6.11.0
+  checksum: daaee9f33e84d04d81d90ce86fd810d0b77b0700265b30e92fe86e4cf643d4281b3322be608896570a26d7231fe78d71c5e25c4122daf5c3f5eebe87dfd33952
   languageName: node
   linkType: hard
 
@@ -14711,11 +14711,11 @@ __metadata:
 
 "typescript@patch:typescript@4.9.5#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.4#~builtin<compat/typescript>":
   version: 4.9.5
-  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=d73830"
+  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 2eee5c37cad4390385db5db5a8e81470e42e8f1401b0358d7390095d6f681b410f2c4a0c496c6ff9ebd775423c7785cdace7bcdad76c7bee283df3d9718c0f20
+  checksum: ab417a2f398380c90a6cf5a5f74badd17866adf57f1165617d6a551f059c3ba0a3e4da0d147b3ac5681db9ac76a303c5876394b13b3de75fdd5b1eaa06181c9d
   languageName: node
   linkType: hard
 
