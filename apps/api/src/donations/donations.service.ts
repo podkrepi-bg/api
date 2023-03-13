@@ -208,7 +208,6 @@ export class DonationsService {
     }
 
     const items = await this.prepareSessionItems(sessionDto, campaign)
-
     const createSessionRequest: Stripe.Checkout.SessionCreateParams = {
       mode,
       customer_email: sessionDto.personEmail,
@@ -260,13 +259,16 @@ export class DonationsService {
       }
       return [stripeItem]
     }
-
     // Create donation with custom amount
     return [
       {
-        name: campaign.title,
-        amount: sessionDto.amount,
-        currency: campaign.currency,
+        price_data: {
+          currency: campaign.currency,
+          unit_amount: sessionDto.amount,
+          product_data: {
+            name: campaign.title,
+          },
+        },
         quantity: 1,
       },
     ]

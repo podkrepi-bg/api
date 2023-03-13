@@ -1,8 +1,7 @@
-import { ConfigService } from "@nestjs/config";
-import { Public } from "nest-keycloak-connect";
+import { ConfigService } from '@nestjs/config'
+import { Public } from 'nest-keycloak-connect'
 
-export const useFactoryService={
-
+export const useFactoryService = {
   useFactory: async (config: ConfigService) => ({
     apiKey: config.get('stripe.secretKey', ''),
     webhookConfig: {
@@ -14,6 +13,10 @@ export const useFactoryService={
          **/
         Public(),
       ],
+      stripeSecrets: {
+        connect: config.get('stripe.secretKey', '') as string,
+        account: config.get('stripe.secretKey', '') as string,
+      },
     },
   }),
 }
