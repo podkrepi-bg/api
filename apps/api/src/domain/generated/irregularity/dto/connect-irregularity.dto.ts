@@ -1,3 +1,5 @@
-export class ConnectIrregularityDto {
-  id: string
-}
+
+  export class ConnectIrregularityDto {
+    id: string;
+  }
+  

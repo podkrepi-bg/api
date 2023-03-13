@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { StripeWebhookHandler } from '@golevelup/nestjs-stripe'
+import { InjectStripeClient, StripeWebhookHandler } from '@golevelup/nestjs-stripe'
 
 import { DonationMetadata } from '../dontation-metadata.interface'
 import { CampaignService } from '../../campaign/campaign.service'
@@ -22,6 +22,7 @@ import { DonationStatus, CampaignState, Campaign } from '@prisma/client'
 @Injectable()
 export class StripePaymentService {
   constructor(
+    @InjectStripeClient() private stripeClient: Stripe,
     private campaignService: CampaignService,
     private recurringDonationService: RecurringDonationService,
   ) {}
@@ -52,16 +53,14 @@ export class StripePaymentService {
         } <> donation currency ${paymentIntent.currency.toUpperCase()}`,
       )
     }
-
-    const billingDetails = getPaymentData(paymentIntent)
+    const paymentMethod = await this.stripeClient.paymentMethods.retrieve(
+      paymentIntent.payment_method as string,
+    )
+    const billingData = getPaymentData(paymentIntent, paymentMethod)
     /*
      * Handle the create event
      */
-    await this.campaignService.updateDonationPayment(
-      campaign,
-      billingDetails,
-      DonationStatus.waiting,
-    )
+    await this.campaignService.updateDonationPayment(campaign, billingData, DonationStatus.waiting)
   }
 
   @StripeWebhookHandler('payment_intent.canceled')
@@ -83,7 +82,10 @@ export class StripePaymentService {
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
 
-    const billingData = getPaymentData(paymentIntent)
+    const paymentMethod = await this.stripeClient.paymentMethods.retrieve(
+      paymentIntent.payment_method as string,
+    )
+    const billingData = getPaymentData(paymentIntent, paymentMethod)
     await this.campaignService.updateDonationPayment(
       campaign,
       billingData,
@@ -116,8 +118,10 @@ export class StripePaymentService {
         } <> donation currency ${paymentIntent.currency.toUpperCase()}`,
       )
     }
-
-    const billingData = getPaymentData(paymentIntent)
+    const paymentMethod = await this.stripeClient.paymentMethods.retrieve(
+      paymentIntent.payment_method as string,
+    )
+    const billingData = getPaymentData(paymentIntent, paymentMethod)
 
     await this.donateToCampaign(campaign, billingData, metadata.campaignId)
   }

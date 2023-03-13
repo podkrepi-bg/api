@@ -30,25 +30,28 @@ export type PaymentData = {
   personId?: string
 }
 
-export function getPaymentData(paymentIntent: Stripe.PaymentIntent): PaymentData {
-  const billingDetails = paymentIntent.charges.data.find(() => true)?.billing_details
-  const charges: Stripe.Charge[] = paymentIntent.charges.data as Stripe.Charge[]
-  let country = ''
-  if (charges.length === 1) {
-    country = charges[0].payment_method_details?.card?.country ?? ''
-  }
+export function getPaymentData(
+  paymentIntent: Stripe.PaymentIntent,
+  retrievedPaymentMethod?: Stripe.PaymentMethod,
+): PaymentData {
+  const paymentMethodFinal =
+    typeof paymentIntent.payment_method === 'string'
+      ? retrievedPaymentMethod
+      : paymentIntent.payment_method
+  const billingDetails = paymentMethodFinal?.billing_details
+  const country = paymentMethodFinal?.card?.country ?? ''
 
   return {
     paymentProvider: PaymentProvider.stripe,
     paymentIntentId: paymentIntent.id,
     //netAmount is 0 until we receive a payment_intent.successful event where charges array contains the card country
     netAmount:
-      charges.length === 0
-        ? 0
-        : Math.round(
+      paymentIntent.status === 'succeeded'
+        ? Math.round(
             paymentIntent.amount -
               stripeFeeCalculator(paymentIntent.amount, getCountryRegion(country)),
-          ),
+          )
+        : 0,
     chargedAmount: paymentIntent.amount,
     currency: paymentIntent.currency,
     billingName: billingDetails?.name ?? undefined,
@@ -62,7 +65,7 @@ export function getInvoiceData(invoice: Stripe.Invoice): PaymentData {
   const lines: Stripe.InvoiceLineItem[] = invoice.lines.data as Stripe.InvoiceLineItem[]
   const country = invoice.account_country as string
 
-  let personId = ""
+  let personId = ''
   lines.map((line) => {
     if (line.metadata.personId) {
       personId = line.metadata.personId
@@ -90,38 +93,36 @@ export function getInvoiceData(invoice: Stripe.Invoice): PaymentData {
   }
 }
 
-
 export function string2RecurringDonationStatus(status: string): RecurringDonationStatus {
-    switch (status) {
-      case 'active':
-        return RecurringDonationStatus.active;
-      case 'canceled':
-        return RecurringDonationStatus.canceled;
-      case 'incomplete':
-        return RecurringDonationStatus.incomplete;
-      case 'incomplete_expired':
-        return RecurringDonationStatus.incompleteExpired;
-      case 'trialing':
-        return RecurringDonationStatus.trialing;
-      case 'past_due':
-        return RecurringDonationStatus.pastDue;
-      case 'unpaid':
-        return RecurringDonationStatus.unpaid;
-      default:
-        return RecurringDonationStatus.active;
-    }
+  switch (status) {
+    case 'active':
+      return RecurringDonationStatus.active
+    case 'canceled':
+      return RecurringDonationStatus.canceled
+    case 'incomplete':
+      return RecurringDonationStatus.incomplete
+    case 'incomplete_expired':
+      return RecurringDonationStatus.incompleteExpired
+    case 'trialing':
+      return RecurringDonationStatus.trialing
+    case 'past_due':
+      return RecurringDonationStatus.pastDue
+    case 'unpaid':
+      return RecurringDonationStatus.unpaid
+    default:
+      return RecurringDonationStatus.active
   }
+}
 
-  export function string2Currency(currency: string): Currency {
-    switch (currency.toUpperCase()) {
-      case 'BGN':
-        return Currency.BGN;
-      case 'EUR':
-        return Currency.EUR;
-      case 'USD':
-        return Currency.USD;
-      default:
-        return Currency.BGN;
-    }
+export function string2Currency(currency: string): Currency {
+  switch (currency.toUpperCase()) {
+    case 'BGN':
+      return Currency.BGN
+    case 'EUR':
+      return Currency.EUR
+    case 'USD':
+      return Currency.USD
+    default:
+      return Currency.BGN
   }
-
+}

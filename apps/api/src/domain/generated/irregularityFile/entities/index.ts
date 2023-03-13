@@ -1,1 +1,2 @@
-export * from './irregularityFile.entity'
+
+export * from './irregularityFile.entity';

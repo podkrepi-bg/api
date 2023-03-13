@@ -1,5 +1,7 @@
-export class ConnectCampaignDto {
-  id?: string
-  slug?: string
-  paymentReference?: string
-}
+
+  export class ConnectCampaignDto {
+    id?: string;
+slug?: string;
+paymentReference?: string;
+  }
+  

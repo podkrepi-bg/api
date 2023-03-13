@@ -1,4 +1,10 @@
+
+
+
+
+
+
 export class UpdateIrregularityFileDto {
-  filename?: string
-  mimetype?: string
+  filename?: string;
+mimetype?: string;
 }
