@@ -113,9 +113,13 @@ describe('DonationsController', () => {
       mode: mockSession.mode,
       line_items: [
         {
-          amount: 100,
-          currency: undefined,
-          name: undefined,
+          price_data: {
+            currency: undefined,
+            product_data: {
+              name: undefined,
+            },
+            unit_amount: 100,
+          },
           quantity: 1,
         },
       ],
