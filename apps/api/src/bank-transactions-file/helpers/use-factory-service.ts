@@ -14,8 +14,8 @@ export const useFactoryService = {
         Public(),
       ],
       stripeSecrets: {
-        connect: config.get('stripe.secretKey', '') as string,
-        account: config.get('stripe.secretKey', '') as string,
+        connect: config.get('stripe.webhookSecret', ''),
+        account: config.get('stripe.webhookSecret', ''),
       },
     },
   }),
