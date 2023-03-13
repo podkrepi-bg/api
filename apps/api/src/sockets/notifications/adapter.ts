@@ -18,22 +18,6 @@ export class PostgresIoAdapter extends IoAdapter {
       port: Number(DB_PORT) || 5432,
     })
 
-    await pool.connect()
-
-    await pool
-      .query(
-        `
-  CREATE TABLE IF NOT EXISTS socket_io_attachments (
-      id          bigserial UNIQUE,
-      created_at  timestamptz DEFAULT NOW(),
-      payload     bytea
-  );
-`,
-      )
-      .then(() => {
-        Logger.log('Table socket_io_attachments is ready')
-      })
-
     this.adapterConstructor = createAdapter(pool)
   }
 

@@ -1,6 +1,6 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native"]
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native"]
   previewFeatures = ["interactiveTransactions"]
 }
 
@@ -216,12 +216,12 @@ model Campaign {
 
 /// Keeps track of previous slugs that are not used currently in any active campaign
 model SlugArchive {
- slug                    String         @id @unique @db.VarChar(250)
- /// Stores the id of the last campaign that has used it
- campaignId              String         @map("campaign_id") @db.Uuid
- campaign                Campaign       @relation(fields: [campaignId], references: [id])
+  slug       String   @id @unique @db.VarChar(250)
+  /// Stores the id of the last campaign that has used it
+  campaignId String   @map("campaign_id") @db.Uuid
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
 
-@@map("slug_archive")
+  @@map("slug_archive")
 }
 
 model Irregularity {
@@ -532,6 +532,12 @@ model BankTransactionsFile {
   personId               String                   @map("person_id") @db.Uuid
 
   @@map("bank_transactions_files")
+}
+
+model SocketIoAttachments {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  payload   Bytes
 }
 
 enum BeneficiaryType {

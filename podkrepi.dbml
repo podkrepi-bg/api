@@ -443,6 +443,12 @@ Table bank_transactions_files {
   personId String [not null]
 }
 
+Table SocketIoAttachments {
+  id Int [pk, increment]
+  createdAt DateTime [default: `now()`, not null]
+  payload Bytes [not null]
+}
+
 Enum BeneficiaryType {
   individual
   company
