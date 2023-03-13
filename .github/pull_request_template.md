@@ -18,7 +18,7 @@ Closes #{issue number}
 ### New endpoints
 
 <!--- Specify test requirements (environment, dependencies, design reviews) -->
-<!--- Please describe in detail what the new enpoints achieve. -->
+<!--- Please describe in detail what the new endpoints achieve. -->
 <!--- Include links to the related pages -->
 <!--- Impact of your change to other areas of the code -->
 
@@ -26,7 +26,7 @@ Closes #{issue number}
 
 ### New environment variables:
 
-<!-- Mark with [x] when variable is added to `.env.local.example`  -->
+<!-- Mark with [x] when variable is added to `.env.example`  -->
 
 - [ ] `NEW_ENV_VAR`: env var details
 

@@ -301,15 +301,10 @@ export class CampaignService {
     return campaign
   }
 
-  async getCampaignByPaymentReference(paymentReference: string): Promise<Campaign> {
-    const campaign = await this.prisma.campaign.findFirst({
+  async getCampaignByPaymentReference(paymentReference: string): Promise<Campaign | null> {
+    return await this.prisma.campaign.findFirst({
       where: { paymentReference: paymentReference },
     })
-    if (!campaign) {
-      Logger.warn('No campaign record with Payment Reference: ' + paymentReference)
-      throw new NotFoundException('No campaign record with Payment Reference: ' + paymentReference)
-    }
-    return campaign
   }
 
   async listCampaignTypes(): Promise<CampaignType[]> {
