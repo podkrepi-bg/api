@@ -1,9 +1,1 @@
-
-
-
-
-
-
-export class CreateOrganizerDto {
-  
-}
+export class CreateOrganizerDto {}

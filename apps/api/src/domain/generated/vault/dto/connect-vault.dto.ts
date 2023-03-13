@@ -1,5 +1,3 @@
-
-  export class ConnectVaultDto {
-    id: string;
-  }
-  
+export class ConnectVaultDto {
+  id: string
+}
