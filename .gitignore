@@ -40,7 +40,7 @@ testem.log
 Thumbs.db
 
 # Env
-.env
+#.env
 .env*.local
 
 # https://yarnpkg.com/getting-started/qa/#which-files-should-be-gitignored
