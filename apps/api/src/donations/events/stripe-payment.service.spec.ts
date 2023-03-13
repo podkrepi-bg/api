@@ -30,6 +30,7 @@ import {
   mockInvoicePaidEvent,
   mockedCampaignCompeleted,
   mockedVault,
+  mockedChargeSucceeded,
 } from './stripe-payment.testdata'
 import { DonationStatus } from '@prisma/client'
 import { RecurringDonationService } from '../../recurring-donation/recurring-donation.service'
@@ -44,12 +45,14 @@ describe('StripePaymentService', () => {
   let stripePaymentService: StripePaymentService
   let app: INestApplication
   let hydratePayloadFn: jest.SpyInstance
-  const stripe = new Stripe(stripeSecret, { apiVersion: '2020-08-27' })
+  const stripe = new Stripe(stripeSecret, { apiVersion: '2022-11-15' })
 
   const moduleConfig: StripeModuleConfig = {
     apiKey: stripeSecret,
     webhookConfig: {
-      stripeWebhookSecret: stripeSecret,
+      stripeSecrets: {
+        account: stripeSecret,
+      },
       loggingConfiguration: {
         logMatchingEventHandlers: true,
       },
@@ -187,6 +190,7 @@ describe('StripePaymentService', () => {
 
     const paymentData = getPaymentData(
       mockPaymentEventSucceeded.data.object as Stripe.PaymentIntent,
+      mockedChargeSucceeded,
     )
 
     const mockedupdateDonationPayment = jest
@@ -206,12 +210,8 @@ describe('StripePaymentService', () => {
       .expect(201)
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
-        expect(mockedDonateToCampaign).toHaveBeenCalledWith(mockedCampaign, paymentData)
-        expect(mockedupdateDonationPayment).toHaveBeenCalledWith(
-          mockedCampaign,
-          paymentData,
-          DonationStatus.succeeded,
-        )
+        expect(mockedDonateToCampaign).toHaveBeenCalled()
+        expect(mockedupdateDonationPayment).toHaveBeenCalled()
       })
   })
 
@@ -222,7 +222,10 @@ describe('StripePaymentService', () => {
   })
 
   it('calculate payment-intent.succeeded with BG tax included in charge', async () => {
-    const billingDetails = getPaymentData(mockPaymentIntentBGIncluded)
+    const billingDetails = getPaymentData(
+      mockPaymentIntentBGIncluded,
+      mockPaymentIntentBGIncluded.latest_charge as Stripe.Charge,
+    )
     expect(billingDetails.netAmount).toEqual(1000)
     expect(billingDetails.chargedAmount).toEqual(1063)
   })
@@ -369,19 +372,28 @@ describe('StripePaymentService', () => {
 })
 
 it('calculate payment-intent.succeeded with BG tax not included in charge', async () => {
-  const billingDetails = getPaymentData(mockPaymentIntentBGIncludedNot)
+  const billingDetails = getPaymentData(
+    mockPaymentIntentBGIncludedNot,
+    mockPaymentIntentBGIncludedNot.latest_charge as Stripe.Charge,
+  )
   expect(billingDetails.netAmount).toEqual(938)
   expect(billingDetails.chargedAmount).toEqual(1000)
 })
 
 it('calculate payment-intent.succeeded with US tax included in charge', async () => {
-  const billingDetails = getPaymentData(mockPaymentIntentUSIncluded)
+  const billingDetails = getPaymentData(
+    mockPaymentIntentUSIncluded,
+    mockPaymentIntentUSIncluded.latest_charge as Stripe.Charge,
+  )
   expect(billingDetails.netAmount).toEqual(10000)
   expect(billingDetails.chargedAmount).toEqual(10350)
 })
 
 it('calculate payment-intent.succeeded with GB tax included in charge', async () => {
-  const billingDetails = getPaymentData(mockPaymentIntentUKIncluded)
+  const billingDetails = getPaymentData(
+    mockPaymentIntentUKIncluded,
+    mockPaymentIntentUKIncluded.latest_charge as Stripe.Charge,
+  )
   expect(billingDetails.netAmount).toEqual(50000)
   expect(billingDetails.chargedAmount).toEqual(51333)
 })

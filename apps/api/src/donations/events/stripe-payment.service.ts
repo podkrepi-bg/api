@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { StripeWebhookHandler } from '@golevelup/nestjs-stripe'
+import { InjectStripeClient, StripeWebhookHandler } from '@golevelup/nestjs-stripe'
 
 import { DonationMetadata } from '../dontation-metadata.interface'
 import { CampaignService } from '../../campaign/campaign.service'
@@ -22,6 +22,7 @@ import { DonationStatus, CampaignState, Campaign } from '@prisma/client'
 @Injectable()
 export class StripePaymentService {
   constructor(
+    @InjectStripeClient() private stripeClient: Stripe,
     private campaignService: CampaignService,
     private recurringDonationService: RecurringDonationService,
   ) {}
@@ -117,7 +118,11 @@ export class StripePaymentService {
       )
     }
 
-    const billingData = getPaymentData(paymentIntent)
+    const charge = paymentIntent.latest_charge
+      ? await this.stripeClient.charges.retrieve(paymentIntent.latest_charge as string)
+      : undefined
+
+    const billingData = getPaymentData(paymentIntent, charge)
 
     await this.donateToCampaign(campaign, billingData, metadata.campaignId)
   }
