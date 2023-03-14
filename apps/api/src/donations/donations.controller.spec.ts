@@ -15,6 +15,7 @@ import { CampaignService } from '../campaign/campaign.service'
 import { ExportService } from '../export/export.service'
 import { PersonService } from '../person/person.service'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
+import { NotificationModule } from '../sockets/notifications/notification.module'
 import { VaultService } from '../vault/vault.service'
 import { DonationsController } from './donations.controller'
 import { DonationsService } from './donations.service'
@@ -64,6 +65,7 @@ describe('DonationsController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [NotificationModule],
       controllers: [DonationsController],
       providers: [
         {
@@ -111,9 +113,13 @@ describe('DonationsController', () => {
       mode: mockSession.mode,
       line_items: [
         {
-          amount: 100,
-          currency: undefined,
-          name: undefined,
+          price_data: {
+            currency: undefined,
+            product_data: {
+              name: undefined,
+            },
+            unit_amount: 100,
+          },
           quantity: 1,
         },
       ],
@@ -121,7 +127,9 @@ describe('DonationsController', () => {
       payment_intent_data: {
         metadata: {
           campaignId: mockSession.campaignId,
+          isAnonymous: 'true',
           personId: undefined,
+          wish: null,
         },
       },
       subscription_data: undefined,

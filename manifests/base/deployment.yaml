@@ -76,12 +76,22 @@ spec:
               port: 80
             initialDelaySeconds: 10
             periodSeconds: 5
+            timeoutSeconds: 2
           readinessProbe:
             httpGet:
               path: /api/v1/health
               port: 80
             initialDelaySeconds: 5
             periodSeconds: 5
+            timeoutSeconds: 2
+          startupProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 80
+            failureThreshold: 12
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
           env:
             - name: NODE_ENV
               value: production
@@ -177,16 +187,16 @@ spec:
               value: https://api-m.sandbox.paypal.com/
             - name: PAYPAL_CLIENT_ID
               valueFrom:
-                secretKeyRef: 
+                secretKeyRef:
                   name: paypal-secret
                   key: client-id
             - name: PAYPAL_CLIENT_SECRET
               valueFrom:
-                secretKeyRef: 
+                secretKeyRef:
                   name: paypal-secret
                   key: client-secret
             - name: PAYPAL_WEBHOOK_ID
               valueFrom:
-                secretKeyRef: 
+                secretKeyRef:
                   name: paypal-secret
                   key: webhook-id

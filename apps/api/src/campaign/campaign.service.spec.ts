@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { PersonService } from '../person/person.service'
 import { MockPrismaService } from '../prisma/prisma-client.mock'
+import { NotificationModule } from '../sockets/notifications/notification.module'
 import { VaultModule } from '../vault/vault.module'
 import { VaultService } from '../vault/vault.service'
 import { CampaignService } from './campaign.service'
@@ -11,7 +12,7 @@ describe('CampaignService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [VaultModule],
+      imports: [VaultModule, NotificationModule],
       providers: [CampaignService, MockPrismaService, VaultService, PersonService, ConfigService],
     }).compile()
 

@@ -25,7 +25,7 @@
     "lint": "yarn nx lint api"
   },
   "dependencies": {
-    "@golevelup/nestjs-stripe": "0.3.4",
+    "@golevelup/nestjs-stripe": "0.6.0",
     "@golevelup/nestjs-webhooks": "0.2.14",
     "@keycloak/keycloak-admin-client": "18.0.0",
     "@nestjs/axios": "0.1.0",
@@ -35,8 +35,10 @@
     "@nestjs/core": "^9.2.1",
     "@nestjs/jwt": "^10.0.1",
     "@nestjs/platform-express": "^9.2.1",
+    "@nestjs/platform-socket.io": "^9.2.1",
     "@nestjs/swagger": "^6.1.4",
     "@nestjs/terminus": "^9.1.4",
+    "@nestjs/websockets": "^9.2.1",
     "@ntegral/nestjs-sentry": "4.0.0",
     "@prisma/client": "4.3.1",
     "@sendgrid/client": "7.6.2",
@@ -56,7 +58,7 @@
     "nest-keycloak-connect": "1.9.0",
     "reflect-metadata": "0.1.13",
     "rxjs": "7.5.5",
-    "stripe": "9.16.0",
+    "stripe": "11.14.0",
     "swagger-ui-express": "4.5.0",
     "tslib": "2.4.0"
   },
@@ -98,7 +100,7 @@
     "supertest": "^6.3.3",
     "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1",
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.5"
   },
   "prisma": {
     "seed": "ts-node db/seed/index.ts"

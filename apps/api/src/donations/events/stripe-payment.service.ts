@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { StripeWebhookHandler } from '@golevelup/nestjs-stripe'
+import { InjectStripeClient, StripeWebhookHandler } from '@golevelup/nestjs-stripe'
 
 import { DonationMetadata } from '../dontation-metadata.interface'
 import { CampaignService } from '../../campaign/campaign.service'
@@ -13,6 +13,7 @@ import {
   string2RecurringDonationStatus,
   getInvoiceData,
   PaymentData,
+  getPaymentDataFromCharge,
 } from '../helpers/payment-intent-helpers'
 import { DonationStatus, CampaignState, Campaign } from '@prisma/client'
 
@@ -22,6 +23,7 @@ import { DonationStatus, CampaignState, Campaign } from '@prisma/client'
 @Injectable()
 export class StripePaymentService {
   constructor(
+    @InjectStripeClient() private stripeClient: Stripe,
     private campaignService: CampaignService,
     private recurringDonationService: RecurringDonationService,
   ) {}
@@ -53,15 +55,11 @@ export class StripePaymentService {
       )
     }
 
-    const billingDetails = getPaymentData(paymentIntent)
+    const paymentData = getPaymentData(paymentIntent)
     /*
      * Handle the create event
      */
-    await this.campaignService.updateDonationPayment(
-      campaign,
-      billingDetails,
-      DonationStatus.waiting,
-    )
+    await this.campaignService.updateDonationPayment(campaign, paymentData, DonationStatus.waiting)
   }
 
   @StripeWebhookHandler('payment_intent.canceled')
@@ -91,35 +89,38 @@ export class StripePaymentService {
     )
   }
 
-  @StripeWebhookHandler('payment_intent.succeeded')
-  async handlePaymentIntentSucceeded(event: Stripe.Event) {
-    const paymentIntent: Stripe.PaymentIntent = event.data.object as Stripe.PaymentIntent
-    Logger.log(
-      '[ handlePaymentIntentSucceeded ]',
-      paymentIntent,
-      paymentIntent.metadata as DonationMetadata,
-    )
+  @StripeWebhookHandler('charge.succeeded')
+  async handleChargeSucceeded(event: Stripe.Event) {
+    const charge: Stripe.Charge = event.data.object as Stripe.Charge
+    Logger.log('[ handleChargeSucceeded ]', charge, charge.metadata as DonationMetadata)
 
-    const metadata: DonationMetadata = paymentIntent.metadata as DonationMetadata
+    const metadata: DonationMetadata = charge.metadata as DonationMetadata
 
     if (!metadata.campaignId) {
-      Logger.debug('[ handlePaymentIntentCreated ] No campaignId in metadata ' + paymentIntent.id)
+      Logger.debug('[ handleChargeSucceeded ] No campaignId in metadata ' + charge.id)
       return
     }
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
 
-    if (campaign.currency !== paymentIntent.currency.toUpperCase()) {
+    if (campaign.currency !== charge.currency.toUpperCase()) {
       throw new BadRequestException(
         `Donation in different currency is not allowed. Campaign currency ${
           campaign.currency
-        } <> donation currency ${paymentIntent.currency.toUpperCase()}`,
+        } <> donation currency ${charge.currency.toUpperCase()}`,
       )
     }
 
-    const billingData = getPaymentData(paymentIntent)
+    const billingData = getPaymentDataFromCharge(charge)
 
-    await this.donateToCampaign(campaign, billingData, metadata.campaignId)
+    await this.campaignService.updateDonationPayment(
+      campaign,
+      billingData,
+      DonationStatus.succeeded,
+      metadata,
+    )
+    await this.campaignService.donateToCampaign(campaign, billingData)
+    await this.checkForCompletedCampaign(metadata.campaignId)
   }
 
   @StripeWebhookHandler('customer.subscription.created')
@@ -263,7 +264,12 @@ export class StripePaymentService {
     const invoice: Stripe.Invoice = event.data.object as Stripe.Invoice
     Logger.log('[ handleInvoicePaid ]', invoice)
 
-    let metadata: DonationMetadata = { campaignId: null, personId: null }
+    let metadata: DonationMetadata = {
+      campaignId: null,
+      personId: null,
+      isAnonymous: null,
+      wish: null,
+    }
 
     invoice.lines.data.forEach((line: Stripe.InvoiceLineItem) => {
       if (line.type === 'subscription') {
@@ -288,13 +294,15 @@ export class StripePaymentService {
       )
     }
 
-    const billingData = getInvoiceData(invoice)
-    await this.donateToCampaign(campaign, billingData, metadata.campaignId)
-  }
+    const paymentData = getInvoiceData(invoice)
 
-  async donateToCampaign(campaign: Campaign, billingData: PaymentData, campaignId: string) {
-    await this.campaignService.donateToCampaign(campaign, billingData)
-    await this.checkForCompletedCampaign(campaignId)
+    await this.campaignService.updateDonationPayment(
+      campaign,
+      paymentData,
+      DonationStatus.succeeded,
+    )
+    await this.campaignService.donateToCampaign(campaign, paymentData)
+    await this.checkForCompletedCampaign(metadata.campaignId)
   }
 
   //if the campaign is finished, we need to stop all active subscriptions
