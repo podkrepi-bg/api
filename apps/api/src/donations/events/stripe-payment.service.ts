@@ -13,6 +13,7 @@ import {
   string2RecurringDonationStatus,
   getInvoiceData,
   PaymentData,
+  getPaymentDataFromCharge,
 } from '../helpers/payment-intent-helpers'
 import { DonationStatus, CampaignState, Campaign } from '@prisma/client'
 
@@ -88,37 +89,29 @@ export class StripePaymentService {
     )
   }
 
-  @StripeWebhookHandler('payment_intent.succeeded')
-  async handlePaymentIntentSucceeded(event: Stripe.Event) {
-    const paymentIntent: Stripe.PaymentIntent = event.data.object as Stripe.PaymentIntent
-    Logger.log(
-      '[ handlePaymentIntentSucceeded ]',
-      paymentIntent,
-      paymentIntent.metadata as DonationMetadata,
-    )
+  @StripeWebhookHandler('charge.succeeded')
+  async handleChargeSucceeded(event: Stripe.Event) {
+    const charge: Stripe.Charge = event.data.object as Stripe.Charge
+    Logger.log('[ handleChargeSucceeded ]', charge, charge.metadata as DonationMetadata)
 
-    const metadata: DonationMetadata = paymentIntent.metadata as DonationMetadata
+    const metadata: DonationMetadata = charge.metadata as DonationMetadata
 
     if (!metadata.campaignId) {
-      Logger.debug('[ handlePaymentIntentCreated ] No campaignId in metadata ' + paymentIntent.id)
+      Logger.debug('[ handleChargeSucceeded ] No campaignId in metadata ' + charge.id)
       return
     }
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
 
-    if (campaign.currency !== paymentIntent.currency.toUpperCase()) {
+    if (campaign.currency !== charge.currency.toUpperCase()) {
       throw new BadRequestException(
         `Donation in different currency is not allowed. Campaign currency ${
           campaign.currency
-        } <> donation currency ${paymentIntent.currency.toUpperCase()}`,
+        } <> donation currency ${charge.currency.toUpperCase()}`,
       )
     }
 
-    const charge = paymentIntent.latest_charge
-      ? await this.stripeClient.charges.retrieve(paymentIntent.latest_charge as string)
-      : undefined
-
-    const billingData = getPaymentData(paymentIntent, charge)
+    const billingData = getPaymentDataFromCharge(charge)
 
     await this.campaignService.updateDonationPayment(
       campaign,

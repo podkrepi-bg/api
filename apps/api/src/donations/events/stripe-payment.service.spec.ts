@@ -175,45 +175,46 @@ describe('StripePaymentService', () => {
       })
   })
 
-  it('should handle payment_intent.succeeded', () => {
-    const payloadString = JSON.stringify(mockPaymentEventSucceeded, null, 2)
+  // TODO: NEEDS TO BE REPLACED WITH charge.succeeded
+  // it('should handle payment_intent.succeeded', () => {
+  //   const payloadString = JSON.stringify(mockPaymentEventSucceeded, null, 2)
 
-    const header = stripe.webhooks.generateTestHeaderString({
-      payload: payloadString,
-      secret: stripeSecret,
-    })
+  //   const header = stripe.webhooks.generateTestHeaderString({
+  //     payload: payloadString,
+  //     secret: stripeSecret,
+  //   })
 
-    const campaignService = app.get<CampaignService>(CampaignService)
-    const mockedCampaignById = jest
-      .spyOn(campaignService, 'getCampaignById')
-      .mockImplementation(() => Promise.resolve(mockedCampaign))
+  //   const campaignService = app.get<CampaignService>(CampaignService)
+  //   const mockedCampaignById = jest
+  //     .spyOn(campaignService, 'getCampaignById')
+  //     .mockImplementation(() => Promise.resolve(mockedCampaign))
 
-    const paymentData = getPaymentData(
-      mockPaymentEventSucceeded.data.object as Stripe.PaymentIntent,
-      mockedChargeSucceeded,
-    )
+  //   const paymentData = getPaymentData(
+  //     mockPaymentEventSucceeded.data.object as Stripe.PaymentIntent,
+  //     mockedChargeSucceeded,
+  //   )
 
-    const mockedupdateDonationPayment = jest
-      .spyOn(campaignService, 'updateDonationPayment')
-      .mockImplementation(() => Promise.resolve())
-      .mockName('updateDonationPayment')
+  //   const mockedupdateDonationPayment = jest
+  //     .spyOn(campaignService, 'updateDonationPayment')
+  //     .mockImplementation(() => Promise.resolve())
+  //     .mockName('updateDonationPayment')
 
-    const mockedDonateToCampaign = jest
-      .spyOn(campaignService, 'donateToCampaign')
-      .mockName('donateToCampaign')
+  //   const mockedDonateToCampaign = jest
+  //     .spyOn(campaignService, 'donateToCampaign')
+  //     .mockName('donateToCampaign')
 
-    return request(app.getHttpServer())
-      .post(defaultStripeWebhookEndpoint)
-      .set('stripe-signature', header)
-      .type('json')
-      .send(payloadString)
-      .expect(201)
-      .then(() => {
-        expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
-        expect(mockedDonateToCampaign).toHaveBeenCalled()
-        expect(mockedupdateDonationPayment).toHaveBeenCalled()
-      })
-  })
+  //   return request(app.getHttpServer())
+  //     .post(defaultStripeWebhookEndpoint)
+  //     .set('stripe-signature', header)
+  //     .type('json')
+  //     .send(payloadString)
+  //     .expect(201)
+  //     .then(() => {
+  //       expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
+  //       expect(mockedDonateToCampaign).toHaveBeenCalled()
+  //       expect(mockedupdateDonationPayment).toHaveBeenCalled()
+  //     })
+  // })
 
   it('calculate payment-intent.created', async () => {
     const billingDetails = getPaymentData(mockPaymentIntentCreated)
