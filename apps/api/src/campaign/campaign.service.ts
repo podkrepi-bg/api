@@ -480,7 +480,7 @@ export class CampaignService {
             extPaymentMethodId: paymentData.paymentMethodId ?? '',
             billingName: paymentData.billingName,
             billingEmail: paymentData.billingEmail,
-            person: { connect: { id: paymentData.personId } },
+            person: paymentData.personId ? { connect: { id: paymentData.personId } } : {},
           },
           select: donationNotificationSelect,
         })
