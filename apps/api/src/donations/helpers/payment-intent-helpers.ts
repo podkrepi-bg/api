@@ -56,6 +56,27 @@ export function getPaymentData(
   }
 }
 
+export function getPaymentDataFromCharge(charge: Stripe.Charge): PaymentData {
+  return {
+    paymentProvider: PaymentProvider.stripe,
+    paymentIntentId: charge.payment_intent as string,
+    //netAmount is 0 until we receive a payment_intent.successful event where charges array contains the card country
+    netAmount: Math.round(
+      charge.amount -
+        stripeFeeCalculator(
+          charge.amount,
+          getCountryRegion(charge?.payment_method_details?.card?.country as string),
+        ),
+    ),
+    chargedAmount: charge.amount,
+    currency: charge.currency,
+    billingName: charge?.billing_details?.name ?? undefined,
+    billingEmail: charge?.billing_details?.email ?? charge.receipt_email ?? undefined,
+    paymentMethodId: 'card',
+    stripeCustomerId: charge.billing_details?.email ?? undefined,
+  }
+}
+
 export function getInvoiceData(invoice: Stripe.Invoice): PaymentData {
   const lines: Stripe.InvoiceLineItem[] = invoice.lines.data as Stripe.InvoiceLineItem[]
   const country = invoice.account_country as string
