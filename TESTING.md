@@ -30,6 +30,7 @@ stripe trigger payment_intent.succeeded --override payment_intent:metadata.campa
 ```
 
 Or replay an already sent event to the test webhook like this
+
 ```shell
 stripe events resend evt_3MlHGFKApGjVGa9t0GUhYsKB
 ```
