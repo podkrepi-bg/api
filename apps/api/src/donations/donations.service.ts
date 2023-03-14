@@ -52,7 +52,7 @@ export class DonationsService {
     campaign: Campaign,
     sessionDto: CreateSessionDto,
     paymentIntentId: string,
-  ): Promise<Donation> {
+  ) {
     Logger.log('[ CreateInitialDonation ]', {
       campaignId: campaign.id,
       amount: sessionDto.amount,
@@ -68,51 +68,11 @@ export class DonationsService {
         { connect: { id: vault.id } }
       : // Create new vault for the campaign
         { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
+
     /**
-     * Create initial donation object
+     * Here we cannot create initial donation anymore because stripe is not returning paymentIntendId in the CreateSessionDto
+     * It will be created in the paymentIntent.created webhook
      */
-    const donation = await this.prisma.donation.create({
-      data: {
-        amount: 0, //this will be updated on successful payment event
-        chargedAmount: sessionDto.amount,
-        currency: campaign.currency,
-        provider: PaymentProvider.stripe,
-        type: DonationType.donation,
-        status: DonationStatus.initial,
-        extCustomerId: sessionDto.personEmail ?? '',
-        extPaymentIntentId: paymentIntentId,
-        extPaymentMethodId: sessionDto.mode === 'subscription' ? 'subscription' : 'card',
-        billingEmail: sessionDto.personEmail, //set the personal mail to billing which is not public field
-        targetVault: targetVaultData,
-      },
-    })
-
-    if (!sessionDto.isAnonymous) {
-      await this.prisma.donation.update({
-        where: { id: donation.id },
-        data: {
-          person: {
-            connectOrCreate: {
-              where: {
-                email: sessionDto.personEmail,
-              },
-              create: {
-                firstName: sessionDto.firstName ?? '',
-                lastName: sessionDto.lastName ?? '',
-                email: sessionDto.personEmail,
-                phone: sessionDto.phone,
-              },
-            },
-          },
-        },
-      })
-    }
-
-    if (sessionDto.message) {
-      await this.createDonationWish(sessionDto.message, donation.id, campaign.id)
-    }
-
-    return donation
   }
 
   /**
@@ -205,6 +165,8 @@ export class DonationsService {
     const metadata: DonationMetadata = {
       campaignId: sessionDto.campaignId,
       personId: sessionDto.personId,
+      isAnonymous: sessionDto.isAnonymous ? 'true' : 'false',
+      wish: sessionDto.message ?? null,
     }
 
     const items = await this.prepareSessionItems(sessionDto, campaign)
@@ -665,18 +627,6 @@ export class DonationsService {
       return acc
     }, 0)
     return { donations, total }
-  }
-
-  async createDonationWish(message: string, donationId: string, campaignId: string) {
-    const person = await this.prisma.donation.findUnique({ where: { id: donationId } }).person()
-    await this.prisma.donationWish.create({
-      data: {
-        message: message,
-        donationId,
-        campaignId,
-        personId: person?.id,
-      },
-    })
   }
 
   async getUserId(email: string): Promise<string | null> {

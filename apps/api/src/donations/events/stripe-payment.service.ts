@@ -54,15 +54,11 @@ export class StripePaymentService {
       )
     }
 
-    const billingDetails = getPaymentData(paymentIntent)
+    const paymentData = getPaymentData(paymentIntent)
     /*
      * Handle the create event
      */
-    await this.campaignService.updateDonationPayment(
-      campaign,
-      billingDetails,
-      DonationStatus.waiting,
-    )
+    await this.campaignService.updateDonationPayment(campaign, paymentData, DonationStatus.waiting)
   }
 
   @StripeWebhookHandler('payment_intent.canceled')
@@ -124,7 +120,14 @@ export class StripePaymentService {
 
     const billingData = getPaymentData(paymentIntent, charge)
 
-    await this.donateToCampaign(campaign, billingData, metadata.campaignId)
+    await this.campaignService.updateDonationPayment(
+      campaign,
+      billingData,
+      DonationStatus.succeeded,
+      metadata,
+    )
+    await this.campaignService.donateToCampaign(campaign, billingData)
+    await this.checkForCompletedCampaign(metadata.campaignId)
   }
 
   @StripeWebhookHandler('customer.subscription.created')
@@ -268,7 +271,12 @@ export class StripePaymentService {
     const invoice: Stripe.Invoice = event.data.object as Stripe.Invoice
     Logger.log('[ handleInvoicePaid ]', invoice)
 
-    let metadata: DonationMetadata = { campaignId: null, personId: null }
+    let metadata: DonationMetadata = {
+      campaignId: null,
+      personId: null,
+      isAnonymous: null,
+      wish: null,
+    }
 
     invoice.lines.data.forEach((line: Stripe.InvoiceLineItem) => {
       if (line.type === 'subscription') {
@@ -293,13 +301,15 @@ export class StripePaymentService {
       )
     }
 
-    const billingData = getInvoiceData(invoice)
-    await this.donateToCampaign(campaign, billingData, metadata.campaignId)
-  }
+    const paymentData = getInvoiceData(invoice)
 
-  async donateToCampaign(campaign: Campaign, billingData: PaymentData, campaignId: string) {
-    await this.campaignService.donateToCampaign(campaign, billingData)
-    await this.checkForCompletedCampaign(campaignId)
+    await this.campaignService.updateDonationPayment(
+      campaign,
+      paymentData,
+      DonationStatus.succeeded,
+    )
+    await this.campaignService.donateToCampaign(campaign, paymentData)
+    await this.checkForCompletedCampaign(metadata.campaignId)
   }
 
   //if the campaign is finished, we need to stop all active subscriptions
