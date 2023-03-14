@@ -293,12 +293,12 @@ export class StripePaymentService {
       )
     }
 
-    const billingData = getInvoiceData(invoice)
-    await this.donateToCampaign(campaign, billingData, metadata.campaignId)
+    const paymentData = getInvoiceData(invoice)
+    await this.donateToCampaign(campaign, paymentData, metadata.campaignId)
   }
 
-  async donateToCampaign(campaign: Campaign, billingData: PaymentData, campaignId: string) {
-    await this.campaignService.donateToCampaign(campaign, billingData)
+  async donateToCampaign(campaign: Campaign, paymentData: PaymentData, campaignId: string) {
+    await this.campaignService.donateToCampaign(campaign, paymentData)
     await this.checkForCompletedCampaign(campaignId)
   }
 
