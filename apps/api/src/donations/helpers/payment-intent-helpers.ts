@@ -3,18 +3,18 @@ import Stripe from 'stripe'
 import { getCountryRegion, stripeFeeCalculator } from './stripe-fee-calculator'
 import { RecurringDonationStatus, Currency } from '@prisma/client'
 
-function getPaymentMethodId(paymentIntent: Stripe.PaymentIntent): string | undefined {
-  if (typeof paymentIntent.payment_method === 'string') {
-    return paymentIntent.payment_method
+function getPaymentMethodId(charge: Stripe.Charge): string | undefined {
+  if (typeof charge.payment_method === 'string') {
+    return charge.payment_method
   }
-  return paymentIntent.payment_method?.id ?? undefined
+  return undefined
 }
 
-function getPaymentCustomerId(paymentIntent: Stripe.PaymentIntent): string | undefined {
-  if (typeof paymentIntent.customer === 'string') {
-    return paymentIntent.customer
+function getPaymentCustomerId(charge: Stripe.Charge): string | undefined {
+  if (typeof charge.customer === 'string') {
+    return charge.customer
   }
-  return paymentIntent.customer?.id ?? undefined
+  return undefined
 }
 
 export type PaymentData = {
@@ -30,29 +30,26 @@ export type PaymentData = {
   personId?: string
 }
 
-export function getPaymentData(
-  paymentIntent: Stripe.PaymentIntent,
-  charge?: Stripe.Charge,
-): PaymentData {
+export function getPaymentData(charge: Stripe.Charge): PaymentData {
   return {
     paymentProvider: PaymentProvider.stripe,
-    paymentIntentId: paymentIntent.id,
+    paymentIntentId: charge.payment_intent as string,
     //netAmount is 0 until we receive a payment_intent.successful event where charges array contains the card country
-    netAmount: !paymentIntent.latest_charge
+    netAmount: !charge
       ? 0
       : Math.round(
-          paymentIntent.amount -
+          charge.amount -
             stripeFeeCalculator(
-              paymentIntent.amount,
+              charge.amount,
               getCountryRegion(charge?.payment_method_details?.card?.country as string),
             ),
         ),
-    chargedAmount: paymentIntent.amount,
-    currency: paymentIntent.currency,
+    chargedAmount: charge.amount,
+    currency: charge.currency,
     billingName: charge?.billing_details?.name ?? undefined,
-    billingEmail: charge?.billing_details?.email ?? paymentIntent.receipt_email ?? undefined,
-    paymentMethodId: getPaymentMethodId(paymentIntent),
-    stripeCustomerId: getPaymentCustomerId(paymentIntent),
+    billingEmail: charge?.billing_details?.email ?? charge.receipt_email ?? undefined,
+    paymentMethodId: getPaymentMethodId(charge),
+    stripeCustomerId: getPaymentCustomerId(charge),
   }
 }
 

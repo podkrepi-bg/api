@@ -12,9 +12,8 @@ import {
   string2Currency,
   string2RecurringDonationStatus,
   getInvoiceData,
-  PaymentData,
 } from '../helpers/payment-intent-helpers'
-import { DonationStatus, CampaignState, Campaign } from '@prisma/client'
+import { DonationStatus, CampaignState } from '@prisma/client'
 
 /** Testing Stripe on localhost is described here:
  * https://github.com/podkrepi-bg/api/blob/master/TESTING.md#testing-stripe
@@ -54,7 +53,39 @@ export class StripePaymentService {
       )
     }
 
-    const paymentData = getPaymentData(paymentIntent)
+    const charge = paymentIntent.latest_charge
+      ? await this.stripeClient.charges.retrieve(paymentIntent.latest_charge as string)
+      : undefined
+    if (!charge) {
+      throw new BadRequestException(
+        'Payment intent does not contain latest charge. Probably wrong session initiation. Payment intent is:  ' +
+          paymentIntent.id,
+      )
+    }
+    const paymentData = getPaymentData(charge)
+    /*
+     * Handle the create event
+     */
+    await this.campaignService.updateDonationPayment(campaign, paymentData, DonationStatus.waiting)
+  }
+
+  @StripeWebhookHandler('charge.succeeded')
+  async handleChargeCreated(event: Stripe.Event) {
+    const charge: Stripe.Charge = event.data.object as Stripe.Charge
+    const campaignId = charge.metadata.campaignId
+    if (!charge) {
+      throw new BadRequestException(
+        'Charge does not exist. Probably wrong session initiation. Charge is:  ',
+      )
+    }
+    if (!campaignId) {
+      throw new BadRequestException(
+        'Charge does not contain target campaignId. Probably wrong session initiation. Charge is:  ' +
+          charge.id,
+      )
+    }
+    const campaign = await this.campaignService.getCampaignById(campaignId)
+    const paymentData = getPaymentData(charge)
     /*
      * Handle the create event
      */
@@ -80,10 +111,19 @@ export class StripePaymentService {
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
 
-    const billingData = getPaymentData(paymentIntent)
+    const charge = paymentIntent.latest_charge
+      ? await this.stripeClient.charges.retrieve(paymentIntent.latest_charge as string)
+      : undefined
+    if (!charge) {
+      throw new BadRequestException(
+        'Payment intent does not contain latest charge. Probably wrong session initiation. Payment intent is:  ' +
+          paymentIntent.id,
+      )
+    }
+    const paymentData = getPaymentData(charge)
     await this.campaignService.updateDonationPayment(
       campaign,
-      billingData,
+      paymentData,
       DonationStatus.cancelled,
     )
   }
@@ -117,8 +157,13 @@ export class StripePaymentService {
     const charge = paymentIntent.latest_charge
       ? await this.stripeClient.charges.retrieve(paymentIntent.latest_charge as string)
       : undefined
-
-    const billingData = getPaymentData(paymentIntent, charge)
+    if (!charge) {
+      throw new BadRequestException(
+        'Payment intent does not contain latest charge. Probably wrong session initiation. Payment intent is:  ' +
+          paymentIntent.id,
+      )
+    }
+    const billingData = getPaymentData(charge)
 
     await this.campaignService.updateDonationPayment(
       campaign,
