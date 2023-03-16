@@ -490,7 +490,10 @@ export class CampaignService {
             extPaymentMethodId: paymentData.paymentMethodId ?? '',
             billingName: paymentData.billingName,
             billingEmail: paymentData.billingEmail,
-            person: person ? { connect: { id: person.id } } : undefined,
+            person:
+              metadata?.isAnonymous !== 'true' && person
+                ? { connect: { id: person.id } }
+                : undefined,
           },
           select: donationNotificationSelect,
         })
@@ -520,7 +523,10 @@ export class CampaignService {
             extPaymentIntentId: paymentData.paymentIntentId,
             billingName: paymentData.billingName,
             billingEmail: paymentData.billingEmail,
-            person: person ? { connect: { id: person.id } } : undefined,
+            person:
+              metadata?.isAnonymous !== 'true' && person
+                ? { connect: { id: person.id } }
+                : undefined,
           },
           select: donationNotificationSelect,
         })
