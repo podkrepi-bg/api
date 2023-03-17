@@ -71,13 +71,13 @@ yarn
 Use below command for `docker-compose` version `>=2.5`
 
 ```shell
-docker-compose --profile local-keycloak up -d --build
+docker-compose --profile local-keycloak up -d
 ```
 
 or with earlier versions of docker-compose:
 
 ```shell
-docker compose up --build -d pg-db keycloak
+docker compose up -d pg-db keycloak
 ```
 
 This will start the following services in your local docker:
@@ -104,11 +104,13 @@ yarn prisma db seed
 
 ## Setup local environment
 
-Copy the provided .env.local.example to .env.local
+Copy the provided `.env.example` to `.env`
 
 ```shell
-cp .env.local.example .env.local
+cp .env.example .env
 ```
+
+**Note:** _To avoid modifying the original file, you can create `.env.local` and add overrides for the variables that are specific to your local environment. This approach allows you to keep your customizations separate from the default values._
 
 ### Run the tests
 

@@ -26,6 +26,7 @@ import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto'
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
+import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
 
 @ApiTags('donation')
 @Controller('donation')
@@ -182,6 +183,16 @@ export class DonationsController {
     return this.donationsService.updatePaymentIntent(id, updatePaymentIntentDto)
   }
 
+  @Post('payment-intent/:id/cancel')
+  @Public()
+  cancelPaymentIntent(
+    @Param('id') id: string,
+    @Body()
+    cancelPaymentIntentDto: CancelPaymentIntentDto,
+  ) {
+    return this.donationsService.cancelPaymentIntent(id, cancelPaymentIntentDto)
+  }
+
   @Post('create-stripe-payment')
   @Public()
   createStripePayment(
@@ -200,7 +211,7 @@ export class DonationsController {
     @Body()
     bankPaymentDto: CreateBankPaymentDto,
   ) {
-    return this.donationsService.createBankPayment(bankPaymentDto)
+    return this.donationsService.createUpdateBankPayment(bankPaymentDto)
   }
 
   @Patch(':id')

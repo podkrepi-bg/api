@@ -16,6 +16,7 @@ import { DonationsService } from './donations.service'
 import { StripePaymentService } from './events/stripe-payment.service'
 import { HttpModule } from '@nestjs/axios'
 import { ExportModule } from './../export/export.module'
+import { NotificationModule } from '../sockets/notifications/notification.module'
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ExportModule } from './../export/export.module'
     PersonModule,
     HttpModule,
     ExportModule,
+    NotificationModule,
   ],
   controllers: [DonationsController],
   providers: [

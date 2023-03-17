@@ -210,8 +210,19 @@ model Campaign {
   incomingTransfers       Transfer[]     @relation("target_campaign")
   vaults                  Vault[]
   withdrawals             Withdrawal[]
+  slugArchive             SlugArchive[]
 
   @@map("campaigns")
+}
+
+/// Keeps track of previous slugs that are not used currently in any active campaign
+model SlugArchive {
+ slug                    String         @id @unique @db.VarChar(250)
+ /// Stores the id of the last campaign that has used it
+ campaignId              String         @map("campaign_id") @db.Uuid
+ campaign                Campaign       @relation(fields: [campaignId], references: [id])
+
+@@map("slug_archive")
 }
 
 model Irregularity {
