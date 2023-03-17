@@ -29,4 +29,10 @@ In a third shell trigger individual stripe events on demand
 stripe trigger payment_intent.succeeded --override payment_intent:metadata.campaignId=e8bf74dd-6212-4a0e-b192-56e4eb19e1f2 --override payment_intent:currency=BGN
 ```
 
+Or replay an already sent event to the test webhook like this
+
+```shell
+stripe events resend evt_3MlHGFKApGjVGa9t0GUhYsKB
+```
+
 Important - From the the Stripe CLI docs: Triggering some events like payment_intent.succeeded or payment_intent.canceled will also send you a payment_intent.created event for completeness.

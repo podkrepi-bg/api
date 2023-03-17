@@ -127,7 +127,9 @@ describe('DonationsController', () => {
       payment_intent_data: {
         metadata: {
           campaignId: mockSession.campaignId,
+          isAnonymous: 'true',
           personId: undefined,
+          wish: null,
         },
       },
       subscription_data: undefined,
