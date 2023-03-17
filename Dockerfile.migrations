@@ -1,4 +1,4 @@
-FROM node:18-alpine3.17 as base
+FROM node:19-alpine3.17 as base
 RUN apk add --update --no-cache openssl1.1-compat
 WORKDIR /app
 
