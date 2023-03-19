@@ -6,13 +6,12 @@ import { getPaymentData, getPaymentDataFromCharge } from '../helpers/payment-int
 import Stripe from 'stripe'
 import { VaultService } from '../../vault/vault.service'
 import { PersonService } from '../../person/person.service'
-import { MockPrismaService } from '../../prisma/prisma-client.mock'
+import { MockPrismaService, prismaMock } from '../../prisma/prisma-client.mock'
 import { INestApplication } from '@nestjs/common'
 import request from 'supertest'
 import { StripeModule, StripeModuleConfig, StripePayloadService } from '@golevelup/nestjs-stripe'
 
-import { RecurringDonationStatus } from '@prisma/client'
-import { CreateRecurringDonationDto } from '../../recurring-donation/dto/create-recurring-donation.dto'
+import { DonationType, RecurringDonationStatus } from '@prisma/client'
 
 import {
   campaignId,
@@ -36,6 +35,7 @@ import { RecurringDonationService } from '../../recurring-donation/recurring-don
 import { HttpService } from '@nestjs/axios'
 import { mockDeep } from 'jest-mock-extended'
 import { NotificationModule } from '../../sockets/notifications/notification.module'
+import { PrismaService } from '../../prisma/prisma.service'
 
 const defaultStripeWebhookEndpoint = '/stripe/webhook'
 const stripeSecret = 'wh_123'
@@ -179,7 +179,10 @@ describe('StripePaymentService', () => {
       })
   })
 
-  it('should handle charge.succeeded', () => {
+  it('should handle charge.succeeded for not anonymous user', () => {
+    //Set not anonymous explicitly in the test data
+    ;(mockChargeEventSucceeded.data.object as Stripe.Charge).metadata.isAnonymous = 'false'
+
     const payloadString = JSON.stringify(mockChargeEventSucceeded, null, 2)
 
     const header = stripe.webhooks.generateTestHeaderString({
@@ -201,10 +204,24 @@ describe('StripePaymentService', () => {
       .mockName('createDonationWish')
       .mockImplementation(() => Promise.resolve())
 
-    const mockedupdateDonationPayment = jest
-      .spyOn(campaignService, 'updateDonationPayment')
-      .mockImplementation(() => Promise.resolve('test-donation-id'))
-      .mockName('updateDonationPayment')
+    prismaMock.donation.create.mockResolvedValue({
+      id: 'test-donation-id',
+      type: DonationType.donation,
+      status: DonationStatus.succeeded,
+      provider: 'stripe',
+      extCustomerId: paymentData.stripeCustomerId ?? '',
+      extPaymentIntentId: paymentData.paymentIntentId,
+      extPaymentMethodId: 'card',
+      targetVaultId: 'test-vault-id',
+      amount: paymentData.netAmount,
+      chargedAmount: paymentData.netAmount,
+      currency: 'BGN',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      billingName: paymentData.billingName ?? '',
+      billingEmail: paymentData.billingEmail ?? '',
+      personId: 'donation-person',
+    })
 
     const mockedDonateToCampaign = jest
       .spyOn(campaignService, 'donateToCampaign')
@@ -219,8 +236,83 @@ describe('StripePaymentService', () => {
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
         expect(mockedDonateToCampaign).toHaveBeenCalled()
+        // expect(mockedupdateDonationPayment).toHaveBeenCalled()
+        expect(prismaMock.donation.create).toHaveBeenCalled()
+        expect(prismaMock.donation.update).toHaveBeenCalledWith({
+          where: { id: 'test-donation-id' },
+          data: {
+            person: {
+              connect: {
+                email: paymentData.billingEmail,
+              },
+            },
+          },
+        })
         expect(mockedcreateDonationWish).toHaveBeenCalled()
-        expect(mockedupdateDonationPayment).toHaveBeenCalled()
+      })
+  })
+
+  it('should handle charge.succeeded for anonymous user', () => {
+    //Set anonymous explicitly in the test data
+    ;(mockChargeEventSucceeded.data.object as Stripe.Charge).metadata.isAnonymous = 'true'
+
+    const payloadString = JSON.stringify(mockChargeEventSucceeded, null, 2)
+
+    const header = stripe.webhooks.generateTestHeaderString({
+      payload: payloadString,
+      secret: stripeSecret,
+    })
+
+    const campaignService = app.get<CampaignService>(CampaignService)
+    const mockedCampaignById = jest
+      .spyOn(campaignService, 'getCampaignById')
+      .mockImplementation(() => Promise.resolve(mockedCampaign))
+
+    const paymentData = getPaymentDataFromCharge(
+      mockChargeEventSucceeded.data.object as Stripe.Charge,
+    )
+
+    const mockedcreateDonationWish = jest
+      .spyOn(campaignService, 'createDonationWish')
+      .mockName('createDonationWish')
+      .mockImplementation(() => Promise.resolve())
+
+    prismaMock.donation.create.mockResolvedValue({
+      id: 'test-donation-id',
+      type: DonationType.donation,
+      status: DonationStatus.succeeded,
+      provider: 'stripe',
+      extCustomerId: paymentData.stripeCustomerId ?? '',
+      extPaymentIntentId: paymentData.paymentIntentId,
+      extPaymentMethodId: 'card',
+      targetVaultId: 'test-vault-id',
+      amount: paymentData.netAmount,
+      chargedAmount: paymentData.netAmount,
+      currency: 'BGN',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      billingName: paymentData.billingName ?? '',
+      billingEmail: paymentData.billingEmail ?? '',
+      personId: 'donation-person',
+    })
+
+    const mockedDonateToCampaign = jest
+      .spyOn(campaignService, 'donateToCampaign')
+      .mockName('donateToCampaign')
+
+    return request(app.getHttpServer())
+      .post(defaultStripeWebhookEndpoint)
+      .set('stripe-signature', header)
+      .type('json')
+      .send(payloadString)
+      .expect(201)
+      .then(() => {
+        expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
+        expect(mockedDonateToCampaign).toHaveBeenCalled()
+        // expect(mockedupdateDonationPayment).toHaveBeenCalled()
+        expect(prismaMock.donation.create).toHaveBeenCalled()
+        expect(prismaMock.donation.update).not.toHaveBeenCalled()
+        expect(mockedcreateDonationWish).toHaveBeenCalled()
       })
   })
 

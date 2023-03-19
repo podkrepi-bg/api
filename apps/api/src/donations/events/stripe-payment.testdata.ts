@@ -253,7 +253,7 @@ export const mockChargeEventSucceeded: Stripe.Event = {
       metadata: {
         wish: 'Test Wish',
         campaignId: campaignId,
-        isAnonymous: 'true',
+        isAnonymous: 'false',
       },
       on_behalf_of: null,
       order: null,
