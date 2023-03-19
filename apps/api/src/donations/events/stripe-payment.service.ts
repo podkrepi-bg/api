@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { InjectStripeClient, StripeWebhookHandler } from '@golevelup/nestjs-stripe'
+import { StripeWebhookHandler } from '@golevelup/nestjs-stripe'
 
 import { DonationMetadata } from '../dontation-metadata.interface'
 import { CampaignService } from '../../campaign/campaign.service'
@@ -12,7 +12,6 @@ import {
   string2Currency,
   string2RecurringDonationStatus,
   getInvoiceData,
-  PaymentData,
   getPaymentDataFromCharge,
 } from '../helpers/payment-intent-helpers'
 import { DonationStatus, CampaignState, Campaign } from '@prisma/client'
@@ -23,7 +22,6 @@ import { DonationStatus, CampaignState, Campaign } from '@prisma/client'
 @Injectable()
 export class StripePaymentService {
   constructor(
-    @InjectStripeClient() private stripeClient: Stripe,
     private campaignService: CampaignService,
     private recurringDonationService: RecurringDonationService,
   ) {}
@@ -113,7 +111,7 @@ export class StripePaymentService {
 
     const billingData = getPaymentDataFromCharge(charge)
 
-    await this.campaignService.updateDonationPayment(
+    const donationId = await this.campaignService.updateDonationPayment(
       campaign,
       billingData,
       DonationStatus.succeeded,
@@ -121,6 +119,9 @@ export class StripePaymentService {
     )
     await this.campaignService.donateToCampaign(campaign, billingData)
     await this.checkForCompletedCampaign(metadata.campaignId)
+    if (metadata?.wish) {
+      await this.campaignService.createDonationWish(metadata.wish, donationId, campaign.id)
+    }
   }
 
   @StripeWebhookHandler('customer.subscription.created')
