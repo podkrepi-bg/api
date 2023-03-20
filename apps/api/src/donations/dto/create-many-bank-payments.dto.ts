@@ -57,7 +57,7 @@ export class CreateManyBankPaymentsDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
-  personId: string | null
+  personId?: string | null
 
   billingName?: string
   billingEmail?: string

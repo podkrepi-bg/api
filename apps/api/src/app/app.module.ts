@@ -49,6 +49,8 @@ import { PaypalModule } from '../paypal/paypal.module'
 import { ExportModule } from '../export/export.module'
 import { JwtModule } from '@nestjs/jwt'
 import { NotificationModule } from '../sockets/notifications/notification.module'
+import { ScheduleModule } from '@nestjs/schedule'
+import { TasksModule } from '../tasks/tasks.module'
 
 @Module({
   imports: [
@@ -63,6 +65,9 @@ import { NotificationModule } from '../sockets/notifications/notification.module
       useExisting: KeycloakConfigService,
       imports: [AppConfigModule],
     }),
+    /*Init all background tasks */
+    ScheduleModule.forRoot(),
+    TasksModule,
     /* Internal modules */
     AuthModule,
     AccountModule,
