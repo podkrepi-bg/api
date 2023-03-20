@@ -27,6 +27,7 @@ import { CreateDonationFromIntentDto } from './dto/create-donation-from-intent.d
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
+import { CreateSubscriptionPaymentDto } from './dto/create-subscription-payment.dto'
 
 @ApiTags('donation')
 @Controller('donation')
@@ -162,6 +163,15 @@ export class DonationsController {
     }
 
     return this.donationsService.create(createPaymentDto, user)
+  }
+
+  @Post('subscription')
+  createSubscriptionDonation(
+    @Body()
+    createSubscriptionPayment: CreateSubscriptionPaymentDto,
+    @AuthenticatedUser() user,
+  ) {
+    return this.donationsService.createSubscriptionDonation(user, createSubscriptionPayment)
   }
 
   @Post('payment-intent')

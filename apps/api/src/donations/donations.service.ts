@@ -182,6 +182,7 @@ export class DonationsService {
       ],
       metadata: {
         campaignId: subscriptionPaymentDto.campaignId,
+        personId: person.id,
       },
     })
     const invoice = await this.stripeClient.invoices.retrieve(
