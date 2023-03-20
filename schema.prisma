@@ -1,6 +1,6 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native"]
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native"]
   previewFeatures = ["interactiveTransactions"]
 }
 
@@ -216,12 +216,12 @@ model Campaign {
 
 /// Keeps track of previous slugs that are not used currently in any active campaign
 model SlugArchive {
- slug                    String         @id @unique @db.VarChar(250)
- /// Stores the id of the last campaign that has used it
- campaignId              String         @map("campaign_id") @db.Uuid
- campaign                Campaign       @relation(fields: [campaignId], references: [id])
+  slug       String   @id @unique @db.VarChar(250)
+  /// Stores the id of the last campaign that has used it
+  campaignId String   @map("campaign_id") @db.Uuid
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
 
-@@map("slug_archive")
+  @@map("slug_archive")
 }
 
 model Irregularity {
@@ -362,7 +362,7 @@ model Donation {
   /// Vault where the funds are going
   targetVaultId      String          @map("target_vault_id") @db.Uuid
   /// Payment provider attributes
-  extCustomerId      String          @map("ext_customer_id") @db.VarChar(50)
+  extCustomerId      String?         @map("ext_customer_id") @db.VarChar(50)
   extPaymentIntentId String          @unique @map("ext_payment_intent_id")
   extPaymentMethodId String          @map("ext_payment_method_id")
   ///

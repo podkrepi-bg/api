@@ -8,7 +8,7 @@ export class Donation {
   status: DonationStatus
   provider: PaymentProvider
   targetVaultId: string
-  extCustomerId: string
+  extCustomerId: string | null
   extPaymentIntentId: string
   extPaymentMethodId: string
   createdAt: Date

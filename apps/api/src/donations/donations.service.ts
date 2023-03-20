@@ -112,7 +112,7 @@ export class DonationsService {
         provider: PaymentProvider.stripe,
         type: DonationType.donation,
         status: DonationStatus.initial,
-        extCustomerId: stripePaymentDto.personEmail,
+        extCustomerId: paymentIntent?.customer,
         extPaymentIntentId: paymentIntent.id,
         extPaymentMethodId: 'card',
         billingEmail: stripePaymentDto.personEmail,

@@ -299,7 +299,7 @@ Table donations {
   status DonationStatus [not null, default: 'initial']
   provider PaymentProvider [not null, default: 'none']
   targetVaultId String [not null, note: 'Vault where the funds are going']
-  extCustomerId String [not null, note: 'Payment provider attributes']
+  extCustomerId String [note: 'Payment provider attributes']
   extPaymentIntentId String [unique, not null]
   extPaymentMethodId String [not null]
   createdAt DateTime [default: `now()`, not null]
