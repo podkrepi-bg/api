@@ -3,7 +3,7 @@ import { Expose } from 'class-transformer'
 import { ApiProperty } from '@nestjs/swagger'
 import { IsBoolean, IsEmail, IsOptional, IsString } from 'class-validator'
 
-export class CreateStripePaymentDto {
+export class CreateDonationFromIntentDto {
   @Expose()
   @ApiProperty()
   @IsString()

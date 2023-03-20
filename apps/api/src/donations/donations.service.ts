@@ -26,8 +26,9 @@ import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
 import { donationWithPerson, DonationWithPerson } from './validators/donation.validator'
-import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
+import { CreateDonationFromIntentDto } from './dto/create-donation-from-intent.dto'
 import { ImportStatus } from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
+import { CreateSubscriptionPaymentDto } from './dto/create-subscription-payment.dto'
 
 @Injectable()
 export class DonationsService {
@@ -81,7 +82,7 @@ export class DonationsService {
    */
   async createInitialDonationFromIntent(
     campaign: Campaign,
-    stripePaymentDto: CreateStripePaymentDto,
+    stripePaymentDto: CreateDonationFromIntentDto,
     paymentIntent: Stripe.PaymentIntent,
   ): Promise<Donation> {
     Logger.debug('[ CreateInitialDonationFromIntent]', {
@@ -125,7 +126,7 @@ export class DonationsService {
         provider: PaymentProvider.stripe,
         type: DonationType.donation,
         status: DonationStatus.waiting,
-        extCustomerId: stripePaymentDto.personEmail,
+        extCustomerId: paymentIntent?.customer,
         extPaymentMethodId: 'card',
         billingEmail: stripePaymentDto.personEmail,
         targetVault: targetVaultData,
@@ -154,6 +155,42 @@ export class DonationsService {
     }
 
     return donation
+  }
+
+  async createSubscriptionDonation(
+    user: KeycloakTokenParsed,
+    subscriptionPaymentDto: CreateSubscriptionPaymentDto,
+  ): Promise<Stripe.PaymentIntent> {
+    const customer = await this.stripeClient.customers.create({
+      email: subscriptionPaymentDto.email,
+      metadata: {
+        keycloakId: user.sub,
+      },
+    })
+    const person = await this.prisma.person.findFirst({
+      where: { keycloakId: user.sub },
+    })
+    if (!person) {
+      throw new NotFoundException('Person not found')
+    }
+    const subscription = await this.stripeClient.subscriptions.create({
+      customer: customer.id,
+      items: [
+        {
+          price: subscriptionPaymentDto.paymentPriceId,
+        },
+      ],
+      metadata: {
+        campaignId: subscriptionPaymentDto.campaignId,
+      },
+    })
+    const invoice = await this.stripeClient.invoices.retrieve(
+      subscription.latest_invoice as string,
+      {
+        expand: ['payment_intent'],
+      },
+    )
+    return invoice.payment_intent as Stripe.PaymentIntent
   }
 
   async createCheckoutSession(
@@ -462,7 +499,7 @@ export class DonationsService {
    * @param inputDto Payment intent create params
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
-  async createStripePayment(inputDto: CreateStripePaymentDto): Promise<Donation> {
+  async createDonationFromIntent(inputDto: CreateDonationFromIntent): Promise<Donation> {
     const intent = await this.stripeClient.paymentIntents.retrieve(inputDto.paymentIntentId)
     if (!intent.metadata.campaignId) {
       throw new BadRequestException('Campaign id is missing from payment intent metadata')

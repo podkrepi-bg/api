@@ -23,7 +23,7 @@ import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto'
-import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
+import { CreateDonationFromIntentDto } from './dto/create-donation-from-intent.dto'
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
@@ -197,9 +197,9 @@ export class DonationsController {
   @Public()
   createStripePayment(
     @Body()
-    stripePaymentDto: CreateStripePaymentDto,
+    donationFromIntentDto: CreateDonationFromIntentDto,
   ) {
-    return this.donationsService.createStripePayment(stripePaymentDto)
+    return this.donationsService.createDonationFromIntent(donationFromIntentDto)
   }
 
   @Post('create-bank-payment')
