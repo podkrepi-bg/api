@@ -11,6 +11,7 @@ export const StripeConfigFactory = {
         url: 'https://podkrepi.bg',
       },
       apiKey: config.get('stripe.secretKey', ''),
+      maxNetworkRetries: 2,
       webhookConfig: {
         stripeWebhookSecret: config.get('stripe.webhookSecret', ''),
         requestBodyProperty: 'body',
