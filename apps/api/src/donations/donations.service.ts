@@ -53,7 +53,9 @@ export class DonationsService {
             '[Stripe] Error while getting price list. Error type: ' +
               error.type +
               ' message: ' +
-              error.message,
+              error.message +
+              ' full error: ' +
+              JSON.stringify(error),
           )
       },
     )
@@ -266,7 +268,9 @@ export class DonationsService {
               '[Stripe] Error while creating checkout session. Error type: ' +
                 error.type +
                 ' message: ' +
-                error.message,
+                error.message +
+                ' full error: ' +
+                JSON.stringify(error),
             )
         },
       )

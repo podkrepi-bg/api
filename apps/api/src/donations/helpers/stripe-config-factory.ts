@@ -2,10 +2,16 @@ import { StripeModuleConfig } from '@golevelup/nestjs-stripe'
 import { ConfigService } from '@nestjs/config'
 import { Public } from 'nest-keycloak-connect'
 
-export const useFactoryService = {
+export const StripeConfigFactory = {
   useFactory: async (config: ConfigService) =>
     ({
+      apiVersion: '2022-11-15',
+      appInfo: {
+        name: 'Podkrepi.bg open charity platform',
+        url: 'https://podkrepi.bg',
+      },
       apiKey: config.get('stripe.secretKey', ''),
+      maxNetworkRetries: 2,
       webhookConfig: {
         stripeWebhookSecret: config.get('stripe.webhookSecret', ''),
         requestBodyProperty: 'body',
