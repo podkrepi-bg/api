@@ -3020,17 +3020,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:4.3.1":
-  version: 4.3.1
-  resolution: "@prisma/client@npm:4.3.1"
+"@prisma/client@npm:4.9.0":
+  version: 4.9.0
+  resolution: "@prisma/client@npm:4.9.0"
   dependencies:
-    "@prisma/engines-version": 4.3.0-32.c875e43600dfe042452e0b868f7a48b817b9640b
+    "@prisma/engines-version": 4.9.0-42.ceb5c99003b99c9ee2c1d2e618e359c14aef2ea5
   peerDependencies:
     prisma: "*"
   peerDependenciesMeta:
     prisma:
       optional: true
-  checksum: 2e3e6319bb0974f9ab67ab4620b775f82c54e00c4690db59bbd4736967c1afae7b4487ac54a78d221b7f898287b387422c7e8de026dfd66e97c1ca1e79eb06f7
+  checksum: 54c4fc3fde67d21567ead0e22e66d3258c2045f274b465781b89e4f258f1a6431c4c83e3371e71661f2c7ccdf4cf24169002e40e378c7384f99aefe8dfb81be1
   languageName: node
   linkType: hard
 
@@ -3109,10 +3109,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/engines-version@npm:4.3.0-32.c875e43600dfe042452e0b868f7a48b817b9640b":
-  version: 4.3.0-32.c875e43600dfe042452e0b868f7a48b817b9640b
-  resolution: "@prisma/engines-version@npm:4.3.0-32.c875e43600dfe042452e0b868f7a48b817b9640b"
-  checksum: 268eb72da6ef70f3e0ce9c43f1b1500af3df24adb0589972f2fbbb949e5f3847c0c2377998537ad425995f78ad59cd06e65e1b07040d0ea937cefe02e441a5d1
+"@prisma/engines-version@npm:4.9.0-42.ceb5c99003b99c9ee2c1d2e618e359c14aef2ea5":
+  version: 4.9.0-42.ceb5c99003b99c9ee2c1d2e618e359c14aef2ea5
+  resolution: "@prisma/engines-version@npm:4.9.0-42.ceb5c99003b99c9ee2c1d2e618e359c14aef2ea5"
+  checksum: b7b1a41acd8c761ea8111e0d9562623d0735c58546594626de1bd4b35e09122f210e0c4727aa0775b53e5222d8ed1c0fa822e0a8c4ba72271e854532f52a2416
   languageName: node
   linkType: hard
 
@@ -12117,7 +12117,7 @@ __metadata:
     "@nrwl/tao": ^15.5.1
     "@nrwl/workspace": ^15.5.1
     "@ntegral/nestjs-sentry": 4.0.0
-    "@prisma/client": 4.3.1
+    "@prisma/client": 4.9.0
     "@sendgrid/client": 7.6.2
     "@sendgrid/mail": 7.6.0
     "@sentry/node": 6.19.7
