@@ -23,7 +23,7 @@ import {
 import { DateTime } from 'luxon'
 import { toMoney } from '../common/money'
 import { DonationsService } from '../donations/donations.service'
-import { CreateManyBankPaymentsDto } from '../donations/dto/create-many-bank-payments.dto'
+import { CreateBankPaymentDto } from '../donations/dto/create-bank-payment.dto'
 
 @Injectable()
 export class ImportTransactionsTask {
@@ -306,7 +306,7 @@ export class ImportTransactionsTask {
     bankTransaction: Prisma.BankTransactionCreateManyInput,
     vault: Vault,
   ) {
-    const bankPayment: CreateManyBankPaymentsDto = {
+    const bankPayment: CreateBankPaymentDto = {
       amount: bankTransaction.amount || 0,
       currency: bankTransaction.currency || Currency.BGN,
       extCustomerId: bankTransaction.senderIban || '',
@@ -318,6 +318,7 @@ export class ImportTransactionsTask {
       type: DonationType.donation,
       status: DonationStatus.succeeded,
       provider: PaymentProvider.bank,
+      personId: null,
     }
 
     return bankPayment
