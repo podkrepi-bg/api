@@ -40,7 +40,7 @@
     "@nestjs/terminus": "^9.1.4",
     "@nestjs/websockets": "^9.2.1",
     "@ntegral/nestjs-sentry": "4.0.0",
-    "@prisma/client": "4.3.1",
+    "@prisma/client": "4.9.0",
     "@sendgrid/client": "7.6.2",
     "@sendgrid/mail": "7.6.0",
     "@sentry/node": "6.19.7",
