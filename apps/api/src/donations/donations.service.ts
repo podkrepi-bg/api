@@ -192,6 +192,8 @@ export class DonationsService {
           },
         },
       ],
+      payment_behavior: 'default_incomplete',
+      payment_settings: { save_default_payment_method: 'on_subscription' },
       metadata: {
         campaignId: subscriptionPaymentDto.campaignId,
         personId: person.id,
