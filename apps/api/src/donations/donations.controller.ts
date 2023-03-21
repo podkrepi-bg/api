@@ -151,6 +151,10 @@ export class DonationsController {
   }
 
   @Post('create-payment')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   create(
     @AuthenticatedUser()
     user: KeycloakTokenParsed,
@@ -211,7 +215,7 @@ export class DonationsController {
     @Body()
     bankPaymentDto: CreateBankPaymentDto,
   ) {
-    return this.donationsService.createBankPayment(bankPaymentDto)
+    return this.donationsService.createUpdateBankPayment(bankPaymentDto)
   }
 
   @Patch(':id')

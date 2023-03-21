@@ -24,7 +24,6 @@ import { CreatePaymentDto } from './dto/create-payment.dto'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
-import { CreateManyBankPaymentsDto } from './dto/create-many-bank-payments.dto'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
 import { donationWithPerson, DonationWithPerson } from './validators/donation.validator'
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
@@ -42,8 +41,27 @@ export class DonationsService {
   ) {}
 
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
-    const list = await this.stripeClient.prices.list({ active, type, limit: 100 })
-    return list.data.filter((price) => price.active)
+    const listResponse = await this.stripeClient.prices.list({ active, type, limit: 100 }).then(
+      function (list) {
+        Logger.debug('[Stripe] Prices received: ' + list.data.length)
+        return { list }
+      },
+      function (error) {
+        if (error instanceof Stripe.errors.StripeError)
+          Logger.error(
+            '[Stripe] Error while getting price list. Error type: ' +
+              error.type +
+              ' message: ' +
+              error.message +
+              ' full error: ' +
+              JSON.stringify(error),
+          )
+      },
+    )
+
+    if (listResponse) {
+      return listResponse.list.data.filter((price) => price.active)
+    } else return new Array<Stripe.Price>()
   }
 
   /**
@@ -53,7 +71,7 @@ export class DonationsService {
     campaign: Campaign,
     sessionDto: CreateSessionDto,
     paymentIntentId: string,
-  ): Promise<Donation> {
+  ) {
     Logger.log('[ CreateInitialDonation ]', {
       campaignId: campaign.id,
       amount: sessionDto.amount,
@@ -69,51 +87,11 @@ export class DonationsService {
         { connect: { id: vault.id } }
       : // Create new vault for the campaign
         { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
+
     /**
-     * Create initial donation object
+     * Here we cannot create initial donation anymore because stripe is not returning paymentIntendId in the CreateSessionDto
+     * It will be created in the paymentIntent.created webhook
      */
-    const donation = await this.prisma.donation.create({
-      data: {
-        amount: 0, //this will be updated on successful payment event
-        chargedAmount: sessionDto.amount,
-        currency: campaign.currency,
-        provider: PaymentProvider.stripe,
-        type: DonationType.donation,
-        status: DonationStatus.initial,
-        extCustomerId: sessionDto.personEmail ?? '',
-        extPaymentIntentId: paymentIntentId,
-        extPaymentMethodId: sessionDto.mode === 'subscription' ? 'subscription' : 'card',
-        billingEmail: sessionDto.personEmail, //set the personal mail to billing which is not public field
-        targetVault: targetVaultData,
-      },
-    })
-
-    if (!sessionDto.isAnonymous) {
-      await this.prisma.donation.update({
-        where: { id: donation.id },
-        data: {
-          person: {
-            connectOrCreate: {
-              where: {
-                email: sessionDto.personEmail,
-              },
-              create: {
-                firstName: sessionDto.firstName ?? '',
-                lastName: sessionDto.lastName ?? '',
-                email: sessionDto.personEmail,
-                phone: sessionDto.phone,
-              },
-            },
-          },
-        },
-      })
-    }
-
-    if (sessionDto.message) {
-      await this.createDonationWish(sessionDto.message, donation.id, campaign.id)
-    }
-
-    return donation
   }
 
   /**
@@ -199,17 +177,18 @@ export class DonationsService {
 
   async createCheckoutSession(
     sessionDto: CreateSessionDto,
-  ): Promise<{ session: Stripe.Checkout.Session }> {
+  ): Promise<void | { session: Stripe.Checkout.Session }> {
     const campaign = await this.campaignService.validateCampaignId(sessionDto.campaignId)
     const { mode } = sessionDto
     const appUrl = this.config.get<string>('APP_URL')
     const metadata: DonationMetadata = {
       campaignId: sessionDto.campaignId,
       personId: sessionDto.personId,
+      isAnonymous: sessionDto.isAnonymous ? 'true' : 'false',
+      wish: sessionDto.message ?? null,
     }
 
     const items = await this.prepareSessionItems(sessionDto, campaign)
-
     const createSessionRequest: Stripe.Checkout.SessionCreateParams = {
       mode,
       customer_email: sessionDto.personEmail,
@@ -224,19 +203,35 @@ export class DonationsService {
 
     Logger.debug('[ CreateCheckoutSession ]', createSessionRequest)
 
-    const session = await this.stripeClient.checkout.sessions.create(createSessionRequest)
+    const sessionResponse = await this.stripeClient.checkout.sessions
+      .create(createSessionRequest)
+      .then(
+        function (session) {
+          Logger.debug('[Stripe] Checkout session created.')
+          return { session }
+        },
+        function (error) {
+          if (error instanceof Stripe.errors.StripeError)
+            Logger.error(
+              '[Stripe] Error while creating checkout session. Error type: ' +
+                error.type +
+                ' message: ' +
+                error.message +
+                ' full error: ' +
+                JSON.stringify(error),
+            )
+        },
+      )
 
-    Logger.log('[ CreateInitialDonation ]', {
-      session: session,
-    })
+    if (sessionResponse) {
+      this.createInitialDonationFromSession(
+        campaign,
+        sessionDto,
+        (sessionResponse.session.payment_intent as string) ?? sessionResponse.session.id,
+      )
+    }
 
-    await this.createInitialDonationFromSession(
-      campaign,
-      sessionDto,
-      (session.payment_intent as string) ?? session.id,
-    )
-
-    return { session }
+    return sessionResponse
   }
 
   private async prepareSessionItems(
@@ -261,13 +256,16 @@ export class DonationsService {
       }
       return [stripeItem]
     }
-
     // Create donation with custom amount
     return [
       {
-        name: campaign.title,
-        amount: sessionDto.amount,
-        currency: campaign.currency,
+        price_data: {
+          currency: campaign.currency,
+          unit_amount: sessionDto.amount,
+          product_data: {
+            name: campaign.title,
+          },
+        },
         quantity: 1,
       },
     ]
@@ -535,33 +533,21 @@ export class DonationsService {
     return this.stripeClient.paymentIntents.cancel(id, inputDto)
   }
 
-  /**
-   * Used by the administrators to manually add donations executed by bank payments to a campaign.
-   */
-  async createBankPayment(inputDto: CreateBankPaymentDto): Promise<Donation> {
-    const donation = await this.prisma.donation.create({ data: inputDto.toEntity() })
-
-    // Donation status check is not needed, because bank payments are only added by admins if the bank transfer was successful.
-    await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
-
-    return donation
-  }
-
-  async createUpdateBankPayment(donationsDto: CreateManyBankPaymentsDto): Promise<ImportStatus> {
+  async createUpdateBankPayment(donationDto: CreateBankPaymentDto): Promise<ImportStatus> {
     return await this.prisma.$transaction(async (tx) => {
       //to avoid incrementing vault amount twice we first check if there is such donation
       const existingDonation = await tx.donation.findUnique({
-        where: { extPaymentIntentId: donationsDto.extPaymentIntentId },
+        where: { extPaymentIntentId: donationDto.extPaymentIntentId },
       })
 
       if (!existingDonation) {
         await tx.donation.create({
-          data: donationsDto,
+          data: donationDto,
         })
 
         await this.vaultService.incrementVaultAmount(
-          donationsDto.targetVaultId,
-          donationsDto.amount,
+          donationDto.targetVaultId,
+          donationDto.amount,
           tx,
         )
         return ImportStatus.SUCCESS
@@ -569,8 +555,8 @@ export class DonationsService {
 
       //Donation exists, so updating with incoming donation without increasing vault amounts
       await this.prisma.donation.update({
-        where: { extPaymentIntentId: donationsDto.extPaymentIntentId },
-        data: donationsDto,
+        where: { extPaymentIntentId: donationDto.extPaymentIntentId },
+        data: donationDto,
       })
       return ImportStatus.UPDATED
     })
@@ -676,18 +662,6 @@ export class DonationsService {
       return acc
     }, 0)
     return { donations, total }
-  }
-
-  async createDonationWish(message: string, donationId: string, campaignId: string) {
-    const person = await this.prisma.donation.findUnique({ where: { id: donationId } }).person()
-    await this.prisma.donationWish.create({
-      data: {
-        message: message,
-        donationId,
-        campaignId,
-        personId: person?.id,
-      },
-    })
   }
 
   async getUserId(email: string): Promise<string | null> {

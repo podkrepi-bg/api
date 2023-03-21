@@ -26,7 +26,7 @@ describe('DonationsController', () => {
   const stripeMock = {
     checkout: { sessions: { create: jest.fn() } },
   }
-  stripeMock.checkout.sessions.create.mockReturnValue({ payment_intent: 'unique-intent' })
+  stripeMock.checkout.sessions.create.mockResolvedValue({ payment_intent: 'unique-intent' })
 
   const mockSession = {
     mode: 'payment',
@@ -113,9 +113,13 @@ describe('DonationsController', () => {
       mode: mockSession.mode,
       line_items: [
         {
-          amount: 100,
-          currency: undefined,
-          name: undefined,
+          price_data: {
+            currency: undefined,
+            product_data: {
+              name: undefined,
+            },
+            unit_amount: 100,
+          },
           quantity: 1,
         },
       ],
@@ -123,7 +127,9 @@ describe('DonationsController', () => {
       payment_intent_data: {
         metadata: {
           campaignId: mockSession.campaignId,
+          isAnonymous: 'true',
           personId: undefined,
+          wish: null,
         },
       },
       subscription_data: undefined,
