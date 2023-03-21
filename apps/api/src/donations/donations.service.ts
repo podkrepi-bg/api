@@ -41,8 +41,25 @@ export class DonationsService {
   ) {}
 
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
-    const list = await this.stripeClient.prices.list({ active, type, limit: 100 })
-    return list.data.filter((price) => price.active)
+    const listResponse = await this.stripeClient.prices.list({ active, type, limit: 100 }).then(
+      function (list) {
+        Logger.debug('[Stripe] Prices received: ' + list.data.length)
+        return { list }
+      },
+      function (error) {
+        if (error instanceof Stripe.errors.StripeError)
+          Logger.error(
+            '[Stripe] Error while getting price list. Error type: ' +
+              error.type +
+              ' message: ' +
+              error.message,
+          )
+      },
+    )
+
+    if (listResponse) {
+      return listResponse.list.data.filter((price) => price.active)
+    } else return new Array<Stripe.Price>()
   }
 
   /**
@@ -158,7 +175,7 @@ export class DonationsService {
 
   async createCheckoutSession(
     sessionDto: CreateSessionDto,
-  ): Promise<{ session: Stripe.Checkout.Session }> {
+  ): Promise<void | { session: Stripe.Checkout.Session }> {
     const campaign = await this.campaignService.validateCampaignId(sessionDto.campaignId)
     const { mode } = sessionDto
     const appUrl = this.config.get<string>('APP_URL')
@@ -184,19 +201,33 @@ export class DonationsService {
 
     Logger.debug('[ CreateCheckoutSession ]', createSessionRequest)
 
-    const session = await this.stripeClient.checkout.sessions.create(createSessionRequest)
+    const sessionResponse = await this.stripeClient.checkout.sessions
+      .create(createSessionRequest)
+      .then(
+        function (session) {
+          Logger.debug('[Stripe] Checkout session created.')
+          return { session }
+        },
+        function (error) {
+          if (error instanceof Stripe.errors.StripeError)
+            Logger.error(
+              '[Stripe] Error while creating checkout session. Error type: ' +
+                error.type +
+                ' message: ' +
+                error.message,
+            )
+        },
+      )
 
-    Logger.log('[ CreateInitialDonation ]', {
-      session: session,
-    })
+    if (sessionResponse) {
+      this.createInitialDonationFromSession(
+        campaign,
+        sessionDto,
+        (sessionResponse.session.payment_intent as string) ?? sessionResponse.session.id,
+      )
+    }
 
-    await this.createInitialDonationFromSession(
-      campaign,
-      sessionDto,
-      (session.payment_intent as string) ?? session.id,
-    )
-
-    return { session }
+    return sessionResponse
   }
 
   private async prepareSessionItems(

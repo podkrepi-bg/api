@@ -26,7 +26,7 @@ describe('DonationsController', () => {
   const stripeMock = {
     checkout: { sessions: { create: jest.fn() } },
   }
-  stripeMock.checkout.sessions.create.mockReturnValue({ payment_intent: 'unique-intent' })
+  stripeMock.checkout.sessions.create.mockResolvedValue({ payment_intent: 'unique-intent' })
 
   const mockSession = {
     mode: 'payment',
