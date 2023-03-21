@@ -101,6 +101,9 @@ export class DonationsService {
       : // Create new vault for the campaign
         { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
 
+    if (typeof paymentIntent.customer !== 'string') {
+      throw new BadRequestException('Payment intent customer is expected to be a string id')
+    }
     /**
      * Create or update initial donation object
      */
@@ -113,7 +116,7 @@ export class DonationsService {
         provider: PaymentProvider.stripe,
         type: DonationType.donation,
         status: DonationStatus.initial,
-        extCustomerId: paymentIntent?.customer,
+        extCustomerId: paymentIntent.customer,
         extPaymentIntentId: paymentIntent.id,
         extPaymentMethodId: 'card',
         billingEmail: stripePaymentDto.personEmail,
@@ -126,7 +129,7 @@ export class DonationsService {
         provider: PaymentProvider.stripe,
         type: DonationType.donation,
         status: DonationStatus.waiting,
-        extCustomerId: paymentIntent?.customer,
+        extCustomerId: paymentIntent.customer,
         extPaymentMethodId: 'card',
         billingEmail: stripePaymentDto.personEmail,
         targetVault: targetVaultData,
@@ -173,11 +176,20 @@ export class DonationsService {
     if (!person) {
       throw new NotFoundException('Person not found')
     }
+    const product = await this.stripeClient.products.create({
+      name: `Donation of ${subscriptionPaymentDto.amount}`,
+      description: `Donation of ${subscriptionPaymentDto.amount} to campaign ${subscriptionPaymentDto.campaignId} by person ${person.email}`,
+    })
     const subscription = await this.stripeClient.subscriptions.create({
       customer: customer.id,
       items: [
         {
-          price: subscriptionPaymentDto.paymentPriceId,
+          price_data: {
+            unit_amount: subscriptionPaymentDto.amount,
+            currency: subscriptionPaymentDto.currency,
+            product: product.id,
+            recurring: { interval: 'month' },
+          },
         },
       ],
       metadata: {
@@ -500,7 +512,7 @@ export class DonationsService {
    * @param inputDto Payment intent create params
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
-  async createDonationFromIntent(inputDto: CreateDonationFromIntent): Promise<Donation> {
+  async createDonationFromIntent(inputDto: CreateDonationFromIntentDto): Promise<Donation> {
     const intent = await this.stripeClient.paymentIntents.retrieve(inputDto.paymentIntentId)
     if (!intent.metadata.campaignId) {
       throw new BadRequestException('Campaign id is missing from payment intent metadata')

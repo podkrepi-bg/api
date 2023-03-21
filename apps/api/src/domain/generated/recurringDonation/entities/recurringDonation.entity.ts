@@ -8,7 +8,7 @@ export class RecurringDonation {
   vaultId: string
   personId: string
   extSubscriptionId: string
-  extCustomerId: string | null
+  extCustomerId: string
   createdAt: Date
   updatedAt: Date | null
   amount: number

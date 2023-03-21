@@ -402,7 +402,7 @@ model RecurringDonation {
   personId          String                  @map("person_id") @db.Uuid
   /// Payment provider Subscription id
   extSubscriptionId String                  @map("ext_subscription_id") @db.VarChar(50)
-  extCustomerId     String?                 @map("ext_customer_id") @db.VarChar(50)
+  extCustomerId     String                  @map("ext_customer_id") @db.VarChar(50)
   ///
   createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime?               @updatedAt @map("updated_at") @db.Timestamptz(6)

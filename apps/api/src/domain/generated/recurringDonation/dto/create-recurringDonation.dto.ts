@@ -5,5 +5,5 @@ export class CreateRecurringDonationDto {
   @ApiProperty({ enum: RecurringDonationStatus })
   status: RecurringDonationStatus
   extSubscriptionId: string
-  extCustomerId?: string
+  extCustomerId: string
 }

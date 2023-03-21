@@ -1,29 +1,28 @@
-import Stripe from 'stripe'
 import { Expose } from 'class-transformer'
 import { ApiProperty } from '@nestjs/swagger'
-import { IsOptional, IsString } from 'class-validator'
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator'
+import { Currency } from '@prisma/client'
 
 export class CreateSubscriptionPaymentDto {
   @Expose()
   @ApiProperty()
   @IsString()
-  paymentPriceId: Stripe.Price['id']
+  @IsOptional()
+  campaignId: string
+
+  @Expose()
+  @ApiProperty()
+  @IsNumber()
+  amount: number
+
+  @ApiProperty()
+  @Expose()
+  @IsEnum(Currency)
+  currency: Currency
 
   @Expose()
   @ApiProperty()
   @IsString()
   @IsOptional()
   email: string
-
-  @Expose()
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  firstName: string | null
-
-  @Expose()
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  lastName: string | null
 }

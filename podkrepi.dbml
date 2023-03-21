@@ -332,7 +332,7 @@ Table recurring_donations {
   vaultId String [not null]
   personId String [not null]
   extSubscriptionId String [not null, note: 'Payment provider Subscription id']
-  extCustomerId String
+  extCustomerId String [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   amount Int [not null, default: 0]
