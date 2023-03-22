@@ -7,7 +7,7 @@ export class CreateDonationFromIntentDto {
   @Expose()
   @ApiProperty()
   @IsString()
-  setupIntentId: Stripe.SetupIntent['id']
+  paymentIntentId: Stripe.PaymentIntent['id']
 
   @Expose()
   @ApiProperty()

@@ -42,43 +42,13 @@ export class DonationsService {
   ) {}
 
   /**
-   * Create initial donation object for tracking purposes
-   */
-  async createInitialDonationFromSession(
-    campaign: Campaign,
-    sessionDto: CreateSessionDto,
-    paymentIntentId: string,
-  ) {
-    Logger.log('[ CreateInitialDonation ]', {
-      campaignId: campaign.id,
-      amount: sessionDto.amount,
-      paymentIntentId,
-    })
-
-    /**
-     * Create or connect campaign vault
-     */
-    const vault = await this.prisma.vault.findFirst({ where: { campaignId: campaign.id } })
-    const targetVaultData = vault
-      ? // Connect the existing vault to this donation
-        { connect: { id: vault.id } }
-      : // Create new vault for the campaign
-        { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
-
-    /**
-     * Here we cannot create initial donation anymore because stripe is not returning paymentIntendId in the CreateSessionDto
-     * It will be created in the paymentIntent.created webhook
-     */
-  }
-
-  /**
    * Create a payment intent for a donation
    * https://stripe.com/docs/api/payment_intents/create
    * @param inputDto Payment intent create params
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
-  async createDonationFromIntent(inputDto: CreateDonationFromIntentDto): Promise<Donation> {
-    const intent = await this.stripeClient.setupIntents.retrieve(inputDto.setupIntentId, {
+  async createStripeDonationFromIntent(inputDto: CreateDonationFromIntentDto): Promise<Donation> {
+    const intent = await this.stripeClient.paymentIntents.retrieve(inputDto.paymentIntentId, {
       expand: ['customer'],
     })
     if (!intent?.metadata?.campaignId) {
@@ -86,36 +56,14 @@ export class DonationsService {
     }
     const campaignId = intent.metadata.camapaignId
     const campaign = await this.campaignService.validateCampaignId(campaignId)
-    return this.createInitialDonationFromSetupIntent(campaign, inputDto, intent)
-  }
-
-  /**
-   * Create initial donation object for tracking purposes
-   * This is used when the payment is created from the payment intent
-   */
-  async createInitialDonationFromSetupIntent(
-    campaign: Campaign,
-    stripePaymentDto: CreateDonationFromIntentDto,
-    setupIntent: Stripe.SetupIntent,
-  ): Promise<Donation> {
-    const customer = setupIntent.customer as Stripe.Customer
-    if (!setupIntent.payment_method) {
-      throw new BadRequestException('Payment method is missing from setup intent')
-    }
+    const customer = intent.customer as Stripe.Customer
     if (!customer.email) {
       throw new BadRequestException('Customer email is missing from setup intent')
     }
-    const paymentIntent = await this.stripeClient.paymentIntents.create({
-      amount: stripePaymentDto.amount,
-      currency: campaign.currency,
-      customer: customer.id,
-      payment_method: setupIntent.payment_method as string,
-      confirm: true,
-    })
     Logger.debug('[ CreateInitialDonationFromIntent]', {
       campaignId: campaign.id,
-      amount: paymentIntent.amount,
-      paymentIntentId: paymentIntent.id,
+      amount: intent.amount,
+      paymentIntentId: intent.id,
     })
 
     /**
@@ -128,42 +76,42 @@ export class DonationsService {
       : // Create new vault for the campaign
         { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
 
-    if (typeof paymentIntent.customer !== 'string') {
+    if (typeof intent.customer !== 'string') {
       throw new BadRequestException('Payment intent customer is expected to be a string id')
     }
     /**
      * Create or update initial donation object
      */
     const donation = await this.prisma.donation.upsert({
-      where: { extPaymentIntentId: paymentIntent.id },
+      where: { extPaymentIntentId: intent.id },
       create: {
         amount: 0,
-        chargedAmount: paymentIntent.amount,
+        chargedAmount: intent.amount,
         currency: campaign.currency,
         provider: PaymentProvider.stripe,
         type: DonationType.donation,
         status: DonationStatus.initial,
-        extCustomerId: paymentIntent.customer,
-        extPaymentIntentId: paymentIntent.id,
-        extPaymentMethodId: 'card',
+        extCustomerId: intent.customer,
+        extPaymentIntentId: intent.id,
+        extPaymentMethodId: intent.payment_method as string,
         billingEmail: customer.email,
         targetVault: targetVaultData,
       },
       update: {
         amount: 0, //this will be updated on successful payment event
-        chargedAmount: paymentIntent.amount,
+        chargedAmount: intent.amount,
         currency: campaign.currency,
         provider: PaymentProvider.stripe,
         type: DonationType.donation,
         status: DonationStatus.waiting,
         extCustomerId: customer.id,
-        extPaymentMethodId: 'card',
+        extPaymentMethodId: intent.payment_method as string,
         billingEmail: customer.email,
         targetVault: targetVaultData,
       },
     })
 
-    if (!stripePaymentDto.isAnonymous) {
+    if (!inputDto.isAnonymous) {
       await this.prisma.donation.update({
         where: { id: donation.id },
         data: {
@@ -173,10 +121,10 @@ export class DonationsService {
                 email: customer.email,
               },
               create: {
-                firstName: stripePaymentDto.firstName ?? '',
-                lastName: stripePaymentDto.lastName ?? '',
-                email: stripePaymentDto.personEmail,
-                phone: stripePaymentDto.phone,
+                firstName: inputDto.firstName ?? '',
+                lastName: inputDto.lastName ?? '',
+                email: inputDto.personEmail,
+                phone: inputDto.phone,
               },
             },
           },
@@ -233,102 +181,6 @@ export class DonationsService {
       },
     )
     return invoice.payment_intent as Stripe.PaymentIntent
-  }
-
-  async createCheckoutSession(
-    sessionDto: CreateSessionDto,
-  ): Promise<void | { session: Stripe.Checkout.Session }> {
-    const campaign = await this.campaignService.validateCampaignId(sessionDto.campaignId)
-    const { mode } = sessionDto
-    const appUrl = this.config.get<string>('APP_URL')
-    const metadata: DonationMetadata = {
-      campaignId: sessionDto.campaignId,
-      personId: sessionDto.personId,
-      isAnonymous: sessionDto.isAnonymous ? 'true' : 'false',
-      wish: sessionDto.message ?? null,
-    }
-
-    const items = await this.prepareSessionItems(sessionDto, campaign)
-    const createSessionRequest: Stripe.Checkout.SessionCreateParams = {
-      mode,
-      customer_email: sessionDto.personEmail,
-      line_items: items,
-      payment_method_types: ['card'],
-      payment_intent_data: mode == 'payment' ? { metadata } : undefined,
-      subscription_data: mode == 'subscription' ? { metadata } : undefined,
-      success_url: sessionDto.successUrl ?? `${appUrl}/success`,
-      cancel_url: sessionDto.cancelUrl ?? `${appUrl}/canceled`,
-      tax_id_collection: { enabled: true },
-    }
-
-    Logger.debug('[ CreateCheckoutSession ]', createSessionRequest)
-
-    const sessionResponse = await this.stripeClient.checkout.sessions
-      .create(createSessionRequest)
-      .then(
-        function (session) {
-          Logger.debug('[Stripe] Checkout session created.')
-          return { session }
-        },
-        function (error) {
-          if (error instanceof Stripe.errors.StripeError)
-            Logger.error(
-              '[Stripe] Error while creating checkout session. Error type: ' +
-                error.type +
-                ' message: ' +
-                error.message +
-                ' full error: ' +
-                JSON.stringify(error),
-            )
-        },
-      )
-
-    if (sessionResponse) {
-      this.createInitialDonationFromSession(
-        campaign,
-        sessionDto,
-        (sessionResponse.session.payment_intent as string) ?? sessionResponse.session.id,
-      )
-    }
-
-    return sessionResponse
-  }
-
-  private async prepareSessionItems(
-    sessionDto: CreateSessionDto,
-    campaign: Campaign,
-  ): Promise<Stripe.Checkout.SessionCreateParams.LineItem[]> {
-    if (sessionDto.mode == 'subscription') {
-      //use an inline price for subscriptions
-      const stripeItem = {
-        price_data: {
-          currency: campaign.currency,
-          unit_amount: sessionDto.amount,
-          recurring: {
-            interval: 'month' as Stripe.Price.Recurring.Interval,
-            interval_count: 1,
-          },
-          product_data: {
-            name: campaign.title,
-          },
-        },
-        quantity: 1,
-      }
-      return [stripeItem]
-    }
-    // Create donation with custom amount
-    return [
-      {
-        price_data: {
-          currency: campaign.currency,
-          unit_amount: sessionDto.amount,
-          product_data: {
-            name: campaign.title,
-          },
-        },
-        quantity: 1,
-      },
-    ]
   }
 
   /**

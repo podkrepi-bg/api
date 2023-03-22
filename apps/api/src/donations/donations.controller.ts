@@ -41,33 +41,6 @@ export class DonationsController {
     }
   }
 
-  @Post('create-checkout-session')
-  @Public()
-  async createCheckoutSession(@Body() sessionDto: CreateSessionDto) {
-    if (
-      sessionDto.mode === 'subscription' &&
-      (sessionDto.personId === null || sessionDto.personId.length === 0)
-    ) {
-      // in case of a intermediate (step 2) login, we might end up with no personId
-      // not able to fetch the current logged user here (due to @Public())
-      sessionDto.personId = await this.donationsService.getUserId(sessionDto.personEmail)
-    }
-
-    if (
-      sessionDto.mode == 'subscription' &&
-      (sessionDto.personId == null || sessionDto.personId.length == 0)
-    ) {
-      Logger.error(
-        `No personId found for email ${sessionDto.personEmail}. Unable to create a checkout session for a recurring donation`,
-      )
-      throw new UnauthorizedException('You must be logged in to create a recurring donation')
-    }
-
-    Logger.debug(`Creating checkout session with data ${JSON.stringify(sessionDto)}`)
-
-    return this.donationsService.createCheckoutSession(sessionDto)
-  }
-
   @Get('user-donations')
   async userDonations(@AuthenticatedUser() user: KeycloakTokenParsed) {
     return await this.donationsService.getDonationsByUser(user.sub)
@@ -147,13 +120,13 @@ export class DonationsController {
     return this.donationsService.create(createPaymentDto, user)
   }
 
-  @Post('create-stripe-payment')
+  @Post('stripe-donation')
   @Public()
-  createStripePayment(
+  createStripeDonation(
     @Body()
     donationFromIntentDto: CreateDonationFromIntentDto,
   ) {
-    return this.donationsService.createDonationFromIntent(donationFromIntentDto)
+    return this.donationsService.createStripeDonationFromIntent(donationFromIntentDto)
   }
 
   @Post('create-bank-payment')
