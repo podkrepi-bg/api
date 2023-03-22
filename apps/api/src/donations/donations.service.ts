@@ -41,30 +41,6 @@ export class DonationsService {
     private exportService: ExportService,
   ) {}
 
-  async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
-    const listResponse = await this.stripeClient.prices.list({ active, type, limit: 100 }).then(
-      function (list) {
-        Logger.debug('[Stripe] Prices received: ' + list.data.length)
-        return { list }
-      },
-      function (error) {
-        if (error instanceof Stripe.errors.StripeError)
-          Logger.error(
-            '[Stripe] Error while getting price list. Error type: ' +
-              error.type +
-              ' message: ' +
-              error.message +
-              ' full error: ' +
-              JSON.stringify(error),
-          )
-      },
-    )
-
-    if (listResponse) {
-      return listResponse.list.data.filter((price) => price.active)
-    } else return new Array<Stripe.Price>()
-  }
-
   /**
    * Create initial donation object for tracking purposes
    */

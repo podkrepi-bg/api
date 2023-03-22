@@ -2,12 +2,22 @@ import { Body, Controller, Get, Param, Post } from '@nestjs/common'
 import { Public } from 'nest-keycloak-connect'
 import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
+import { CreateSetupIntentDto } from './dto/create-setup-intent.dto'
 import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto'
 import { StripeService } from './stripe.service'
 
 @Controller('stripe')
 export class StripeController {
   constructor(private readonly stripeService: StripeService) {}
+
+  @Post('setup-intent')
+  @Public()
+  createSetupIntent(
+    @Body()
+    createSetupIntentDto: CreateSetupIntentDto,
+  ) {
+    return this.stripeService.createSetupIntent(createSetupIntentDto)
+  }
 
   @Post('payment-intent')
   @Public()

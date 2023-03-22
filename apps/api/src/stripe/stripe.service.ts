@@ -7,6 +7,17 @@ export class StripeService {
   constructor(@InjectStripeClient() private stripeClient: Stripe) {}
 
   /**
+   * Create a setup intent for a donation
+   * @param inputDto Payment intent create params
+   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
+   */
+  async createSetupIntent(
+    inputDto: Stripe.SetupIntentCreateParams,
+  ): Promise<Stripe.Response<Stripe.SetupIntent>> {
+    return await this.stripeClient.setupIntents.create(inputDto)
+  }
+
+  /**
    * Create a payment intent for a donation
    * @param inputDto Payment intent create params
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
