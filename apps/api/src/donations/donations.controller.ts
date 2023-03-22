@@ -22,12 +22,8 @@ import { CreateSessionDto } from './dto/create-session.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
-import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto'
 import { CreateDonationFromIntentDto } from './dto/create-donation-from-intent.dto'
-import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
-import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
-import { CreateSubscriptionPaymentDto } from './dto/create-subscription-payment.dto'
 
 @ApiTags('donation')
 @Controller('donation')
@@ -70,24 +66,6 @@ export class DonationsController {
     Logger.debug(`Creating checkout session with data ${JSON.stringify(sessionDto)}`)
 
     return this.donationsService.createCheckoutSession(sessionDto)
-  }
-
-  @Get('prices')
-  @Public()
-  findPrices() {
-    return this.donationsService.listPrices()
-  }
-
-  @Get('prices/single')
-  @Public()
-  findSinglePrices() {
-    return this.donationsService.listPrices('one_time')
-  }
-
-  @Get('prices/recurring')
-  @Public()
-  findRecurringPrices() {
-    return this.donationsService.listPrices('recurring')
   }
 
   @Get('user-donations')
@@ -167,44 +145,6 @@ export class DonationsController {
     }
 
     return this.donationsService.create(createPaymentDto, user)
-  }
-
-  @Post('subscription')
-  createSubscriptionDonation(
-    @Body()
-    createSubscriptionPayment: CreateSubscriptionPaymentDto,
-    @AuthenticatedUser() user,
-  ) {
-    return this.donationsService.createSubscriptionDonation(user, createSubscriptionPayment)
-  }
-
-  @Post('payment-intent')
-  @Public()
-  createPaymentIntent(
-    @Body()
-    createPaymentIntentDto: CreatePaymentIntentDto,
-  ) {
-    return this.donationsService.createPaymentIntent(createPaymentIntentDto)
-  }
-
-  @Post('payment-intent/:id')
-  @Public()
-  updatePaymentIntent(
-    @Param('id') id: string,
-    @Body()
-    updatePaymentIntentDto: UpdatePaymentIntentDto,
-  ) {
-    return this.donationsService.updatePaymentIntent(id, updatePaymentIntentDto)
-  }
-
-  @Post('payment-intent/:id/cancel')
-  @Public()
-  cancelPaymentIntent(
-    @Param('id') id: string,
-    @Body()
-    cancelPaymentIntentDto: CancelPaymentIntentDto,
-  ) {
-    return this.donationsService.cancelPaymentIntent(id, cancelPaymentIntentDto)
   }
 
   @Post('create-stripe-payment')
