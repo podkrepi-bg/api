@@ -72,6 +72,24 @@ export class DonationsService {
   }
 
   /**
+   * Create a payment intent for a donation
+   * https://stripe.com/docs/api/payment_intents/create
+   * @param inputDto Payment intent create params
+   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
+   */
+  async createDonationFromIntent(inputDto: CreateDonationFromIntentDto): Promise<Donation> {
+    const intent = await this.stripeClient.setupIntents.retrieve(inputDto.setupIntentId, {
+      expand: ['customer'],
+    })
+    if (!intent?.metadata?.campaignId) {
+      throw new BadRequestException('Campaign id is missing from setup intent metadata')
+    }
+    const campaignId = intent.metadata.camapaignId
+    const campaign = await this.campaignService.validateCampaignId(campaignId)
+    return this.createInitialDonationFromSetupIntent(campaign, inputDto, intent)
+  }
+
+  /**
    * Create initial donation object for tracking purposes
    * This is used when the payment is created from the payment intent
    */
@@ -80,10 +98,17 @@ export class DonationsService {
     stripePaymentDto: CreateDonationFromIntentDto,
     setupIntent: Stripe.SetupIntent,
   ): Promise<Donation> {
+    const customer = setupIntent.customer as Stripe.Customer
+    if (!setupIntent.payment_method) {
+      throw new BadRequestException('Payment method is missing from setup intent')
+    }
+    if (!customer.email) {
+      throw new BadRequestException('Customer email is missing from setup intent')
+    }
     const paymentIntent = await this.stripeClient.paymentIntents.create({
       amount: stripePaymentDto.amount,
       currency: campaign.currency,
-      customer: setupIntent.customer as string,
+      customer: customer.id,
       payment_method: setupIntent.payment_method as string,
       confirm: true,
     })
@@ -121,7 +146,7 @@ export class DonationsService {
         extCustomerId: paymentIntent.customer,
         extPaymentIntentId: paymentIntent.id,
         extPaymentMethodId: 'card',
-        billingEmail: stripePaymentDto.personEmail,
+        billingEmail: customer.email,
         targetVault: targetVaultData,
       },
       update: {
@@ -131,9 +156,9 @@ export class DonationsService {
         provider: PaymentProvider.stripe,
         type: DonationType.donation,
         status: DonationStatus.waiting,
-        extCustomerId: paymentIntent.customer,
+        extCustomerId: customer.id,
         extPaymentMethodId: 'card',
-        billingEmail: stripePaymentDto.personEmail,
+        billingEmail: customer.email,
         targetVault: targetVaultData,
       },
     })
@@ -145,7 +170,7 @@ export class DonationsService {
           person: {
             connectOrCreate: {
               where: {
-                email: stripePaymentDto.personEmail,
+                email: customer.email,
               },
               create: {
                 firstName: stripePaymentDto.firstName ?? '',
@@ -513,22 +538,6 @@ export class DonationsService {
     }
 
     return donation
-  }
-
-  /**
-   * Create a payment intent for a donation
-   * https://stripe.com/docs/api/payment_intents/create
-   * @param inputDto Payment intent create params
-   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
-   */
-  async createDonationFromIntent(inputDto: CreateDonationFromIntentDto): Promise<Donation> {
-    const intent = await this.stripeClient.setupIntents.retrieve(inputDto.setupIntentId)
-    if (!intent?.metadata?.campaignId) {
-      throw new BadRequestException('Campaign id is missing from setup intent metadata')
-    }
-    const campaignId = intent.metadata.camapaignId
-    const campaign = await this.campaignService.validateCampaignId(campaignId)
-    return this.createInitialDonationFromSetupIntent(campaign, inputDto, intent)
   }
 
   async createUpdateBankPayment(donationDto: CreateBankPaymentDto): Promise<ImportStatus> {

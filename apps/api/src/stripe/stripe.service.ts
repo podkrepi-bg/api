@@ -1,6 +1,8 @@
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
-import { Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import Stripe from 'stripe'
+import { FinalizeSetupIntentDto } from './dto/finalize-setup-intent.dto'
+import { UpdateSetupIntentDto } from './dto/update-setup-intent.dto'
 
 @Injectable()
 export class StripeService {
@@ -13,11 +15,53 @@ export class StripeService {
    */
   async updateSetupIntent(
     id: string,
-    inputDto: Stripe.SetupIntentUpdateParams,
+    inputDto: UpdateSetupIntentDto,
   ): Promise<Stripe.Response<Stripe.SetupIntent>> {
     return await this.stripeClient.setupIntents.update(id, inputDto)
   }
+  /**
+   * Create a payment intent for a donation
+   * https://stripe.com/docs/api/payment_intents/create
+   * @param inputDto Payment intent create params
+   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
+   */
+  async finalizeSetupIntent(
+    setupIntentId: string,
+    finalizeSetupIntentDto: FinalizeSetupIntentDto,
+  ): Promise<Stripe.PaymentIntent> {
+    const setupIntent = await this.stripeClient.setupIntents.retrieve(setupIntentId, {
+      expand: ['payment_method'],
+    })
+    if (!setupIntent.payment_method || typeof setupIntent.payment_method === 'string') {
+      throw new BadRequestException('Payment method is missing from setup intent')
+    }
+    const paymentMethod = setupIntent.payment_method
+    if (!paymentMethod?.billing_details?.email) {
+      throw new BadRequestException('Email is required from the payment method')
+    }
+    const email = paymentMethod.billing_details.email
 
+    let customer = await this.stripeClient.customers
+      .list({
+        email,
+      })
+      .then((res) => res.data.at(0))
+    if (!customer) {
+      customer = await this.stripeClient.customers.create({
+        email,
+        payment_method: paymentMethod.id,
+      })
+    }
+
+    const paymentIntent = await this.stripeClient.paymentIntents.create({
+      amount: finalizeSetupIntentDto.amount,
+      currency: finalizeSetupIntentDto.currency,
+      customer: customer.id,
+      payment_method: setupIntent.payment_method.id,
+      confirm: true,
+    })
+    return paymentIntent
+  }
   /**
    * Create a setup intent for a donation
    * @param inputDto Payment intent create params
