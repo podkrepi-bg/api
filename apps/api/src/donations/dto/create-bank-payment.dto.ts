@@ -1,10 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Currency, DonationStatus, DonationType, PaymentProvider, Prisma } from '@prisma/client'
+import { Currency, DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
 import { Expose } from 'class-transformer'
-import { IsEmail, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator'
+import { IsDate, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator'
 
 @Expose()
 export class CreateBankPaymentDto {
+  @Expose()
+  @ApiProperty({ enum: DonationType })
+  type: DonationType
+
+  @Expose()
+  @ApiProperty({ enum: DonationStatus })
+  status: DonationStatus
+
+  @Expose()
+  @ApiProperty({ enum: PaymentProvider })
+  provider: PaymentProvider
+
   @Expose()
   @ApiProperty({ enum: Currency })
   currency: Currency
@@ -14,6 +26,11 @@ export class CreateBankPaymentDto {
   @IsNumber()
   @IsPositive()
   amount: number
+
+  @Expose()
+  @ApiProperty()
+  @IsDate()
+  createdAt: Date
 
   @Expose()
   @ApiProperty()
@@ -40,53 +57,8 @@ export class CreateBankPaymentDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
-  personsFirstName: string | null
+  personId: string | null
 
-  @Expose()
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  personsLastName: string | null
-
-  @Expose()
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  @IsEmail()
-  personsEmail: string | null
-
-  public toEntity(): Prisma.DonationCreateInput {
-    const donation: Prisma.DonationCreateInput = {
-      type: DonationType.donation,
-      status: DonationStatus.succeeded,
-      provider: PaymentProvider.bank,
-      currency: this.currency,
-      amount: this.amount,
-      extCustomerId: this.extCustomerId,
-      extPaymentIntentId: this.extPaymentIntentId,
-      extPaymentMethodId: this.extPaymentMethodId,
-      targetVault: {
-        connect: {
-          id: this.targetVaultId,
-        },
-      },
-    }
-
-    if (this.personsEmail && this.personsFirstName && this.personsLastName) {
-      donation.person = {
-        connectOrCreate: {
-          where: {
-            email: this.personsEmail,
-          },
-          create: {
-            firstName: this.personsFirstName,
-            lastName: this.personsLastName,
-            email: this.personsEmail,
-          },
-        },
-      }
-    }
-
-    return donation
-  }
+  billingName?: string
+  billingEmail?: string
 }

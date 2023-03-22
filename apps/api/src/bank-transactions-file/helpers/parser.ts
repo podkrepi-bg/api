@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common'
-import { CreateManyBankPaymentsDto } from '../../donations/dto/create-many-bank-payments.dto'
 import { toMoney } from '../../common/money'
 import { DateTime } from 'luxon'
+import { CreateBankPaymentDto } from '../../donations/dto/create-bank-payment.dto'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 export const parseString = require('xml2js').parseString
@@ -11,8 +11,8 @@ const cashDepositBGString = 'Вноска на каса'
 
 export function parseBankTransactionsFile(
   fileBuffer,
-): { payment: CreateManyBankPaymentsDto; paymentRef: string }[] {
-  const accountMovements: { payment: CreateManyBankPaymentsDto; paymentRef: string }[] = []
+): { payment: CreateBankPaymentDto; paymentRef: string }[] {
+  const accountMovements: { payment: CreateBankPaymentDto; paymentRef: string }[] = []
   parseString(fileBuffer, function (err, items) {
     for (const item in items) {
       for (const movement in items[item].AccountMovement) {
@@ -20,7 +20,7 @@ export function parseBankTransactionsFile(
           items[item].AccountMovement[movement].MovementType[0] === 'Credit' &&
           items[item].AccountMovement[movement].Status[0].Context[0] === 'success'
         ) {
-          const payment = new CreateManyBankPaymentsDto()
+          const payment = new CreateBankPaymentDto()
           const paymentRef = items[item].AccountMovement[movement].NarrativeI02[0]
           payment.amount = toMoney(items[item].AccountMovement[movement].Amount[0])
           payment.currency = items[item].AccountMovement[movement].CCY[0]

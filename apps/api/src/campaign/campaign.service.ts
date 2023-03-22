@@ -32,7 +32,11 @@ import {
   CampaignListItem,
   CampaignListItemSelect,
 } from './dto/list-campaigns.dto'
-import { NotificationService, donationNotificationSelect } from '../sockets/notifications/notification.service'
+import {
+  NotificationService,
+  donationNotificationSelect,
+} from '../sockets/notifications/notification.service'
+import { DonationMetadata } from '../donations/dontation-metadata.interface'
 
 @Injectable()
 export class CampaignService {
@@ -219,6 +223,8 @@ export class CampaignService {
         beneficiary: { select: { person: { select: { keycloakId: true } } } },
         coordinator: { select: { person: { select: { keycloakId: true } } } },
         organizer: { select: { person: { select: { keycloakId: true } } } },
+        state: true,
+        slug: true,
       },
     })
 
@@ -237,36 +243,56 @@ export class CampaignService {
   }
 
   async getCampaignBySlug(slug: string): Promise<Campaign> {
-    const campaign = await this.prisma.campaign.findFirst({
-      where: { slug },
-      include: {
-        campaignType: {
-          select: { name: true, slug: true, category: true },
-        },
-        beneficiary: {
-          select: {
-            id: true,
-            type: true,
-            publicData: true,
-            person: { select: { id: true, firstName: true, lastName: true } },
-            company: { select: { id: true, companyName: true } },
-          },
-        },
-        coordinator: {
-          select: {
-            id: true,
-            person: { select: { id: true, firstName: true, lastName: true, email: true } },
-          },
-        },
-        organizer: {
-          select: {
-            id: true,
-            person: { select: { id: true, firstName: true, lastName: true, email: true } },
-          },
-        },
-        campaignFiles: true,
+    const includeFilter = {
+      campaignType: {
+        select: { name: true, slug: true, category: true },
       },
+      beneficiary: {
+        select: {
+          id: true,
+          type: true,
+          publicData: true,
+          person: { select: { id: true, firstName: true, lastName: true } },
+          company: { select: { id: true, companyName: true } },
+        },
+      },
+      coordinator: {
+        select: {
+          id: true,
+          person: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      },
+      organizer: {
+        select: {
+          id: true,
+          person: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      },
+      campaignFiles: true,
+    }
+
+    let campaign = await this.prisma.campaign.findFirst({
+      where: { slug },
+      include: { ...includeFilter },
     })
+
+    // Check the Archive
+    if (!campaign) {
+      try {
+        const result = await this.prisma.slugArchive.findUnique({
+          where: {
+            slug,
+          },
+          select: {
+            campaign: { include: { ...includeFilter } },
+          },
+        })
+
+        campaign = result?.campaign || null
+      } catch {
+        // Continue on error
+      }
+    }
 
     if (campaign === null) {
       Logger.warn('No campaign record with slug: ' + slug)
@@ -279,15 +305,10 @@ export class CampaignService {
     return campaign
   }
 
-  async getCampaignByPaymentReference(paymentReference: string): Promise<Campaign> {
-    const campaign = await this.prisma.campaign.findFirst({
+  async getCampaignByPaymentReference(paymentReference: string): Promise<Campaign | null> {
+    return await this.prisma.campaign.findFirst({
       where: { paymentReference: paymentReference },
     })
-    if (!campaign) {
-      Logger.warn('No campaign record with Payment Reference: ' + paymentReference)
-      throw new NotFoundException('No campaign record with Payment Reference: ' + paymentReference)
-    }
-    return campaign
   }
 
   async listCampaignTypes(): Promise<CampaignType[]> {
@@ -388,11 +409,20 @@ export class CampaignService {
     return this.prisma.donation.findFirst({ where: { extPaymentIntentId: paymentIntentId } })
   }
 
+  /**
+   * Creates or Updates an incoming donation depending on the newDonationStatus attribute
+   * @param campaign
+   * @param paymentData
+   * @param newDonationStatus
+   * @param metadata
+   * @returns donation.id of the created/updated donation
+   */
   async updateDonationPayment(
     campaign: Campaign,
     paymentData: PaymentData,
     newDonationStatus: DonationStatus,
-  ) {
+    metadata?: DonationMetadata,
+  ): Promise<string> {
     const campaignId = campaign.id
     Logger.debug('Update donation to status: ' + newDonationStatus, {
       campaignId,
@@ -449,7 +479,7 @@ export class CampaignService {
       )
 
       try {
-        const donation = await this.prisma.donation.create({
+        donation = await this.prisma.donation.create({
           data: {
             amount: paymentData.netAmount,
             chargedAmount: paymentData.chargedAmount,
@@ -463,7 +493,7 @@ export class CampaignService {
             extPaymentMethodId: paymentData.paymentMethodId ?? '',
             billingName: paymentData.billingName,
             billingEmail: paymentData.billingEmail,
-            person: { connect: { id: paymentData.personId } },
+            person: paymentData.personId ? { connect: { id: paymentData.personId } } : {},
           },
           select: donationNotificationSelect,
         })
@@ -475,8 +505,6 @@ export class CampaignService {
         )
         throw new InternalServerErrorException(error)
       }
-
-      return
     }
     //donation exists, so check if it is safe to update it
     else if (shouldAllowStatusChange(donation.status, newDonationStatus)) {
@@ -515,6 +543,38 @@ export class CampaignService {
         and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
       )
     }
+
+    //For successful donations we will also need to link them to user and add donation wish:
+    if (newDonationStatus === DonationStatus.succeeded) {
+      Logger.debug('metadata?.isAnonymous = ' + metadata?.isAnonymous)
+
+      if (metadata?.isAnonymous != 'true') {
+        await this.prisma.donation.update({
+          where: { id: donation.id },
+          data: {
+            person: {
+              connect: {
+                email: paymentData.billingEmail,
+              },
+            },
+          },
+        })
+      }
+    }
+
+    return donation.id
+  }
+
+  async createDonationWish(wish: string, donationId: string, campaignId: string) {
+    const person = await this.prisma.donation.findUnique({ where: { id: donationId } }).person()
+    await this.prisma.donationWish.create({
+      data: {
+        message: wish,
+        donationId,
+        campaignId,
+        personId: person?.id,
+      },
+    })
   }
 
   async donateToCampaign(campaign: Campaign, paymentData: PaymentData) {
@@ -524,8 +584,6 @@ export class CampaignService {
       netAmount: paymentData.netAmount,
       chargedAmount: paymentData.chargedAmount,
     })
-
-    await this.updateDonationPayment(campaign, paymentData, DonationStatus.succeeded)
 
     const vault = await this.getCampaignVault(campaign.id)
     if (vault) {
@@ -595,12 +653,39 @@ export class CampaignService {
     }
   }
 
-  async update(id: string, updateCampaignDto: UpdateCampaignDto): Promise<Campaign | null> {
+  async update(
+    id: string,
+    updateCampaignDto: UpdateCampaignDto,
+    campaign: Partial<Campaign> | null,
+  ): Promise<Campaign | null> {
     const result = await this.prisma.campaign.update({
       where: { id: id },
       data: updateCampaignDto,
     })
+
     if (!result) throw new NotFoundException(`Not found campaign with id: ${id}`)
+
+    // Make old slug redirect to this campaign
+    if (
+      campaign?.state === CampaignState.active &&
+      result?.state === CampaignState.active &&
+      campaign?.slug &&
+      updateCampaignDto.slug !== campaign.slug
+    ) {
+      await this.prisma.slugArchive.upsert({
+        where: {
+          slug: campaign.slug,
+        },
+        update: {
+          campaignId: id,
+        },
+        create: {
+          slug: campaign.slug,
+          campaignId: id,
+        },
+      })
+    }
+
     return result
   }
 

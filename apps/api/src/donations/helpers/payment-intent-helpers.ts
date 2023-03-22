@@ -30,31 +30,50 @@ export type PaymentData = {
   personId?: string
 }
 
-export function getPaymentData(paymentIntent: Stripe.PaymentIntent): PaymentData {
-  const billingDetails = paymentIntent.charges.data.find(() => true)?.billing_details
-  const charges: Stripe.Charge[] = paymentIntent.charges.data as Stripe.Charge[]
-  let country = ''
-  if (charges.length === 1) {
-    country = charges[0].payment_method_details?.card?.country ?? ''
-  }
-
+export function getPaymentData(
+  paymentIntent: Stripe.PaymentIntent,
+  charge?: Stripe.Charge,
+): PaymentData {
   return {
     paymentProvider: PaymentProvider.stripe,
     paymentIntentId: paymentIntent.id,
     //netAmount is 0 until we receive a payment_intent.successful event where charges array contains the card country
-    netAmount:
-      charges.length === 0
-        ? 0
-        : Math.round(
-            paymentIntent.amount -
-              stripeFeeCalculator(paymentIntent.amount, getCountryRegion(country)),
-          ),
+    netAmount: !paymentIntent.latest_charge
+      ? 0
+      : Math.round(
+          paymentIntent.amount -
+            stripeFeeCalculator(
+              paymentIntent.amount,
+              getCountryRegion(charge?.payment_method_details?.card?.country as string),
+            ),
+        ),
     chargedAmount: paymentIntent.amount,
     currency: paymentIntent.currency,
-    billingName: billingDetails?.name ?? undefined,
-    billingEmail: billingDetails?.email ?? paymentIntent.receipt_email ?? undefined,
+    billingName: charge?.billing_details?.name ?? undefined,
+    billingEmail: charge?.billing_details?.email ?? paymentIntent.receipt_email ?? undefined,
     paymentMethodId: getPaymentMethodId(paymentIntent),
     stripeCustomerId: getPaymentCustomerId(paymentIntent),
+  }
+}
+
+export function getPaymentDataFromCharge(charge: Stripe.Charge): PaymentData {
+  return {
+    paymentProvider: PaymentProvider.stripe,
+    paymentIntentId: charge.payment_intent as string,
+    //netAmount is 0 until we receive a payment_intent.successful event where charges array contains the card country
+    netAmount: Math.round(
+      charge.amount -
+        stripeFeeCalculator(
+          charge.amount,
+          getCountryRegion(charge?.payment_method_details?.card?.country as string),
+        ),
+    ),
+    chargedAmount: charge.amount,
+    currency: charge.currency,
+    billingName: charge?.billing_details?.name ?? undefined,
+    billingEmail: charge?.billing_details?.email ?? charge.receipt_email ?? undefined,
+    paymentMethodId: 'card',
+    stripeCustomerId: charge.billing_details?.email ?? undefined,
   }
 }
 
@@ -62,7 +81,7 @@ export function getInvoiceData(invoice: Stripe.Invoice): PaymentData {
   const lines: Stripe.InvoiceLineItem[] = invoice.lines.data as Stripe.InvoiceLineItem[]
   const country = invoice.account_country as string
 
-  let personId = ""
+  let personId = ''
   lines.map((line) => {
     if (line.metadata.personId) {
       personId = line.metadata.personId
@@ -90,38 +109,36 @@ export function getInvoiceData(invoice: Stripe.Invoice): PaymentData {
   }
 }
 
-
 export function string2RecurringDonationStatus(status: string): RecurringDonationStatus {
-    switch (status) {
-      case 'active':
-        return RecurringDonationStatus.active;
-      case 'canceled':
-        return RecurringDonationStatus.canceled;
-      case 'incomplete':
-        return RecurringDonationStatus.incomplete;
-      case 'incomplete_expired':
-        return RecurringDonationStatus.incompleteExpired;
-      case 'trialing':
-        return RecurringDonationStatus.trialing;
-      case 'past_due':
-        return RecurringDonationStatus.pastDue;
-      case 'unpaid':
-        return RecurringDonationStatus.unpaid;
-      default:
-        return RecurringDonationStatus.active;
-    }
+  switch (status) {
+    case 'active':
+      return RecurringDonationStatus.active
+    case 'canceled':
+      return RecurringDonationStatus.canceled
+    case 'incomplete':
+      return RecurringDonationStatus.incomplete
+    case 'incomplete_expired':
+      return RecurringDonationStatus.incompleteExpired
+    case 'trialing':
+      return RecurringDonationStatus.trialing
+    case 'past_due':
+      return RecurringDonationStatus.pastDue
+    case 'unpaid':
+      return RecurringDonationStatus.unpaid
+    default:
+      return RecurringDonationStatus.active
   }
+}
 
-  export function string2Currency(currency: string): Currency {
-    switch (currency.toUpperCase()) {
-      case 'BGN':
-        return Currency.BGN;
-      case 'EUR':
-        return Currency.EUR;
-      case 'USD':
-        return Currency.USD;
-      default:
-        return Currency.BGN;
-    }
+export function string2Currency(currency: string): Currency {
+  switch (currency.toUpperCase()) {
+    case 'BGN':
+      return Currency.BGN
+    case 'EUR':
+      return Currency.EUR
+    case 'USD':
+      return Currency.USD
+    default:
+      return Currency.BGN
   }
-
+}

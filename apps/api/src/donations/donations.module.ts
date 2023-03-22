@@ -1,7 +1,7 @@
 import { StripeModule } from '@golevelup/nestjs-stripe'
 import { Module } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { useFactoryService } from '../bank-transactions-file/helpers/use-factory-service'
+import { StripeConfigFactory } from './helpers/stripe-config-factory'
 import { CampaignModule } from '../campaign/campaign.module'
 import { CampaignService } from '../campaign/campaign.service'
 import { RecurringDonationService } from '../recurring-donation/recurring-donation.service'
@@ -22,7 +22,7 @@ import { NotificationModule } from '../sockets/notifications/notification.module
   imports: [
     StripeModule.forRootAsync(StripeModule, {
       inject: [ConfigService],
-      useFactory: useFactoryService.useFactory,
+      useFactory: StripeConfigFactory.useFactory,
     }),
     VaultModule,
     CampaignModule,
