@@ -7,14 +7,14 @@ CREATE TYPE "bank_donation_status" AS ENUM ('unrecognized', 'imported', 'import_
 -- CreateTable
 CREATE TABLE "bank_transactions" (
     "id" VARCHAR(250) NOT NULL,
-    "ibanNumber" VARCHAR(34) NOT NULL,
+    "iban_number" VARCHAR(34) NOT NULL,
     "bank_name" VARCHAR(50) NOT NULL,
     "bank_id_code" VARCHAR(50) NOT NULL,
     "transaction_date" TIMESTAMPTZ(6) NOT NULL,
     "sender_name" VARCHAR(100),
     "recipient_name" VARCHAR(100),
-    "senderIban" VARCHAR(34),
-    "recipientIban" VARCHAR(34),
+    "sender_iban" VARCHAR(34),
+    "recipient_iban" VARCHAR(34),
     "amount" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "currency" "currency" NOT NULL DEFAULT 'BGN',
     "description" VARCHAR(200) NOT NULL,

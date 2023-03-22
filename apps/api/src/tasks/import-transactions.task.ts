@@ -54,16 +54,24 @@ export class ImportTransactionsTask {
 
   // NestJS Lifecycle Hook
   onModuleInit() {
-    this.initImportTransactionsTask()
+    try {
+      this.initImportTransactionsTask()
+    } catch (e) {
+      Logger.error('Failed to initialize ImportTransactionsTask')
+    }
   }
 
-  async initImportTransactionsTask() {
+  initImportTransactionsTask() {
     // Set the interval at which the import task will run - default 6 hours
     const minutes = this.config.get<number>('tasks.import_transactions.interval', 60 * 6)
     const interval = 1000 * 60 * Number(minutes)
 
     const callback = async () => {
-      await this.importBankTransactions()
+      try {
+        await this.importBankTransactions()
+      } catch (e) {
+        Logger.error('An error occured while executing importBankTransactions')
+      }
     }
 
     const task = setInterval(callback, interval)
