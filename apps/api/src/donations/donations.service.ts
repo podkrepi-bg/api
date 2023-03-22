@@ -75,11 +75,18 @@ export class DonationsService {
    * Create initial donation object for tracking purposes
    * This is used when the payment is created from the payment intent
    */
-  async createInitialDonationFromIntent(
+  async createInitialDonationFromSetupIntent(
     campaign: Campaign,
     stripePaymentDto: CreateDonationFromIntentDto,
-    paymentIntent: Stripe.PaymentIntent,
+    setupIntent: Stripe.SetupIntent,
   ): Promise<Donation> {
+    const paymentIntent = await this.stripeClient.paymentIntents.create({
+      amount: stripePaymentDto.amount,
+      currency: campaign.currency,
+      customer: setupIntent.customer as string,
+      payment_method: setupIntent.payment_method as string,
+      confirm: true,
+    })
     Logger.debug('[ CreateInitialDonationFromIntent]', {
       campaignId: campaign.id,
       amount: paymentIntent.amount,
@@ -515,13 +522,13 @@ export class DonationsService {
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
   async createDonationFromIntent(inputDto: CreateDonationFromIntentDto): Promise<Donation> {
-    const intent = await this.stripeClient.paymentIntents.retrieve(inputDto.paymentIntentId)
-    if (!intent.metadata.campaignId) {
-      throw new BadRequestException('Campaign id is missing from payment intent metadata')
+    const intent = await this.stripeClient.setupIntents.retrieve(inputDto.setupIntentId)
+    if (!intent?.metadata?.campaignId) {
+      throw new BadRequestException('Campaign id is missing from setup intent metadata')
     }
     const campaignId = intent.metadata.camapaignId
     const campaign = await this.campaignService.validateCampaignId(campaignId)
-    return this.createInitialDonationFromIntent(campaign, inputDto, intent)
+    return this.createInitialDonationFromSetupIntent(campaign, inputDto, intent)
   }
 
   async createUpdateBankPayment(donationDto: CreateBankPaymentDto): Promise<ImportStatus> {

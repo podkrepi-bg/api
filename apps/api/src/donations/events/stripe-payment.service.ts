@@ -14,7 +14,7 @@ import {
   getInvoiceData,
   getPaymentDataFromCharge,
 } from '../helpers/payment-intent-helpers'
-import { DonationStatus, CampaignState, Campaign } from '@prisma/client'
+import { DonationStatus, CampaignState } from '@prisma/client'
 
 /** Testing Stripe on localhost is described here:
  * https://github.com/podkrepi-bg/api/blob/master/TESTING.md#testing-stripe

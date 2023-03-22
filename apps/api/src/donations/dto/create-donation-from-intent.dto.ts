@@ -1,13 +1,30 @@
 import Stripe from 'stripe'
 import { Expose } from 'class-transformer'
 import { ApiProperty } from '@nestjs/swagger'
-import { IsBoolean, IsEmail, IsOptional, IsString } from 'class-validator'
+import { IsBoolean, IsEmail, IsNumber, IsOptional, IsString } from 'class-validator'
 
 export class CreateDonationFromIntentDto {
   @Expose()
   @ApiProperty()
   @IsString()
-  paymentIntentId: Stripe.PaymentIntent['id']
+  setupIntentId: Stripe.SetupIntent['id']
+
+  @Expose()
+  @ApiProperty()
+  @IsNumber()
+  amount: number
+
+  @Expose()
+  @ApiProperty()
+  @IsBoolean()
+  isAnonymous: boolean
+
+  @Expose()
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  @IsEmail()
+  personEmail: string
 
   @Expose()
   @ApiProperty()
@@ -26,16 +43,4 @@ export class CreateDonationFromIntentDto {
   @IsString()
   @IsOptional()
   phone: string | null
-
-  @Expose()
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  @IsEmail()
-  personEmail: string
-
-  @Expose()
-  @ApiProperty()
-  @IsBoolean()
-  isAnonymous: boolean
 }
