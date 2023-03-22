@@ -49,6 +49,7 @@ import { PaypalModule } from '../paypal/paypal.module'
 import { ExportModule } from '../export/export.module'
 import { JwtModule } from '@nestjs/jwt'
 import { NotificationModule } from '../sockets/notifications/notification.module'
+import { StripeModule } from '../stripe/stripe.module'
 
 @Module({
   imports: [
@@ -96,6 +97,7 @@ import { NotificationModule } from '../sockets/notifications/notification.module
     ExportModule,
     JwtModule,
     NotificationModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [
