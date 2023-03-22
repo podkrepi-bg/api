@@ -52,13 +52,18 @@ export class StripeService {
         payment_method: paymentMethod.id,
       })
     }
-
+    this.stripeClient.paymentMethods.attach(paymentMethod.id, {
+      customer: customer.id,
+    })
     const paymentIntent = await this.stripeClient.paymentIntents.create({
       amount: finalizeSetupIntentDto.amount,
       currency: finalizeSetupIntentDto.currency,
       customer: customer.id,
       payment_method: setupIntent.payment_method.id,
       confirm: true,
+      metadata: {
+        campaignId: setupIntent?.metadata?.campaignId || null,
+      },
     })
     return paymentIntent
   }

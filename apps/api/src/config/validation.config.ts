@@ -11,7 +11,7 @@ const globalValidationPipe = new ValidationPipe({
     excludeExtraneousValues: true,
   },
   stopAtFirstError: false,
-  forbidUnknownValues: true,
+  forbidUnknownValues: false,
   disableErrorMessages: false,
   exceptionFactory: (errors) => new BadRequestException(errors),
   validationError: { target: false, value: false },

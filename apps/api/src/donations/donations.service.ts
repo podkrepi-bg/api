@@ -85,12 +85,12 @@ export class DonationsService {
     const donation = await this.prisma.donation.upsert({
       where: { extPaymentIntentId: intent.id },
       create: {
-        amount: 0,
+        amount: inputDto.amount,
         chargedAmount: intent.amount,
         currency: campaign.currency,
         provider: PaymentProvider.stripe,
         type: DonationType.donation,
-        status: DonationStatus.initial,
+        status: DonationStatus.succeeded,
         extCustomerId: intent.customer,
         extPaymentIntentId: intent.id,
         extPaymentMethodId: intent.payment_method as string,
@@ -98,12 +98,12 @@ export class DonationsService {
         targetVault: targetVaultData,
       },
       update: {
-        amount: 0, //this will be updated on successful payment event
+        amount: inputDto.amount, //this will be updated on successful payment event
         chargedAmount: intent.amount,
         currency: campaign.currency,
         provider: PaymentProvider.stripe,
         type: DonationType.donation,
-        status: DonationStatus.waiting,
+        status: DonationStatus.succeeded,
         extCustomerId: customer.id,
         extPaymentMethodId: intent.payment_method as string,
         billingEmail: customer.email,
