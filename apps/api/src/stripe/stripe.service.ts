@@ -61,7 +61,7 @@ export class StripeService {
       payment_method: setupIntent.payment_method.id,
       confirm: true,
       metadata: {
-        campaignId: setupIntent.metadata.campaignId,
+        ...setupIntent.metadata,
       },
     })
     return paymentIntent
