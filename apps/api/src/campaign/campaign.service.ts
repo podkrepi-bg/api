@@ -446,29 +446,6 @@ export class CampaignService {
       select: donationNotificationSelect,
     })
 
-    // check for UUID length of personId
-    // subscriptions always have a personId
-    if (!donation && paymentData.personId && paymentData.personId.length === 36) {
-      // search for a subscription donation
-      // for subscriptions, we don't have a paymentIntentId
-      donation = await this.prisma.donation.findFirst({
-        where: {
-          status: DonationStatus.initial,
-          personId: paymentData.personId,
-          chargedAmount: paymentData.chargedAmount,
-          extPaymentMethodId: 'subscription',
-        },
-        select: donationNotificationSelect,
-      })
-
-      if (donation) {
-        donation.status = newDonationStatus
-        this.notificationService.sendNotification('successfulDonation', donation)
-      }
-
-      Logger.debug('Donation found by subscription: ', donation)
-    }
-
     //if missing create the donation with the incoming status
     if (!donation) {
       Logger.debug(

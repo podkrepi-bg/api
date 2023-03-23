@@ -26,40 +26,6 @@ export class StripePaymentService {
     private recurringDonationService: RecurringDonationService,
   ) {}
 
-  @StripeWebhookHandler('payment_intent.created')
-  async handlePaymentIntentCreated(event: Stripe.Event) {
-    const paymentIntent: Stripe.PaymentIntent = event.data.object as Stripe.PaymentIntent
-
-    Logger.debug(
-      '[ handlePaymentIntentCreated ]',
-      paymentIntent,
-      paymentIntent.metadata as DonationMetadata,
-    )
-
-    const metadata: DonationMetadata = paymentIntent.metadata as DonationMetadata
-
-    if (!metadata.campaignId) {
-      Logger.debug('[ handlePaymentIntentCreated ] No campaignId in metadata ' + paymentIntent.id)
-      return
-    }
-
-    const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
-
-    if (campaign.currency !== paymentIntent.currency.toUpperCase()) {
-      throw new BadRequestException(
-        `Donation in different currency is not allowed. Campaign currency ${
-          campaign.currency
-        } <> donation currency ${paymentIntent.currency.toUpperCase()}`,
-      )
-    }
-
-    const paymentData = getPaymentData(paymentIntent)
-    /*
-     * Handle the create event
-     */
-    await this.campaignService.updateDonationPayment(campaign, paymentData, DonationStatus.waiting)
-  }
-
   @StripeWebhookHandler('payment_intent.canceled')
   async handlePaymentIntentCancelled(event: Stripe.Event) {
     const paymentIntent: Stripe.PaymentIntent = event.data.object as Stripe.PaymentIntent
