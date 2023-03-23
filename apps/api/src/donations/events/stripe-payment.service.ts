@@ -8,13 +8,13 @@ import { RecurringDonationService } from '../../recurring-donation/recurring-don
 import { CreateRecurringDonationDto } from '../../recurring-donation/dto/create-recurring-donation.dto'
 
 import {
-  getPaymentData,
   string2Currency,
   string2RecurringDonationStatus,
   getInvoiceData,
   getPaymentDataFromCharge,
 } from '../helpers/payment-intent-helpers'
-import { DonationStatus, CampaignState } from '@prisma/client'
+import { CampaignState } from '@prisma/client'
+import { DonationsService } from '../donations.service'
 
 /** Testing Stripe on localhost is described here:
  * https://github.com/podkrepi-bg/api/blob/master/TESTING.md#testing-stripe
@@ -23,34 +23,13 @@ import { DonationStatus, CampaignState } from '@prisma/client'
 export class StripePaymentService {
   constructor(
     private campaignService: CampaignService,
+    private donationService: DonationsService,
     private recurringDonationService: RecurringDonationService,
   ) {}
 
-  @StripeWebhookHandler('payment_intent.canceled')
-  async handlePaymentIntentCancelled(event: Stripe.Event) {
-    const paymentIntent: Stripe.PaymentIntent = event.data.object as Stripe.PaymentIntent
-    Logger.log(
-      '[ handlePaymentIntentCancelled ]',
-      paymentIntent,
-      paymentIntent.metadata as DonationMetadata,
-    )
-
-    const metadata: DonationMetadata = paymentIntent.metadata as DonationMetadata
-    if (!metadata.campaignId) {
-      throw new BadRequestException(
-        'Payment intent metadata does not contain target campaignId. Probably wrong session initiation. Payment intent is:  ' +
-          paymentIntent.id,
-      )
-    }
-
-    const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
-
-    const billingData = getPaymentData(paymentIntent)
-    await this.campaignService.updateDonationPayment(
-      campaign,
-      billingData,
-      DonationStatus.cancelled,
-    )
+  @StripeWebhookHandler('setup_intent.canceled')
+  async handlePaymentIntentCancelled() {
+    //TODO: handle cancelling of setup intent
   }
 
   @StripeWebhookHandler('charge.succeeded')
@@ -77,12 +56,7 @@ export class StripePaymentService {
 
     const billingData = getPaymentDataFromCharge(charge)
 
-    await this.campaignService.updateDonationPayment(
-      campaign,
-      billingData,
-      DonationStatus.succeeded,
-      metadata,
-    )
+    await this.donationService.createDonation(campaign, billingData)
     await this.campaignService.donateToCampaign(campaign, billingData)
     await this.checkForCompletedCampaign(metadata.campaignId)
   }
@@ -260,11 +234,7 @@ export class StripePaymentService {
 
     const paymentData = getInvoiceData(invoice)
 
-    await this.campaignService.updateDonationPayment(
-      campaign,
-      paymentData,
-      DonationStatus.succeeded,
-    )
+    await this.donationService.createDonation(campaign, paymentData)
     await this.campaignService.donateToCampaign(campaign, paymentData)
     await this.checkForCompletedCampaign(metadata.campaignId)
   }

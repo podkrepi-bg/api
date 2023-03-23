@@ -3,20 +3,6 @@ import Stripe from 'stripe'
 import { getCountryRegion, stripeFeeCalculator } from './stripe-fee-calculator'
 import { RecurringDonationStatus, Currency } from '@prisma/client'
 
-function getPaymentMethodId(paymentIntent: Stripe.PaymentIntent): string | undefined {
-  if (typeof paymentIntent.payment_method === 'string') {
-    return paymentIntent.payment_method
-  }
-  return paymentIntent.payment_method?.id ?? undefined
-}
-
-function getPaymentCustomerId(paymentIntent: Stripe.PaymentIntent): string | undefined {
-  if (typeof paymentIntent.customer === 'string') {
-    return paymentIntent.customer
-  }
-  return paymentIntent.customer?.id ?? undefined
-}
-
 export type PaymentData = {
   paymentIntentId: string
   netAmount: number
@@ -28,32 +14,6 @@ export type PaymentData = {
   stripeCustomerId?: string
   paymentProvider: PaymentProvider
   personId?: string
-}
-
-export function getPaymentData(
-  paymentIntent: Stripe.PaymentIntent,
-  charge?: Stripe.Charge,
-): PaymentData {
-  return {
-    paymentProvider: PaymentProvider.stripe,
-    paymentIntentId: paymentIntent.id,
-    //netAmount is 0 until we receive a payment_intent.successful event where charges array contains the card country
-    netAmount: !paymentIntent.latest_charge
-      ? 0
-      : Math.round(
-          paymentIntent.amount -
-            stripeFeeCalculator(
-              paymentIntent.amount,
-              getCountryRegion(charge?.payment_method_details?.card?.country as string),
-            ),
-        ),
-    chargedAmount: paymentIntent.amount,
-    currency: paymentIntent.currency,
-    billingName: charge?.billing_details?.name ?? undefined,
-    billingEmail: charge?.billing_details?.email ?? paymentIntent.receipt_email ?? undefined,
-    paymentMethodId: getPaymentMethodId(paymentIntent),
-    stripeCustomerId: getPaymentCustomerId(paymentIntent),
-  }
 }
 
 export function getPaymentDataFromCharge(charge: Stripe.Charge): PaymentData {

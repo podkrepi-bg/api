@@ -1,18 +1,8 @@
-import {
-  Prisma,
-  Campaign,
-  CampaignState,
-  CampaignType,
-  Donation,
-  DonationStatus,
-  DonationType,
-  Vault,
-} from '@prisma/client'
+import { Prisma, Campaign, CampaignState, CampaignType, Donation, Vault } from '@prisma/client'
 import {
   forwardRef,
   Inject,
   Injectable,
-  InternalServerErrorException,
   Logger,
   NotAcceptableException,
   NotFoundException,
@@ -21,7 +11,6 @@ import {
 import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
-import { shouldAllowStatusChange } from '../donations/helpers/donation-status-updates'
 import { PaymentData } from '../donations/helpers/payment-intent-helpers'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from './dto/update-campaign.dto'
@@ -32,17 +21,11 @@ import {
   CampaignListItem,
   CampaignListItemSelect,
 } from './dto/list-campaigns.dto'
-import {
-  NotificationService,
-  donationNotificationSelect,
-} from '../sockets/notifications/notification.service'
-import { DonationMetadata } from '../donations/dontation-metadata.interface'
 
 @Injectable()
 export class CampaignService {
   constructor(
     private prisma: PrismaService,
-    private notificationService: NotificationService,
     @Inject(forwardRef(() => VaultService)) private vaultService: VaultService,
     @Inject(forwardRef(() => PersonService)) private personService: PersonService,
   ) {}
@@ -409,151 +392,6 @@ export class CampaignService {
     return this.prisma.donation.findFirst({ where: { extPaymentIntentId: paymentIntentId } })
   }
 
-  /**
-   * Creates or Updates an incoming donation depending on the newDonationStatus attribute
-   * @param campaign
-   * @param paymentData
-   * @param newDonationStatus
-   * @param metadata
-   * @returns donation.id of the created/updated donation
-   */
-  async updateDonationPayment(
-    campaign: Campaign,
-    paymentData: PaymentData,
-    newDonationStatus: DonationStatus,
-    metadata?: DonationMetadata,
-  ): Promise<string> {
-    const campaignId = campaign.id
-    Logger.debug('Update donation to status: ' + newDonationStatus, {
-      campaignId,
-      paymentIntentId: paymentData.paymentIntentId,
-    })
-
-    /**
-     * Create or connect campaign vault
-     */
-    const vault = await this.prisma.vault.findFirst({ where: { campaignId } })
-    const targetVaultData = vault
-      ? // Connect the existing vault to this donation
-        { connect: { id: vault.id } }
-      : // Create new vault for the campaign
-        { create: { campaignId, currency: campaign.currency, name: campaign.title } }
-
-    // Find donation by extPaymentIntentId and update if status allows
-
-    let donation = await this.prisma.donation.findUnique({
-      where: { extPaymentIntentId: paymentData.paymentIntentId },
-      select: donationNotificationSelect,
-    })
-
-    //if missing create the donation with the incoming status
-    if (!donation) {
-      Logger.debug(
-        'No donation exists with extPaymentIntentId: ' +
-          paymentData.paymentIntentId +
-          ' Creating new donation with status: ' +
-          newDonationStatus,
-      )
-
-      try {
-        donation = await this.prisma.donation.create({
-          data: {
-            amount: paymentData.netAmount,
-            chargedAmount: paymentData.chargedAmount,
-            currency: campaign.currency,
-            targetVault: targetVaultData,
-            provider: paymentData.paymentProvider,
-            type: DonationType.donation,
-            status: newDonationStatus,
-            extCustomerId: paymentData.stripeCustomerId ?? '',
-            extPaymentIntentId: paymentData.paymentIntentId,
-            extPaymentMethodId: paymentData.paymentMethodId ?? '',
-            billingName: paymentData.billingName,
-            billingEmail: paymentData.billingEmail,
-            person: paymentData.personId ? { connect: { id: paymentData.personId } } : {},
-          },
-          select: donationNotificationSelect,
-        })
-
-        this.notificationService.sendNotification('successfulDonation', donation)
-      } catch (error) {
-        Logger.error(
-          `Error while creating donation with paymentIntentId: ${paymentData.paymentIntentId} and status: ${newDonationStatus} . Error is: ${error}`,
-        )
-        throw new InternalServerErrorException(error)
-      }
-    }
-    //donation exists, so check if it is safe to update it
-    else if (shouldAllowStatusChange(donation.status, newDonationStatus)) {
-      try {
-        const updatedDonation = await this.prisma.donation.update({
-          where: {
-            id: donation.id,
-          },
-          data: {
-            status: newDonationStatus,
-            amount: paymentData.netAmount,
-            extCustomerId: paymentData.stripeCustomerId,
-            extPaymentMethodId: paymentData.paymentMethodId,
-            extPaymentIntentId: paymentData.paymentIntentId,
-            billingName: paymentData.billingName,
-            billingEmail: paymentData.billingEmail,
-          },
-          select: donationNotificationSelect,
-        })
-
-        this.notificationService.sendNotification('successfulDonation', {
-          ...updatedDonation,
-          person: donation.person,
-        })
-      } catch (error) {
-        Logger.error(
-          `Error wile updating donation with paymentIntentId: ${paymentData.paymentIntentId} in database. Error is: ${error}`,
-        )
-        throw new InternalServerErrorException(error)
-      }
-    }
-    //donation exists but we need to skip because previous status is from later event than the incoming
-    else {
-      Logger.warn(
-        `Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId}
-        and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
-      )
-    }
-
-    //For successful donations we will also need to link them to user and add donation wish:
-    if (newDonationStatus === DonationStatus.succeeded) {
-      Logger.debug('metadata?.isAnonymous = ' + metadata?.isAnonymous)
-
-      if (metadata?.isAnonymous != 'true') {
-        await this.prisma.donation.update({
-          where: { id: donation.id },
-          data: {
-            person: {
-              connect: {
-                email: paymentData.billingEmail,
-              },
-            },
-          },
-        })
-      }
-    }
-
-    return donation.id
-  }
-
-  async createDonationWish(wish: string, donationId: string, campaignId: string) {
-    const person = await this.prisma.donation.findUnique({ where: { id: donationId } }).person()
-    await this.prisma.donationWish.create({
-      data: {
-        message: wish,
-        donationId,
-        campaignId,
-        personId: person?.id,
-      },
-    })
-  }
-
   async donateToCampaign(campaign: Campaign, paymentData: PaymentData) {
     Logger.debug('Update amounts with successful donation', {
       campaignId: campaign.id,
@@ -565,8 +403,6 @@ export class CampaignService {
     const vault = await this.getCampaignVault(campaign.id)
     if (vault) {
       await this.vaultService.incrementVaultAmount(vault.id, paymentData.netAmount)
-    } else {
-      //vault is already checked and created if not existing in updateDonationPayment() above
     }
   }
 

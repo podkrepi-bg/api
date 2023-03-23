@@ -1,138 +1,124 @@
 import Stripe from 'stripe'
-import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import {
-  Campaign,
-  Donation,
-  DonationStatus,
-  DonationType,
-  PaymentProvider,
-  Prisma,
-} from '@prisma/client'
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common'
+import { Campaign, Donation, DonationStatus, DonationType, Prisma } from '@prisma/client'
 import { Response } from 'express'
 import { getTemplateByTable } from '../export/helpers/exportableData'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
-import { CampaignService } from '../campaign/campaign.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
 import { ExportService } from '../export/export.service'
 import { DonationMetadata } from './dontation-metadata.interface'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
-import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
 import { donationWithPerson, DonationWithPerson } from './validators/donation.validator'
-import { CreateDonationFromIntentDto } from './dto/create-donation-from-intent.dto'
 import { ImportStatus } from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
 import { CreateSubscriptionPaymentDto } from './dto/create-subscription-payment.dto'
+import { PaymentData } from './helpers/payment-intent-helpers'
+import {
+  donationNotificationSelect,
+  NotificationService,
+} from '../sockets/notifications/notification.service'
 
 @Injectable()
 export class DonationsService {
   constructor(
     @InjectStripeClient() private stripeClient: Stripe,
-    private config: ConfigService,
-    private campaignService: CampaignService,
     private prisma: PrismaService,
     private vaultService: VaultService,
     private exportService: ExportService,
+    private notificationService: NotificationService,
   ) {}
 
   /**
-   * Create a payment intent for a donation
-   * https://stripe.com/docs/api/payment_intents/create
-   * @param inputDto Payment intent create params
-   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
+   * Creates or Updates an incoming donation depending on the newDonationStatus attribute
+   * @param campaign
+   * @param paymentData
+   * @param metadata
+   * @returns donation.id of the created donation
    */
-  async createStripeDonationFromIntent(inputDto: CreateDonationFromIntentDto): Promise<Donation> {
-    const intent = await this.stripeClient.paymentIntents.retrieve(inputDto.paymentIntentId, {
-      expand: ['customer'],
-    })
-    if (!intent?.metadata?.campaignId) {
-      throw new BadRequestException('Campaign id is missing from setup intent metadata')
-    }
-    const campaignId = intent.metadata.camapaignId
-    const campaign = await this.campaignService.validateCampaignId(campaignId)
-    const customer = intent.customer as Stripe.Customer
-    if (!customer.email) {
-      throw new BadRequestException('Customer email is missing from setup intent')
-    }
-    Logger.debug('[ CreateInitialDonationFromIntent]', {
-      campaignId: campaign.id,
-      amount: intent.amount,
-      paymentIntentId: intent.id,
+  async createDonation(
+    campaign: Campaign,
+    paymentData: PaymentData,
+    metadata?: DonationMetadata,
+  ): Promise<string> {
+    const campaignId = campaign.id
+    Logger.debug('Create donation', {
+      campaignId,
+      paymentIntentId: paymentData.paymentIntentId,
     })
 
     /**
      * Create or connect campaign vault
      */
-    const vault = await this.prisma.vault.findFirst({ where: { campaignId: campaign.id } })
+    const vault = await this.prisma.vault.findFirst({ where: { campaignId } })
     const targetVaultData = vault
       ? // Connect the existing vault to this donation
         { connect: { id: vault.id } }
       : // Create new vault for the campaign
-        { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
+        { create: { campaignId, currency: campaign.currency, name: campaign.title } }
 
-    if (typeof intent.customer !== 'string') {
-      throw new BadRequestException('Payment intent customer is expected to be a string id')
-    }
-    /**
-     * Create or update initial donation object
-     */
-    const donation = await this.prisma.donation.upsert({
-      where: { extPaymentIntentId: intent.id },
-      create: {
-        amount: inputDto.amount,
-        chargedAmount: intent.amount,
-        currency: campaign.currency,
-        provider: PaymentProvider.stripe,
-        type: DonationType.donation,
-        status: DonationStatus.succeeded,
-        extCustomerId: intent.customer,
-        extPaymentIntentId: intent.id,
-        extPaymentMethodId: intent.payment_method as string,
-        billingEmail: customer.email,
-        targetVault: targetVaultData,
-      },
-      update: {
-        amount: inputDto.amount,
-        chargedAmount: intent.amount,
-        currency: campaign.currency,
-        provider: PaymentProvider.stripe,
-        type: DonationType.donation,
-        status: DonationStatus.succeeded,
-        extCustomerId: customer.id,
-        extPaymentMethodId: intent.payment_method as string,
-        billingEmail: customer.email,
-        targetVault: targetVaultData,
-      },
-    })
-
-    if (!inputDto.isAnonymous) {
-      await this.prisma.donation.update({
-        where: { id: donation.id },
+    try {
+      const donation = await this.prisma.donation.create({
         data: {
-          person: {
-            connectOrCreate: {
-              where: {
-                email: customer.email,
-              },
-              create: {
-                firstName: inputDto.firstName ?? '',
-                lastName: inputDto.lastName ?? '',
-                email: inputDto.personEmail,
-                phone: inputDto.phone,
+          amount: paymentData.netAmount,
+          chargedAmount: paymentData.chargedAmount,
+          currency: campaign.currency,
+          targetVault: targetVaultData,
+          provider: paymentData.paymentProvider,
+          type: DonationType.donation,
+          status: DonationStatus.succeeded,
+          extCustomerId: paymentData.stripeCustomerId ?? '',
+          extPaymentIntentId: paymentData.paymentIntentId,
+          extPaymentMethodId: paymentData.paymentMethodId ?? '',
+          billingName: paymentData.billingName,
+          billingEmail: paymentData.billingEmail,
+        },
+        select: donationNotificationSelect,
+      })
+
+      if (metadata?.isAnonymous !== 'true') {
+        await this.prisma.donation.update({
+          where: { id: donation.id },
+          data: {
+            person: {
+              connect: {
+                email: paymentData.billingEmail,
               },
             },
           },
-        },
-      })
+        })
+      }
+      this.notificationService.sendNotification('successfulDonation', donation)
+      return donation.id
+    } catch (error) {
+      Logger.error(
+        `Error while creating donation with paymentIntentId: ${paymentData.paymentIntentId} Error is: ${error}.`,
+      )
+      throw new InternalServerErrorException(error)
     }
+  }
 
-    return donation
+  async createDonationWish(wish: string, donationId: string, campaignId: string) {
+    const person = await this.prisma.donation.findUnique({ where: { id: donationId } }).person()
+    await this.prisma.donationWish.create({
+      data: {
+        message: wish,
+        donationId,
+        campaignId,
+        personId: person?.id,
+      },
+    })
   }
 
   async createSubscriptionDonation(
