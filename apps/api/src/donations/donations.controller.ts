@@ -8,7 +8,6 @@ import {
   Post,
   UnauthorizedException,
   Query,
-  Logger,
   Res,
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
@@ -18,11 +17,9 @@ import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types
 
 import { isAdmin, KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
-import { CreateSessionDto } from './dto/create-session.dto'
 import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
-import { CreateDonationFromIntentDto } from './dto/create-donation-from-intent.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
 
 @ApiTags('donation')
@@ -118,15 +115,6 @@ export class DonationsController {
     }
 
     return this.donationsService.create(createPaymentDto, user)
-  }
-
-  @Post('stripe-donation')
-  @Public()
-  createStripeDonation(
-    @Body()
-    donationFromIntentDto: CreateDonationFromIntentDto,
-  ) {
-    return this.donationsService.createStripeDonationFromIntent(donationFromIntentDto)
   }
 
   @Post('create-bank-payment')
