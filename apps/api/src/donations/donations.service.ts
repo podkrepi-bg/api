@@ -50,10 +50,11 @@ export class DonationsService {
   async createDonation(
     campaign: Campaign,
     paymentData: PaymentData,
+    status: DonationStatus,
     metadata?: DonationMetadata,
   ): Promise<string> {
     const campaignId = campaign.id
-    Logger.debug('Create donation', {
+    Logger.debug(`Create donation with status ${status}`, {
       campaignId,
       paymentIntentId: paymentData.paymentIntentId,
     })
@@ -77,7 +78,7 @@ export class DonationsService {
           targetVault: targetVaultData,
           provider: paymentData.paymentProvider,
           type: DonationType.donation,
-          status: DonationStatus.succeeded,
+          status: status,
           extCustomerId: paymentData.stripeCustomerId ?? '',
           extPaymentIntentId: paymentData.paymentIntentId,
           extPaymentMethodId: paymentData.paymentMethodId ?? '',
@@ -86,7 +87,6 @@ export class DonationsService {
         },
         select: donationNotificationSelect,
       })
-
       if (metadata?.isAnonymous !== 'true') {
         await this.prisma.donation.update({
           where: { id: donation.id },

@@ -2,13 +2,14 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { CampaignService } from '../campaign/campaign.service'
 import { HttpService } from '@nestjs/axios'
-import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
 import { DonationStatus, PaymentProvider } from '@prisma/client'
+import { DonationsService } from '../donations/donations.service'
 
 @Injectable()
 export class PaypalService {
   constructor(
     private campaignService: CampaignService,
+    private donationService: DonationsService,
     private config: ConfigService,
     private httpService: HttpService,
   ) {}
@@ -27,11 +28,7 @@ export class PaypalService {
     // get campaign by id
     const campaign = await this.campaignService.getCampaignById(billingDetails.campaignId)
 
-    await this.campaignService.updateDonationPayment(
-      campaign,
-      billingDetails,
-      DonationStatus.waiting,
-    )
+    await this.donationService.createDonation(campaign, billingDetails, DonationStatus.waiting)
 
     Logger.debug('Donation created!')
   }
@@ -50,11 +47,7 @@ export class PaypalService {
     // get campaign by id
     const campaign = await this.campaignService.getCampaignById(billingDetails.campaignId)
 
-    await this.campaignService.updateDonationPayment(
-      campaign,
-      billingDetails,
-      DonationStatus.succeeded,
-    )
+    await this.donationService.createDonation(campaign, billingDetails, DonationStatus.succeeded)
 
     Logger.debug('Donation completed!')
 
@@ -72,12 +65,14 @@ export class PaypalService {
     headers: Record<string, unknown>,
     rawPaypalBody: string,
   ): Promise<boolean> {
-    const paypalVerificationUrl = new URL('/v1/notifications/verify-webhook-signature',
-      this.config.get<string>('paypal.apiUrl')).toString()
+    const paypalVerificationUrl = new URL(
+      '/v1/notifications/verify-webhook-signature',
+      this.config.get<string>('paypal.apiUrl'),
+    ).toString()
 
     const token = await this.generateAccessToken()
 
-    Logger.log("Token to use: " + token)
+    Logger.log('Token to use: ' + token)
 
     if (!token) return false
 
@@ -99,25 +94,24 @@ export class PaypalService {
 
     Logger.log('Verification request will be: ' + verifyRequest)
 
-    const verificationResponse  = 
-     await this.httpService.axiosRef({
-      url: paypalVerificationUrl,
-      method: 'post',
-      data: verifyRequest,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-    .then(response => response.data)
-    .catch((e) => {
-      Logger.error(`Error while verifying webhook event. Error is: ${e.message}`, 'PaypalWebhook')
-      return null
-    })
+    const verificationResponse = await this.httpService
+      .axiosRef({
+        url: paypalVerificationUrl,
+        method: 'post',
+        data: verifyRequest,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+      .then((response) => response.data)
+      .catch((e) => {
+        Logger.error(`Error while verifying webhook event. Error is: ${e.message}`, 'PaypalWebhook')
+        return null
+      })
 
-    if(!verificationResponse)
-      return false
-    
+    if (!verificationResponse) return false
+
     Logger.log('verification response: ', verificationResponse)
     Logger.log(`verification result: ${verificationResponse.verification_status}`, 'PaypalWebhook')
 
@@ -130,8 +124,10 @@ export class PaypalService {
       'PaypalWebhook',
     )
 
-    const paypalTokenUrl = new URL('/v1/oauth2/token',
-      this.config.get<string>('paypal.apiUrl')).toString()
+    const paypalTokenUrl = new URL(
+      '/v1/oauth2/token',
+      this.config.get<string>('paypal.apiUrl'),
+    ).toString()
     Logger.log(`Generating token with apiUrl ${paypalTokenUrl}`, 'PaypalWebhook')
 
     return this.httpService

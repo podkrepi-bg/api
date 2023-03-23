@@ -13,7 +13,7 @@ import {
   getInvoiceData,
   getPaymentDataFromCharge,
 } from '../helpers/payment-intent-helpers'
-import { CampaignState } from '@prisma/client'
+import { CampaignState, DonationStatus } from '@prisma/client'
 import { DonationsService } from '../donations.service'
 
 /** Testing Stripe on localhost is described here:
@@ -26,11 +26,6 @@ export class StripePaymentService {
     private donationService: DonationsService,
     private recurringDonationService: RecurringDonationService,
   ) {}
-
-  @StripeWebhookHandler('setup_intent.canceled')
-  async handlePaymentIntentCancelled() {
-    //TODO: handle cancelling of setup intent
-  }
 
   @StripeWebhookHandler('charge.succeeded')
   async handleChargeSucceeded(event: Stripe.Event) {
@@ -56,9 +51,19 @@ export class StripePaymentService {
 
     const billingData = getPaymentDataFromCharge(charge)
 
-    await this.donationService.createDonation(campaign, billingData)
+    await this.donationService.createDonation(
+      campaign,
+      billingData,
+      DonationStatus.succeeded,
+      metadata,
+    )
     await this.campaignService.donateToCampaign(campaign, billingData)
     await this.checkForCompletedCampaign(metadata.campaignId)
+  }
+
+  @StripeWebhookHandler('setup_intent.canceled')
+  async handlePaymentIntentCancelled() {
+    //TODO: handle cancelling of setup intent
   }
 
   @StripeWebhookHandler('customer.subscription.created')
@@ -234,7 +239,7 @@ export class StripePaymentService {
 
     const paymentData = getInvoiceData(invoice)
 
-    await this.donationService.createDonation(campaign, paymentData)
+    await this.donationService.createDonation(campaign, paymentData, DonationStatus.succeeded)
     await this.campaignService.donateToCampaign(campaign, paymentData)
     await this.checkForCompletedCampaign(metadata.campaignId)
   }
