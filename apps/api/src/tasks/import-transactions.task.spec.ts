@@ -284,8 +284,6 @@ describe('ImportTransactionsTask', () => {
               in: [
                 // VALID CAMPAIGN CODE
                 mockIrisTransactions[0].remittanceInformationUnstructured,
-                // INVALID CAMPAIGN CODE
-                mockIrisTransactions[1].remittanceInformationUnstructured,
               ],
             },
           },

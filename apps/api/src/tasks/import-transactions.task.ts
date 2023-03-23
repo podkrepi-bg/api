@@ -33,6 +33,7 @@ export class ImportTransactionsTask {
   private IBAN: string
   private apiUrl: string
   private paymentMethodId = 'IRIS bank import'
+  private regexPaymentRef = /\b[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}\b/g
   // Used to check if the task should be stopped
   private canRun = true
 
@@ -254,6 +255,15 @@ export class ImportTransactionsTask {
   private async processDonations(bankTransactions: Prisma.BankTransactionCreateManyInput[]) {
     const processedBankTransactions: Prisma.BankTransactionCreateManyInput[] = []
 
+    // Try to recognize campaign payment references
+    const matchedPaymentRef: string[] = []
+    bankTransactions.forEach((trx) => {
+      if (trx.type !== 'credit' || trx.description === 'STRIPE') return
+
+      const matchedRef = trx.description.replace(/[ _]+/g, '-').match(this.regexPaymentRef)
+      if (matchedRef) matchedPaymentRef.push(matchedRef[0])
+    })
+
     /* 
      Better get all campaigns in a single query
      than execute a separate one for each transaction -
@@ -262,9 +272,7 @@ export class ImportTransactionsTask {
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         paymentReference: {
-          in: bankTransactions
-            .filter((trx) => trx.type === 'credit' && trx.description !== 'STRIPE')
-            .map((trx) => trx.description.trim()),
+          in: matchedPaymentRef,
         },
       },
       include: {
