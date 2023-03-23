@@ -77,7 +77,7 @@ export class StripePaymentService {
 
     const billingData = getPaymentDataFromCharge(charge)
 
-    const donationId = await this.campaignService.updateDonationPayment(
+    await this.campaignService.updateDonationPayment(
       campaign,
       billingData,
       DonationStatus.succeeded,
@@ -85,9 +85,6 @@ export class StripePaymentService {
     )
     await this.campaignService.donateToCampaign(campaign, billingData)
     await this.checkForCompletedCampaign(metadata.campaignId)
-    if (metadata?.wish) {
-      await this.campaignService.createDonationWish(metadata.wish, donationId, campaign.id)
-    }
   }
 
   @StripeWebhookHandler('customer.subscription.created')
