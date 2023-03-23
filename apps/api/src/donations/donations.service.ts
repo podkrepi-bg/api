@@ -98,7 +98,7 @@ export class DonationsService {
         targetVault: targetVaultData,
       },
       update: {
-        amount: inputDto.amount, //this will be updated on successful payment event
+        amount: inputDto.amount,
         chargedAmount: intent.amount,
         currency: campaign.currency,
         provider: PaymentProvider.stripe,

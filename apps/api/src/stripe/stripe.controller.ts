@@ -3,7 +3,6 @@ import { ApiTags } from '@nestjs/swagger'
 import { Public } from 'nest-keycloak-connect'
 import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
-import { FinalizeSetupIntentDto } from './dto/finalize-setup-intent.dto'
 import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto'
 import { UpdateSetupIntentDto } from './dto/update-setup-intent.dto'
 import { StripeService } from './stripe.service'
@@ -31,12 +30,8 @@ export class StripeController {
 
   @Post('setup-intent/:id/finalize')
   @Public()
-  finalizeSetupIntent(
-    @Param('id') id: string,
-    @Body()
-    finalizeSetupIntentDto: FinalizeSetupIntentDto,
-  ) {
-    return this.stripeService.finalizeSetupIntent(id, finalizeSetupIntentDto)
+  finalizeSetupIntent(@Param('id') id: string) {
+    return this.stripeService.finalizeSetupIntent(id)
   }
 
   @Post('payment-intent')

@@ -72,7 +72,7 @@ export function getPaymentDataFromCharge(charge: Stripe.Charge): PaymentData {
     currency: charge.currency,
     billingName: charge?.billing_details?.name ?? undefined,
     billingEmail: charge?.billing_details?.email ?? charge.receipt_email ?? undefined,
-    paymentMethodId: 'card',
+    paymentMethodId: charge.payment_method ?? undefined,
     stripeCustomerId: charge.billing_details?.email ?? undefined,
   }
 }

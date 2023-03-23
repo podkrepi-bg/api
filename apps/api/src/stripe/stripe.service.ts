@@ -1,7 +1,6 @@
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import Stripe from 'stripe'
-import { FinalizeSetupIntentDto } from './dto/finalize-setup-intent.dto'
 import { UpdateSetupIntentDto } from './dto/update-setup-intent.dto'
 
 @Injectable()
@@ -25,10 +24,7 @@ export class StripeService {
    * @param inputDto Payment intent create params
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
-  async finalizeSetupIntent(
-    setupIntentId: string,
-    finalizeSetupIntentDto: FinalizeSetupIntentDto,
-  ): Promise<Stripe.PaymentIntent> {
+  async finalizeSetupIntent(setupIntentId: string): Promise<Stripe.PaymentIntent> {
     const setupIntent = await this.stripeClient.setupIntents.retrieve(setupIntentId, {
       expand: ['payment_method'],
     })
@@ -38,6 +34,9 @@ export class StripeService {
     const paymentMethod = setupIntent.payment_method
     if (!paymentMethod?.billing_details?.email) {
       throw new BadRequestException('Email is required from the payment method')
+    }
+    if (!setupIntent.metadata || !setupIntent.metadata.amount || !setupIntent.metadata.currency) {
+      throw new BadRequestException('Amount and currency are required from the setup intent')
     }
     const email = paymentMethod.billing_details.email
 
@@ -56,8 +55,8 @@ export class StripeService {
       customer: customer.id,
     })
     const paymentIntent = await this.stripeClient.paymentIntents.create({
-      amount: finalizeSetupIntentDto.amount,
-      currency: finalizeSetupIntentDto.currency,
+      amount: Number(setupIntent.metadata.amount),
+      currency: setupIntent.metadata.currency,
       customer: customer.id,
       payment_method: setupIntent.payment_method.id,
       confirm: true,
