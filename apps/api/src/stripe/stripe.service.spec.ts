@@ -1,14 +1,29 @@
-import { StripeModule } from '@golevelup/nestjs-stripe'
+import { StripeModule as ExtStripeModule, StripeModuleConfig } from '@golevelup/nestjs-stripe'
 import { Test, TestingModule } from '@nestjs/testing'
-import { DonationsModule } from '../donations/donations.module'
 import { StripeService } from './stripe.service'
 
 describe('StripeService', () => {
   let service: StripeService
 
   beforeEach(async () => {
+    const stripeSecret = 'wh_123'
+    const moduleConfig: StripeModuleConfig = {
+      apiKey: stripeSecret,
+      webhookConfig: {
+        stripeSecrets: {
+          account: stripeSecret,
+        },
+        loggingConfiguration: {
+          logMatchingEventHandlers: true,
+        },
+      },
+    }
     const module: TestingModule = await Test.createTestingModule({
-      imports: [StripeModule, DonationsModule],
+      imports: [
+        ExtStripeModule.forRootAsync(ExtStripeModule, {
+          useFactory: () => moduleConfig,
+        }),
+      ],
       providers: [StripeService],
     }).compile()
 
