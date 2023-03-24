@@ -72,9 +72,7 @@ export class StripeService {
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
   async createSetupIntent(): Promise<Stripe.Response<Stripe.SetupIntent>> {
-    return await this.stripeClient.setupIntents.create({
-      usage: 'on_session',
-    })
+    return await this.stripeClient.setupIntents.create()
   }
 
   /**
