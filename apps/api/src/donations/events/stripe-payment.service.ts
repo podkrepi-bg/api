@@ -202,7 +202,7 @@ export class StripePaymentService {
     )
   }
 
-  @StripeWebhookHandler('invoice.payment_succeeded')
+  @StripeWebhookHandler('invoice.paid')
   async handleInvoicePaid(event: Stripe.Event) {
     const invoice: Stripe.Invoice = event.data.object as Stripe.Invoice
     Logger.log('[ handleInvoicePaid ]', invoice)

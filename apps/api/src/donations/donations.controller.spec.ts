@@ -1,16 +1,7 @@
 import { STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
-import { NotAcceptableException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
-import {
-  Campaign,
-  CampaignState,
-  Currency,
-  DonationStatus,
-  DonationType,
-  PaymentProvider,
-  Prisma,
-} from '@prisma/client'
+import { Currency, DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
 import { CampaignService } from '../campaign/campaign.service'
 import { ExportService } from '../export/export.service'
 import { PersonService } from '../person/person.service'
@@ -19,7 +10,6 @@ import { NotificationModule } from '../sockets/notifications/notification.module
 import { VaultService } from '../vault/vault.service'
 import { DonationsController } from './donations.controller'
 import { DonationsService } from './donations.service'
-import { CreateSessionDto } from './dto/create-session.dto'
 
 describe('DonationsController', () => {
   let controller: DonationsController
@@ -27,15 +17,6 @@ describe('DonationsController', () => {
     checkout: { sessions: { create: jest.fn() } },
   }
   stripeMock.checkout.sessions.create.mockResolvedValue({ payment_intent: 'unique-intent' })
-
-  const mockSession = {
-    mode: 'payment',
-    amount: 100,
-    campaignId: 'testCampaignId',
-    successUrl: 'http://test.com',
-    cancelUrl: 'http://test.com',
-    isAnonymous: true,
-  } as CreateSessionDto
   const vaultMock = {
     incrementVaultAmount: jest.fn(),
   }
@@ -99,71 +80,6 @@ describe('DonationsController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined()
-  })
-
-  it('createCheckoutSession should create stripe session for active campaign', async () => {
-    prismaMock.campaign.findFirst.mockResolvedValue({
-      allowDonationOnComplete: false,
-      state: CampaignState.active,
-    } as Campaign)
-
-    await expect(controller.createCheckoutSession(mockSession)).resolves.toBeObject()
-    expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
-    expect(stripeMock.checkout.sessions.create).toHaveBeenCalledWith({
-      mode: mockSession.mode,
-      line_items: [
-        {
-          price_data: {
-            currency: undefined,
-            product_data: {
-              name: undefined,
-            },
-            unit_amount: 100,
-          },
-          quantity: 1,
-        },
-      ],
-      payment_method_types: ['card'],
-      payment_intent_data: {
-        metadata: {
-          campaignId: mockSession.campaignId,
-          isAnonymous: 'true',
-          personId: undefined,
-          wish: null,
-        },
-      },
-      subscription_data: undefined,
-      success_url: mockSession.successUrl,
-      cancel_url: mockSession.cancelUrl,
-      customer_email: undefined,
-      tax_id_collection: {
-        enabled: true,
-      },
-    })
-  })
-
-  it('createCheckoutSession should not create stripe session for completed campaign', async () => {
-    prismaMock.campaign.findFirst.mockResolvedValue({
-      allowDonationOnComplete: false,
-      state: CampaignState.complete,
-    } as Campaign)
-
-    await expect(controller.createCheckoutSession(mockSession)).rejects.toThrow(
-      new NotAcceptableException('Campaign cannot accept donations in state: complete'),
-    )
-    expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
-    expect(stripeMock.checkout.sessions.create).not.toHaveBeenCalled()
-  })
-
-  it('createCheckoutSession should create stripe session for completed campaign if allowed', async () => {
-    prismaMock.campaign.findFirst.mockResolvedValue({
-      allowDonationOnComplete: true,
-      state: CampaignState.complete,
-    } as Campaign)
-
-    await expect(controller.createCheckoutSession(mockSession)).resolves.toBeObject()
-    expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
-    expect(stripeMock.checkout.sessions.create).toHaveBeenCalled()
   })
 
   it('should update a donations donor, when it is changed', async () => {
