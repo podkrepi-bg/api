@@ -4,6 +4,8 @@ metadata:
   name: api-headless
   labels:
     app: api-headless
+  annotations:
+    app.komodor.com/app: https://github.com/podkrepi-bg/api
 spec:
   replicas: 1
   selector:
