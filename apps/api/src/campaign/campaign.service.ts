@@ -37,6 +37,7 @@ import {
   donationNotificationSelect,
 } from '../sockets/notifications/notification.service'
 import { DonationMetadata } from '../donations/dontation-metadata.interface'
+import { Expense } from '@prisma/client'
 
 @Injectable()
 export class CampaignService {
@@ -729,6 +730,23 @@ export class CampaignService {
       throw new UnauthorizedException()
     }
   }
+
+  async listExpenses(slug: string): Promise<Expense[]> {
+    return this.prisma.expense.findMany({
+      where: { vault: { campaign: { slug: slug } }, deleted: false },
+    })
+  }
+
+  async listExpensesApproved(slug: string): Promise<Expense[]> {
+    return this.prisma.expense.findMany({
+      where: { vault: { campaign: { slug: slug } }, deleted: false, approvedById: { not: null } },
+      include: {
+        expenseFiles: true,
+      },
+
+    })
+  }
+
 
   private getVaultAndDonationSummaries(campaignId: string, campaignSums: CampaignSummaryDto[]) {
     const csum = campaignSums.find((e) => e.id === campaignId)

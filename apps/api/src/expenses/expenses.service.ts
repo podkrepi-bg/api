@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common'
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common'
 import { Expense, ExpenseFile, ExpenseStatus } from '@prisma/client'
 
 import { PrismaService } from '../prisma/prisma.service'
@@ -22,39 +16,31 @@ export class ExpensesService {
   /**
    * Creates an expense, while blocking the corresponding amount in the source vault.
    */
-  async createExpense(createExpenseDto: CreateExpenseDto, files: Express.Multer.File[]) {
+  async createExpense(createExpenseDto: CreateExpenseDto) {
     const writeExpense = this.prisma.expense.create({ data: createExpenseDto })
     const [result] = await this.prisma.$transaction([writeExpense])
     return result
   }
 
-  async uploadFiles(id: string, files: Express.Multer.File[]) {
+  async uploadFiles(expenseId: string, files: Express.Multer.File[], uploaderId: string) {
     files = files || []
     await Promise.all(
       files.map((file) => {
-        console.log('File uploading: ', id, file.filename, file.mimetype, file.originalname)
-        this.create_expense_file(id, file.mimetype, file.originalname, file.buffer)
+        console.log('File uploading: ', expenseId, file.originalname, file.mimetype, file.originalname)
+        const fileDto: CreateExpenseFileDto = {
+          filename: file.originalname,
+          mimetype: file.mimetype,
+          expenseId,
+          uploaderId,
+        }
+
+        this.createExpenseFile(fileDto, file.buffer)
       }),
     )
   }
 
   async listExpenses(returnDeleted = false): Promise<Expense[]> {
     return this.prisma.expense.findMany({ where: { deleted: returnDeleted } })
-  }
-
-  async listCampaignExpenses(slug: string): Promise<Expense[]> {
-    return this.prisma.expense.findMany({
-      where: { vault: { campaign: { slug: slug } }, deleted: false },
-    })
-  }
-
-  async listCampaignApprovedExpenses(slug: string): Promise<Expense[]> {
-    return this.prisma.expense.findMany({
-      where: { vault: { campaign: { slug: slug } }, deleted: false },
-      include: {
-        expenseFiles: true,
-      },
-    })
   }
 
   async findOne(id: string, returnDeleted = false) {
@@ -131,31 +117,18 @@ export class ExpensesService {
     return result
   }
 
-  async create_expense_file(
-    expenseId: string,
-    mimetype: string,
-    filename: string,
-    // uploadedBy: string,
-    buffer: Buffer,
-  ): Promise<string> {
-    const file: CreateExpenseFileDto = {
-      filename,
-      mimetype,
-      expenseId,
-      uploaderId: '9b26b247-c275-4320-9831-fb7a0d243758' /*TODO: get user id from context*/,
-    }
-
+  async createExpenseFile(file: CreateExpenseFileDto, buffer: Buffer): Promise<string> {
     const dbFile = await this.prisma.expenseFile.create({ data: file })
 
     // Use the DB primary key as the S3 key. This will make sure iт is always unique.
     await this.s3.uploadObject(
       this.bucketName,
       dbFile.id,
-      encodeURIComponent(filename),
-      mimetype,
+      encodeURIComponent(file.filename),
+      file.mimetype,
       buffer,
       'expenses',
-      expenseId,
+      file.expenseId,
       file.uploaderId,
     )
     return dbFile.id
@@ -191,5 +164,14 @@ export class ExpensesService {
 
     await this.s3.deleteObject(this.bucketName, id)
     await this.prisma.expenseFile.delete({ where: { id: id } })
+  }
+
+  async findUploaderId(keycloakId: string): Promise<string> {
+    const person = await this.prisma.person.findFirst({ where: { keycloakId } })
+    if (!person) {
+      throw new NotFoundException('No person found with that email.')
+    }
+
+    return person.id
   }
 }

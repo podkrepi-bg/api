@@ -26,6 +26,7 @@ import { PersonService } from '../person/person.service'
 import { ApiQuery } from '@nestjs/swagger'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { ApiTags } from '@nestjs/swagger'
+import { Expense } from '@prisma/client'
 
 @ApiTags('campaign')
 @Controller('campaign')
@@ -53,18 +54,6 @@ export class CampaignController {
   @Get('get-user-campaigns')
   async findUserCampaigns(@AuthenticatedUser() user: KeycloakTokenParsed) {
     return this.campaignService.getUserCampaigns(user.sub)
-  }
-
-  // only the user who created the campaign can update it
-  // or the user is in admin role
-  @Get('can-edit/:slug')
-  async canEditCampaign(
-    @Param('slug') slug: string,
-    @AuthenticatedUser() user: KeycloakTokenParsed,
-  ) {
-    const isOwner = await this.campaignService.isUserCampaign(user.sub, slug)
-
-    return isOwner || isAdmin(user)
   }
 
   @Get('user-donations-campaigns')
@@ -158,5 +147,20 @@ export class CampaignController {
   })
   async remove(@Param('id') id: string) {
     return this.campaignService.removeCampaign(id)
+  }
+
+  @Get(':slug/expenses')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async listCampaignExpenses(@Param('slug') slug: string) {
+    return this.campaignService.listExpenses(slug)
+  }
+
+  @Get(':slug/expenses/approved')
+  @Public()
+  async listCampaignExpensesApproved(@Param('slug') slug: string) {
+    return this.campaignService.listExpensesApproved(slug)
   }
 }

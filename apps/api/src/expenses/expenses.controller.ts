@@ -9,9 +9,9 @@ import {
   Response,
   StreamableFile,
 } from '@nestjs/common'
-import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-
+import { KeycloakTokenParsed } from '../auth/keycloak'
 import { ExpensesService } from './expenses.service'
 import { CreateExpenseDto } from './dto/create-expense.dto'
 import { UpdateExpenseDto } from './dto/update-expense.dto'
@@ -41,9 +41,8 @@ export class ExpensesController {
   })
   create(
     @Body() createExpenseDto: CreateExpenseDto,
-    @UploadedFiles() files: Express.Multer.File[],
   ) {
-    return this.expensesService.createExpense(createExpenseDto, files)
+    return this.expensesService.createExpense(createExpenseDto)
   }
 
   @Public()
@@ -66,32 +65,23 @@ export class ExpensesController {
     return this.expensesService.remove(id)
   }
 
-  @Get('campaign/:slug')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
-  async listCampaignExpenses(@Param('slug') slug: string) {
-    return this.expensesService.listCampaignExpenses(slug)
-  }
-
-  @Get('campaign/approved/:slug')
-  @Public()
-  async listCampaignApprovedExpenses(@Param('slug') slug: string) {
-    return this.expensesService.listCampaignApprovedExpenses(slug)
-  }
-
-  @Post('upload-files/:id')
+  @Post(':expenseId/files')
   @UseInterceptors(FilesInterceptor('file', 5, { limits: { fileSize: 10485760 } })) //limit uploaded files to 5 at once and 10MB each
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  uploadFiles(@Param('id') id: string, @UploadedFiles() files: Express.Multer.File[]) {
-    return this.expensesService.uploadFiles(id, files)
+  async uploadFiles(
+    @Param('expenseId') expenseId: string,
+    @UploadedFiles() files: Express.Multer.File[],
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    const uploaderId = await this.expensesService.findUploaderId(user.sub)
+
+    return this.expensesService.uploadFiles(expenseId, files, uploaderId)
   }
 
-  @Get('files/:id')
+  @Get(':id/files')
   getUploadedFiles(@Param('id') id: string) {
     return this.expensesService.listUploadedFiles(id)
   }
@@ -110,12 +100,12 @@ export class ExpensesController {
     return new StreamableFile(file.stream)
   }
 
-  @Delete('file/:id')
+  @Delete('file/:fileId')
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  removeFile(@Param('id') id: string) {
-    return this.expensesService.removeFile(id)
+  removeFile(@Param('fileId') fileId: string) {
+    return this.expensesService.removeFile(fileId)
   }
 }
