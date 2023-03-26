@@ -430,12 +430,20 @@ export class CampaignService {
     return this.prisma.donation.findFirst({ where: { extPaymentIntentId: paymentIntentId } })
   }
 
+  /**
+   * Creates or Updates an incoming donation depending on the newDonationStatus attribute
+   * @param campaign
+   * @param paymentData
+   * @param newDonationStatus
+   * @param metadata
+   * @returns donation.id of the created/updated donation
+   */
   async updateDonationPayment(
     campaign: Campaign,
     paymentData: PaymentData,
     newDonationStatus: DonationStatus,
     metadata?: DonationMetadata,
-  ) {
+  ): Promise<string> {
     const campaignId = campaign.id
     Logger.debug('Update donation to status: ' + newDonationStatus, {
       campaignId,
@@ -518,8 +526,6 @@ export class CampaignService {
         )
         throw new InternalServerErrorException(error)
       }
-
-      return
     }
     //donation exists, so check if it is safe to update it
     else if (shouldAllowStatusChange(donation.status, newDonationStatus)) {
@@ -575,20 +581,16 @@ export class CampaignService {
           },
         })
       }
-
-      Logger.debug('Saving donation wish ' + metadata?.wish)
-
-      if (metadata?.wish) {
-        await this.createDonationWish(metadata.wish, donation.id, campaign.id)
-      }
     }
+
+    return donation.id
   }
 
-  async createDonationWish(message: string, donationId: string, campaignId: string) {
+  async createDonationWish(wish: string, donationId: string, campaignId: string) {
     const person = await this.prisma.donation.findUnique({ where: { id: donationId } }).person()
     await this.prisma.donationWish.create({
       data: {
-        message: message,
+        message: wish,
         donationId,
         campaignId,
         personId: person?.id,
