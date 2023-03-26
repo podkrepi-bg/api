@@ -11,7 +11,7 @@ import {
   Prisma,
   Vault,
 } from '@prisma/client'
-import { PrismaService } from '../prisma/prisma.service'
+import { PrismaService } from '../../prisma/prisma.service'
 import {
   GetIrisBanksResponse,
   GetIrisTransactionInfoResponse,
@@ -21,9 +21,9 @@ import {
 } from './dto/response.dto'
 
 import { DateTime } from 'luxon'
-import { toMoney } from '../common/money'
-import { DonationsService } from '../donations/donations.service'
-import { CreateBankPaymentDto } from '../donations/dto/create-bank-payment.dto'
+import { toMoney } from '../../common/money'
+import { DonationsService } from '../../donations/donations.service'
+import { CreateBankPaymentDto } from '../../donations/dto/create-bank-payment.dto'
 
 @Injectable()
 export class ImportTransactionsTask {
@@ -124,7 +124,7 @@ export class ImportTransactionsTask {
        This would also mean that the whole flow will run for all transactions every time
       **/
 
-      if (isUpToDate) '' // return or continue ?
+      if (isUpToDate) return
     } catch (e) {
       // Failure of this check is not critical
     }
@@ -215,17 +215,18 @@ export class ImportTransactionsTask {
 
   // Checks to see if all transactions have been processed already
   private async hasNewOrNonImportedTransactions(transactions: IrisTransactionInfo[]) {
-    const transactionIds = transactions.map((trx) => trx.transactionId)
+    const today = new Date(DateTime.now().toFormat('yyyy-MM-dd'))
 
     const count = await this.prisma.bankTransaction.count({
       where: {
-        id: {
-          in: transactionIds,
+        transactionDate: {
+          gte: today,
+          lte: today,
         },
       },
     })
 
-    return transactionIds.length === count
+    return transactions.length === count
   }
 
   // Only prepares the data, without inserting it in the DB
@@ -253,8 +254,6 @@ export class ImportTransactionsTask {
   }
 
   private async processDonations(bankTransactions: Prisma.BankTransactionCreateManyInput[]) {
-    const processedBankTransactions: Prisma.BankTransactionCreateManyInput[] = []
-
     // Try to recognize campaign payment references
     const matchedPaymentRef: string[] = []
     bankTransactions.forEach((trx) => {
@@ -283,13 +282,11 @@ export class ImportTransactionsTask {
     for (const trx of bankTransactions) {
       // We're interested in parsing only incoming trx's
       if (trx.type !== 'credit') {
-        processedBankTransactions.push(trx)
         continue
       }
 
       // Stripe payments should not be parsed
       if (trx.description === 'STRIPE') {
-        processedBankTransactions.push(trx)
         continue
       }
 
@@ -298,7 +295,6 @@ export class ImportTransactionsTask {
 
       if (!campaign) {
         trx.bankDonationStatus = BankDonationStatus.unrecognized
-        processedBankTransactions.push(trx)
         continue
       }
 
@@ -308,14 +304,12 @@ export class ImportTransactionsTask {
         await this.donationsService.createUpdateBankPayment(bankPayment)
         // Update status
         trx.bankDonationStatus = BankDonationStatus.imported
-        processedBankTransactions.push(trx)
       } catch (e) {
         trx.bankDonationStatus = BankDonationStatus.importFailed
-        processedBankTransactions.push(trx)
       }
     }
 
-    return processedBankTransactions
+    return bankTransactions
   }
 
   private prepareBankPaymentObject(
@@ -343,27 +337,6 @@ export class ImportTransactionsTask {
   private async saveBankTrxRecords(data: Prisma.BankTransactionCreateManyInput[]) {
     // Insert new transactions
     const inserted = await this.prisma.bankTransaction.createMany({ data, skipDuplicates: true })
-
-    // If all transactions are new, there is nothing to update
-    if (inserted.count === data.length) return
-
-    const imported = data
-      .filter((el) => el.bankDonationStatus === BankDonationStatus.imported)
-      .map((el) => el.id)
-
-    if (!imported.length) return
-
-    // Update previously import-failed donation transactions if they have succeeded on subsequent runs
-    await this.prisma.bankTransaction.updateMany({
-      where: {
-        id: {
-          in: imported,
-        },
-      },
-      data: {
-        bankDonationStatus: BankDonationStatus.imported,
-      },
-    })
 
     return
   }

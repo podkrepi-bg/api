@@ -1,26 +1,26 @@
-import { PrismaService } from '../prisma/prisma.service'
+import { PrismaService } from '../../prisma/prisma.service'
 import { IrisIbanAccountInfo, IrisTransactionInfo } from './dto/response.dto'
 import { ImportTransactionsTask } from './import-transactions.task'
 import { Test, TestingModule } from '@nestjs/testing'
 import { HttpModule } from '@nestjs/axios'
 
-import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
+import { MockPrismaService, prismaMock } from '../../prisma/prisma-client.mock'
 import { SchedulerRegistry } from '@nestjs/schedule/dist'
-import { DonationsService } from '../donations/donations.service'
+import { DonationsService } from '../../donations/donations.service'
 import { ConfigService } from '@nestjs/config'
-import { PersonService } from '../person/person.service'
+import { PersonService } from '../../person/person.service'
 import { STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
-import { CampaignService } from '../campaign/campaign.service'
+import { CampaignService } from '../../campaign/campaign.service'
 
-import { VaultService } from '../vault/vault.service'
-import { NotificationModule } from '../sockets/notifications/notification.module'
-import { ExportService } from '../export/export.service'
-import { BankDonationStatus, Campaign, Vault } from '@prisma/client'
-import { toMoney } from '../common/money'
+import { VaultService } from '../../vault/vault.service'
+import { NotificationModule } from '../../sockets/notifications/notification.module'
+import { ExportService } from '../../export/export.service'
+import { BankDonationStatus, BankTransaction, Campaign, Vault } from '@prisma/client'
+import { toMoney } from '../../common/money'
+import { DateTime } from 'luxon'
 
 describe('ImportTransactionsTask', () => {
   let taskService: ImportTransactionsTask
-  let prismaService: PrismaService
   let testModule: TestingModule
   let scheduler: SchedulerRegistry
   const personServiceMock = {
@@ -146,6 +146,7 @@ describe('ImportTransactionsTask', () => {
     },
   }
 
+  // Mock this before instantiating service - else it fails
   jest
     .spyOn(ImportTransactionsTask.prototype as any, 'checkForRequiredVariables')
     .mockImplementation(() => true)
@@ -180,7 +181,6 @@ describe('ImportTransactionsTask', () => {
 
     taskService = await testModule.get(ImportTransactionsTask)
     scheduler = testModule.get<SchedulerRegistry>(SchedulerRegistry)
-    prismaService = prismaMock
   })
 
   afterEach(() => {
@@ -236,7 +236,7 @@ describe('ImportTransactionsTask', () => {
       const donationSpy = jest.spyOn(donationService, 'createUpdateBankPayment')
       const saveTrxSpy = jest.spyOn(ImportTransactionsTask.prototype as any, 'saveBankTrxRecords')
 
-      jest.spyOn(prismaMock.bankTransaction, 'count').mockResolvedValue(mockIrisTransactions.length)
+      jest.spyOn(prismaMock.bankTransaction, 'count').mockResolvedValue(0)
       jest.spyOn(prismaMock, '$transaction').mockResolvedValue('SUCCESS')
       jest.spyOn(prismaMock.campaign, 'findMany').mockResolvedValue(mockDonatedCampaigns)
       jest.spyOn(prismaMock.bankTransaction, 'createMany').mockResolvedValue({ count: 4 })
@@ -254,8 +254,9 @@ describe('ImportTransactionsTask', () => {
       expect(prismaMock.bankTransaction.count).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
-            id: {
-              in: mockIrisTransactions.map((trx) => trx.transactionId),
+            transactionDate: {
+              gte: new Date(DateTime.now().toFormat('yyyy-MM-dd')),
+              lte: new Date(DateTime.now().toFormat('yyyy-MM-dd')),
             },
           },
         }),
@@ -322,22 +323,16 @@ describe('ImportTransactionsTask', () => {
         ),
       )
 
+      const parameters = saveTrxSpy.mock.calls[0][0] as BankTransaction[]
+
       // Bank donation 1
-      expect(saveTrxSpy.mock.calls[0][0][0].bankDonationStatus as BankDonationStatus).toEqual(
-        BankDonationStatus.imported,
-      )
+      expect(parameters[0].bankDonationStatus).toEqual(BankDonationStatus.imported)
       // Bank donation 2
-      expect(saveTrxSpy.mock.calls[0][0][1].bankDonationStatus as BankDonationStatus).toEqual(
-        BankDonationStatus.unrecognized,
-      )
+      expect(parameters[1].bankDonationStatus).toEqual(BankDonationStatus.unrecognized)
       // STRIPE Payment
-      expect(
-        saveTrxSpy.mock.calls[0][0][2].bankDonationStatus as BankDonationStatus,
-      ).not.toBeDefined()
+      expect(parameters[2].bankDonationStatus).not.toBeDefined()
       // OUTGOING Payment
-      expect(
-        saveTrxSpy.mock.calls[0][0][3].bankDonationStatus as BankDonationStatus,
-      ).not.toBeDefined()
+      expect(parameters[3].bankDonationStatus).not.toBeDefined()
 
       // Only new transactions should be saved
       expect(prismaMock.bankTransaction.createMany).toHaveBeenCalledWith(
@@ -349,16 +344,34 @@ describe('ImportTransactionsTask', () => {
       expect(prismaMock.bankTransaction.updateMany).not.toHaveBeenCalled()
     })
 
-    it('should update previously imported donations that are importing successfully', async () => {
+    it('should not run if all current transactions for the day have been processed', async () => {
+      const donationService = testModule.get<DonationsService>(DonationsService)
       const getIBANSpy = jest
         .spyOn(ImportTransactionsTask.prototype as any, 'getIrisUserIBANaccount')
         .mockImplementation(() => irisIBANAccountMock)
       const getTrxSpy = jest
         .spyOn(ImportTransactionsTask.prototype as any, 'getTransactions')
         .mockImplementation(() => mockIrisTransactions)
-      // return count is 3 instead of 4 - meaning 1 trx was already imported
-      jest.spyOn(prismaMock.bankTransaction, 'createMany').mockResolvedValue({ count: 3 })
+      const checkTrxsSpy = jest.spyOn(
+        ImportTransactionsTask.prototype as any,
+        'hasNewOrNonImportedTransactions',
+      )
+      const prepareBankTrxSpy = jest.spyOn(
+        ImportTransactionsTask.prototype as any,
+        'prepareBankTransactionRecords',
+      )
+      const processDonationsSpy = jest.spyOn(
+        ImportTransactionsTask.prototype as any,
+        'processDonations',
+      )
+      const prepareBankPaymentSpy = jest.spyOn(
+        ImportTransactionsTask.prototype as any,
+        'prepareBankPaymentObject',
+      )
+      const donationSpy = jest.spyOn(donationService, 'createUpdateBankPayment')
+      const saveTrxSpy = jest.spyOn(ImportTransactionsTask.prototype as any, 'saveBankTrxRecords')
 
+      // The length of the imported transactions is the same as the ones received from IRIS -meaning everything is up-to date
       jest.spyOn(prismaMock.bankTransaction, 'count').mockResolvedValue(mockIrisTransactions.length)
       jest.spyOn(prismaMock, '$transaction').mockResolvedValue('SUCCESS')
       jest.spyOn(prismaMock.campaign, 'findMany').mockResolvedValue(mockDonatedCampaigns)
@@ -366,27 +379,30 @@ describe('ImportTransactionsTask', () => {
       // Run task
       await taskService.importBankTransactions()
 
-      // An update should be made
-      expect(prismaMock.bankTransaction.updateMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: {
-            id: {
-              // Only for imported donations
-              in: [mockIrisTransactions[0].transactionId],
-            },
-          },
-          data: {
-            bankDonationStatus: BankDonationStatus.imported,
-          },
-        }),
-      )
+      // 1. Should get IRIS iban account
+      expect(getIBANSpy).toHaveBeenCalled()
+      // 2. Should get IBAN transactions  from IRIS
+      expect(getTrxSpy).toHaveBeenCalledWith(irisIBANAccountMock)
+      // 3. Should check if transactions are up-to-date
+      expect(checkTrxsSpy).toHaveBeenCalledWith(mockIrisTransactions)
+      // The rest of the flow should not have been executed
+      // 4. Should not be run
+      expect(prepareBankTrxSpy).not.toHaveBeenCalled()
+      // 5. Should not be run
+      expect(processDonationsSpy).not.toHaveBeenCalled()
+      // 6. Should not be run
+      expect(prepareBankPaymentSpy).not.toHaveBeenCalled()
+      // 7. Should not be run
+      expect(donationSpy).not.toHaveBeenCalled()
+      // 8. Should not be run
+      expect(saveTrxSpy).not.toHaveBeenCalled()
     })
 
     it('should not run if no transactions have been fetched', async () => {
-      const getIBANSpy = jest
+      jest
         .spyOn(ImportTransactionsTask.prototype as any, 'getIrisUserIBANaccount')
         .mockImplementation(() => irisIBANAccountMock)
-      const getTrxSpy = jest
+      jest
         .spyOn(ImportTransactionsTask.prototype as any, 'getTransactions')
         .mockImplementation(() => [])
       const prepareBankTrxSpy = jest.spyOn(

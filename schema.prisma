@@ -499,7 +499,7 @@ model BankTransaction {
   senderName         String?             @map("sender_name") @db.VarChar(100)
   recipientName      String?             @map("recipient_name") @db.VarChar(100)
   senderIban         String?             @map("sender_iban") @db.VarChar(34)
-  recipientIban      String?             @map("recipient_addediban") @db.VarChar(34)
+  recipientIban      String?             @map("recipient_iban") @db.VarChar(34)
   amount             Float               @default(0)
   currency           Currency            @default(BGN)
   description        String              @db.VarChar(200)
