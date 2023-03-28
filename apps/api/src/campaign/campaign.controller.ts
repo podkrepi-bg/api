@@ -157,7 +157,9 @@ export class CampaignController {
     if (!campaign) {
       throw new NotFoundException('Campaign not found')
     }
-    await this.campaignService.checkCampaignOwner(user.sub, campaign.id)
+    if (!isAdmin(user)) {
+      await this.campaignService.checkCampaignOwner(user.sub, campaign.id)
+    }
 
     return this.campaignService.listExpenses(slug)
   }
