@@ -30,19 +30,11 @@ export class PersonController {
   }
 
   @Get(':id')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
   async findOne(@Param('id') id: string) {
     return await this.personService.findOne(id)
   }
 
   @Get('by-keylock-id/:keylockId')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
   async findOneByKeylockId(@Param('keylockId') id: string) {
     return await this.personService.findOneByKeycloakId(id)
   }

@@ -8,10 +8,13 @@ import {
   Patch,
   Response,
   StreamableFile,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common'
+
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-import { KeycloakTokenParsed } from '../auth/keycloak'
+import { isAdmin, KeycloakTokenParsed } from '../auth/keycloak'
 import { ExpensesService } from './expenses.service'
 import { CreateExpenseDto } from './dto/create-expense.dto'
 import { UpdateExpenseDto } from './dto/update-expense.dto'
@@ -35,13 +38,11 @@ export class ExpensesController {
 
   @Post('create-expense')
   @UseInterceptors(FilesInterceptor('file', 5, { limits: { fileSize: 10485760 } })) //limit uploaded files to 5 at once and 10MB each
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
-  create(
+  async create(
+    @AuthenticatedUser() user: KeycloakTokenParsed,
     @Body() createExpenseDto: CreateExpenseDto,
   ) {
+    await this.verifyCampaignOwnership(user, createExpenseDto.vaultId)
     return this.expensesService.createExpense(createExpenseDto)
   }
 
@@ -52,11 +53,13 @@ export class ExpensesController {
   }
 
   @Patch(':id')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
-  update(@Param('id') id: string, @Body() data: UpdateExpenseDto) {
+  async update(
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+    @Param('id') id: string,
+    @Body() data: UpdateExpenseDto,
+  ) {
+    await this.verifyCampaignOwnership(user, data.vaultId || '0')
+
     return this.expensesService.update(id, data)
   }
 
@@ -67,10 +70,6 @@ export class ExpensesController {
 
   @Post(':expenseId/files')
   @UseInterceptors(FilesInterceptor('file', 5, { limits: { fileSize: 10485760 } })) //limit uploaded files to 5 at once and 10MB each
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
   async uploadFiles(
     @Param('expenseId') expenseId: string,
     @UploadedFiles() files: Express.Multer.File[],
@@ -82,6 +81,7 @@ export class ExpensesController {
   }
 
   @Get(':id/files')
+  @Public()
   getUploadedFiles(@Param('id') id: string) {
     return this.expensesService.listUploadedFiles(id)
   }
@@ -101,11 +101,22 @@ export class ExpensesController {
   }
 
   @Delete('file/:fileId')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
   removeFile(@Param('fileId') fileId: string) {
     return this.expensesService.removeFile(fileId)
+  }
+
+  private async verifyCampaignOwnership(user: KeycloakTokenParsed, vaultId: string) {
+    if (!user || !user.sub) {
+      throw new NotFoundException('User not found')
+    }
+
+    if (isAdmin(user)) {
+      return
+    }
+
+    const isOwner = await this.expensesService.checkCampaignOwner(user.sub, vaultId)
+    if (!isOwner) {
+      throw new UnauthorizedException()
+    }
   }
 }

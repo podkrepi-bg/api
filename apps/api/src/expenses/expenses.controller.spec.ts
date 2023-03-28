@@ -8,6 +8,7 @@ import { CreateExpenseDto } from './dto/create-expense.dto'
 import { UpdateExpenseDto } from './dto/update-expense.dto'
 import { S3Service } from '../s3/s3.service'
 import { S3 } from 'aws-sdk'
+import { UnauthorizedException } from '@nestjs/common'
 
 const mockData = [
   {
@@ -64,6 +65,14 @@ describe('ExpensesController', () => {
         amount: 200,
         blockedAmount: 0,
       }
+
+      const person = { id: '00000000-0000-0000-0000-000000000013' }
+
+      const campaign = {}
+      const user = { sub: '00000000-0000-0000-0000-000000000013' }
+
+      prismaMock.person.findFirst.mockResolvedValue(person)
+      prismaMock.campaign.findFirst.mockResolvedValue(campaign)
       prismaMock.expense.create.mockResolvedValue(expense)
       prismaMock.vault.update.mockResolvedValue(vault)
       prismaMock.vault.findFirst.mockResolvedValue(vault)
@@ -71,16 +80,10 @@ describe('ExpensesController', () => {
 
       const createDto: CreateExpenseDto = { ...expense }
 
-      const result = await controller.create(createDto, [])
+      const result = await controller.create(user, createDto, [])
 
       expect(result).toEqual(expense)
       expect(prismaMock.expense.create).toHaveBeenCalledWith({ data: createDto })
-      /*
-      expect(prismaMock.vault.update).toHaveBeenCalledWith({
-        where: { id: '00000000-0000-0000-0000-000000000016' },
-        data: { blockedAmount: { increment: 150 } },
-      })
-      */
     })
 
     it('should not create an expense with insufficient balance', async () => {
@@ -122,16 +125,32 @@ describe('ExpensesController', () => {
         amount: 1000,
         blockedAmount: 350,
       }
+      const user = {
+        sub: '00000000-0000-0000-0000-000000000012',
+      }
+
+      const person = {
+        id: '00000000-0000-0000-0000-000000000013',
+      }
+
+      const campaign = {}
+
+      prismaMock.person.findFirst.mockResolvedValue(person)
+      prismaMock.campaign.findFirst.mockResolvedValue(campaign)
       prismaMock.vault.findFirst.mockResolvedValue(vault)
       prismaMock.expense.findFirst.mockResolvedValue(expense)
       prismaMock.vault.update.mockResolvedValue(vault)
       prismaMock.expense.update.mockResolvedValue(expense)
       prismaMock.$transaction.mockResolvedValue([expense, vault])
 
-      const updateDto: UpdateExpenseDto = { ...expense, status: ExpenseStatus.approved }
+      const updateDto: UpdateExpenseDto = {
+        ...expense,
+        status: ExpenseStatus.approved,
+        vaultId: vault.id,
+      }
 
       // act
-      const result = await controller.update(expense.id, updateDto)
+      const result = await controller.update(user, expense.id, updateDto)
 
       // assert
       expect(result).toEqual(expense)
@@ -146,6 +165,40 @@ describe('ExpensesController', () => {
           amount: { decrement: 150 },
         },
       })
+    })
+
+    it('should raise an exception, since the user is not authorized', async () => {
+      const expense = mockData[0]
+
+      const vault = {
+        id: '00000000-0000-0000-0000-000000000016',
+        name: 'vault1',
+        currency: Currency.BGN,
+        campaignId: '00000000-0000-0000-0000-000000000015',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        amount: 1000,
+        blockedAmount: 350,
+      }
+      const user = {
+        sub: '00000000-0000-0000-0000-000000000012',
+      }
+
+      prismaMock.vault.findFirst.mockResolvedValue(vault)
+      prismaMock.expense.findFirst.mockResolvedValue(expense)
+      prismaMock.vault.update.mockResolvedValue(vault)
+      prismaMock.expense.update.mockResolvedValue(expense)
+      prismaMock.$transaction.mockResolvedValue([expense, vault])
+
+      const updateDto: UpdateExpenseDto = {
+        ...expense,
+        status: ExpenseStatus.approved,
+        vaultId: vault.id,
+      }
+
+      await expect(controller.update(user, expense.id, updateDto)).rejects.toThrow()
+      //expect an exception
+      expect(prismaMock.expense.update).not.toHaveBeenCalled()
     })
 
     it('should not update a withdrawal, when it is already approved/cancelled', async () => {
@@ -167,15 +220,24 @@ describe('ExpensesController', () => {
         amount: 1000,
         blockedAmount: 350,
       }
+
+      const user = {
+        sub: '00000000-0000-0000-0000-000000000012',
+      }
+
       prismaMock.vault.findFirst.mockResolvedValue(vault)
       prismaMock.expense.findFirst.mockResolvedValueOnce(approvedExpense)
       prismaMock.expense.findFirst.mockResolvedValueOnce(cancelledExpense)
 
-      const updateDto: UpdateExpenseDto = { ...approvedExpense, status: ExpenseStatus.approved }
+      const updateDto: UpdateExpenseDto = {
+        ...approvedExpense,
+        status: ExpenseStatus.approved,
+        vaultId: vault.id,
+      }
 
       // assert
-      await expect(controller.update(approvedExpense.id, updateDto)).rejects.toThrow()
-      await expect(controller.update(cancelledExpense.id, updateDto)).rejects.toThrow()
+      await expect(controller.update(user, approvedExpense.id, updateDto)).rejects.toThrow()
+      await expect(controller.update(user, cancelledExpense.id, updateDto)).rejects.toThrow()
       expect(prismaMock.expense.update).not.toHaveBeenCalled()
       expect(prismaMock.vault.update).not.toHaveBeenCalled()
     })

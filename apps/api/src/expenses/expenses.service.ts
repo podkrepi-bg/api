@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common'
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common'
 import { Expense, ExpenseFile, ExpenseStatus } from '@prisma/client'
 
 import { PrismaService } from '../prisma/prisma.service'
@@ -26,7 +31,13 @@ export class ExpensesService {
     files = files || []
     await Promise.all(
       files.map((file) => {
-        console.log('File uploading: ', expenseId, file.originalname, file.mimetype, file.originalname)
+        console.log(
+          'File uploading: ',
+          expenseId,
+          file.originalname,
+          file.mimetype,
+          file.originalname,
+        )
         const fileDto: CreateExpenseFileDto = {
           filename: file.originalname,
           mimetype: file.mimetype,
@@ -169,9 +180,28 @@ export class ExpensesService {
   async findUploaderId(keycloakId: string): Promise<string> {
     const person = await this.prisma.person.findFirst({ where: { keycloakId } })
     if (!person) {
-      throw new NotFoundException('No person found with that email.')
+      throw new NotFoundException('No person found with that login.')
     }
 
     return person.id
+  }
+
+  async checkCampaignOwner(keycloakId: string, vaultId: string): Promise<boolean> {
+    const person = await this.prisma.person.findFirst({ where: { keycloakId } })
+    if (!person) {
+      Logger.warn(`No person record with keycloak ID: ${keycloakId}`)
+      return false
+    }
+
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { organizer: { personId: person.id } },
+      select: { id: true, vaults: { where: { id: vaultId } } },
+    })
+
+    if (!campaign) {
+      return false
+    }
+
+    return true
   }
 }

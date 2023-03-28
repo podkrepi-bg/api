@@ -26,7 +26,6 @@ import { PersonService } from '../person/person.service'
 import { ApiQuery } from '@nestjs/swagger'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { ApiTags } from '@nestjs/swagger'
-import { Expense } from '@prisma/client'
 
 @ApiTags('campaign')
 @Controller('campaign')
@@ -150,11 +149,16 @@ export class CampaignController {
   }
 
   @Get(':slug/expenses')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
-  async listCampaignExpenses(@Param('slug') slug: string) {
+  async listCampaignExpenses(
+    @Param('slug') slug: string,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    const campaign = await this.campaignService.getCampaignBySlug(slug)
+    if (!campaign) {
+      throw new NotFoundException('Campaign not found')
+    }
+    await this.campaignService.checkCampaignOwner(user.sub, campaign.id)
+
     return this.campaignService.listExpenses(slug)
   }
 

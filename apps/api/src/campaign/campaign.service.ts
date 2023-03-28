@@ -734,6 +734,9 @@ export class CampaignService {
   async listExpenses(slug: string): Promise<Expense[]> {
     return this.prisma.expense.findMany({
       where: { vault: { campaign: { slug: slug } }, deleted: false },
+      include: {
+        expenseFiles: true,
+      },
     })
   }
 
@@ -743,10 +746,8 @@ export class CampaignService {
       include: {
         expenseFiles: true,
       },
-
     })
   }
-
 
   private getVaultAndDonationSummaries(campaignId: string, campaignSums: CampaignSummaryDto[]) {
     const csum = campaignSums.find((e) => e.id === campaignId)
