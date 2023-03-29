@@ -2,6 +2,7 @@ import { ExpenseType, Currency, ExpenseStatus } from '@prisma/client'
 import { Person } from '../../person/entities/person.entity'
 import { Document } from '../../document/entities/document.entity'
 import { Vault } from '../../vault/entities/vault.entity'
+import { ExpenseFile } from '../../expenseFile/entities/expenseFile.entity'
 
 export class Expense {
   id: string
@@ -17,4 +18,6 @@ export class Expense {
   approvedBy?: Person | null
   document?: Document | null
   vault?: Vault
+  spentAt: Date
+  expenseFiles?: ExpenseFile[]
 }
