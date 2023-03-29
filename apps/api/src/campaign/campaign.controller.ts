@@ -147,4 +147,26 @@ export class CampaignController {
   async remove(@Param('id') id: string) {
     return this.campaignService.removeCampaign(id)
   }
+
+  @Get(':slug/expenses')
+  async listCampaignExpenses(
+    @Param('slug') slug: string,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    const campaign = await this.campaignService.getCampaignBySlug(slug)
+    if (!campaign) {
+      throw new NotFoundException('Campaign not found')
+    }
+    if (!isAdmin(user)) {
+      await this.campaignService.checkCampaignOwner(user.sub, campaign.id)
+    }
+
+    return this.campaignService.listExpenses(slug)
+  }
+
+  @Get(':slug/expenses/approved')
+  @Public()
+  async listCampaignExpensesApproved(@Param('slug') slug: string) {
+    return this.campaignService.listExpensesApproved(slug)
+  }
 }
