@@ -37,6 +37,7 @@ import {
   donationNotificationSelect,
 } from '../sockets/notifications/notification.service'
 import { DonationMetadata } from '../donations/dontation-metadata.interface'
+import { Expense } from '@prisma/client'
 
 @Injectable()
 export class CampaignService {
@@ -135,6 +136,21 @@ export class CampaignService {
     campaign['summary'] = this.getVaultAndDonationSummaries(campaign.id, campaignSums)
 
     return campaign
+  }
+
+  async isUserCampaign(keycloakId: string, slug: string): Promise<boolean> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: {
+        slug,
+        OR: [
+          { beneficiary: { person: { keycloakId } } },
+          { coordinator: { person: { keycloakId } } },
+          { organizer: { person: { keycloakId } } },
+        ],
+      },
+    })
+
+    return !!campaign
   }
 
   async getUserCampaigns(keycloakId: string): Promise<Campaign[]> {
@@ -302,6 +318,12 @@ export class CampaignService {
     const campaignSums = await this.getCampaignSums([campaign.id])
 
     campaign['summary'] = this.getVaultAndDonationSummaries(campaign.id, campaignSums)
+
+    const vault = await this.getCampaignVault(campaign.id)
+    if (vault) {
+      campaign['defaultVault'] = vault?.id
+    }
+
     return campaign
   }
 
@@ -707,6 +729,24 @@ export class CampaignService {
     if (!campaign) {
       throw new UnauthorizedException()
     }
+  }
+
+  async listExpenses(slug: string): Promise<Expense[]> {
+    return this.prisma.expense.findMany({
+      where: { vault: { campaign: { slug: slug } }, deleted: false },
+      include: {
+        expenseFiles: true,
+      },
+    })
+  }
+
+  async listExpensesApproved(slug: string): Promise<Expense[]> {
+    return this.prisma.expense.findMany({
+      where: { vault: { campaign: { slug: slug } }, deleted: false, approvedById: { not: null } },
+      include: {
+        expenseFiles: true,
+      },
+    })
   }
 
   private getVaultAndDonationSummaries(campaignId: string, campaignSums: CampaignSummaryDto[]) {
