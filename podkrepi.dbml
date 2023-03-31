@@ -404,6 +404,23 @@ Table bank_accounts {
   withdraws withdrawals [not null]
 }
 
+Table bank_transactions {
+  id String [pk, unique]
+  ibanNumber String [not null, note: 'IBAN number of the account tracked']
+  bankName String [not null, note: 'Bank name']
+  bankIdCode String [not null, note: 'Bank Identification Code, BIC/SWIFT code']
+  transactionDate DateTime [not null]
+  senderName String
+  recipientName String
+  senderIban String
+  recipientIban String
+  amount Float [not null, default: 0]
+  currency Currency [not null, default: 'BGN']
+  description String [not null]
+  type BankTransactionType [not null]
+  bankDonationStatus BankDonationStatus
+}
+
 Table expenses {
   id String [pk]
   type ExpenseType [not null]
@@ -599,6 +616,17 @@ Enum BankAccountStatus {
   verified
   verification_failed
   errored
+}
+
+Enum BankTransactionType {
+  debit
+  credit
+}
+
+Enum BankDonationStatus {
+  unrecognized
+  imported
+  importFailed
 }
 
 Enum CampaignTypeCategory {
