@@ -51,6 +51,7 @@ import { JwtModule } from '@nestjs/jwt'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 import { ScheduleModule } from '@nestjs/schedule'
 import { TasksModule } from '../tasks//bank-import/tasks.module'
+import { BankTransactionsModule } from '../bank-transactions/bank-transactions.module'
 
 @Module({
   imports: [
@@ -101,6 +102,7 @@ import { TasksModule } from '../tasks//bank-import/tasks.module'
     ExportModule,
     JwtModule,
     NotificationModule,
+    BankTransactionsModule,
   ],
   controllers: [AppController],
   providers: [
