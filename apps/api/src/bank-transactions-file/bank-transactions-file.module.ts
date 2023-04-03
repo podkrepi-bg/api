@@ -9,7 +9,7 @@ import { VaultService } from '../vault/vault.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { ConfigService } from '@nestjs/config'
 import { StripeModule } from '@golevelup/nestjs-stripe'
-import { useFactoryService } from './helpers/use-factory-service'
+import { StripeConfigFactory } from '../donations/helpers/stripe-config-factory'
 import { ExportService } from '../export/export.service'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 
@@ -17,7 +17,7 @@ import { NotificationModule } from '../sockets/notifications/notification.module
   imports: [
     StripeModule.forRootAsync(StripeModule, {
       inject: [ConfigService],
-      useFactory: useFactoryService.useFactory,
+      useFactory: StripeConfigFactory.useFactory,
     }),
     NotificationModule,
   ],

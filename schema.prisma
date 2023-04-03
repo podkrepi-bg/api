@@ -1,7 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native"]
-  previewFeatures = ["interactiveTransactions"]
 }
 
 generator dbml {
@@ -62,6 +61,7 @@ model Person {
   infoRequests       InfoRequest[]
   irregularities     Irregularity[]
   irregularityFiles  IrregularityFile[]
+  expenseFiles       ExpenseFile[]
   organizer          Organizer?
   recurringDonations RecurringDonation[]
   supporters         Supporter[]
@@ -216,12 +216,12 @@ model Campaign {
 
 /// Keeps track of previous slugs that are not used currently in any active campaign
 model SlugArchive {
- slug                    String         @id @unique @db.VarChar(250)
- /// Stores the id of the last campaign that has used it
- campaignId              String         @map("campaign_id") @db.Uuid
- campaign                Campaign       @relation(fields: [campaignId], references: [id])
+  slug       String   @id @unique @db.VarChar(250)
+  /// Stores the id of the last campaign that has used it
+  campaignId String   @map("campaign_id") @db.Uuid
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
 
-@@map("slug_archive")
+  @@map("slug_archive")
 }
 
 model Irregularity {
@@ -487,6 +487,30 @@ model BankAccount {
   @@map("bank_accounts")
 }
 
+// Stores all movements for Podkrepi.bg IBAN 
+model BankTransaction {
+  id                 String              @id @unique @db.VarChar(250)
+  /// IBAN number of the account tracked
+  ibanNumber         String              @map("iban_number") @db.VarChar(34)
+  /// Bank name
+  bankName           String              @map("bank_name") @db.VarChar(50)
+  /// Bank Identification Code, BIC/SWIFT code
+  bankIdCode         String              @map("bank_id_code") @db.VarChar(50)
+  transactionDate    DateTime            @map("transaction_date") @db.Timestamptz(6)
+  senderName         String?             @map("sender_name") @db.VarChar(100)
+  recipientName      String?             @map("recipient_name") @db.VarChar(100)
+  senderIban         String?             @map("sender_iban") @db.VarChar(34)
+  recipientIban      String?             @map("recipient_iban") @db.VarChar(34)
+  amount             Float               @default(0)
+  currency           Currency            @default(BGN)
+  description        String              @db.VarChar(200)
+  type               BankTransactionType
+  // For Bank donations, describes if campaign was recognized and donation imported
+  bankDonationStatus BankDonationStatus?
+
+  @@map("bank_transactions")
+}
+
 /// Pay for something from a given vault
 model Expense {
   id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -502,8 +526,22 @@ model Expense {
   approvedBy   Person?       @relation(fields: [approvedById], references: [id])
   document     Document?     @relation(fields: [documentId], references: [id])
   vault        Vault         @relation(fields: [vaultId], references: [id])
+  spentAt      DateTime    @default(now()) @map("spent_at") @db.Timestamptz(6)
+  expenseFiles ExpenseFile[]
 
   @@map("expenses")
+}
+
+model ExpenseFile {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename       String       @db.VarChar(200)
+  mimetype       String       @db.VarChar(100)
+  expenseId      String       @map("expense_id") @db.Uuid
+  uploaderId     String       @map("uploader_id") @db.Uuid
+  expense        Expense      @relation(fields: [expenseId], references: [id])
+  uploadedBy     Person       @relation(fields: [uploaderId], references: [id])
+
+  @@map("expense_files")
 }
 
 model Document {
@@ -718,6 +756,21 @@ enum BankAccountStatus {
   errored
 
   @@map("bank_account_status")
+}
+
+enum BankTransactionType {
+  debit
+  credit
+
+  @@map("bank_transaction_type")
+}
+
+enum BankDonationStatus {
+  unrecognized
+  imported
+  importFailed @map("import_failed")
+
+  @@map("bank_donation_status")
 }
 
 enum CampaignTypeCategory {

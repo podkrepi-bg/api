@@ -1,5 +1,4 @@
 FROM node:19-alpine3.17 as base
-RUN apk add --update --no-cache openssl1.1-compat
 WORKDIR /app
 
 # The @prisma/client package defines its own postinstall hook that's being

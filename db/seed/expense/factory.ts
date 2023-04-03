@@ -15,4 +15,5 @@ export const expenseFactory = Factory.define<Expense>(({ associations }) => ({
   currency: faker.helpers.arrayElement(Object.values(Currency)),
   status: faker.helpers.arrayElement(Object.values(ExpenseStatus)),
   deleted: faker.datatype.boolean(),
+  spentAt: faker.date.past(),
 }))

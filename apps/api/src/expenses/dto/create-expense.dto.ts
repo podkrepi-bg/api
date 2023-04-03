@@ -58,4 +58,9 @@ export class CreateExpenseDto {
   @IsUUID()
   @IsOptional()
   approvedById?: string
+
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  spentAt?: Date
 }

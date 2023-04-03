@@ -1,7 +1,7 @@
 
 FROM node:19-alpine3.17 as base
 WORKDIR /app
-RUN apk add --update --no-cache openssl1.1-compat
+RUN apk add --update --no-cache openssl
 ARG TARGET_APP
 ENV TARGET_APP $TARGET_APP
 
