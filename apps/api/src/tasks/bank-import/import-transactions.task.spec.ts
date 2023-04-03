@@ -1,4 +1,3 @@
-import { PrismaService } from '../../prisma/prisma.service'
 import { IrisIbanAccountInfo, IrisTransactionInfo } from './dto/response.dto'
 import { ImportTransactionsTask } from './import-transactions.task'
 import { Test, TestingModule } from '@nestjs/testing'
@@ -148,6 +147,7 @@ describe('ImportTransactionsTask', () => {
 
   // Mock this before instantiating service - else it fails
   jest
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     .spyOn(ImportTransactionsTask.prototype as any, 'checkForRequiredVariables')
     .mockImplementation(() => true)
 
@@ -211,29 +211,34 @@ describe('ImportTransactionsTask', () => {
     it('should import IRIS transactions', async () => {
       const donationService = testModule.get<DonationsService>(DonationsService)
       const getIBANSpy = jest
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         .spyOn(ImportTransactionsTask.prototype as any, 'getIrisUserIBANaccount')
         .mockImplementation(() => irisIBANAccountMock)
       const getTrxSpy = jest
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         .spyOn(ImportTransactionsTask.prototype as any, 'getTransactions')
         .mockImplementation(() => mockIrisTransactions)
-      const checkTrxsSpy = jest.spyOn(
-        ImportTransactionsTask.prototype as any,
-        'hasNewOrNonImportedTransactions',
-      )
+      const checkTrxsSpy = jest
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+        .spyOn(ImportTransactionsTask.prototype as any, 'hasNewOrNonImportedTransactions')
 
       const prepareBankTrxSpy = jest.spyOn(
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         ImportTransactionsTask.prototype as any,
         'prepareBankTransactionRecords',
       )
       const processDonationsSpy = jest.spyOn(
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         ImportTransactionsTask.prototype as any,
         'processDonations',
       )
       const prepareBankPaymentSpy = jest.spyOn(
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         ImportTransactionsTask.prototype as any,
         'prepareBankPaymentObject',
       )
       const donationSpy = jest.spyOn(donationService, 'createUpdateBankPayment')
+      // eslint-disable-next-line  @typescript-eslint/no-explicit-any
       const saveTrxSpy = jest.spyOn(ImportTransactionsTask.prototype as any, 'saveBankTrxRecords')
 
       jest.spyOn(prismaMock.bankTransaction, 'count').mockResolvedValue(0)
@@ -347,29 +352,37 @@ describe('ImportTransactionsTask', () => {
     it('should not run if all current transactions for the day have been processed', async () => {
       const donationService = testModule.get<DonationsService>(DonationsService)
       const getIBANSpy = jest
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         .spyOn(ImportTransactionsTask.prototype as any, 'getIrisUserIBANaccount')
         .mockImplementation(() => irisIBANAccountMock)
       const getTrxSpy = jest
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         .spyOn(ImportTransactionsTask.prototype as any, 'getTransactions')
         .mockImplementation(() => mockIrisTransactions)
       const checkTrxsSpy = jest.spyOn(
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         ImportTransactionsTask.prototype as any,
         'hasNewOrNonImportedTransactions',
       )
       const prepareBankTrxSpy = jest.spyOn(
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         ImportTransactionsTask.prototype as any,
         'prepareBankTransactionRecords',
       )
       const processDonationsSpy = jest.spyOn(
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         ImportTransactionsTask.prototype as any,
         'processDonations',
       )
       const prepareBankPaymentSpy = jest.spyOn(
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         ImportTransactionsTask.prototype as any,
         'prepareBankPaymentObject',
       )
       const donationSpy = jest.spyOn(donationService, 'createUpdateBankPayment')
-      const saveTrxSpy = jest.spyOn(ImportTransactionsTask.prototype as any, 'saveBankTrxRecords')
+      const saveTrxSpy = jest
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+        .spyOn(ImportTransactionsTask.prototype as any, 'saveBankTrxRecords')
 
       // The length of the imported transactions is the same as the ones received from IRIS -meaning everything is up-to date
       jest.spyOn(prismaMock.bankTransaction, 'count').mockResolvedValue(mockIrisTransactions.length)
@@ -400,12 +413,15 @@ describe('ImportTransactionsTask', () => {
 
     it('should not run if no transactions have been fetched', async () => {
       jest
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         .spyOn(ImportTransactionsTask.prototype as any, 'getIrisUserIBANaccount')
         .mockImplementation(() => irisIBANAccountMock)
       jest
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         .spyOn(ImportTransactionsTask.prototype as any, 'getTransactions')
         .mockImplementation(() => [])
       const prepareBankTrxSpy = jest.spyOn(
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         ImportTransactionsTask.prototype as any,
         'prepareBankTransactionRecords',
       )
