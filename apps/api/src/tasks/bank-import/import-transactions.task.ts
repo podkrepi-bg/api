@@ -356,7 +356,7 @@ export class ImportTransactionsTask {
     data.forEach((record) => delete record.matchedRef)
 
     // Insert new transactions
-    await this.prisma.bankTransaction.createMany({ data, skipDuplicates: true })
+    const inserted = await this.prisma.bankTransaction.createMany({ data, skipDuplicates: true })
 
     return inserted
   }
