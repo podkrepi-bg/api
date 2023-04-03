@@ -119,8 +119,8 @@ export class ImportTransactionsTask {
     try {
       const isUpToDate = await this.hasNewOrNonImportedTransactions(transactions)
 
-      /** 
-       Should we let it run every time, (giving it a chance to import some previously failed donation for example, because DB was down for 0.5 sec). 
+      /**
+       Should we let it run every time, (giving it a chance to import some previously failed donation for example, because DB was down for 0.5 sec).
        This would also mean that the whole flow will run for all transactions every time
       **/
 
@@ -147,7 +147,7 @@ export class ImportTransactionsTask {
 
     // 6. Save BankTransactions to DB
     try {
-      const result = await this.saveBankTrxRecords(processedBankTrxRecords)
+      await this.saveBankTrxRecords(processedBankTrxRecords)
     } catch (e) {
       return Logger.error('Failed to import transactions into DB')
     }
@@ -263,7 +263,7 @@ export class ImportTransactionsTask {
       if (matchedRef) matchedPaymentRef.push(matchedRef[0])
     })
 
-    /* 
+    /*
      Better get all campaigns in a single query
      than execute a separate one for each transaction -
      more performent and reliable approach
@@ -336,7 +336,7 @@ export class ImportTransactionsTask {
 
   private async saveBankTrxRecords(data: Prisma.BankTransactionCreateManyInput[]) {
     // Insert new transactions
-    const inserted = await this.prisma.bankTransaction.createMany({ data, skipDuplicates: true })
+    await this.prisma.bankTransaction.createMany({ data, skipDuplicates: true })
 
     return
   }
