@@ -244,8 +244,14 @@ describe('ImportTransactionsTask', () => {
       jest.spyOn(prismaMock.bankTransaction, 'count').mockResolvedValue(0)
       jest.spyOn(prismaMock, '$transaction').mockResolvedValue('SUCCESS')
       jest.spyOn(prismaMock.campaign, 'findMany').mockResolvedValue(mockDonatedCampaigns)
-      jest.spyOn(prismaMock.bankTransaction, 'createMany').mockResolvedValue({ count: 4 })
+      jest.spyOn(prismaMock.bankTransaction, 'createMany').mockResolvedValue({ count: 2 })
       jest.spyOn(prismaMock.bankTransaction, 'updateMany')
+
+      const filteredIrisTransactions = mockIrisTransactions.filter(
+        (trx) =>
+          trx.remittanceInformationUnstructured !== 'STRIPE' &&
+          trx.creditDebitIndicator !== 'DEBIT',
+      )
 
       // Run task
       await taskService.importBankTransactions()
@@ -271,8 +277,9 @@ describe('ImportTransactionsTask', () => {
 
       // 5.Should process transactions and parse donations
       expect(processDonationsSpy).toHaveBeenCalledWith(
+        // Outgoing and Stripe payments should have been filtered
         expect.arrayContaining(
-          mockIrisTransactions.map((trx) =>
+          filteredIrisTransactions.map((trx) =>
             expect.objectContaining({
               id: trx.transactionId,
               description: trx.remittanceInformationUnstructured,
@@ -315,8 +322,9 @@ describe('ImportTransactionsTask', () => {
 
       // 6.Save trx to DB
       expect(saveTrxSpy).toHaveBeenCalledWith(
+        // Outgoing and Stripe payments should have been filtered
         expect.arrayContaining(
-          mockIrisTransactions.map((trx) =>
+          filteredIrisTransactions.map((trx) =>
             expect.objectContaining({
               id: trx.transactionId,
               description: trx.remittanceInformationUnstructured,
@@ -335,9 +343,9 @@ describe('ImportTransactionsTask', () => {
       // Bank donation 2
       expect(parameters[1].bankDonationStatus).toEqual(BankDonationStatus.unrecognized)
       // STRIPE Payment
-      expect(parameters[2].bankDonationStatus).not.toBeDefined()
+      expect(parameters[2]).not.toBeDefined()
       // OUTGOING Payment
-      expect(parameters[3].bankDonationStatus).not.toBeDefined()
+      expect(parameters[3]).not.toBeDefined()
 
       // Only new transactions should be saved
       expect(prismaMock.bankTransaction.createMany).toHaveBeenCalledWith(
@@ -345,8 +353,6 @@ describe('ImportTransactionsTask', () => {
           skipDuplicates: true,
         }),
       )
-      // No update should be made, if all transactions were new
-      expect(prismaMock.bankTransaction.updateMany).not.toHaveBeenCalled()
     })
 
     it('should not run if all current transactions for the day have been processed', async () => {

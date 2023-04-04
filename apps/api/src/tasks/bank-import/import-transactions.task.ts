@@ -25,6 +25,10 @@ import { toMoney } from '../../common/money'
 import { DonationsService } from '../../donations/donations.service'
 import { CreateBankPaymentDto } from '../../donations/dto/create-bank-payment.dto'
 
+type filteredTransaction = Prisma.BankTransactionCreateManyInput & {
+  matchedRef?: string | null
+}
+
 @Injectable()
 export class ImportTransactionsTask {
   private agentHash: string
@@ -130,7 +134,7 @@ export class ImportTransactionsTask {
     }
 
     // 4. Prepare the BankTransaction Records
-    let bankTrxRecords: Prisma.BankTransactionCreateManyInput[]
+    let bankTrxRecords: filteredTransaction[]
     try {
       bankTrxRecords = this.prepareBankTransactionRecords(transactions, ibanAccount)
     } catch (e) {
@@ -138,7 +142,7 @@ export class ImportTransactionsTask {
     }
 
     // 5. Parse transactions and create the donations
-    let processedBankTrxRecords: Prisma.BankTransactionCreateManyInput[]
+    let processedBankTrxRecords: filteredTransaction[]
     try {
       processedBankTrxRecords = await this.processDonations(bankTrxRecords)
     } catch (e) {
@@ -234,33 +238,51 @@ export class ImportTransactionsTask {
     transactions: IrisTransactionInfo[],
     ibanAccount: IrisIbanAccountInfo,
   ) {
-    const data: Prisma.BankTransactionCreateManyInput[] = transactions.map((trx) => ({
-      id: trx.transactionId?.trim() || ``,
-      ibanNumber: ibanAccount.iban,
-      bankName: ibanAccount.bankName,
-      bankIdCode: this.bankBIC,
-      transactionDate: new Date(trx.valueDate),
-      senderName: trx.debtorName,
-      recipientName: trx.creditorName,
-      senderIban: trx.debtorAccount?.iban,
-      recipientIban: trx.creditorAccount?.iban,
-      type: trx.creditDebitIndicator === 'CREDIT' ? 'credit' : 'debit',
-      amount: toMoney(trx.transactionAmount.amount),
-      currency: trx.transactionAmount.currency,
-      description: trx.remittanceInformationUnstructured.trim(),
-    }))
+    const filteredTransactions: filteredTransaction[] = []
 
-    return data
+    for (const trx of transactions) {
+      // We're interested in parsing only incoming trx's
+      if (trx.creditDebitIndicator !== 'CREDIT') {
+        continue
+      }
+
+      // Stripe payments should not be parsed
+      if (trx.remittanceInformationUnstructured?.trim() === 'STRIPE') {
+        continue
+      }
+
+      // Try to recognize campaign payment reference
+      const matchedRef = trx.remittanceInformationUnstructured
+        ?.trim()
+        .replace(/[ _]+/g, '-')
+        .match(this.regexPaymentRef)
+
+      filteredTransactions.push({
+        id: trx.transactionId?.trim() || ``,
+        ibanNumber: ibanAccount.iban,
+        bankName: ibanAccount.bankName,
+        bankIdCode: this.bankBIC,
+        transactionDate: new Date(trx.valueDate),
+        senderName: trx.debtorName?.trim(),
+        recipientName: trx.creditorName?.trim(),
+        senderIban: trx.debtorAccount?.iban?.trim(),
+        recipientIban: trx.creditorAccount?.iban?.trim(),
+        type: trx.creditDebitIndicator === 'CREDIT' ? 'credit' : 'debit',
+        amount: toMoney(trx.transactionAmount?.amount),
+        currency: trx.transactionAmount?.currency,
+        description: trx.remittanceInformationUnstructured?.trim(),
+        // Not saved in the DB, it's added only for convinience and efficiency
+        matchedRef: matchedRef ? matchedRef[0] : null,
+      })
+    }
+
+    return filteredTransactions
   }
 
-  private async processDonations(bankTransactions: Prisma.BankTransactionCreateManyInput[]) {
-    // Try to recognize campaign payment references
+  private async processDonations(bankTransactions: filteredTransaction[]) {
     const matchedPaymentRef: string[] = []
     bankTransactions.forEach((trx) => {
-      if (trx.type !== 'credit' || trx.description === 'STRIPE') return
-
-      const matchedRef = trx.description.replace(/[ _]+/g, '-').match(this.regexPaymentRef)
-      if (matchedRef) matchedPaymentRef.push(matchedRef[0])
+      if (trx.matchedRef) matchedPaymentRef.push(trx.matchedRef)
     })
 
     /*
@@ -280,18 +302,13 @@ export class ImportTransactionsTask {
     })
 
     for (const trx of bankTransactions) {
-      // We're interested in parsing only incoming trx's
-      if (trx.type !== 'credit') {
-        continue
-      }
-
-      // Stripe payments should not be parsed
-      if (trx.description === 'STRIPE') {
+      if (!trx.matchedRef) {
+        trx.bankDonationStatus = BankDonationStatus.unrecognized
         continue
       }
 
       // Campaign list won't be too large, so searching in-memory should perform better than calling the DB
-      const campaign = campaigns.find((cmpgn) => cmpgn.paymentReference === trx.description.trim())
+      const campaign = campaigns.find((cmpgn) => cmpgn.paymentReference === trx.matchedRef)
 
       if (!campaign) {
         trx.bankDonationStatus = BankDonationStatus.unrecognized
@@ -334,11 +351,14 @@ export class ImportTransactionsTask {
     return bankPayment
   }
 
-  private async saveBankTrxRecords(data: Prisma.BankTransactionCreateManyInput[]) {
-    // Insert new transactions
-    await this.prisma.bankTransaction.createMany({ data, skipDuplicates: true })
+  private async saveBankTrxRecords(data: filteredTransaction[]) {
+    // Clear the matchedRef field before inserting
+    data.forEach((record) => delete record.matchedRef)
 
-    return
+    // Insert new transactions
+    const inserted = await this.prisma.bankTransaction.createMany({ data, skipDuplicates: true })
+
+    return inserted
   }
 
   private deregisterTask(taskName: string) {
