@@ -118,7 +118,7 @@ spec:
             - name: BANK_BIC
               value: UNCRBGSF
             - name: PLATFORM_IBAN
-              value: test
+              value: BG66UNCR70001524349032
             - name: IMPORT_TRX_TASK_INTERVAL_MINUTES
               value: '60'
             - name: IRIS_AGENT_HASH
