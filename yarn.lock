@@ -11431,18 +11431,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nest-keycloak-connect@npm:1.9.0":
-  version: 1.9.0
-  resolution: "nest-keycloak-connect@npm:1.9.0"
+"nest-keycloak-connect@npm:^1.9.1":
+  version: 1.9.1
+  resolution: "nest-keycloak-connect@npm:1.9.1"
   peerDependencies:
     "@nestjs/common": ">=6.0.0 <10.0.0"
     "@nestjs/core": ">=6.0.0 <10.0.0"
     "@nestjs/graphql": ">=6"
-    keycloak-connect: ">=10.0.0 <19.0.0"
+    keycloak-connect: ">=10.0.0 <21.0.0"
   peerDependenciesMeta:
     "@nestjs/graphql":
       optional: true
-  checksum: 2fbe1316c280697756f6f01e3276079fdff48dc0cfe0510a745783a8bcdf9a569e923c9a94dd5f449441c96c4c5188619a8d9da49ec40c8d9fc4454f96c54f34
+  checksum: ba0be7630d2b8777a0b37a9f772577fd41161639cdf577b3dbdc882d207eaa8dcdd381bf71a4ea719f1592739dd976db32df9effb8aba230247a745b47baf993
   languageName: node
   linkType: hard
 
@@ -12216,7 +12216,7 @@ __metadata:
     luxon: ^3.3.0
     mjml: 4.12.0
     nanoid: 3.3.4
-    nest-keycloak-connect: 1.9.0
+    nest-keycloak-connect: ^1.9.1
     nx: ^15.5.1
     prettier: 2.6.0
     prisma: 4.9.0
