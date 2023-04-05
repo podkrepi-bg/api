@@ -10084,16 +10084,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"keycloak-connect@npm:18.0.2":
-  version: 18.0.2
-  resolution: "keycloak-connect@npm:18.0.2"
+"keycloak-connect@npm:21.0.1":
+  version: 21.0.1
+  resolution: "keycloak-connect@npm:21.0.1"
   dependencies:
     chromedriver: latest
     jwk-to-pem: ^2.0.0
   dependenciesMeta:
     chromedriver:
       optional: true
-  checksum: 0bec4468b8dfe430325f624ddc133169c798f8c0908490333ece6b3fffd11fa03bed691679bb932bc9532fdfd2c1a2091022f110f935f9eb02c078733e266e27
+  checksum: 2dc57d3388072f1ccd6502e5de85253eb60055d721418f2ea5b56b418a579055a31c7ed72b790c0dea761791fce1a62804235916fda33ea6273dec62f946e703
   languageName: node
   linkType: hard
 
@@ -12171,7 +12171,7 @@ __metadata:
     jest-junit: ^15.0.0
     jest-mock-extended: ^3.0.1
     joi: 17.6.0
-    keycloak-connect: 18.0.2
+    keycloak-connect: 21.0.1
     lint-staged: 11.1.2
     luxon: ^3.3.0
     mjml: 4.12.0
