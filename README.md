@@ -319,7 +319,7 @@ The logic is the following:
 | `SENTRY_SERVER_ROOT_DIR`  | App directory inside the docker image        | /app                                                                        |
 | `SENDGRID_API_KEY`        | SendGrid API key                             | `""` - emails disabled if not set                                           |
 | `SENDGRID_SENDER_EMAIL`   | SendGrid sender email                        | info@podkrepi.bg                                                            |
-| `SENDGRID_INTERNAL_EMAIL` | Internal notifications email                 | info@podkrepi.bg (Prod), qa@podkrepi.bg (Staging), dev@podkrepi.bg (Dev)    |
+| `SENDGRID_INTERNAL_EMAIL` | Internal notification email from contact form request | info@podkrepi.bg (Prod), qa@podkrepi.bg (Dev), dev@podkrepi.bg (localhost)    |
 | `SENDGRID_CONTACTS_URL`   | Endpoint to receive newsletter subscriptions | /v3/marketing/contacts                                                      |
 
 ## Deployment
