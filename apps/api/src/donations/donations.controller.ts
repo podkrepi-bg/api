@@ -157,6 +157,10 @@ export class DonationsController {
   }
 
   @Post('create-payment')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   create(
     @AuthenticatedUser()
     user: KeycloakTokenParsed,

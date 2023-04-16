@@ -5,21 +5,18 @@ import { PrismaService } from '../prisma/prisma.service'
 import { HttpModule } from '@nestjs/axios'
 import { StripeModule } from '@golevelup/nestjs-stripe'
 import { ConfigService } from '@nestjs/config'
-import { useFactoryService } from '../bank-transactions-file/helpers/use-factory-service'
+import { StripeConfigFactory } from '../donations/helpers/stripe-config-factory'
 
 @Module({
   imports: [
     StripeModule.forRootAsync(StripeModule, {
       inject: [ConfigService],
-      useFactory: useFactoryService.useFactory,
+      useFactory: StripeConfigFactory.useFactory,
     }),
     HttpModule,
   ],
 
   controllers: [RecurringDonationController],
-  providers: [
-    PrismaService,
-    RecurringDonationService,
-  ],
+  providers: [PrismaService, RecurringDonationService],
 })
 export class RecurringDonationModule {}
