@@ -9,14 +9,14 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-import { AuthenticatedUser, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
 import { VaultService } from './vault.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { CreateVaultDto } from './dto/create-vault.dto'
 import { UpdateVaultDto } from './dto/update-vault.dto'
 import { KeycloakTokenParsed } from '../auth/keycloak'
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger'
 
 @ApiTags('vault')
 @Controller('vault')
@@ -46,6 +46,12 @@ export class VaultController {
     }
 
     return this.vaultService.findAll()
+  }
+
+  @Get('money')
+  @Public()
+  getVaultMoney() {
+    return this.vaultService.getVaultMoney()
   }
 
   @Get(':id')

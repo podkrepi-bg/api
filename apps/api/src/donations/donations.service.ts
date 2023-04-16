@@ -642,6 +642,20 @@ export class DonationsService {
     return user.id
   }
 
+  async getDonatedUsersCount() {
+    const donatedUsersCount = await this.prisma.donation.groupBy({
+      by: ['personId'],
+      where: { status: DonationStatus.succeeded },
+      _count: {
+        _all: true,
+      },
+    })
+
+    const anonymousDonations = donatedUsersCount.find((donation) => donation.personId === null)
+    // substract one because anonymous donation is within all donations
+    return { count: donatedUsersCount.length - 1 + (anonymousDonations?._count._all ?? 0) }
+  }
+
   /**
    *  @param res  - Response object to be used for the export to excel file
    */

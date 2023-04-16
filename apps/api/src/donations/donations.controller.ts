@@ -94,6 +94,12 @@ export class DonationsController {
     return await this.donationsService.getDonationsByUser(user.sub)
   }
 
+  @Get('users-donated')
+  @Public()
+  async usersDonated() {
+    return await this.donationsService.getDonatedUsersCount()
+  }
+
   @Get('listPublic')
   @Public()
   @ApiQuery({ name: 'campaignId', required: false, type: String })

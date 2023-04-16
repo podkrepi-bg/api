@@ -29,6 +29,15 @@ export class VaultService {
     return await this.prisma.vault.findMany()
   }
 
+  async getVaultMoney() {
+    const totalMoney = await this.prisma.vault.aggregate({
+      _sum: {
+        amount: true,
+      },
+    })
+    return { money: totalMoney._sum.amount }
+  }
+
   async findByCampaignId(campaignId: string): Promise<Vault[]> {
     return await this.prisma.vault.findMany({
       where: {
