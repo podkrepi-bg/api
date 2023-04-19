@@ -35,7 +35,7 @@ export class VaultService {
         amount: true,
       },
     })
-    return { money: totalMoney._sum.amount }
+    return { total: totalMoney._sum.amount }
   }
 
   async findByCampaignId(campaignId: string): Promise<Vault[]> {
