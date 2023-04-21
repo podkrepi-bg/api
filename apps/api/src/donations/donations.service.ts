@@ -677,8 +677,8 @@ export class DonationsService {
     return user.id
   }
 
-  async getDonatedUsersCount() {
-    const donatedUsersCount = await this.prisma.donation.groupBy({
+  async getDonorsCount() {
+    const donorsCount = await this.prisma.donation.groupBy({
       by: ['billingName'],
       where: { status: DonationStatus.succeeded },
       _count: {
@@ -686,9 +686,9 @@ export class DonationsService {
       },
     })
 
-    const anonymousDonations = donatedUsersCount.find((donation) => donation.billingName === null)
+    const anonymousDonations = donorsCount.find((donation) => donation.billingName === null)
     // substract one because anonymous donation is within all donations
-    return { count: donatedUsersCount.length - 1 + (anonymousDonations?._count._all ?? 0) }
+    return { count: donorsCount.length - 1 + (anonymousDonations?._count._all ?? 0) }
   }
 
   /**

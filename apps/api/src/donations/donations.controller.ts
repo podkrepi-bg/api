@@ -94,10 +94,10 @@ export class DonationsController {
     return await this.donationsService.getDonationsByUser(user.sub)
   }
 
-  @Get('users-donated')
+  @Get('donors-count')
   @Public()
-  async usersDonated() {
-    return await this.donationsService.getDonatedUsersCount()
+  async donorsCount() {
+    return await this.donationsService.getDonorsCount()
   }
 
   @Get('listPublic')
