@@ -9,7 +9,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { AuthenticatedUser, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
 import { VaultService } from './vault.service'
 import { CampaignService } from '../campaign/campaign.service'
