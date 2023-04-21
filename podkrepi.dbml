@@ -417,6 +417,7 @@ Table bank_transactions {
   amount Float [not null, default: 0]
   currency Currency [not null, default: 'BGN']
   description String [not null]
+  matchedRef String
   type BankTransactionType [not null]
   bankDonationStatus BankDonationStatus
 }
@@ -626,6 +627,7 @@ Enum BankTransactionType {
 Enum BankDonationStatus {
   unrecognized
   imported
+  reImported
   importFailed
 }
 
