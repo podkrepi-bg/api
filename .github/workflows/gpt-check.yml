@@ -23,4 +23,4 @@ jobs:
           # top_p: 1
           # temperature: 1
       - run: |
-        echo "repository variable : ${{ vars.TEST }}"
+          echo "repository variable : ${{ vars.TEST }}"
