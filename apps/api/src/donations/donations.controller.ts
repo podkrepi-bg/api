@@ -96,7 +96,7 @@ export class DonationsController {
 
   @Get('money')
   @Public()
-  getVaultMoney() {
+  async totalDonatedMoney() {
     return this.donationsService.getTotalDonatedMoney()
   }
 
