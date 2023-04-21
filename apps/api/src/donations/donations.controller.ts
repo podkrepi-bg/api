@@ -94,6 +94,12 @@ export class DonationsController {
     return await this.donationsService.getDonationsByUser(user.sub)
   }
 
+  @Get('money')
+  @Public()
+  getVaultMoney() {
+    return this.donationsService.getTotalDonatedMoney()
+  }
+
   @Get('donors-count')
   @Public()
   async donorsCount() {

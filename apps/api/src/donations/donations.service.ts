@@ -677,6 +677,16 @@ export class DonationsService {
     return user.id
   }
 
+  async getTotalDonatedMoney() {
+    const totalMoney = await this.prisma.donation.aggregate({
+      _sum: {
+        amount: true,
+      },
+      where: { status: DonationStatus.succeeded },
+    })
+    return { total: totalMoney._sum.amount }
+  }
+
   async getDonorsCount() {
     const donorsCount = await this.prisma.donation.groupBy({
       by: ['billingName'],

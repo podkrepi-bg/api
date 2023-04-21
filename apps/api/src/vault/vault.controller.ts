@@ -48,12 +48,6 @@ export class VaultController {
     return this.vaultService.findAll()
   }
 
-  @Get('money')
-  @Public()
-  getVaultMoney() {
-    return this.vaultService.getVaultMoney()
-  }
-
   @Get(':id')
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],
