@@ -694,11 +694,13 @@ export class DonationsService {
       _count: {
         _all: true,
       },
+      orderBy: { billingName: { sort: 'asc', nulls: 'first' } },
     })
 
-    const anonymousDonations = donorsCount.find((donation) => donation.billingName === null)
-    // substract one because anonymous donation is within all donations
-    return { count: donorsCount.length - 1 + (anonymousDonations?._count._all ?? 0) }
+    // get count of the donations with billingName == null
+    const anonymousDonations = donorsCount[0]._count._all
+    // substract one because we don't want to include anonymousDonation again
+    return { count: donorsCount.length - 1 + anonymousDonations }
   }
 
   /**
