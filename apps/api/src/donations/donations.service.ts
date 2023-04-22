@@ -699,6 +699,7 @@ export class DonationsService {
 
     // get count of the donations with billingName == null
     const anonymousDonations = donorsCount[0]._count._all
+
     // substract one because we don't want to include anonymousDonation again
     return { count: donorsCount.length - 1 + anonymousDonations }
   }
