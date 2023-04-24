@@ -7,11 +7,12 @@ bases:
   - ../../base
 
 patches:
-- path: manual/keycloak-config.patch.yaml
-- path: manual/deployment.patch.yaml
+  - path: manual/keycloak-config.patch.yaml
+  - path: manual/deployment.patch.yaml
+  - path: manual/sendgrid-config.patch.yaml
 
 images:
-- name: ghcr.io/podkrepi-bg/api
-  newTag: master
-- name: ghcr.io/podkrepi-bg/api/migrations
-  newTag: master
+  - name: ghcr.io/podkrepi-bg/api
+    newTag: master
+  - name: ghcr.io/podkrepi-bg/api/migrations
+    newTag: master

@@ -32,7 +32,12 @@ import {
   CampaignListItem,
   CampaignListItemSelect,
 } from './dto/list-campaigns.dto'
-import { NotificationService, donationNotificationSelect } from '../sockets/notifications/notification.service'
+import {
+  NotificationService,
+  donationNotificationSelect,
+} from '../sockets/notifications/notification.service'
+import { DonationMetadata } from '../donations/dontation-metadata.interface'
+import { Expense } from '@prisma/client'
 
 @Injectable()
 export class CampaignService {
@@ -131,6 +136,21 @@ export class CampaignService {
     campaign['summary'] = this.getVaultAndDonationSummaries(campaign.id, campaignSums)
 
     return campaign
+  }
+
+  async isUserCampaign(keycloakId: string, slug: string): Promise<boolean> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: {
+        slug,
+        OR: [
+          { beneficiary: { person: { keycloakId } } },
+          { coordinator: { person: { keycloakId } } },
+          { organizer: { person: { keycloakId } } },
+        ],
+      },
+    })
+
+    return !!campaign
   }
 
   async getUserCampaigns(keycloakId: string): Promise<Campaign[]> {
@@ -298,6 +318,12 @@ export class CampaignService {
     const campaignSums = await this.getCampaignSums([campaign.id])
 
     campaign['summary'] = this.getVaultAndDonationSummaries(campaign.id, campaignSums)
+
+    const vault = await this.getCampaignVault(campaign.id)
+    if (vault) {
+      campaign['defaultVault'] = vault?.id
+    }
+
     return campaign
   }
 
@@ -405,11 +431,20 @@ export class CampaignService {
     return this.prisma.donation.findFirst({ where: { extPaymentIntentId: paymentIntentId } })
   }
 
+  /**
+   * Creates or Updates an incoming donation depending on the newDonationStatus attribute
+   * @param campaign
+   * @param paymentData
+   * @param newDonationStatus
+   * @param metadata
+   * @returns donation.id of the created/updated donation
+   */
   async updateDonationPayment(
     campaign: Campaign,
     paymentData: PaymentData,
     newDonationStatus: DonationStatus,
-  ) {
+    metadata?: DonationMetadata,
+  ): Promise<string> {
     const campaignId = campaign.id
     Logger.debug('Update donation to status: ' + newDonationStatus, {
       campaignId,
@@ -466,7 +501,7 @@ export class CampaignService {
       )
 
       try {
-        const donation = await this.prisma.donation.create({
+        donation = await this.prisma.donation.create({
           data: {
             amount: paymentData.netAmount,
             chargedAmount: paymentData.chargedAmount,
@@ -480,7 +515,7 @@ export class CampaignService {
             extPaymentMethodId: paymentData.paymentMethodId ?? '',
             billingName: paymentData.billingName,
             billingEmail: paymentData.billingEmail,
-            person: { connect: { id: paymentData.personId } },
+            person: paymentData.personId ? { connect: { id: paymentData.personId } } : {},
           },
           select: donationNotificationSelect,
         })
@@ -492,8 +527,6 @@ export class CampaignService {
         )
         throw new InternalServerErrorException(error)
       }
-
-      return
     }
     //donation exists, so check if it is safe to update it
     else if (shouldAllowStatusChange(donation.status, newDonationStatus)) {
@@ -532,6 +565,38 @@ export class CampaignService {
         and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
       )
     }
+
+    //For successful donations we will also need to link them to user and add donation wish:
+    if (newDonationStatus === DonationStatus.succeeded) {
+      Logger.debug('metadata?.isAnonymous = ' + metadata?.isAnonymous)
+
+      if (metadata?.isAnonymous != 'true') {
+        await this.prisma.donation.update({
+          where: { id: donation.id },
+          data: {
+            person: {
+              connect: {
+                email: paymentData.billingEmail,
+              },
+            },
+          },
+        })
+      }
+    }
+
+    return donation.id
+  }
+
+  async createDonationWish(wish: string, donationId: string, campaignId: string) {
+    const person = await this.prisma.donation.findUnique({ where: { id: donationId } }).person()
+    await this.prisma.donationWish.create({
+      data: {
+        message: wish,
+        donationId,
+        campaignId,
+        personId: person?.id,
+      },
+    })
   }
 
   async donateToCampaign(campaign: Campaign, paymentData: PaymentData) {
@@ -541,8 +606,6 @@ export class CampaignService {
       netAmount: paymentData.netAmount,
       chargedAmount: paymentData.chargedAmount,
     })
-
-    await this.updateDonationPayment(campaign, paymentData, DonationStatus.succeeded)
 
     const vault = await this.getCampaignVault(campaign.id)
     if (vault) {
@@ -666,6 +729,24 @@ export class CampaignService {
     if (!campaign) {
       throw new UnauthorizedException()
     }
+  }
+
+  async listExpenses(slug: string): Promise<Expense[]> {
+    return this.prisma.expense.findMany({
+      where: { vault: { campaign: { slug: slug } }, deleted: false },
+      include: {
+        expenseFiles: true,
+      },
+    })
+  }
+
+  async listExpensesApproved(slug: string): Promise<Expense[]> {
+    return this.prisma.expense.findMany({
+      where: { vault: { campaign: { slug: slug } }, deleted: false, approvedById: { not: null } },
+      include: {
+        expenseFiles: true,
+      },
+    })
   }
 
   private getVaultAndDonationSummaries(campaignId: string, campaignSums: CampaignSummaryDto[]) {

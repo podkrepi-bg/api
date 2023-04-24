@@ -1,9 +1,9 @@
-import { Donation, Campaign } from '@prisma/client'
+import { Donation, Campaign, BankTransaction } from '@prisma/client'
 import { Column, Alignment, Style } from 'exceljs'
 
 type NonEmptyArray<T> = [T, ...T[]]
 
-export type ExportableData = Donation[] | Campaign[]
+export type ExportableData = Donation[] | Campaign[] | BankTransaction[]
 
 export type ExcelColumns = NonEmptyArray<Column>
 
@@ -52,6 +52,40 @@ const exportableData = {
           { header: 'Amount', key: 'amount', width: donationsDefaultCellWidth },
           { header: 'Currency', key: 'currency', width: donationsDefaultCellWidth },
           { header: 'Person', key: 'person', width: donationsDefaultCellWidth },
+        ],
+        style: {
+          header: defaultHeaderStyle,
+          body: defaultBodyStyle,
+        },
+      },
+    ],
+  },
+  bankTransactions: {
+    sheets: [
+      {
+        title: 'Bank Transactions',
+        columns: [
+          { header: 'Transaction ID', key: 'id', width: donationsDefaultCellWidth },
+          { header: 'Account IBAN', key: 'ibanNumber', width: donationsDefaultCellWidth },
+          { header: 'Bank Name', key: 'bankName', width: donationsDefaultCellWidth },
+          {
+            header: 'Transaction Date',
+            key: 'transactionDate',
+            width: donationsDefaultCellWidth,
+          },
+          { header: 'Transaction Type', key: 'type', width: donationsDefaultCellWidth },
+          { header: 'Sender Name', key: 'senderName', width: donationsDefaultCellWidth },
+          { header: 'Sender IBAN', key: 'senderIban', width: donationsDefaultCellWidth },
+          { header: 'Recipient Name', key: 'recipientName', width: donationsDefaultCellWidth },
+          { header: 'Recipient IBAN', key: 'recipientIban', width: donationsDefaultCellWidth },
+          { header: 'Amount', key: 'amount', width: donationsDefaultCellWidth },
+          { header: 'Currency', key: 'currency', width: donationsDefaultCellWidth },
+          { header: 'Description', key: 'description', width: donationsDefaultCellWidth + 20 },
+          {
+            header: 'Bank Donation Status',
+            key: 'bankDonationStatus',
+            width: donationsDefaultCellWidth,
+          },
         ],
         style: {
           header: defaultHeaderStyle,

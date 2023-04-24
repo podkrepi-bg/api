@@ -21,6 +21,8 @@ spec:
               value: production
             - name: APP_URL
               value: https://podkrepi.bg/
+            - name: IRIS_API_URL
+              value: https://developer.irispay.bg/api/8
             - name: S3_ENDPOINT
               valueFrom:
                 secretKeyRef:

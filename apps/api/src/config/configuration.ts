@@ -32,4 +32,18 @@ export default () => ({
     clientSecret: process.env.PAYPAL_CLIENT_SECRET,
     webhookId: process.env.PAYPAL_WEBHOOK_ID,
   },
+  iris: {
+    agentHash: process.env.IRIS_AGENT_HASH,
+    userHash: process.env.IRIS_USER_HASH,
+    bankBIC: process.env.BANK_BIC,
+    platformIBAN: process.env.PLATFORM_IBAN,
+    apiUrl: process.env.IRIS_API_URL,
+    consentEndPoint: process.env.IRIS_API_URL + '/consent',
+    banksEndPoint: process.env.IRIS_API_URL + '/banks?country=bulgaria',
+    ibansEndPoint: process.env.IRIS_API_URL + '/ibans',
+    transactionsEndPoint: process.env.IRIS_API_URL + '/transactions',
+  },
+  tasks: {
+    import_transactions: { interval: process.env.IMPORT_TRX_TASK_INTERVAL_MINUTES },
+  },
 })

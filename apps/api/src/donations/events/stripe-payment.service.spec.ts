@@ -2,24 +2,22 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { CampaignService } from '../../campaign/campaign.service'
 import { StripePaymentService } from './stripe-payment.service'
-import { getPaymentData } from '../helpers/payment-intent-helpers'
+import { getPaymentData, getPaymentDataFromCharge } from '../helpers/payment-intent-helpers'
 import Stripe from 'stripe'
 import { VaultService } from '../../vault/vault.service'
 import { PersonService } from '../../person/person.service'
-import { MockPrismaService } from '../../prisma/prisma-client.mock'
+import { MockPrismaService, prismaMock } from '../../prisma/prisma-client.mock'
 import { INestApplication } from '@nestjs/common'
 import request from 'supertest'
 import { StripeModule, StripeModuleConfig, StripePayloadService } from '@golevelup/nestjs-stripe'
 
-import { RecurringDonationStatus } from '@prisma/client'
-import { CreateRecurringDonationDto } from '../../recurring-donation/dto/create-recurring-donation.dto'
+import { DonationType, RecurringDonationStatus } from '@prisma/client'
 
 import {
   campaignId,
   mockedCampaign,
   mockPaymentEventCancelled,
   mockPaymentEventCreated,
-  mockPaymentEventSucceeded,
   mockPaymentIntentCreated,
   mockPaymentIntentBGIncluded,
   mockPaymentIntentBGIncludedNot,
@@ -30,6 +28,7 @@ import {
   mockInvoicePaidEvent,
   mockedCampaignCompeleted,
   mockedVault,
+  mockChargeEventSucceeded,
 } from './stripe-payment.testdata'
 import { DonationStatus } from '@prisma/client'
 import { RecurringDonationService } from '../../recurring-donation/recurring-donation.service'
@@ -44,12 +43,14 @@ describe('StripePaymentService', () => {
   let stripePaymentService: StripePaymentService
   let app: INestApplication
   let hydratePayloadFn: jest.SpyInstance
-  const stripe = new Stripe(stripeSecret, { apiVersion: '2020-08-27' })
+  const stripe = new Stripe(stripeSecret, { apiVersion: '2022-11-15' })
 
   const moduleConfig: StripeModuleConfig = {
     apiKey: stripeSecret,
     webhookConfig: {
-      stripeWebhookSecret: stripeSecret,
+      stripeSecrets: {
+        account: stripeSecret,
+      },
       loggingConfiguration: {
         logMatchingEventHandlers: true,
       },
@@ -115,8 +116,12 @@ describe('StripePaymentService', () => {
 
     const mockedupdateDonationPayment = jest
       .spyOn(campaignService, 'updateDonationPayment')
-      .mockImplementation(() => Promise.resolve())
+      .mockImplementation(() => Promise.resolve(''))
       .mockName('updateDonationPayment')
+
+    const mockedcreateDonationWish = jest
+      .spyOn(campaignService, 'createDonationWish')
+      .mockName('createDonationWish')
 
     return request(app.getHttpServer())
       .post(defaultStripeWebhookEndpoint)
@@ -126,6 +131,7 @@ describe('StripePaymentService', () => {
       .expect(201)
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
+        expect(mockedcreateDonationWish).not.toHaveBeenCalled()
         expect(mockedupdateDonationPayment).toHaveBeenCalledWith(
           mockedCampaign,
           paymentData,
@@ -153,7 +159,7 @@ describe('StripePaymentService', () => {
 
     const mockedupdateDonationPayment = jest
       .spyOn(campaignService, 'updateDonationPayment')
-      .mockImplementation(() => Promise.resolve())
+      .mockImplementation(() => Promise.resolve(''))
       .mockName('updateDonationPayment')
 
     return request(app.getHttpServer())
@@ -172,8 +178,11 @@ describe('StripePaymentService', () => {
       })
   })
 
-  it('should handle payment_intent.succeeded', () => {
-    const payloadString = JSON.stringify(mockPaymentEventSucceeded, null, 2)
+  it('should handle charge.succeeded for not anonymous user', () => {
+    //Set not anonymous explicitly in the test data
+    ;(mockChargeEventSucceeded.data.object as Stripe.Charge).metadata.isAnonymous = 'false'
+
+    const payloadString = JSON.stringify(mockChargeEventSucceeded, null, 2)
 
     const header = stripe.webhooks.generateTestHeaderString({
       payload: payloadString,
@@ -185,14 +194,33 @@ describe('StripePaymentService', () => {
       .spyOn(campaignService, 'getCampaignById')
       .mockImplementation(() => Promise.resolve(mockedCampaign))
 
-    const paymentData = getPaymentData(
-      mockPaymentEventSucceeded.data.object as Stripe.PaymentIntent,
+    const paymentData = getPaymentDataFromCharge(
+      mockChargeEventSucceeded.data.object as Stripe.Charge,
     )
 
-    const mockedupdateDonationPayment = jest
-      .spyOn(campaignService, 'updateDonationPayment')
+    const mockedcreateDonationWish = jest
+      .spyOn(campaignService, 'createDonationWish')
+      .mockName('createDonationWish')
       .mockImplementation(() => Promise.resolve())
-      .mockName('updateDonationPayment')
+
+    prismaMock.donation.create.mockResolvedValue({
+      id: 'test-donation-id',
+      type: DonationType.donation,
+      status: DonationStatus.succeeded,
+      provider: 'stripe',
+      extCustomerId: paymentData.stripeCustomerId ?? '',
+      extPaymentIntentId: paymentData.paymentIntentId,
+      extPaymentMethodId: 'card',
+      targetVaultId: 'test-vault-id',
+      amount: paymentData.netAmount,
+      chargedAmount: paymentData.netAmount,
+      currency: 'BGN',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      billingName: paymentData.billingName ?? '',
+      billingEmail: paymentData.billingEmail ?? '',
+      personId: 'donation-person',
+    })
 
     const mockedDonateToCampaign = jest
       .spyOn(campaignService, 'donateToCampaign')
@@ -206,12 +234,84 @@ describe('StripePaymentService', () => {
       .expect(201)
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
-        expect(mockedDonateToCampaign).toHaveBeenCalledWith(mockedCampaign, paymentData)
-        expect(mockedupdateDonationPayment).toHaveBeenCalledWith(
-          mockedCampaign,
-          paymentData,
-          DonationStatus.succeeded,
-        )
+        expect(mockedDonateToCampaign).toHaveBeenCalled()
+        // expect(mockedupdateDonationPayment).toHaveBeenCalled()
+        expect(prismaMock.donation.create).toHaveBeenCalled()
+        expect(prismaMock.donation.update).toHaveBeenCalledWith({
+          where: { id: 'test-donation-id' },
+          data: {
+            person: {
+              connect: {
+                email: paymentData.billingEmail,
+              },
+            },
+          },
+        })
+        expect(mockedcreateDonationWish).toHaveBeenCalled()
+      })
+  })
+
+  it('should handle charge.succeeded for anonymous user', () => {
+    //Set anonymous explicitly in the test data
+    ;(mockChargeEventSucceeded.data.object as Stripe.Charge).metadata.isAnonymous = 'true'
+
+    const payloadString = JSON.stringify(mockChargeEventSucceeded, null, 2)
+
+    const header = stripe.webhooks.generateTestHeaderString({
+      payload: payloadString,
+      secret: stripeSecret,
+    })
+
+    const campaignService = app.get<CampaignService>(CampaignService)
+    const mockedCampaignById = jest
+      .spyOn(campaignService, 'getCampaignById')
+      .mockImplementation(() => Promise.resolve(mockedCampaign))
+
+    const paymentData = getPaymentDataFromCharge(
+      mockChargeEventSucceeded.data.object as Stripe.Charge,
+    )
+
+    const mockedcreateDonationWish = jest
+      .spyOn(campaignService, 'createDonationWish')
+      .mockName('createDonationWish')
+      .mockImplementation(() => Promise.resolve())
+
+    prismaMock.donation.create.mockResolvedValue({
+      id: 'test-donation-id',
+      type: DonationType.donation,
+      status: DonationStatus.succeeded,
+      provider: 'stripe',
+      extCustomerId: paymentData.stripeCustomerId ?? '',
+      extPaymentIntentId: paymentData.paymentIntentId,
+      extPaymentMethodId: 'card',
+      targetVaultId: 'test-vault-id',
+      amount: paymentData.netAmount,
+      chargedAmount: paymentData.netAmount,
+      currency: 'BGN',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      billingName: paymentData.billingName ?? '',
+      billingEmail: paymentData.billingEmail ?? '',
+      personId: 'donation-person',
+    })
+
+    const mockedDonateToCampaign = jest
+      .spyOn(campaignService, 'donateToCampaign')
+      .mockName('donateToCampaign')
+
+    return request(app.getHttpServer())
+      .post(defaultStripeWebhookEndpoint)
+      .set('stripe-signature', header)
+      .type('json')
+      .send(payloadString)
+      .expect(201)
+      .then(() => {
+        expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
+        expect(mockedDonateToCampaign).toHaveBeenCalled()
+        // expect(mockedupdateDonationPayment).toHaveBeenCalled()
+        expect(prismaMock.donation.create).toHaveBeenCalled()
+        expect(prismaMock.donation.update).not.toHaveBeenCalled()
+        expect(mockedcreateDonationWish).toHaveBeenCalled()
       })
   })
 
@@ -222,7 +322,10 @@ describe('StripePaymentService', () => {
   })
 
   it('calculate payment-intent.succeeded with BG tax included in charge', async () => {
-    const billingDetails = getPaymentData(mockPaymentIntentBGIncluded)
+    const billingDetails = getPaymentData(
+      mockPaymentIntentBGIncluded,
+      mockPaymentIntentBGIncluded.latest_charge as Stripe.Charge,
+    )
     expect(billingDetails.netAmount).toEqual(1000)
     expect(billingDetails.chargedAmount).toEqual(1063)
   })
@@ -303,6 +406,11 @@ describe('StripePaymentService', () => {
       .spyOn(campaignService, 'donateToCampaign')
       .mockImplementation(() => Promise.resolve())
 
+    const mockedupdateDonationPayment = jest
+      .spyOn(campaignService, 'updateDonationPayment')
+      .mockImplementation(() => Promise.resolve(''))
+      .mockName('updateDonationPayment')
+
     return request(app.getHttpServer())
       .post(defaultStripeWebhookEndpoint)
       .set('stripe-signature', header)
@@ -315,6 +423,7 @@ describe('StripePaymentService', () => {
             .campaignId,
         ) //campaignId from the Stripe Event
         expect(mockedDonateToCampaign).toHaveBeenCalled()
+        expect(mockedupdateDonationPayment).toHaveBeenCalled()
       })
   })
 
@@ -341,6 +450,11 @@ describe('StripePaymentService', () => {
       .spyOn(campaignService, 'donateToCampaign')
       .mockImplementation(() => Promise.resolve())
 
+    const mockedupdateDonationPayment = jest
+      .spyOn(campaignService, 'updateDonationPayment')
+      .mockImplementation(() => Promise.resolve(''))
+      .mockName('updateDonationPayment')
+
     const mockFindAllRecurringDonations = jest
       .spyOn(recurring, 'findAllActiveRecurringDonationsByCampaignId')
       .mockImplementation(() => Promise.resolve([mockedRecurringDonation]))
@@ -357,6 +471,7 @@ describe('StripePaymentService', () => {
             .campaignId,
         ) //campaignId from the Stripe Event
         expect(mockedDonateToCampaign).toHaveBeenCalled()
+        expect(mockedupdateDonationPayment).toHaveBeenCalled()
         expect(mockCancelSubscription).toHaveBeenCalledWith(
           mockedRecurringDonation.extSubscriptionId,
         )
@@ -369,19 +484,28 @@ describe('StripePaymentService', () => {
 })
 
 it('calculate payment-intent.succeeded with BG tax not included in charge', async () => {
-  const billingDetails = getPaymentData(mockPaymentIntentBGIncludedNot)
+  const billingDetails = getPaymentData(
+    mockPaymentIntentBGIncludedNot,
+    mockPaymentIntentBGIncludedNot.latest_charge as Stripe.Charge,
+  )
   expect(billingDetails.netAmount).toEqual(938)
   expect(billingDetails.chargedAmount).toEqual(1000)
 })
 
 it('calculate payment-intent.succeeded with US tax included in charge', async () => {
-  const billingDetails = getPaymentData(mockPaymentIntentUSIncluded)
+  const billingDetails = getPaymentData(
+    mockPaymentIntentUSIncluded,
+    mockPaymentIntentUSIncluded.latest_charge as Stripe.Charge,
+  )
   expect(billingDetails.netAmount).toEqual(10000)
   expect(billingDetails.chargedAmount).toEqual(10350)
 })
 
 it('calculate payment-intent.succeeded with GB tax included in charge', async () => {
-  const billingDetails = getPaymentData(mockPaymentIntentUKIncluded)
+  const billingDetails = getPaymentData(
+    mockPaymentIntentUKIncluded,
+    mockPaymentIntentUKIncluded.latest_charge as Stripe.Charge,
+  )
   expect(billingDetails.netAmount).toEqual(50000)
   expect(billingDetails.chargedAmount).toEqual(51333)
 })
