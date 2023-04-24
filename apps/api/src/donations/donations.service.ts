@@ -677,6 +677,33 @@ export class DonationsService {
     return user.id
   }
 
+  async getTotalDonatedMoney() {
+    const totalMoney = await this.prisma.donation.aggregate({
+      _sum: {
+        amount: true,
+      },
+      where: { status: DonationStatus.succeeded },
+    })
+    return { total: totalMoney._sum.amount }
+  }
+
+  async getDonorsCount() {
+    const donorsCount = await this.prisma.donation.groupBy({
+      by: ['billingName'],
+      where: { status: DonationStatus.succeeded },
+      _count: {
+        _all: true,
+      },
+      orderBy: { billingName: { sort: 'asc', nulls: 'first' } },
+    })
+
+    // get count of the donations with billingName == null
+    const anonymousDonations = donorsCount[0]._count._all
+
+    // substract one because we don't want to include anonymousDonation again
+    return { count: donorsCount.length - 1 + anonymousDonations }
+  }
+
   /**
    *  @param res  - Response object to be used for the export to excel file
    */
