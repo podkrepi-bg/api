@@ -14,7 +14,6 @@ export const donationWithPerson = Prisma.validator<Prisma.DonationFindManyArgs>(
       },
     },
   },
-  orderBy: [{ createdAt: 'desc' }],
 })
 
 export type DonationWithPerson = Prisma.DonationGetPayload<typeof donationWithPerson>

@@ -12,7 +12,7 @@ import {
   Res,
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
-import { DonationStatus } from '@prisma/client'
+import { DonationStatus, PaymentProvider } from '@prisma/client'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
@@ -132,20 +132,41 @@ export class DonationsController {
   })
   @ApiQuery({ name: 'campaignId', required: false, type: String })
   @ApiQuery({ name: 'status', required: false })
-  @ApiQuery({ name: 'type', required: false })
+  @ApiQuery({
+    name: 'provider',
+    required: false,
+    enum: PaymentProvider,
+    description: 'Payment Provider of the donation',
+  })
+  @ApiQuery({
+    name: 'minAmount',
+    required: false,
+    type: Number,
+    description: 'Minimum amount of the donation',
+  })
+  @ApiQuery({
+    name: 'maxAmount',
+    required: false,
+    type: Number,
+    description: 'Maximum amount of the donation',
+  })
   @ApiQuery({ name: 'pageindex', required: false, type: Number })
   @ApiQuery({ name: 'pagesize', required: false, type: Number })
   @ApiQuery({ name: 'from', required: false, type: Date })
   @ApiQuery({ name: 'to', required: false, type: Date })
   @ApiQuery({ name: 'search', required: false, type: String })
-  findAll(@Query() query?: DonationQueryDto) {
+  @ApiQuery({ name: 'sortBy', required: false, type: String })
+  findAll(@Query() query: DonationQueryDto) {
     return this.donationsService.listDonations(
       query?.campaignId,
       query?.status,
-      query?.type,
+      query?.provider,
+      query?.minAmount,
+      query?.maxAmount,
       query?.from,
       query?.to,
       query?.search,
+      query?.sortBy,
       query?.pageindex,
       query?.pagesize,
     )

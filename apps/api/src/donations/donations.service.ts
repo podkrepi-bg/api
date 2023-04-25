@@ -330,74 +330,58 @@ export class DonationsService {
   async listDonations(
     campaignId?: string,
     status?: DonationStatus,
-    type?: DonationType,
+    provider?: PaymentProvider,
+    minAmount?: number,
+    maxAmount?: number,
     from?: Date,
     to?: Date,
     search?: string,
+    sortBy?: string,
     pageIndex?: number,
     pageSize?: number,
   ): Promise<ListDonationsDto<DonationWithPerson>> {
-    const data = await this.prisma.donation.findMany({
-      where: {
-        status,
-        type,
-        createdAt: {
-          gte: from,
-          lte: to,
-        },
-        ...(search && {
-          OR: [
-            { billingName: { contains: search } },
-            { billingEmail: { contains: search } },
-            {
-              person: {
-                OR: [
-                  {
-                    firstName: { contains: search },
-                  },
-                  {
-                    lastName: { contains: search },
-                  },
-                ],
-              },
-            },
-          ],
-        }),
-        targetVault: { campaign: { id: campaignId } },
+    const whereClause = {
+      status,
+      provider,
+      amount: {
+        gte: minAmount,
+        lte: maxAmount,
       },
+      createdAt: {
+        gte: from,
+        lte: to,
+      },
+      ...(search && {
+        OR: [
+          { billingName: { contains: search } },
+          { billingEmail: { contains: search } },
+          {
+            person: {
+              OR: [
+                {
+                  firstName: { contains: search },
+                },
+                {
+                  lastName: { contains: search },
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      targetVault: { campaign: { id: campaignId } },
+    }
+
+    const data = await this.prisma.donation.findMany({
+      where: whereClause,
+      orderBy: [sortBy ? { [sortBy]: 'desc' } : { createdAt: 'desc' }],
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
       ...donationWithPerson,
     })
 
     const count = await this.prisma.donation.count({
-      where: {
-        status,
-        type,
-        createdAt: {
-          gte: from,
-          lte: to,
-        },
-        ...(search && {
-          OR: [
-            { billingName: { contains: search } },
-            { billingEmail: { contains: search } },
-            {
-              person: {
-                OR: [
-                  {
-                    firstName: { contains: search },
-                  },
-                  {
-                    lastName: { contains: search },
-                  },
-                ],
-              },
-            },
-          ],
-        }),
-        targetVault: { campaign: { id: campaignId } },
-      },
+      where: whereClause,
     })
 
     const result = {
