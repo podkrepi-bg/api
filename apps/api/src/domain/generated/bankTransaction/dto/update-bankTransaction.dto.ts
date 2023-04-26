@@ -11,6 +11,7 @@ export class UpdateBankTransactionDto {
   senderIban?: string
   recipientIban?: string
   description?: string
+  matchedRef?: string
   @ApiProperty({ enum: BankTransactionType })
   type?: BankTransactionType
   @ApiProperty({ enum: BankDonationStatus })

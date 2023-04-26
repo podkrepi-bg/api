@@ -352,9 +352,6 @@ export class ImportTransactionsTask {
   }
 
   private async saveBankTrxRecords(data: filteredTransaction[]) {
-    // Clear the matchedRef field before inserting
-    data.forEach((record) => delete record.matchedRef)
-
     // Insert new transactions
     const inserted = await this.prisma.bankTransaction.createMany({ data, skipDuplicates: true })
 

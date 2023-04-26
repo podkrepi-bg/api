@@ -13,6 +13,7 @@ export class BankTransaction {
   amount: number
   currency: Currency
   description: string
+  matchedRef: string | null
   type: BankTransactionType
   bankDonationStatus: BankDonationStatus | null
 }
