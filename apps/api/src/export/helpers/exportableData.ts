@@ -47,9 +47,19 @@ const exportableData = {
       {
         title: 'Donations',
         columns: [
-          { header: 'Created At', key: 'createdAt', width: donationsDefaultCellWidth, style: { numFmt: 'YYYY-MM-DD hh:mm:ss' } },
+          {
+            header: 'Created At',
+            key: 'createdAt',
+            width: donationsDefaultCellWidth,
+            style: { numFmt: 'YYYY-MM-DD hh:mm:ss' },
+          },
           { header: 'Status', key: 'status', width: donationsDefaultCellWidth },
-          { header: 'Amount', key: 'amount', width: donationsDefaultCellWidth, style: { numFmt: '#,##0.00' }},
+          {
+            header: 'Amount',
+            key: 'amount',
+            width: donationsDefaultCellWidth,
+            style: { numFmt: '#,##0.00' },
+          },
           { header: 'Currency', key: 'currency', width: donationsDefaultCellWidth },
           { header: 'Person', key: 'person', width: donationsDefaultCellWidth },
           { header: 'Email', key: 'email', width: donationsDefaultCellWidth },
