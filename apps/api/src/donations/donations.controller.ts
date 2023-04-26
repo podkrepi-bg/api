@@ -12,7 +12,7 @@ import {
   Res,
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
-import { DonationStatus, PaymentProvider } from '@prisma/client'
+import { DonationStatus } from '@prisma/client'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 

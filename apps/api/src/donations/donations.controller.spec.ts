@@ -9,7 +9,6 @@ import {
   DonationStatus,
   DonationType,
   PaymentProvider,
-  Prisma,
 } from '@prisma/client'
 import { CampaignService } from '../campaign/campaign.service'
 import { ExportService } from '../export/export.service'
