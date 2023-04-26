@@ -25,9 +25,10 @@ import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
-import { donationWithPerson, DonationWithPerson } from './validators/donation.validator'
+import { donationWithPerson, DonationWithPerson } from './queries/donation.validator'
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 import { ImportStatus } from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
+import { DonationQueryDto } from '../common/dto/donation-query-dto'
 
 @Injectable()
 export class DonationsService {
@@ -689,19 +690,37 @@ export class DonationsService {
   }
 
   /**
-   *  @param res  - Response object to be used for the export to excel file
+   *  @param response  - Response object to be used for the export to excel file
    */
-  async exportToExcel(res: Response) {
-    const { items } = await this.listDonations()
+  async exportToExcel(query: DonationQueryDto, response: Response) {
+    //get donations from db based on the filter parameters
+    const { items } = await this.listDonations(
+      query?.campaignId,
+      query?.status,
+      query?.provider,
+      query?.minAmount,
+      query?.maxAmount,
+      query?.from,
+      query?.to,
+      query?.search,
+      query?.sortBy,
+    )
+
     const donationsMappedForExport = items.map((donation) => ({
       ...donation,
       amount: donation.amount / 100,
       person: donation.person
         ? `${donation.person.firstName} ${donation.person.lastName}`
-        : 'Unknown',
+        : 'Anonymous Donor',
+      email: donation.person ? donation.person.email : '',
     }))
+
     const donationExcelTemplate = getTemplateByTable('donations')
 
-    await this.exportService.exportToExcel(res, donationsMappedForExport, donationExcelTemplate)
+    await this.exportService.exportToExcel(
+      response,
+      donationsMappedForExport,
+      donationExcelTemplate,
+    )
   }
 }
