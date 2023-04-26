@@ -1,6 +1,7 @@
+import { ApiProperty } from '@nestjs/swagger'
 import { BankDonationStatus, BankTransactionType } from '@prisma/client'
 import { Expose, Transform } from 'class-transformer'
-import { IsOptional } from 'class-validator'
+import { IsOptional, IsString } from 'class-validator'
 
 interface ToNumberOptions {
   min?: number
@@ -70,4 +71,20 @@ function handleDateTransform(value: any): Date | undefined {
   }
 
   return new Date(value)
+}
+
+export class UpdateBankTransactionRefDto {
+  @ApiProperty()
+  @Expose()
+  @IsString()
+  @Transform(({ value }) => matchPaymentRef(value))
+  paymentRef: string
+}
+
+function matchPaymentRef(value: string) {
+  const regexPaymentRef = /\b[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}\b/g
+  // If not in the valid format an emtpy string will be returned
+  const paymentRef = value?.trim().replace(/[ _]+/g, '-').match(regexPaymentRef)
+
+  return paymentRef ? paymentRef[0] : ''
 }

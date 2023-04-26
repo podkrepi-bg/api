@@ -327,9 +327,12 @@ export class CampaignService {
     return campaign
   }
 
-  async getCampaignByPaymentReference(paymentReference: string): Promise<Campaign | null> {
+  async getCampaignByPaymentReference(paymentReference: string) {
     return await this.prisma.campaign.findFirst({
       where: { paymentReference: paymentReference },
+      include: {
+        vaults: true,
+      },
     })
   }
 
