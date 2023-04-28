@@ -9,19 +9,19 @@ import { Template } from './helpers/exportableData'
 export class ExportService {
   constructor(private prisma: PrismaService) {}
 
-  exportToExcel = async (res: Response, data: ExportableData, template: Template) => {
-    if (!data.length) res.status(404).end('No data to export')
+  exportToExcel = async (response: Response, data: ExportableData, template: Template) => {
+    if (!data.length) response.status(404).end('No data to export')
 
     try {
       const workbook = createWorkbook(data, template)
 
-      res.set({
+      response.set({
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': 'attachment;',
       })
 
-      workbook.xlsx.write(res).then(() => {
-        res.status(200).end()
+      workbook.xlsx.write(response).then(() => {
+        response.status(200).end()
       })
     } catch (err) {
       throw new Error(err)
