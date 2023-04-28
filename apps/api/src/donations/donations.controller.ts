@@ -27,6 +27,7 @@ import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
+import { DonationsApiQuery } from './queries/donations.apiquery'
 
 @ApiTags('donation')
 @Controller('donation')
@@ -34,13 +35,18 @@ export class DonationsController {
   constructor(private readonly donationsService: DonationsService) {}
 
   @Get('export-excel')
+  @DonationsApiQuery()
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  async exportToExcel(@Res() res: Response, @AuthenticatedUser() user: KeycloakTokenParsed) {
+  async exportToExcel(
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+    @Query() query: DonationQueryDto,
+    @Res() response: Response,
+  ) {
     if (isAdmin(user)) {
-      await this.donationsService.exportToExcel(res)
+      await this.donationsService.exportToExcel(query, response)
     }
   }
 
@@ -94,6 +100,18 @@ export class DonationsController {
     return await this.donationsService.getDonationsByUser(user.sub)
   }
 
+  @Get('money')
+  @Public()
+  async totalDonatedMoney() {
+    return this.donationsService.getTotalDonatedMoney()
+  }
+
+  @Get('donors-count')
+  @Public()
+  async donorsCount() {
+    return await this.donationsService.getDonorsCount()
+  }
+
   @Get('listPublic')
   @Public()
   @ApiQuery({ name: 'campaignId', required: false, type: String })
@@ -118,22 +136,18 @@ export class DonationsController {
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
-  @ApiQuery({ name: 'campaignId', required: false, type: String })
-  @ApiQuery({ name: 'status', required: false })
-  @ApiQuery({ name: 'type', required: false })
-  @ApiQuery({ name: 'pageindex', required: false, type: Number })
-  @ApiQuery({ name: 'pagesize', required: false, type: Number })
-  @ApiQuery({ name: 'from', required: false, type: Date })
-  @ApiQuery({ name: 'to', required: false, type: Date })
-  @ApiQuery({ name: 'search', required: false, type: String })
-  findAll(@Query() query?: DonationQueryDto) {
+  @DonationsApiQuery()
+  findAll(@Query() query: DonationQueryDto) {
     return this.donationsService.listDonations(
       query?.campaignId,
       query?.status,
-      query?.type,
+      query?.provider,
+      query?.minAmount,
+      query?.maxAmount,
       query?.from,
       query?.to,
       query?.search,
+      query?.sortBy,
       query?.pageindex,
       query?.pagesize,
     )

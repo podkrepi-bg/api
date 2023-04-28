@@ -42,5 +42,6 @@ import { NotificationModule } from '../sockets/notifications/notification.module
     PersonService,
     ExportService,
   ],
+  exports: [DonationsService],
 })
 export class DonationsModule {}

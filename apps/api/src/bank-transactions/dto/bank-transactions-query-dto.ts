@@ -1,37 +1,23 @@
-import { DonationStatus, PaymentProvider } from '@prisma/client'
+import { ApiProperty } from '@nestjs/swagger'
+import { BankDonationStatus, BankTransactionType } from '@prisma/client'
 import { Expose, Transform } from 'class-transformer'
-import { IsOptional } from 'class-validator'
+import { IsOptional, IsString } from 'class-validator'
 
 interface ToNumberOptions {
   min?: number
   max?: number
 }
 
-export class DonationQueryDto {
+export class BankTransactionsQueryDto {
   @Expose()
   @IsOptional()
   @Transform(({ value }) => falsyToUndefined(value))
-  campaignId?: string
-
-  @Expose()
-  @IsOptional()
-  @Transform(({ value }) => falsyToUndefined(value))
-  status?: DonationStatus
+  status?: BankDonationStatus
 
   @Expose()
   @IsOptional()
   @Transform(({ value }) => falsyToUndefined(value))
-  provider?: PaymentProvider
-
-  @Expose()
-  @IsOptional()
-  @Transform(({ value }) => toNumber(value))
-  minAmount?: number
-
-  @Expose()
-  @IsOptional()
-  @Transform(({ value }) => toNumber(value))
-  maxAmount?: number
+  type?: BankTransactionType
 
   @Expose()
   @IsOptional()
@@ -50,11 +36,6 @@ export class DonationQueryDto {
 
   @Expose()
   @IsOptional()
-  @Transform(({ value }) => falsyToUndefined(value))
-  sortBy?: string
-
-  @Expose()
-  @IsOptional()
   @Transform(({ value }) => toNumber(value))
   pageindex?: number
 
@@ -65,7 +46,7 @@ export class DonationQueryDto {
 }
 
 function toNumber(value: string, opts: ToNumberOptions = {}): number | undefined {
-  if (!value || Number.isNaN(value)) {
+  if (Number.isNaN(value)) {
     return undefined
   }
   if (opts.min || opts.max) {
@@ -90,4 +71,20 @@ function handleDateTransform(value: any): Date | undefined {
   }
 
   return new Date(value)
+}
+
+export class UpdateBankTransactionRefDto {
+  @ApiProperty()
+  @Expose()
+  @IsString()
+  @Transform(({ value }) => matchPaymentRef(value))
+  paymentRef: string
+}
+
+function matchPaymentRef(value: string) {
+  const regexPaymentRef = /\b[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}\b/g
+  // If not in the valid format an emtpy string will be returned
+  const paymentRef = value?.trim().replace(/[ _]+/g, '-').match(regexPaymentRef)
+
+  return paymentRef ? paymentRef[0] : ''
 }

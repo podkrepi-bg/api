@@ -25,9 +25,10 @@ import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
-import { donationWithPerson, DonationWithPerson } from './validators/donation.validator'
+import { donationWithPerson, DonationWithPerson } from './queries/donation.validator'
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 import { ImportStatus } from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
+import { DonationQueryDto } from '../common/dto/donation-query-dto'
 
 @Injectable()
 export class DonationsService {
@@ -330,74 +331,58 @@ export class DonationsService {
   async listDonations(
     campaignId?: string,
     status?: DonationStatus,
-    type?: DonationType,
+    provider?: PaymentProvider,
+    minAmount?: number,
+    maxAmount?: number,
     from?: Date,
     to?: Date,
     search?: string,
+    sortBy?: string,
     pageIndex?: number,
     pageSize?: number,
   ): Promise<ListDonationsDto<DonationWithPerson>> {
-    const data = await this.prisma.donation.findMany({
-      where: {
-        status,
-        type,
-        createdAt: {
-          gte: from,
-          lte: to,
-        },
-        ...(search && {
-          OR: [
-            { billingName: { contains: search } },
-            { billingEmail: { contains: search } },
-            {
-              person: {
-                OR: [
-                  {
-                    firstName: { contains: search },
-                  },
-                  {
-                    lastName: { contains: search },
-                  },
-                ],
-              },
-            },
-          ],
-        }),
-        targetVault: { campaign: { id: campaignId } },
+    const whereClause = {
+      status,
+      provider,
+      amount: {
+        gte: minAmount,
+        lte: maxAmount,
       },
+      createdAt: {
+        gte: from,
+        lte: to,
+      },
+      ...(search && {
+        OR: [
+          { billingName: { contains: search } },
+          { billingEmail: { contains: search } },
+          {
+            person: {
+              OR: [
+                {
+                  firstName: { contains: search },
+                },
+                {
+                  lastName: { contains: search },
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      targetVault: { campaign: { id: campaignId } },
+    }
+
+    const data = await this.prisma.donation.findMany({
+      where: whereClause,
+      orderBy: [sortBy ? { [sortBy]: 'desc' } : { createdAt: 'desc' }],
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
       ...donationWithPerson,
     })
 
     const count = await this.prisma.donation.count({
-      where: {
-        status,
-        type,
-        createdAt: {
-          gte: from,
-          lte: to,
-        },
-        ...(search && {
-          OR: [
-            { billingName: { contains: search } },
-            { billingEmail: { contains: search } },
-            {
-              person: {
-                OR: [
-                  {
-                    firstName: { contains: search },
-                  },
-                  {
-                    lastName: { contains: search },
-                  },
-                ],
-              },
-            },
-          ],
-        }),
-        targetVault: { campaign: { id: campaignId } },
-      },
+      where: whereClause,
     })
 
     const result = {
@@ -677,20 +662,65 @@ export class DonationsService {
     return user.id
   }
 
+  async getTotalDonatedMoney() {
+    const totalMoney = await this.prisma.donation.aggregate({
+      _sum: {
+        amount: true,
+      },
+      where: { status: DonationStatus.succeeded },
+    })
+    return { total: totalMoney._sum.amount }
+  }
+
+  async getDonorsCount() {
+    const donorsCount = await this.prisma.donation.groupBy({
+      by: ['billingName'],
+      where: { status: DonationStatus.succeeded },
+      _count: {
+        _all: true,
+      },
+      orderBy: { billingName: { sort: 'asc', nulls: 'first' } },
+    })
+
+    // get count of the donations with billingName == null
+    const anonymousDonations = donorsCount[0]._count._all
+
+    // substract one because we don't want to include anonymousDonation again
+    return { count: donorsCount.length - 1 + anonymousDonations }
+  }
+
   /**
-   *  @param res  - Response object to be used for the export to excel file
+   *  @param response  - Response object to be used for the export to excel file
    */
-  async exportToExcel(res: Response) {
-    const { items } = await this.listDonations()
+  async exportToExcel(query: DonationQueryDto, response: Response) {
+    //get donations from db based on the filter parameters
+    const { items } = await this.listDonations(
+      query?.campaignId,
+      query?.status,
+      query?.provider,
+      query?.minAmount,
+      query?.maxAmount,
+      query?.from,
+      query?.to,
+      query?.search,
+      query?.sortBy,
+    )
+
     const donationsMappedForExport = items.map((donation) => ({
       ...donation,
       amount: donation.amount / 100,
       person: donation.person
         ? `${donation.person.firstName} ${donation.person.lastName}`
-        : 'Unknown',
+        : 'Anonymous Donor',
+      email: donation.person ? donation.person.email : '',
     }))
+
     const donationExcelTemplate = getTemplateByTable('donations')
 
-    await this.exportService.exportToExcel(res, donationsMappedForExport, donationExcelTemplate)
+    await this.exportService.exportToExcel(
+      response,
+      donationsMappedForExport,
+      donationExcelTemplate,
+    )
   }
 }
