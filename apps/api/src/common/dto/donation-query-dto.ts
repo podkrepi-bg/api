@@ -1,4 +1,4 @@
-import { DonationStatus, DonationType } from '@prisma/client'
+import { DonationStatus, PaymentProvider } from '@prisma/client'
 import { Expose, Transform } from 'class-transformer'
 import { IsOptional } from 'class-validator'
 
@@ -21,7 +21,17 @@ export class DonationQueryDto {
   @Expose()
   @IsOptional()
   @Transform(({ value }) => falsyToUndefined(value))
-  type?: DonationType
+  provider?: PaymentProvider
+
+  @Expose()
+  @IsOptional()
+  @Transform(({ value }) => toNumber(value))
+  minAmount?: number
+
+  @Expose()
+  @IsOptional()
+  @Transform(({ value }) => toNumber(value))
+  maxAmount?: number
 
   @Expose()
   @IsOptional()
@@ -40,6 +50,11 @@ export class DonationQueryDto {
 
   @Expose()
   @IsOptional()
+  @Transform(({ value }) => falsyToUndefined(value))
+  sortBy?: string
+
+  @Expose()
+  @IsOptional()
   @Transform(({ value }) => toNumber(value))
   pageindex?: number
 
@@ -50,7 +65,7 @@ export class DonationQueryDto {
 }
 
 function toNumber(value: string, opts: ToNumberOptions = {}): number | undefined {
-  if (Number.isNaN(value)) {
+  if (!value || Number.isNaN(value)) {
     return undefined
   }
   if (opts.min || opts.max) {
