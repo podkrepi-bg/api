@@ -24,7 +24,6 @@ export class DonationWishService {
     const rowCount = this.prisma.donationWish.count({ where: { campaignId } })
 
     const [items, totalCount] = await this.prisma.$transaction([donationWishes, rowCount])
-    console.log(items)
     return { items: items, totalCount: totalCount }
   }
 }
