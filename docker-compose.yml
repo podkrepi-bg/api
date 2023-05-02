@@ -105,7 +105,14 @@ services:
   stripe-webhook:
     image: stripe/stripe-cli:latest
     restart: always
-    command: ["listen", "--api-key", "${STRIPE_SECRET_KEY}", "--forward-to", "localhost:5010/api/v1/stripe/webhook"]
+    command:
+      [
+        'listen',
+        '--api-key',
+        '${STRIPE_SECRET_KEY}',
+        '--forward-to',
+        'localhost:5010/api/v1/stripe/webhook',
+      ]
 
   ########################################
   ## LOCAL IDENTITY PROVIDER - KEYCLOAK ##
