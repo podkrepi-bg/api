@@ -29,7 +29,6 @@ export class ExpensesService {
         //decode the name from base64
         //multi-part form data does not support utf-8 filenames
         const decodedFilename = Buffer.from(file.originalname, 'base64').toString('utf-8')
-        console.log('File uploading: ', expenseId, decodedFilename, file.mimetype)
         const fileDto: CreateExpenseFileDto = {
           filename: decodedFilename,
           mimetype: file.mimetype,
