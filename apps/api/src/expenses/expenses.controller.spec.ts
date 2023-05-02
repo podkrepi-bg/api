@@ -7,8 +7,6 @@ import { mockReset } from 'jest-mock-extended'
 import { CreateExpenseDto } from './dto/create-expense.dto'
 import { UpdateExpenseDto } from './dto/update-expense.dto'
 import { S3Service } from '../s3/s3.service'
-import { S3 } from 'aws-sdk'
-import { UnauthorizedException } from '@nestjs/common'
 
 const mockData = [
   {
