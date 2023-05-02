@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common'
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common'
 import { Expense, ExpenseFile, ExpenseStatus } from '@prisma/client'
 
 import { PrismaService } from '../prisma/prisma.service'
@@ -31,15 +26,11 @@ export class ExpensesService {
     files = files || []
     await Promise.all(
       files.map((file) => {
-        console.log(
-          'File uploading: ',
-          expenseId,
-          file.originalname,
-          file.mimetype,
-          file.originalname,
-        )
+        //decode the name from base64
+        //multi-part form data does not support utf-8 filenames
+        const decodedFilename = Buffer.from(file.originalname, 'base64').toString('utf-8')
         const fileDto: CreateExpenseFileDto = {
-          filename: file.originalname,
+          filename: decodedFilename,
           mimetype: file.mimetype,
           expenseId,
           uploaderId,
