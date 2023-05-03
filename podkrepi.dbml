@@ -313,6 +313,7 @@ Table donations {
   chargedAmount Int [not null, default: 0]
   person people
   targetVault vaults [not null]
+  DonationWish donation_wishes
 }
 
 Table donation_wishes {
@@ -325,6 +326,7 @@ Table donation_wishes {
   updatedAt DateTime
   campaign campaigns [not null]
   person people
+  donation donations
 }
 
 Table recurring_donations {
@@ -747,6 +749,8 @@ Ref: donations.targetVaultId > vaults.id
 Ref: donation_wishes.campaignId > campaigns.id
 
 Ref: donation_wishes.personId > people.id
+
+Ref: donation_wishes.donationId - donations.id
 
 Ref: recurring_donations.personId > people.id
 
