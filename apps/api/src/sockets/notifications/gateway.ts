@@ -6,13 +6,14 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets'
 import { Logger } from '@nestjs/common'
+import { Server } from 'socket.io'
 
 @WebSocketGateway({ namespace: '/api/v1', transport: 'websocket' })
 export class NotificationGateway
   implements OnGatewayConnection, OnGatewayInit, OnGatewayDisconnect
 {
   constructor() {}
-  @WebSocketServer() server
+  @WebSocketServer() server: Server
 
   afterInit() {
     Logger.log('Websocket server initiated and ready to receive connections')

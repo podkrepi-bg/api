@@ -8,6 +8,7 @@ import { setupSwagger } from './config/swagger.config'
 import { setupExceptions } from './config/exceptions.config'
 import { setupValidation } from './config/validation.config'
 import { setupShutdownHooks } from './config/shutdown.config'
+import { PostgresIoAdapter } from './sockets/notifications/adapter'
 
 const globalPrefix = process.env.GLOBAL_PREFIX ?? 'api/v1'
 const logLevels: LogLevel[] = ['error', 'warn']
@@ -26,6 +27,10 @@ async function bootstrap() {
 
   app.setGlobalPrefix(globalPrefix)
   app.enableVersioning({ type: VersioningType.URI })
+
+  const postgresIoAdapter = new PostgresIoAdapter(app)
+  await postgresIoAdapter.connectToPostgres()
+  app.useWebSocketAdapter(postgresIoAdapter)
 
   const appVersion = process.env.APP_VERSION || 'unknown'
   setupHelmet(app)

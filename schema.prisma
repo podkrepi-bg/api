@@ -577,6 +577,12 @@ model BankTransactionsFile {
   @@map("bank_transactions_files")
 }
 
+model SocketIoAttachments {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  payload   Bytes
+}
+
 enum BeneficiaryType {
   individual
   company
