@@ -112,7 +112,7 @@ spec:
                   key: secret
                   name: jwt-secret
             - name: S3_REGION
-              valueFrom: ADD_CONFIGMAP_HERE
+              value: us-east-1
             - name: IRIS_API_URL
               value: https://developer.sandbox.irispay.bg/api/8
             - name: BANK_BIC
