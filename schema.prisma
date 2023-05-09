@@ -1,6 +1,6 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native"]
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native"]
   previewFeatures = ["orderByNulls"]
 }
 
@@ -377,6 +377,7 @@ model Donation {
   chargedAmount      Int             @default(0)
   person             Person?         @relation(fields: [personId], references: [id])
   targetVault        Vault           @relation(fields: [targetVaultId], references: [id])
+  DonationWish       DonationWish?
 
   @@map("donations")
 }
@@ -391,6 +392,7 @@ model DonationWish {
   updatedAt  DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   campaign   Campaign  @relation(fields: [campaignId], references: [id])
   person     Person?   @relation(fields: [personId], references: [id])
+  donation   Donation? @relation(fields: [donationId], references: [id])
 
   @@map("donation_wishes")
 }
@@ -506,7 +508,7 @@ model BankTransaction {
   currency           Currency            @default(BGN)
   description        String              @db.VarChar(200)
   //Matched campaign payment code
-  matchedRef         String?             @map("matched_ref")  @db.VarChar(100)
+  matchedRef         String?             @map("matched_ref") @db.VarChar(100)
   type               BankTransactionType
   // For Bank donations, describes if campaign was recognized and donation imported
   bankDonationStatus BankDonationStatus?
@@ -529,20 +531,20 @@ model Expense {
   approvedBy   Person?       @relation(fields: [approvedById], references: [id])
   document     Document?     @relation(fields: [documentId], references: [id])
   vault        Vault         @relation(fields: [vaultId], references: [id])
-  spentAt      DateTime    @default(now()) @map("spent_at") @db.Timestamptz(6)
+  spentAt      DateTime      @default(now()) @map("spent_at") @db.Timestamptz(6)
   expenseFiles ExpenseFile[]
 
   @@map("expenses")
 }
 
 model ExpenseFile {
-  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  filename       String       @db.VarChar(200)
-  mimetype       String       @db.VarChar(100)
-  expenseId      String       @map("expense_id") @db.Uuid
-  uploaderId     String       @map("uploader_id") @db.Uuid
-  expense        Expense      @relation(fields: [expenseId], references: [id])
-  uploadedBy     Person       @relation(fields: [uploaderId], references: [id])
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename   String  @db.VarChar(200)
+  mimetype   String  @db.VarChar(100)
+  expenseId  String  @map("expense_id") @db.Uuid
+  uploaderId String  @map("uploader_id") @db.Uuid
+  expense    Expense @relation(fields: [expenseId], references: [id])
+  uploadedBy Person  @relation(fields: [uploaderId], references: [id])
 
   @@map("expense_files")
 }
@@ -771,7 +773,7 @@ enum BankTransactionType {
 enum BankDonationStatus {
   unrecognized
   imported
-  reImported @map("re_imported")
+  reImported   @map("re_imported")
   importFailed @map("import_failed")
 
   @@map("bank_donation_status")
