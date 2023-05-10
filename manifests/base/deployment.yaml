@@ -111,8 +111,8 @@ spec:
                 secretKeyRef:
                   key: secret
                   name: jwt-secret
-            - name: S3_BUCKET
-              value: campaign-files
+            - name: S3_REGION
+              value: us-east-1
             - name: IRIS_API_URL
               value: https://developer.sandbox.irispay.bg/api/8
             - name: BANK_BIC
