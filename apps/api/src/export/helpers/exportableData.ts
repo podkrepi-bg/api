@@ -66,6 +66,7 @@ const exportableData = {
           { header: 'BillingName', key: 'billingName', width: donationsDefaultCellWidth },
           { header: 'BillingEmail', key: 'billingEmail', width: donationsDefaultCellWidth },
           { header: 'Payment Provider', key: 'provider', width: donationsDefaultCellWidth },
+          { header: 'Campaign ID', key: 'campaignId', width: donationsDefaultCellWidth },
         ],
         style: {
           header: defaultHeaderStyle,
