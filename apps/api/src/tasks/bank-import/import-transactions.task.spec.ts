@@ -1,7 +1,7 @@
 import { IrisIbanAccountInfo, IrisTransactionInfo } from './dto/response.dto'
-import { ImportTransactionsTask } from './import-transactions.task'
+import { IrisTasks } from './import-transactions.task'
 import { Test, TestingModule } from '@nestjs/testing'
-import { HttpModule } from '@nestjs/axios'
+import { HttpModule, HttpService } from '@nestjs/axios'
 
 import { MockPrismaService, prismaMock } from '../../prisma/prisma-client.mock'
 import { SchedulerRegistry } from '@nestjs/schedule/dist'
@@ -17,11 +17,23 @@ import { ExportService } from '../../export/export.service'
 import { BankDonationStatus, BankTransaction, Campaign, Vault } from '@prisma/client'
 import { toMoney } from '../../common/money'
 import { DateTime } from 'luxon'
+import { EmailService } from '../../email/email.service'
+import { TemplateService } from '../../email/template.service'
+
+const IBAN = 'BG77UNCR92900016740920'
+
+class MockIrisTasks extends IrisTasks {
+  protected IBAN = IBAN
+}
 
 describe('ImportTransactionsTask', () => {
-  let taskService: ImportTransactionsTask
+  let irisTasks: MockIrisTasks
   let testModule: TestingModule
   let scheduler: SchedulerRegistry
+  let emailService: EmailService
+  let httpService: HttpService
+  let configService: ConfigService
+
   const personServiceMock = {
     findOneByKeycloakId: jest.fn(() => {
       return { id: 'mock' }
@@ -148,14 +160,14 @@ describe('ImportTransactionsTask', () => {
   // Mock this before instantiating service - else it fails
   jest
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-    .spyOn(ImportTransactionsTask.prototype as any, 'checkForRequiredVariables')
+    .spyOn(IrisTasks.prototype as any, 'checkForRequiredVariables')
     .mockImplementation(() => true)
 
   beforeEach(async () => {
     testModule = await Test.createTestingModule({
       imports: [HttpModule, NotificationModule],
       providers: [
-        ImportTransactionsTask,
+        MockIrisTasks,
         MockPrismaService,
         {
           provide: ConfigService,
@@ -173,14 +185,19 @@ describe('ImportTransactionsTask', () => {
         PersonService,
         ExportService,
         SchedulerRegistry,
+        EmailService,
+        TemplateService,
       ],
     })
       .overrideProvider(PersonService)
       .useValue(personServiceMock)
       .compile()
 
-    taskService = await testModule.get(ImportTransactionsTask)
+    irisTasks = await testModule.get(MockIrisTasks)
     scheduler = testModule.get<SchedulerRegistry>(SchedulerRegistry)
+    emailService = testModule.get<EmailService>(EmailService)
+    httpService = testModule.get<HttpService>(HttpService)
+    configService = testModule.get<ConfigService>(ConfigService)
   })
 
   afterEach(() => {
@@ -189,63 +206,58 @@ describe('ImportTransactionsTask', () => {
   })
 
   it('should be defined', () => {
-    expect(taskService).toBeDefined()
+    expect(irisTasks).toBeDefined()
   })
 
-  describe('initImportTransactionsTask', () => {
-    it('should register the import task', async () => {
-      jest.spyOn(taskService, 'initImportTransactionsTask')
-      jest.spyOn(scheduler, 'addInterval')
-
-      await taskService.initImportTransactionsTask()
-
-      expect(scheduler.addInterval).toHaveBeenCalledWith(
-        'import-bank-transactions',
-        expect.anything(),
-      )
-      expect(scheduler.getIntervals()).toEqual(['import-bank-transactions'])
-    })
-  })
-
-  describe('importBankTransactions', () => {
+  describe('importBankTransactionsTASK', () => {
     it('should import IRIS transactions', async () => {
       const donationService = testModule.get<DonationsService>(DonationsService)
       const getIBANSpy = jest
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        .spyOn(ImportTransactionsTask.prototype as any, 'getIrisUserIBANaccount')
+        .spyOn(IrisTasks.prototype as any, 'getIrisUserIBANaccount')
         .mockImplementation(() => irisIBANAccountMock)
       const getTrxSpy = jest
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        .spyOn(ImportTransactionsTask.prototype as any, 'getTransactions')
+        .spyOn(IrisTasks.prototype as any, 'getTransactions')
         .mockImplementation(() => mockIrisTransactions)
       const checkTrxsSpy = jest
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        .spyOn(ImportTransactionsTask.prototype as any, 'hasNewOrNonImportedTransactions')
+        .spyOn(IrisTasks.prototype as any, 'hasNewOrNonImportedTransactions')
 
       const prepareBankTrxSpy = jest.spyOn(
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        ImportTransactionsTask.prototype as any,
+        IrisTasks.prototype as any,
         'prepareBankTransactionRecords',
       )
       const processDonationsSpy = jest.spyOn(
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        ImportTransactionsTask.prototype as any,
+        IrisTasks.prototype as any,
         'processDonations',
       )
       const prepareBankPaymentSpy = jest.spyOn(
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        ImportTransactionsTask.prototype as any,
+        IrisTasks.prototype as any,
         'prepareBankPaymentObject',
       )
       const donationSpy = jest.spyOn(donationService, 'createUpdateBankPayment')
       // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-      const saveTrxSpy = jest.spyOn(ImportTransactionsTask.prototype as any, 'saveBankTrxRecords')
+      const saveTrxSpy = jest.spyOn(IrisTasks.prototype as any, 'saveBankTrxRecords')
+      const notifyUnrecognizedSpy = jest.spyOn(
+        IrisTasks.prototype as any,
+        'sendUnrecognizedDonationsMail',
+      )
+
+      // Spy email sending
+      jest.spyOn(emailService, 'sendFromTemplate').mockImplementation(async () => {})
 
       jest.spyOn(prismaMock.bankTransaction, 'count').mockResolvedValue(0)
       jest.spyOn(prismaMock, '$transaction').mockResolvedValue('SUCCESS')
       jest.spyOn(prismaMock.campaign, 'findMany').mockResolvedValue(mockDonatedCampaigns)
       jest.spyOn(prismaMock.bankTransaction, 'createMany').mockResolvedValue({ count: 2 })
       jest.spyOn(prismaMock.bankTransaction, 'updateMany')
+      jest
+        .spyOn(prismaMock.bankTransaction, 'findMany')
+        .mockResolvedValue([{ id: '1' }, { id: '2' }] as BankTransaction[])
 
       const filteredIrisTransactions = mockIrisTransactions.filter(
         (trx) =>
@@ -254,7 +266,7 @@ describe('ImportTransactionsTask', () => {
       )
 
       // Run task
-      await taskService.importBankTransactions()
+      await irisTasks.importBankTransactionsTASK()
 
       // 1. Should get IRIS iban account
       expect(getIBANSpy).toHaveBeenCalled()
@@ -353,42 +365,80 @@ describe('ImportTransactionsTask', () => {
           skipDuplicates: true,
         }),
       )
+
+      // 7.Notify for unrecognized bank donations
+      expect(notifyUnrecognizedSpy).toHaveBeenCalledWith(
+        // Outgoing and Stripe payments should have been filtered
+        expect.arrayContaining(
+          filteredIrisTransactions.map((trx) =>
+            expect.objectContaining({
+              id: trx.transactionId,
+              description: trx.remittanceInformationUnstructured,
+              amount: toMoney(trx.transactionAmount.amount),
+              transactionDate: new Date(trx.valueDate),
+              type: trx.creditDebitIndicator.toLowerCase(),
+            }),
+          ),
+        ),
+      )
+
+      expect(emailService.sendFromTemplate).toHaveBeenCalled()
+      // Filter the unnotified failed/unrecognized transactions
+      expect(prismaMock.bankTransaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            bankDonationStatus: {
+              in: [BankDonationStatus.importFailed, BankDonationStatus.unrecognized],
+            },
+            notified: false,
+          }),
+        }),
+      )
+
+      // Update trx notification status
+      expect(prismaMock.bankTransaction.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            notified: true,
+          },
+        }),
+      )
     })
 
     it('should not run if all current transactions for the day have been processed', async () => {
       const donationService = testModule.get<DonationsService>(DonationsService)
       const getIBANSpy = jest
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        .spyOn(ImportTransactionsTask.prototype as any, 'getIrisUserIBANaccount')
+        .spyOn(IrisTasks.prototype as any, 'getIrisUserIBANaccount')
         .mockImplementation(() => irisIBANAccountMock)
       const getTrxSpy = jest
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        .spyOn(ImportTransactionsTask.prototype as any, 'getTransactions')
+        .spyOn(IrisTasks.prototype as any, 'getTransactions')
         .mockImplementation(() => mockIrisTransactions)
       const checkTrxsSpy = jest.spyOn(
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        ImportTransactionsTask.prototype as any,
+        IrisTasks.prototype as any,
         'hasNewOrNonImportedTransactions',
       )
       const prepareBankTrxSpy = jest.spyOn(
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        ImportTransactionsTask.prototype as any,
+        IrisTasks.prototype as any,
         'prepareBankTransactionRecords',
       )
       const processDonationsSpy = jest.spyOn(
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        ImportTransactionsTask.prototype as any,
+        IrisTasks.prototype as any,
         'processDonations',
       )
       const prepareBankPaymentSpy = jest.spyOn(
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        ImportTransactionsTask.prototype as any,
+        IrisTasks.prototype as any,
         'prepareBankPaymentObject',
       )
       const donationSpy = jest.spyOn(donationService, 'createUpdateBankPayment')
       const saveTrxSpy = jest
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        .spyOn(ImportTransactionsTask.prototype as any, 'saveBankTrxRecords')
+        .spyOn(IrisTasks.prototype as any, 'saveBankTrxRecords')
 
       // The length of the imported transactions is the same as the ones received from IRIS -meaning everything is up-to date
       jest.spyOn(prismaMock.bankTransaction, 'count').mockResolvedValue(mockIrisTransactions.length)
@@ -396,7 +446,7 @@ describe('ImportTransactionsTask', () => {
       jest.spyOn(prismaMock.campaign, 'findMany').mockResolvedValue(mockDonatedCampaigns)
 
       // Run task
-      await taskService.importBankTransactions()
+      await irisTasks.importBankTransactionsTASK()
 
       // 1. Should get IRIS iban account
       expect(getIBANSpy).toHaveBeenCalled()
@@ -420,22 +470,104 @@ describe('ImportTransactionsTask', () => {
     it('should not run if no transactions have been fetched', async () => {
       jest
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        .spyOn(ImportTransactionsTask.prototype as any, 'getIrisUserIBANaccount')
+        .spyOn(IrisTasks.prototype as any, 'getIrisUserIBANaccount')
         .mockImplementation(() => irisIBANAccountMock)
       jest
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        .spyOn(ImportTransactionsTask.prototype as any, 'getTransactions')
+        .spyOn(IrisTasks.prototype as any, 'getTransactions')
         .mockImplementation(() => [])
       const prepareBankTrxSpy = jest.spyOn(
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        ImportTransactionsTask.prototype as any,
+        IrisTasks.prototype as any,
         'prepareBankTransactionRecords',
       )
 
       // Run task
-      await taskService.importBankTransactions()
+      await irisTasks.importBankTransactionsTASK()
 
       expect(prepareBankTrxSpy).not.toHaveBeenCalled()
     })
+  })
+
+  describe('notifyForExpiringIrisConsentTASK', () => {
+    it('should notify for expiring Iris Consent', async () => {
+      const getIBANSpy = jest
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+        .spyOn(IrisTasks.prototype as any, 'getIrisUserIBANaccount')
+        .mockImplementation(() => irisIBANAccountMock)
+      const getConsentLinkSpy = jest
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+        .spyOn(IrisTasks.prototype as any, 'getConsentLink')
+        .mockImplementation(() => 'consent-link.com')
+
+      // Spy email sending
+      jest.spyOn(emailService, 'sendFromTemplate').mockImplementation(async () => {})
+      // Mock Config
+      jest.spyOn(configService, 'get').mockReturnValue('www.link.com/{ibanID}')
+
+      const httpSpy = jest.spyOn(httpService.axiosRef, 'get').mockResolvedValue({
+        data: {
+          consents: [
+            {
+              iban: IBAN,
+              validUntil: DateTime.now().plus({ days: 3 }).toFormat('yyyy-MM-dd'),
+            },
+          ],
+        },
+      })
+
+      // Run task
+      await irisTasks.notifyForExpiringIrisConsentTASK()
+
+      // 1. Get IBAN Account Info
+      expect(getIBANSpy).toHaveBeenCalled()
+
+      // 2. Get the consent info for the IBAN
+      expect(httpSpy).toHaveBeenCalled()
+
+      // 3 < 5 => notify for expiring consent
+      expect(getConsentLinkSpy).toHaveBeenCalled()
+      expect(emailService.sendFromTemplate).toHaveBeenCalled()
+    })
+  })
+
+  it('should NOT notify for expiring Iris Consent before expTreshold is met', async () => {
+    const getIBANSpy = jest
+      // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+      .spyOn(IrisTasks.prototype as any, 'getIrisUserIBANaccount')
+      .mockImplementation(() => irisIBANAccountMock)
+    const getConsentLinkSpy = jest
+      // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+      .spyOn(IrisTasks.prototype as any, 'getConsentLink')
+      .mockImplementation((arg) => 'consent-link.com')
+
+    // Spy email sending
+    jest.spyOn(emailService, 'sendFromTemplate').mockImplementation(async () => {})
+    // Mock Config
+    jest.spyOn(configService, 'get').mockReturnValue('www.link.com/{ibanID}')
+
+    const httpSpy = jest.spyOn(httpService.axiosRef, 'get').mockResolvedValue({
+      data: {
+        consents: [
+          {
+            iban: IBAN,
+            validUntil: DateTime.now().plus({ days: 6 }).toFormat('yyyy-MM-dd'),
+          },
+        ],
+      },
+    })
+
+    // Run task
+    await irisTasks.notifyForExpiringIrisConsentTASK()
+
+    // 1. Get IBAN Account Info
+    expect(getIBANSpy).toHaveBeenCalled()
+
+    // 2. Get the consent info for the IBAN
+    expect(httpSpy).toHaveBeenCalled()
+
+    // 6 > 5 => don't notify for expiring consent
+    expect(getConsentLinkSpy).not.toHaveBeenCalled()
+    expect(emailService.sendFromTemplate).not.toHaveBeenCalled()
   })
 })
