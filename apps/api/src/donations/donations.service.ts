@@ -713,6 +713,7 @@ export class DonationsService {
         ? `${donation.person.firstName} ${donation.person.lastName}`
         : 'Anonymous Donor',
       email: donation.person ? donation.person.email : '',
+      campaignId: donation.targetVault.campaign.id,
     }))
 
     const donationExcelTemplate = getTemplateByTable('donations')
