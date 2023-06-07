@@ -59,7 +59,7 @@ export class CampaignNewsFileController {
           Array.isArray(filesRole) ? filesRole[key] : filesRole,
           articleId,
           file.mimetype,
-          file.originalname,
+          Buffer.from(file.originalname, 'latin1').toString('utf-8'),
           person,
           file.buffer,
         )
