@@ -33,6 +33,7 @@ export class CampaignNewsService {
           author: true,
           publishedAt: true,
           description: true,
+          articleFiles: true,
           campaign: {
             select: {
               title: true,
@@ -63,6 +64,9 @@ export class CampaignNewsService {
     const article = await this.prisma.campaignNews
       .findFirst({
         where: { id: articleId },
+        include: {
+          articleFiles: true
+        }
       })
       .catch((error) => Logger.warn(error))
     return article
@@ -82,6 +86,7 @@ export class CampaignNewsService {
           publishedAt: true,
           author: true,
           description: true,
+          articleFiles: true,
           campaign: {
             select: {
               title: true,
