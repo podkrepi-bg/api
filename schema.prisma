@@ -69,6 +69,7 @@ model Person {
   transfers          Transfer[]
   withdrawals        Withdrawal[]
   publishedNews      CampaignNews[]
+  articleFiles       CampaignNewsFile[]
 
   @@index([keycloakId], map: "keycloak_id_idx")
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
@@ -218,20 +219,21 @@ model Campaign {
 }
 
 model CampaignNews {
-  id          String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  campaignId  String            @map("campaign_id") @db.Uuid
-  publisherId String            @map("publisher_id") @db.Uuid
-  slug        String
-  title       String
-  author      String
-  sourceLink  String?           @map("source_link")
-  state       CampaignNewsState @default(draft)
-  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  publishedAt DateTime?         @map("published_at") @db.Timestamptz(6)
-  editedAt    DateTime?         @map("edited_at") @db.Timestamptz(6)
-  description String
-  campaign    Campaign          @relation(fields: [campaignId], references: [id])
-  publisher   Person            @relation(fields: [publisherId], references: [id])
+  id           String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId   String             @map("campaign_id") @db.Uuid
+  publisherId  String             @map("publisher_id") @db.Uuid
+  slug         String
+  title        String
+  author       String
+  sourceLink   String?            @map("source_link")
+  state        CampaignNewsState  @default(draft)
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  publishedAt  DateTime?          @map("published_at") @db.Timestamptz(6)
+  editedAt     DateTime?          @map("edited_at") @db.Timestamptz(6)
+  description  String
+  campaign     Campaign           @relation(fields: [campaignId], references: [id])
+  publisher    Person             @relation(fields: [publisherId], references: [id])
+  articleFiles CampaignNewsFile[]
 
   @@map("campaign_news")
 }
@@ -274,6 +276,19 @@ model CampaignFile {
   person     Person           @relation(fields: [personId], references: [id])
 
   @@map("campaign_files")
+}
+
+model CampaignNewsFile {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename  String           @db.VarChar(200)
+  articleId String           @map("article_id") @db.Uuid
+  personId  String           @map("person_id") @db.Uuid
+  mimetype  String           @db.VarChar(100)
+  role      CampaignFileRole
+  news      CampaignNews     @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  person    Person           @relation(fields: [personId], references: [id])
+
+  @@map("campaign_news_files")
 }
 
 model IrregularityFile {
@@ -833,6 +848,7 @@ enum CampaignFileRole {
   campaignListPhoto
   beneficiaryPhoto
   organizerPhoto
+  gallery
 
   @@map("campaign_file_role")
 }
