@@ -53,6 +53,7 @@ import { ScheduleModule } from '@nestjs/schedule'
 import { TasksModule } from '../tasks//bank-import/tasks.module'
 import { BankTransactionsModule } from '../bank-transactions/bank-transactions.module'
 import { CampaignNewsModule } from '../campaign-news/campaign-news.module'
+import { CampaignNewsFileModule } from '../campaign-news-file/campaign-news-file.module'
 
 @Module({
   imports: [
@@ -104,7 +105,8 @@ import { CampaignNewsModule } from '../campaign-news/campaign-news.module'
     JwtModule,
     NotificationModule,
     BankTransactionsModule,
-    CampaignNewsModule
+    CampaignNewsModule,
+    CampaignNewsFileModule,
   ],
   controllers: [AppController],
   providers: [
