@@ -130,6 +130,27 @@ export class CampaignNewsService {
       .catch((error) => Logger.warn(error))
   }
 
+  async listAdminArticles(campaignSlug: string) {
+    return await this.prisma.campaign.findFirst({
+      where: {slug: campaignSlug},
+      select: {
+        id: true,
+        title: true,
+        campaignNews: {
+           select: {
+             id: true,
+             title: true,
+             author: true,
+             createdAt: true,
+             publishedAt: true,
+             editedAt: true,
+             state: true,
+          }
+        }
+      }
+    })
+  }
+
   async editArticle(id: string, state: CampaignNewsState, editArticleDto: UpdateCampaignNewsDto) {
     try {
       return await this.prisma.campaignNews.update({
