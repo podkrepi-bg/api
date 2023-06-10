@@ -8,6 +8,7 @@ import {
   DonationType,
   Vault,
   CampaignFileRole,
+  CampaignNewsState,
 } from '@prisma/client'
 import {
   forwardRef,
@@ -319,7 +320,7 @@ export class CampaignService {
     const campaignSums = await this.getCampaignSums([campaign.id])
 
     campaign['summary'] = this.getVaultAndDonationSummaries(campaign.id, campaignSums)
-    campaign['news'] = await this.getCampaignNews(campaign.id)
+    campaign['campaignNews'] = await this.getCampaignNews(campaign.id)
 
     const vault = await this.getCampaignVault(campaign.id)
     if (vault) {
@@ -767,9 +768,9 @@ export class CampaignService {
 
   async getCampaignNews(campaignId: string) {
     const articles = await this.prisma.campaignNews.findMany({
-      where: { campaignId: campaignId },
+      where: { campaignId: campaignId, state: CampaignNewsState.published },
       take: 2,
-      orderBy: { publishedAt: 'asc' },
+      orderBy: { publishedAt: 'desc' },
       include: {
         articleFiles: {
           where: {
