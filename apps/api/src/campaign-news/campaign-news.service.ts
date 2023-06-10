@@ -19,6 +19,12 @@ export class CampaignNewsService {
     }
   }
 
+
+  async canCreateArticle(campaignId: string, keycloakId:string) {
+    const canEdit = await this.prisma.campaign.findFirst({where: {id: campaignId, organizer: {person: {keycloakId}}}})
+    return !!canEdit
+  }
+
   async listPublishedNewsWithPagination(currentPage: number) {
     const [articles, totalRecords] = await this.prisma.$transaction([
       this.prisma.campaignNews.findMany({

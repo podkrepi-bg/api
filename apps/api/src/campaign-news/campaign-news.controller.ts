@@ -19,6 +19,7 @@ import { CampaignNewsService } from './campaign-news.service'
 import { UpdateCampaignNewsDto } from './dto/update-campaign-news.dto'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { PersonService } from '../person/person.service'
+import { CampaignNewsState } from '@prisma/client'
 
 @ApiTags('campaign-news')
 @Controller('campaign-news')
@@ -30,18 +31,20 @@ export class CampaignNewsController {
 
   @Post()
   @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    roles: [],
     mode: RoleMatchingMode.ANY,
   })
   async create(
-    @Body() CreateCampaignNewsDto: CreateCampaignNewsDto,
+    @Body() createCampaignNewsDto: CreateCampaignNewsDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
-    if (!isAdmin(user)) {
-      throw new ForbiddenException(
-        'The user is not coordinator,organizer or beneficiery to the requested campaign',
-      )
+
+    const isCampaignOrganizer = await this.campaignNewsService.canCreateArticle(createCampaignNewsDto.campaignId, user.sub);
+
+    if(!isCampaignOrganizer && !isAdmin(user)) {
+      throw new ForbiddenException('The user is not coordinator,organizer or beneficiery to the requested campaign')
     }
+
     const person = await this.personService.findOneByKeycloakId(user.sub)
 
     if (!person) {
@@ -49,7 +52,7 @@ export class CampaignNewsController {
     }
 
     return await this.campaignNewsService.createDraft({
-      ...CreateCampaignNewsDto,
+      ...createCampaignNewsDto,
       publisherId: person.id,
     })
   }
@@ -77,7 +80,7 @@ export class CampaignNewsController {
 
   @Put(':id')
   @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    roles: [],
     mode: RoleMatchingMode.ANY,
   })
   async editArticle(
@@ -85,13 +88,22 @@ export class CampaignNewsController {
     @Body() updateCampaignNewsDto: UpdateCampaignNewsDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
-    if (!isAdmin(user)) {
-      throw new Error('The user has no access to edit this article')
-    }
     const article = await this.campaignNewsService.findArticleByID(articleId)
-
     if (!article) {
       throw new NotFoundException('Article not found')
+    }
+
+    const publisher = await this.personService.findOneByKeycloakId(user.sub);
+    if(!publisher) {
+      throw new NotFoundException('Author was not found')
+    };
+
+    if((article.state === CampaignNewsState.draft && publisher.id !== article.publisherId) && !isAdmin(user)){
+      throw new ForbiddenException('The user has no access to delete this article')
+    }
+
+    if(article.state === CampaignNewsState.published && !isAdmin(user)){
+      throw new ForbiddenException("User has no access to edit this article")
     }
 
     return await this.campaignNewsService.editArticle(
@@ -103,13 +115,27 @@ export class CampaignNewsController {
 
   @Delete(':id')
   @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    roles: [],
     mode: RoleMatchingMode.ANY,
   })
   async delete(@Param('id') articleId: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
-    if (!isAdmin(user)) {
-      throw new Error('The user has no access to delete this article')
+    const article = await this.campaignNewsService.findArticleByID(articleId);
+    if(!article) throw new NotFoundException('Article not found')
+
+    const publisher = await this.personService.findOneByKeycloakId(user.sub);
+
+    if(!publisher) {
+      throw new NotFoundException('Author was not found')
+    };
+
+    if((article.state === CampaignNewsState.draft && publisher.id !== article.publisherId) && !isAdmin(user)){
+      throw new ForbiddenException('The user has no access to delete this article')
     }
+
+    if (article.state === CampaignNewsState.published && !isAdmin(user)) {
+      throw new ForbiddenException('The user has no access to delete this article')
+    }
+
     return await this.campaignNewsService.deleteArticle(articleId)
   }
 }
