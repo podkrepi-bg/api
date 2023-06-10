@@ -83,7 +83,7 @@ export class CampaignController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Param(`slug`) slug: string,
   ) {
-    return this.campaignNewsService.findArticlesByCampaignSlug(slug, page)
+    return this.campaignNewsService.findArticlesByCampaignSlugWithPagination(slug, page)
   }
 
   @Post('create-campaign')

@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common'
+import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common'
 import { CreateCampaignNewsDto } from './dto/create-campaign-news.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { UpdateCampaignNewsDto } from './dto/update-campaign-news.dto'
@@ -50,7 +50,9 @@ export class CampaignNewsService {
     const totalPages = Math.ceil(totalRecords / this.RECORDS_PER_PAGE)
 
     return {
-      articles: articles,
+      campaign: {
+        campaignNews: articles
+      },
       pagination: {
         currentPage: currentPage,
         nextPage: currentPage === totalPages ? currentPage : currentPage + 1,
@@ -72,39 +74,41 @@ export class CampaignNewsService {
     return article
   }
 
-  async findArticlesByCampaignSlug(slug: string, currentPage: number) {
-    const [articles, totalRecords] = await this.prisma.$transaction([
-      this.prisma.campaignNews.findMany({
-        where: { campaign: { slug: slug }, state: CampaignNewsState.published },
-        orderBy: { publishedAt: 'desc' },
-        take: this.RECORDS_PER_PAGE,
-        skip: Number((currentPage - 1) * this.RECORDS_PER_PAGE),
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          publishedAt: true,
-          author: true,
-          description: true,
-          articleFiles: true,
-          campaign: {
-            select: {
+  async findArticlesByCampaignSlugWithPagination(slug: string, currentPage: number) {
+      const [campaign, totalRecords] = await this.prisma.$transaction([
+        this.prisma.campaign.findFirst({
+          where: {slug},
+          select: {
+            title: true,
+            slug: true,
+            campaignNews: {
+              where: {state: CampaignNewsState.published},
+              orderBy: {publishedAt: 'desc'},
+              take: this.RECORDS_PER_PAGE,
+              skip: Number((currentPage - 1) * this.RECORDS_PER_PAGE),
+              select: {
+              id: true,
               title: true,
-              state: true,
               slug: true,
-            },
-          },
-        },
-      }),
-      this.prisma.campaignNews.count({
-        where: { campaign: { slug: slug }, state: CampaignNewsState.published },
-      }),
-    ])
+              publishedAt: true,
+              author: true,
+              description: true,
+              articleFiles: true,
+            }
+          }
+        }
+        }),
+        this.prisma.campaignNews.count({
+          where: { campaign: { slug: slug }, state: CampaignNewsState.published },
+        }),
+      ])
+
+      if(!campaign ) throw new NotFoundException("No news were found for the selected campaign")
 
     const totalPages = Math.ceil(totalRecords / this.RECORDS_PER_PAGE)
 
     return {
-      articles: articles,
+      campaign,
       pagination: {
         currentPage: currentPage,
         nextPage: currentPage === totalPages ? currentPage : currentPage + 1,
@@ -158,7 +162,6 @@ export class CampaignNewsService {
   async deleteArticle(articleId: string) {
     try {
       const test = await this.prisma.campaignNews.delete({ where: { id: articleId } })
-      console.log(test)
       return test
     } catch (error) {
       const message = 'Deleting news article has failed!'
