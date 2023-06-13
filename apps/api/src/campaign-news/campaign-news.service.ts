@@ -126,7 +126,7 @@ export class CampaignNewsService {
 
   async findArticleBySlug(slug: string) {
     return await this.prisma.campaignNews
-      .findFirst({ where: { slug: slug } })
+      .findFirst({ where: { slug: slug }, include: {articleFiles: true} })
       .catch((error) => Logger.warn(error))
   }
 
@@ -141,6 +141,7 @@ export class CampaignNewsService {
              id: true,
              title: true,
              author: true,
+             slug: true,
              createdAt: true,
              publishedAt: true,
              editedAt: true,
