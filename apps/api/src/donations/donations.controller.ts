@@ -10,6 +10,9 @@ import {
   Query,
   Logger,
   Res,
+  Inject,
+  forwardRef,
+  NotFoundException,
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
 import { DonationStatus } from '@prisma/client'
@@ -28,11 +31,15 @@ import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
 import { DonationsApiQuery } from './queries/donations.apiquery'
+import { PersonService } from '../person/person.service'
 
 @ApiTags('donation')
 @Controller('donation')
 export class DonationsController {
-  constructor(private readonly donationsService: DonationsService) {}
+  constructor(
+    private readonly donationsService: DonationsService,
+    @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
+    ) {}
 
   @Get('export-excel')
   @DonationsApiQuery()
@@ -97,7 +104,9 @@ export class DonationsController {
 
   @Get('user-donations')
   async userDonations(@AuthenticatedUser() user: KeycloakTokenParsed) {
-    return await this.donationsService.getDonationsByUser(user.sub)
+    const person = await this.personService.findOneByKeycloakId(user.sub);
+    if(!person) throw new NotFoundException("User was not found");
+    return await this.donationsService.getDonationsByUser(user.sub, person.email)
   }
 
   @Get('money')
@@ -160,8 +169,17 @@ export class DonationsController {
   }
 
   @Get('user/:id')
-  userDonationById(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
-    return this.donationsService.getUserDonationById(id, user.sub)
+  async userDonationById(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
+    const person = await this.personService.findOneByKeycloakId(user.sub);
+    if(!person) throw new NotFoundException("User was not found");
+    const donation =  await this.donationsService.getUserDonationById(id, user.sub, person.email)
+    return {
+      ...donation,
+      person: {
+        firstName: person.firstName,
+        lastName: person.lastName
+      }
+    }
   }
 
   @Post('create-payment')
