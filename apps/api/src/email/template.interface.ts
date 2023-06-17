@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { CreatePersonDto } from '../person/dto/create-person.dto'
 import { CreateInquiryDto } from '../support/dto/create-inquiry.dto'
 import { CreateRequestDto } from '../support/dto/create-request.dto'
@@ -8,6 +9,8 @@ export enum TemplateType {
   inquiryReceived = 'inquiry-received',
   inquiryReceivedInternal = 'inquiry-received-internal',
   forgotPass = 'forgot-password',
+  unrecognizedDonation = 'unrecognized-donation',
+  expiringIrisConsent = 'expiring-iris-consent',
 }
 export type TemplateTypeKeys = keyof typeof TemplateType
 export type TemplateTypeValues = typeof TemplateType[TemplateTypeKeys]
@@ -53,4 +56,20 @@ export class InquiryReceivedEmailDto extends EmailTemplate<CreateInquiryDto> {
 
 export class InquiryReceivedInternalEmailDto extends EmailTemplate<CreateInquiryDto> {
   name = TemplateType.inquiryReceivedInternal
+}
+
+export class UnrecognizedDonationEmailDto extends EmailTemplate<{
+  transactions: Partial<Prisma.BankTransactionCreateManyInput>[]
+  importDate: string
+  link: string
+}> {
+  name = TemplateType.unrecognizedDonation
+}
+
+export class ExpiringIrisConsentEmailDto extends EmailTemplate<{
+  daysToExpire: number
+  expiresAt: string
+  renewLink: string
+}> {
+  name = TemplateType.expiringIrisConsent
 }
