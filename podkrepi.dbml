@@ -422,6 +422,7 @@ Table bank_transactions {
   matchedRef String
   type BankTransactionType [not null]
   bankDonationStatus BankDonationStatus
+  notified Boolean [default: false]
 }
 
 Table expenses {

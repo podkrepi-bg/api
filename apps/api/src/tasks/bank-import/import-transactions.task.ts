@@ -13,9 +13,11 @@ import {
 } from '@prisma/client'
 import { PrismaService } from '../../prisma/prisma.service'
 import {
+  GetConsentLinkResponse,
   GetIrisBanksResponse,
   GetIrisTransactionInfoResponse,
   GetIrisUserIbanAccountsResponse,
+  GetIrisUserIbanConsentsResponse,
   IrisIbanAccountInfo,
   IrisTransactionInfo,
 } from './dto/response.dto'
@@ -24,20 +26,26 @@ import { DateTime } from 'luxon'
 import { toMoney } from '../../common/money'
 import { DonationsService } from '../../donations/donations.service'
 import { CreateBankPaymentDto } from '../../donations/dto/create-bank-payment.dto'
+import { EmailService } from '../../email/email.service'
+import {
+  ExpiringIrisConsentEmailDto,
+  UnrecognizedDonationEmailDto,
+} from '../../email/template.interface'
 
-type filteredTransaction = Prisma.BankTransactionCreateManyInput & {
-  matchedRef?: string | null
-}
+type filteredTransaction = Prisma.BankTransactionCreateManyInput
 
 @Injectable()
-export class ImportTransactionsTask {
+export class IrisTasks {
   private agentHash: string
   private userHash: string
   private bankBIC: string
-  private IBAN: string
+  protected IBAN: string
   private apiUrl: string
+  private adminEmailGroup: string
   private paymentMethodId = 'IRIS bank import'
   private regexPaymentRef = /\b[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}\b/g
+  // Consent expiration days left for notification
+  private daysToExpCondition = 5
   // Used to check if the task should be stopped
   private canRun = true
 
@@ -47,47 +55,68 @@ export class ImportTransactionsTask {
     private schedulerRegistry: SchedulerRegistry,
     private readonly donationsService: DonationsService,
     private prisma: PrismaService,
+    private sendEmail: EmailService,
   ) {
     this.agentHash = this.config.get<string>('iris.agentHash', '')
     this.userHash = this.config.get<string>('iris.userHash', '')
     this.bankBIC = this.config.get<string>('iris.bankBIC', '')
     this.IBAN = this.config.get<string>('iris.platformIBAN', '')
     this.apiUrl = this.config.get<string>('iris.apiUrl', '')
+    this.adminEmailGroup = this.config.get<string>('sendgrid.adminEmailGroup', '')
 
     this.checkForRequiredVariables()
   }
 
-  // NestJS Lifecycle Hook
-  onModuleInit() {
-    try {
-      this.initImportTransactionsTask()
-    } catch (e) {
-      Logger.error('Failed to initialize ImportTransactionsTask')
+  /** TASKS */
+
+  async notifyForExpiringIrisConsentTASK() {
+    Logger.debug('RUNNING TASK - Check Iris Consent')
+
+    const account = await this.getIrisUserIBANaccount()
+
+    //TODO - Notify that the iban is not registered
+    if (!account) return
+
+    // Get consent details
+    const endpoint = this.config
+      .get<string>('iris.checkConsentEndPoint', '')
+      .replace('{ibanID}', `${account.id}`)
+
+    const consents = (
+      await this.httpService.axiosRef.get<GetIrisUserIbanConsentsResponse>(endpoint, {
+        headers: {
+          'x-user-hash': this.userHash,
+        },
+      })
+    ).data
+
+    // Filter to current IBAN
+    const consent = consents.consents.find((consent) => consent.iban.trim() === this.IBAN)
+
+    if (!consent) return
+
+    const expDate = DateTime.fromFormat(consent.validUntil, 'yyyy-MM-dd')
+    const daysToExpire = Math.ceil(expDate.diff(DateTime.local(), 'days').toObject().days || 0)
+
+    // If less than 5 days till expiration -> notify
+    if (daysToExpire <= this.daysToExpCondition) {
+      // Get consent renew link
+      const renewLink = await this.getConsentLink(account.bankHash)
+
+      // Prepare Email data
+      const recepient = { to: [this.adminEmailGroup] }
+      const mail = new ExpiringIrisConsentEmailDto({
+        daysToExpire,
+        expiresAt: consent.validUntil,
+        renewLink,
+      })
+
+      // Send Notification
+      await this.sendEmail.sendFromTemplate(mail, recepient)
     }
   }
 
-  initImportTransactionsTask() {
-    // Set the interval at which the import task will run - default 6 hours
-    const minutes = this.config.get<number>('tasks.import_transactions.interval', 60 * 6)
-    const interval = 1000 * 60 * Number(minutes)
-
-    const callback = async () => {
-      try {
-        await this.importBankTransactions()
-      } catch (e) {
-        Logger.error('An error occured while executing importBankTransactions')
-      }
-    }
-
-    const task = setInterval(callback, interval)
-
-    this.schedulerRegistry.addInterval('import-bank-transactions', task)
-
-    Logger.debug(`import-bank-transactions task registered to run every ${minutes} minutes`)
-  }
-
-  // Actual task to run
-  async importBankTransactions() {
+  async importBankTransactionsTASK() {
     // De-register the task, so that it doesn't waste server resources
     if (!this.canRun) {
       this.deregisterTask('import-bank-transactions')
@@ -101,8 +130,9 @@ export class ImportTransactionsTask {
     try {
       const account = await this.getIrisUserIBANaccount()
 
-      // TODO - Notify that consent should be given
       if (!account) return Logger.error(`no consent granted for IBAN: ${this.IBAN}`)
+      if (account.consents.consents[0].status !== 'valid')
+        return Logger.error(`consent expired for IBAN: ${this.IBAN}`)
 
       ibanAccount = account
     } catch (e) {
@@ -156,8 +186,17 @@ export class ImportTransactionsTask {
       return Logger.error('Failed to import transactions into DB')
     }
 
+    //7. Notify about unrecognized donations
+    try {
+      await this.sendUnrecognizedDonationsMail(processedBankTrxRecords)
+    } catch (e) {
+      return Logger.error('Failed to notify about bad transaction donations')
+    }
+
     return
   }
+
+  /** METHODS */
 
   private async getIrisBankHash() {
     const endpoint = this.config.get<string>('iris.banksEndPoint', '')
@@ -189,10 +228,7 @@ export class ImportTransactionsTask {
     ).data
 
     // Find if provided IBAN is registered on IRIS and has a valid consent
-    const account = ibanAccounts.find(
-      (account) =>
-        account.iban.trim() === this.IBAN && account.consents.consents[0].status === 'valid',
-    )
+    const account = ibanAccounts.find((account) => account.iban.trim() === this.IBAN)
 
     return account
   }
@@ -356,6 +392,68 @@ export class ImportTransactionsTask {
     const inserted = await this.prisma.bankTransaction.createMany({ data, skipDuplicates: true })
 
     return inserted
+  }
+
+  private async sendUnrecognizedDonationsMail(data: filteredTransaction[]) {
+    // Filter the unnotified failed/unrecognized transactions
+    const transactions = await this.prisma.bankTransaction.findMany({
+      where: {
+        id: {
+          in: data.map((trx) => trx.id),
+        },
+        bankDonationStatus: {
+          in: [BankDonationStatus.importFailed, BankDonationStatus.unrecognized],
+        },
+        notified: false,
+      },
+    })
+
+    if (!transactions?.length) return
+
+    // Build the link to bank-transactions section
+    const stage = this.config.get<string>('APP_ENV') === 'development' ? 'APP_URL_LOCAL' : 'APP_URL'
+    const appUrl = this.config.get<string>(stage)
+    const link = `${appUrl}/admin/bank-transactions`
+
+    // Prepare Email data
+    const recepient = { to: [this.adminEmailGroup] }
+    const mail = new UnrecognizedDonationEmailDto({
+      transactions,
+      importDate: DateTime.now().toFormat('dd-MM-yyyy'),
+      link,
+    })
+
+    // Send Notification
+    await this.sendEmail.sendFromTemplate(mail, recepient)
+
+    // Mark notified
+    await this.prisma.bankTransaction.updateMany({
+      where: { id: { in: transactions.map((trx) => trx.id) } },
+      data: {
+        notified: true,
+      },
+    })
+  }
+
+  private async getConsentLink(bankHash: string) {
+    const endpoint = this.config.get<string>('iris.getConsentEndPoint', '')
+
+    const response = (
+      await this.httpService.axiosRef.post<GetConsentLinkResponse>(
+        endpoint,
+        {
+          bankHash,
+          iban: this.IBAN,
+        },
+        {
+          headers: {
+            'x-user-hash': this.userHash,
+          },
+        },
+      )
+    ).data
+
+    return response.startUrl
   }
 
   private deregisterTask(taskName: string) {
