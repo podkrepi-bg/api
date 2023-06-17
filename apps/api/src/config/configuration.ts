@@ -21,7 +21,6 @@ export default () => ({
     sender: process.env.SENDGRID_SENDER_EMAIL,
     internalNotificationsEmail: process.env.SENDGRID_INTERNAL_EMAIL,
     contactsUrl: process.env.SENDGRID_CONTACTS_URL,
-    adminEmailGroup: process.env.ADMIN_NOTIFICATION_GROUP,
   },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY,
@@ -44,6 +43,7 @@ export default () => ({
     banksEndPoint: process.env.IRIS_API_URL + '/banks?country=bulgaria',
     ibansEndPoint: process.env.IRIS_API_URL + '/ibans',
     transactionsEndPoint: process.env.IRIS_API_URL + '/transactions',
+    billingAdminEmail: process.env.BILLING_ADMIN_MAIL,
   },
   tasks: {
     import_transactions: { interval: process.env.IMPORT_TRX_TASK_INTERVAL_MINUTES },
