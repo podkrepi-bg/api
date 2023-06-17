@@ -41,7 +41,7 @@ export class IrisTasks {
   private bankBIC: string
   protected IBAN: string
   private apiUrl: string
-  private adminEmailGroup: string
+  private billingAdminEmail: string
   private paymentMethodId = 'IRIS bank import'
   private regexPaymentRef = /\b[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}\b/g
   // Consent expiration days left for notification
@@ -62,7 +62,7 @@ export class IrisTasks {
     this.bankBIC = this.config.get<string>('iris.bankBIC', '')
     this.IBAN = this.config.get<string>('iris.platformIBAN', '')
     this.apiUrl = this.config.get<string>('iris.apiUrl', '')
-    this.adminEmailGroup = this.config.get<string>('sendgrid.adminEmailGroup', '')
+    this.billingAdminEmail = this.config.get<string>('iris.billingAdminEmail', '')
 
     this.checkForRequiredVariables()
   }
@@ -104,7 +104,7 @@ export class IrisTasks {
       const renewLink = await this.getConsentLink(account.bankHash)
 
       // Prepare Email data
-      const recepient = { to: [this.adminEmailGroup] }
+      const recepient = { to: [this.billingAdminEmail] }
       const mail = new ExpiringIrisConsentEmailDto({
         daysToExpire,
         expiresAt: consent.validUntil,
@@ -416,7 +416,7 @@ export class IrisTasks {
     const link = `${appUrl}/admin/bank-transactions`
 
     // Prepare Email data
-    const recepient = { to: [this.adminEmailGroup] }
+    const recepient = { to: [this.billingAdminEmail] }
     const mail = new UnrecognizedDonationEmailDto({
       transactions,
       importDate: DateTime.now().toFormat('dd-MM-yyyy'),
