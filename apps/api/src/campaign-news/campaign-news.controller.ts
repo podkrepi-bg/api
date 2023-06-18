@@ -30,10 +30,6 @@ export class CampaignNewsController {
   ) {}
 
   @Post()
-  @Roles({
-    roles: [],
-    mode: RoleMatchingMode.ANY,
-  })
   async create(
     @Body() createCampaignNewsDto: CreateCampaignNewsDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
@@ -89,10 +85,6 @@ export class CampaignNewsController {
   }
 
   @Put(':id')
-  @Roles({
-    roles: [],
-    mode: RoleMatchingMode.ANY,
-  })
   async editArticle(
     @Param('id') articleId: string,
     @Body() updateCampaignNewsDto: UpdateCampaignNewsDto,
@@ -128,10 +120,6 @@ export class CampaignNewsController {
   }
 
   @Delete(':id')
-  @Roles({
-    roles: [],
-    mode: RoleMatchingMode.ANY,
-  })
   async delete(@Param('id') articleId: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
     const article = await this.campaignNewsService.findArticleByID(articleId)
     if (!article) throw new NotFoundException('Article not found')
