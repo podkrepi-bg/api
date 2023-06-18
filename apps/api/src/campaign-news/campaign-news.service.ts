@@ -19,9 +19,10 @@ export class CampaignNewsService {
     }
   }
 
-
-  async canCreateArticle(campaignId: string, keycloakId:string) {
-    const canEdit = await this.prisma.campaign.findFirst({where: {id: campaignId, organizer: {person: {keycloakId}}}})
+  async canCreateArticle(campaignId: string, keycloakId: string) {
+    const canEdit = await this.prisma.campaign.findFirst({
+      where: { id: campaignId, organizer: { person: { keycloakId } } },
+    })
     return !!canEdit
   }
 
@@ -39,7 +40,7 @@ export class CampaignNewsService {
           author: true,
           publishedAt: true,
           description: true,
-          articleFiles: true,
+          newsFiles: true,
           campaign: {
             select: {
               title: true,
@@ -57,7 +58,7 @@ export class CampaignNewsService {
 
     return {
       campaign: {
-        campaignNews: articles
+        campaignNews: articles,
       },
       pagination: {
         currentPage: currentPage,
@@ -73,43 +74,43 @@ export class CampaignNewsService {
       .findFirst({
         where: { id: articleId },
         include: {
-          articleFiles: true
-        }
+          newsFiles: true,
+        },
       })
       .catch((error) => Logger.warn(error))
     return article
   }
 
   async findArticlesByCampaignSlugWithPagination(slug: string, currentPage: number) {
-      const [campaign, totalRecords] = await this.prisma.$transaction([
-        this.prisma.campaign.findFirst({
-          where: {slug},
-          select: {
-            title: true,
-            slug: true,
-            campaignNews: {
-              where: {state: CampaignNewsState.published},
-              orderBy: {publishedAt: 'desc'},
-              take: this.RECORDS_PER_PAGE,
-              skip: Number((currentPage - 1) * this.RECORDS_PER_PAGE),
-              select: {
+    const [campaign, totalRecords] = await this.prisma.$transaction([
+      this.prisma.campaign.findFirst({
+        where: { slug },
+        select: {
+          title: true,
+          slug: true,
+          campaignNews: {
+            where: { state: CampaignNewsState.published },
+            orderBy: { publishedAt: 'desc' },
+            take: this.RECORDS_PER_PAGE,
+            skip: Number((currentPage - 1) * this.RECORDS_PER_PAGE),
+            select: {
               id: true,
               title: true,
               slug: true,
               publishedAt: true,
               author: true,
               description: true,
-              articleFiles: true,
-            }
-          }
-        }
-        }),
-        this.prisma.campaignNews.count({
-          where: { campaign: { slug: slug }, state: CampaignNewsState.published },
-        }),
-      ])
+              newsFiles: true,
+            },
+          },
+        },
+      }),
+      this.prisma.campaignNews.count({
+        where: { campaign: { slug: slug }, state: CampaignNewsState.published },
+      }),
+    ])
 
-      if(!campaign ) throw new NotFoundException("No news were found for the selected campaign")
+    if (!campaign) throw new NotFoundException('No news were found for the selected campaign')
 
     const totalPages = Math.ceil(totalRecords / this.RECORDS_PER_PAGE)
 
@@ -126,29 +127,29 @@ export class CampaignNewsService {
 
   async findArticleBySlug(slug: string) {
     return await this.prisma.campaignNews
-      .findFirst({ where: { slug: slug }, include: {articleFiles: true} })
+      .findFirst({ where: { slug: slug }, include: { newsFiles: true } })
       .catch((error) => Logger.warn(error))
   }
 
   async listAdminArticles(campaignSlug: string) {
     return await this.prisma.campaign.findFirst({
-      where: {slug: campaignSlug},
+      where: { slug: campaignSlug },
       select: {
         id: true,
         title: true,
         campaignNews: {
-           select: {
-             id: true,
-             title: true,
-             author: true,
-             slug: true,
-             createdAt: true,
-             publishedAt: true,
-             editedAt: true,
-             state: true,
-          }
-        }
-      }
+          select: {
+            id: true,
+            title: true,
+            author: true,
+            slug: true,
+            createdAt: true,
+            publishedAt: true,
+            editedAt: true,
+            state: true,
+          },
+        },
+      },
     })
   }
 
@@ -160,7 +161,8 @@ export class CampaignNewsService {
           ...editArticleDto,
           editedAt: new Date(),
           publishedAt:
-            editArticleDto.state === CampaignNewsState.published && state === CampaignNewsState.draft
+            editArticleDto.state === CampaignNewsState.published &&
+            state === CampaignNewsState.draft
               ? new Date()
               : editArticleDto.state === CampaignNewsState.draft
               ? null

@@ -1,5 +1,3 @@
-
-  export class ConnectCampaignNewsDto {
-    id: string;
-  }
-  
+export class ConnectCampaignNewsDto {
+  id: string
+}

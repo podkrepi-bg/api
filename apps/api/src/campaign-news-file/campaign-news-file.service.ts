@@ -13,7 +13,7 @@ export class CampaignNewsFileService {
 
   async create(
     role: CampaignFileRole,
-    articleId: string,
+    newsId: string,
     mimetype: string,
     filename: string,
     person: Person,
@@ -23,7 +23,7 @@ export class CampaignNewsFileService {
       filename,
       mimetype,
       role,
-      articleId,
+      newsId,
       personId: person.id,
     }
     const dbFile = await this.prisma.campaignNewsFile.create({ data: file })
@@ -36,7 +36,7 @@ export class CampaignNewsFileService {
       mimetype,
       buffer,
       'NewsArticle',
-      articleId,
+      newsId,
       person.id,
     )
 
@@ -63,6 +63,5 @@ export class CampaignNewsFileService {
   async remove(id: string) {
     await this.s3.deleteObject(this.bucketName, id)
     return await this.prisma.campaignNewsFile.delete({ where: { id } })
-
   }
 }

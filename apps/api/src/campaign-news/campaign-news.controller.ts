@@ -38,11 +38,15 @@ export class CampaignNewsController {
     @Body() createCampaignNewsDto: CreateCampaignNewsDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
+    const isCampaignOrganizer = await this.campaignNewsService.canCreateArticle(
+      createCampaignNewsDto.campaignId,
+      user.sub,
+    )
 
-    const isCampaignOrganizer = await this.campaignNewsService.canCreateArticle(createCampaignNewsDto.campaignId, user.sub);
-
-    if(!isCampaignOrganizer && !isAdmin(user)) {
-      throw new ForbiddenException('The user is not coordinator,organizer or beneficiery to the requested campaign')
+    if (!isCampaignOrganizer && !isAdmin(user)) {
+      throw new ForbiddenException(
+        'The user is not coordinator,organizer or beneficiery to the requested campaign',
+      )
     }
 
     const person = await this.personService.findOneByKeycloakId(user.sub)
@@ -59,9 +63,7 @@ export class CampaignNewsController {
 
   @Get(':campaignSlug/list')
   @Public()
-  async listNewsByCampaignSlug(
-    @Param('campaignSlug') campaignSlug: string,
-    ) {
+  async listNewsByCampaignSlug(@Param('campaignSlug') campaignSlug: string) {
     const news = await this.campaignNewsService.listAdminArticles(campaignSlug)
     return news
   }
@@ -102,17 +104,21 @@ export class CampaignNewsController {
       throw new NotFoundException('Article not found')
     }
 
-    const publisher = await this.personService.findOneByKeycloakId(user.sub);
-    if(!publisher) {
+    const publisher = await this.personService.findOneByKeycloakId(user.sub)
+    if (!publisher) {
       throw new NotFoundException('Author was not found')
-    };
+    }
 
-    if((article.state === CampaignNewsState.draft && publisher.id !== article.publisherId) && !isAdmin(user)){
+    if (
+      article.state === CampaignNewsState.draft &&
+      publisher.id !== article.publisherId &&
+      !isAdmin(user)
+    ) {
       throw new ForbiddenException('The user has no access to delete this article')
     }
 
-    if(article.state === CampaignNewsState.published && !isAdmin(user)){
-      throw new ForbiddenException("User has no access to edit this article")
+    if (article.state === CampaignNewsState.published && !isAdmin(user)) {
+      throw new ForbiddenException('User has no access to edit this article')
     }
 
     return await this.campaignNewsService.editArticle(
@@ -128,16 +134,20 @@ export class CampaignNewsController {
     mode: RoleMatchingMode.ANY,
   })
   async delete(@Param('id') articleId: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
-    const article = await this.campaignNewsService.findArticleByID(articleId);
-    if(!article) throw new NotFoundException('Article not found')
+    const article = await this.campaignNewsService.findArticleByID(articleId)
+    if (!article) throw new NotFoundException('Article not found')
 
-    const publisher = await this.personService.findOneByKeycloakId(user.sub);
+    const publisher = await this.personService.findOneByKeycloakId(user.sub)
 
-    if(!publisher) {
+    if (!publisher) {
       throw new NotFoundException('Author was not found')
-    };
+    }
 
-    if((article.state === CampaignNewsState.draft && publisher.id !== article.publisherId) && !isAdmin(user)){
+    if (
+      article.state === CampaignNewsState.draft &&
+      publisher.id !== article.publisherId &&
+      !isAdmin(user)
+    ) {
       throw new ForbiddenException('The user has no access to delete this article')
     }
 

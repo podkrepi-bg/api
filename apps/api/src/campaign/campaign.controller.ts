@@ -36,7 +36,8 @@ export class CampaignController {
   constructor(
     private readonly campaignService: CampaignService,
     @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
-    @Inject(forwardRef(() => CampaignNewsService)) private readonly campaignNewsService: CampaignNewsService
+    @Inject(forwardRef(() => CampaignNewsService))
+    private readonly campaignNewsService: CampaignNewsService,
   ) {}
 
   @Get('list')
@@ -76,15 +77,15 @@ export class CampaignController {
     const campaign = await this.campaignService.getCampaignBySlug(slug)
     return { campaign }
   }
-  
+
   @Get(':slug/:keycloakId/can-edit')
   @Public()
   async canEditCampaign(
     @Param('slug') slug: string,
     @Param('keycloakId') keycloakId: string,
-    ): Promise<boolean> {
-      const campaign = await this.campaignService.isUserCampaign(keycloakId, slug)
-      return campaign 
+  ): Promise<boolean> {
+    const campaign = await this.campaignService.isUserCampaign(keycloakId, slug)
+    return campaign
   }
 
   @Get(':slug/news')

@@ -14,6 +14,8 @@ import { CampaignNewsService } from '../campaign-news/campaign-news.service'
 
   controllers: [CampaignController, CampaignTypeController],
   providers: [CampaignService, PrismaService, VaultService, PersonService, ConfigService, CampaignNewsService],
+
+
   exports: [CampaignService],
 })
 export class CampaignModule {}

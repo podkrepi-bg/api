@@ -772,13 +772,12 @@ export class CampaignService {
       take: 2,
       orderBy: { publishedAt: 'desc' },
       include: {
-        articleFiles: {
+        newsFiles: {
           where: {
             OR: [
-              { role: CampaignFileRole.invoice }, 
-              { role: CampaignFileRole.document }, 
-              { role: CampaignFileRole.campaignPhoto }, 
-              {role: CampaignFileRole.gallery}
+              { role: CampaignFileRole.invoice },
+              { role: CampaignFileRole.document },
+              { role: CampaignFileRole.gallery },
             ],
           },
           select: {
