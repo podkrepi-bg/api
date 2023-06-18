@@ -62,7 +62,6 @@ export class CampaignNewsController {
   }
 
   @Get(':campaignSlug/list')
-  @Public()
   async listNewsByCampaignSlug(@Param('campaignSlug') campaignSlug: string) {
     const news = await this.campaignNewsService.listAdminArticles(campaignSlug)
     return news
