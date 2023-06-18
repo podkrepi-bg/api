@@ -35,9 +35,8 @@ import { CampaignNewsService } from '../campaign-news/campaign-news.service'
 export class CampaignController {
   constructor(
     private readonly campaignService: CampaignService,
-    @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
-    @Inject(forwardRef(() => CampaignNewsService))
     private readonly campaignNewsService: CampaignNewsService,
+    @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
   ) {}
 
   @Get('list')
