@@ -78,13 +78,12 @@ export class CampaignController {
     return { campaign }
   }
 
-  @Get(':slug/:keycloakId/can-edit')
-  @Public()
+  @Get(':slug/can-edit')
   async canEditCampaign(
     @Param('slug') slug: string,
-    @Param('keycloakId') keycloakId: string,
+    @AuthenticatedUser() user: KeycloakTokenParsed
   ): Promise<boolean> {
-    const campaign = await this.campaignService.isUserCampaign(keycloakId, slug)
+    const campaign = await this.campaignService.isUserCampaign(user.sub, slug)
     return campaign
   }
 
