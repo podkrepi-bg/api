@@ -16,4 +16,5 @@ export class BankTransaction {
   matchedRef: string | null
   type: BankTransactionType
   bankDonationStatus: BankDonationStatus | null
+  notified: boolean | null
 }

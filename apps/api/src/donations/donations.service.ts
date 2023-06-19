@@ -422,9 +422,17 @@ export class DonationsService {
   async getUserDonationById(
     id: string,
     keycloakId: string,
+    email: string,
   ): Promise<(Donation & { person: Person | null }) | null> {
     return await this.prisma.donation.findFirst({
-      where: { id, person: { keycloakId }, status: DonationStatus.succeeded },
+      where: { 
+        id, 
+        status: DonationStatus.succeeded,
+        OR:[
+          {billingEmail: email},
+          {person: { keycloakId }}
+        ] 
+      },
       include: {
         person: {
           select: {
@@ -629,9 +637,14 @@ export class DonationsService {
     }
   }
 
-  async getDonationsByUser(keycloakId: string) {
+  async getDonationsByUser(keycloakId: string, email: string) {
     const donations = await this.prisma.donation.findMany({
-      where: { person: { keycloakId } },
+      where: {
+        OR:[
+        {billingEmail: email},  
+        {person: { keycloakId }},
+        ]
+      } ,
       orderBy: [{ createdAt: 'desc' }],
       include: {
         targetVault: {
