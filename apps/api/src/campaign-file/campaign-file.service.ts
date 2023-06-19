@@ -26,19 +26,25 @@ export class CampaignFileService {
       campaignId,
       personId: person.id,
     }
-    const dbFile = await this.prisma.campaignFile.create({ data: file })
+    // Check if the file already exists in the DB
+    let dbFile = await this.prisma.campaignFile.findFirst({ where: { role, campaignId, filename } })
 
-    // Use the DB primary key as the S3 key. This will make sure it is always unique.
-    await this.s3.uploadObject(
-      this.bucketName,
-      dbFile.id,
-      encodeURIComponent(filename),
-      mimetype,
-      buffer,
-      'Campaign',
-      campaignId,
-      person.id,
-    )
+    if (!dbFile) {
+      // If not, create a new record
+      dbFile = await this.prisma.campaignFile.create({ data: file })
+
+      // Use the DB primary key as the S3 key. This will make sure it is always unique.
+      await this.s3.uploadObject(
+        this.bucketName,
+        dbFile.id,
+        encodeURIComponent(filename),
+        mimetype,
+        buffer,
+        'Campaign',
+        campaignId,
+        person.id,
+      )
+    }
 
     return dbFile.id
   }
