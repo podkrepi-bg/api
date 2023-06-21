@@ -79,15 +79,15 @@ export class DonationsService {
       paymentIntentId,
     })
 
-    /**
-     * Create or connect campaign vault
-     */
-    const vault = await this.prisma.vault.findFirst({ where: { campaignId: campaign.id } })
-    const targetVaultData = vault
-      ? // Connect the existing vault to this donation
-        { connect: { id: vault.id } }
-      : // Create new vault for the campaign
-        { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
+    // /**
+    //  * Create or connect campaign vault
+    //  */
+    // const vault = await this.prisma.vault.findFirst({ where: { campaignId: campaign.id } })
+    // const targetVaultData = vault
+    //   ? // Connect the existing vault to this donation
+    //     { connect: { id: vault.id } }
+    //   : // Create new vault for the campaign
+    //     { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
 
     /**
      * Here we cannot create initial donation anymore because stripe is not returning paymentIntendId in the CreateSessionDto
@@ -425,13 +425,10 @@ export class DonationsService {
     email: string,
   ): Promise<(Donation & { person: Person | null }) | null> {
     return await this.prisma.donation.findFirst({
-      where: { 
-        id, 
+      where: {
+        id,
         status: DonationStatus.succeeded,
-        OR:[
-          {billingEmail: email},
-          {person: { keycloakId }}
-        ] 
+        OR: [{ billingEmail: email }, { person: { keycloakId } }],
       },
       include: {
         person: {
@@ -640,11 +637,8 @@ export class DonationsService {
   async getDonationsByUser(keycloakId: string, email: string) {
     const donations = await this.prisma.donation.findMany({
       where: {
-        OR:[
-        {billingEmail: email},  
-        {person: { keycloakId }},
-        ]
-      } ,
+        OR: [{ billingEmail: email }, { person: { keycloakId } }],
+      },
       orderBy: [{ createdAt: 'desc' }],
       include: {
         targetVault: {

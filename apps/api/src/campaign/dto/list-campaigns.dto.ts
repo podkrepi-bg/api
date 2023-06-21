@@ -1,10 +1,4 @@
-import {
-  BeneficiaryType,
-  CampaignFileRole,
-  CampaignState,
-  CampaignTypeCategory,
-  Prisma,
-} from '@prisma/client'
+import { CampaignFileRole, Prisma } from '@prisma/client'
 
 export const AdminCampaignListItemSelect = Prisma.validator<Prisma.CampaignArgs>()({
   select: {
