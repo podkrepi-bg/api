@@ -53,6 +53,7 @@ export class CampaignNewsController {
 
     return await this.campaignNewsService.createDraft({
       ...createCampaignNewsDto,
+      author: createCampaignNewsDto.author || `${person.firstName} ${person.lastName}`,
       publisherId: person.id,
     })
   }
