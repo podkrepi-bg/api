@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { City } from '@prisma/client'
 import { Expose } from 'class-transformer'
-import { IsISO31661Alpha2, IsOptional, IsString, IsUppercase } from 'class-validator'
+import { IsISO31661Alpha2, IsString, IsUppercase } from 'class-validator'
 
 @Expose()
 export class CreateCountryDto {

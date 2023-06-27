@@ -38,7 +38,7 @@ export type IrisIbanAccountInfo = {
         status: 'valid' | string
       },
     ]
-    errorCodes: any
+    errorCodes: unknown
   }
 }
 

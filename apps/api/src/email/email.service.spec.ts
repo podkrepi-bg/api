@@ -6,7 +6,8 @@ import { TemplateService } from '../email/template.service'
 import { EmailTemplate } from './template.interface'
 import { CreateRequestDto } from '../support/dto/create-request.dto'
 
-const sendMock = jest.spyOn(sgMail, 'send')
+const sendMock = jest.spyOn(sgMail, 'send').mockImplementation()
+
 const setApiKeyMock = jest.spyOn(sgMail, 'setApiKey')
 const html = '<div> Test </div>'
 const subject = 'test subject'
@@ -19,7 +20,7 @@ const emailMock = {
   ...{ subject, html },
 }
 describe('EmailService enabled ', () => {
-  let service: EmailService
+  let emailService: EmailService
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [EmailService, TemplateService, ConfigService],
@@ -38,7 +39,7 @@ describe('EmailService enabled ', () => {
       })
       .compile()
 
-    service = module.get<EmailService>(EmailService)
+    emailService = module.get<EmailService>(EmailService)
   })
 
   afterEach(() => {
@@ -46,22 +47,22 @@ describe('EmailService enabled ', () => {
   })
 
   it('should be defined', () => {
-    expect(service).toBeDefined()
+    expect(emailService).toBeDefined()
     expect(setApiKeyMock).toHaveBeenCalled()
   })
 
   it('send() should send email successfully', async () => {
-    await service.send(emailMock)
+    await emailService.send(emailMock)
     expect(sendMock).toHaveBeenCalledWith(emailMock)
   })
 
   it('sendFromTemplate() should send email successfully', async () => {
-    await service.sendFromTemplate({} as EmailTemplate<CreateRequestDto>, partialEmail)
+    await emailService.sendFromTemplate({} as EmailTemplate<CreateRequestDto>, partialEmail)
     expect(sendMock).toHaveBeenCalledWith(emailMock)
   })
 
   it('sendFromTemplate() should send email successfully with default sender', async () => {
-    await service.sendFromTemplate({} as EmailTemplate<CreateRequestDto>, {
+    await emailService.sendFromTemplate({} as EmailTemplate<CreateRequestDto>, {
       ...partialEmail,
       ...{ from: undefined },
     })
@@ -70,7 +71,7 @@ describe('EmailService enabled ', () => {
 
   it('sendFromTemplate() should throw error for missing recipient', async () => {
     await expect(
-      service.sendFromTemplate({} as EmailTemplate<CreateRequestDto>, {
+      emailService.sendFromTemplate({} as EmailTemplate<CreateRequestDto>, {
         ...partialEmail,
         ...{ to: undefined as never },
       }),

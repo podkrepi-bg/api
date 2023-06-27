@@ -76,7 +76,7 @@ function toNumber(value: string, opts: ToNumberOptions = {}): number | undefined
   return newValue
 }
 
-function falsyToUndefined(value: any): any | undefined {
+function falsyToUndefined(value: unknown): unknown | undefined {
   if (!value || value === 'undefined') {
     return undefined
   }
@@ -84,10 +84,10 @@ function falsyToUndefined(value: any): any | undefined {
   return value
 }
 
-function handleDateTransform(value: any): Date | undefined {
+function handleDateTransform(value: unknown): Date | undefined {
   if (!value || value === 'undefined') {
     return undefined
   }
 
-  return new Date(value)
+  return new Date(value as string)
 }

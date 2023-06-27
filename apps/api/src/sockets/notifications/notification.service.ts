@@ -21,7 +21,7 @@ export const donationNotificationSelect = {
 export class NotificationService {
   constructor(private readonly notificationGateway: NotificationGateway) {}
 
-  sendNotification(eventName: string, notificationData: any) {
+  sendNotification(eventName: string, notificationData: unknown) {
     this.notificationGateway.server.emit(eventName, notificationData)
   }
 }

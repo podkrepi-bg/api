@@ -101,10 +101,9 @@ describe('ExpensesController', () => {
       prismaMock.vault.findFirst.mockResolvedValue(vault)
       prismaMock.$transaction.mockResolvedValue([expense, vault])
 
-      const createDto: CreateExpenseDto = { ...expense }
-
       // TODO: currently we don't have such logic
       // in the future if we need to validate the balance then we need to add this to the test
+      // const createDto: CreateExpenseDto = { ...expense }
       // await expect(controller.create(createDto, [])).rejects.toThrow()
       expect(prismaMock.expense.create).not.toHaveBeenCalled()
       expect(prismaMock.vault.update).not.toHaveBeenCalled()

@@ -243,6 +243,7 @@ describe('ImportTransactionsTask', () => {
       // eslint-disable-next-line  @typescript-eslint/no-explicit-any
       const saveTrxSpy = jest.spyOn(IrisTasks.prototype as any, 'saveBankTrxRecords')
       const notifyUnrecognizedSpy = jest.spyOn(
+        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         IrisTasks.prototype as any,
         'sendUnrecognizedDonationsMail',
       )
@@ -539,7 +540,7 @@ describe('ImportTransactionsTask', () => {
     const getConsentLinkSpy = jest
       // eslint-disable-next-line  @typescript-eslint/no-explicit-any
       .spyOn(IrisTasks.prototype as any, 'getConsentLink')
-      .mockImplementation((arg) => 'consent-link.com')
+      .mockImplementation(() => 'consent-link.com')
 
     // Spy email sending
     jest.spyOn(emailService, 'sendFromTemplate').mockImplementation(async () => {})
