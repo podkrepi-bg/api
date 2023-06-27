@@ -14,6 +14,7 @@ import { PersonService } from '../person/person.service'
 import * as paymentReferenceGenerator from './helpers/payment-reference'
 import { CampaignSummaryDto } from './dto/campaign-summary.dto'
 import { NotificationModule } from '../sockets/notifications/notification.module'
+import { CampaignNewsModule } from '../campaign-news/campaign-news.module'
 
 describe('CampaignController', () => {
   let controller: CampaignController
@@ -110,7 +111,7 @@ describe('CampaignController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [NotificationModule],
+      imports: [NotificationModule, CampaignNewsModule],
       controllers: [CampaignController],
       providers: [CampaignService, MockPrismaService, VaultService, PersonService, ConfigService],
     })
