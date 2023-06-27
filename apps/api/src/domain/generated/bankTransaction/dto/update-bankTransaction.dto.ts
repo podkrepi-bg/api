@@ -16,4 +16,5 @@ export class UpdateBankTransactionDto {
   type?: BankTransactionType
   @ApiProperty({ enum: BankDonationStatus })
   bankDonationStatus?: BankDonationStatus
+  notified?: boolean
 }

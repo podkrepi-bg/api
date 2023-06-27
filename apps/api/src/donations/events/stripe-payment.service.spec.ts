@@ -42,7 +42,6 @@ const stripeSecret = 'wh_123'
 describe('StripePaymentService', () => {
   let stripePaymentService: StripePaymentService
   let app: INestApplication
-  let hydratePayloadFn: jest.SpyInstance
   const stripe = new Stripe(stripeSecret, { apiVersion: '2022-11-15' })
 
   const moduleConfig: StripeModuleConfig = {
@@ -90,7 +89,7 @@ describe('StripePaymentService', () => {
 
     jest
       .spyOn(stripePayloadService, 'tryHydratePayload')
-      .mockImplementation((_sig, buff) => buff as any)
+      .mockImplementation((_sig, buff) => buff as never)
   })
 
   afterEach(() => jest.resetAllMocks())

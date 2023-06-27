@@ -38,10 +38,12 @@ export default () => ({
     bankBIC: process.env.BANK_BIC,
     platformIBAN: process.env.PLATFORM_IBAN,
     apiUrl: process.env.IRIS_API_URL,
-    consentEndPoint: process.env.IRIS_API_URL + '/consent',
+    getConsentEndPoint: process.env.IRIS_API_URL + '/consent',
+    checkConsentEndPoint: process.env.IRIS_API_URL + '/consents/{ibanID}',
     banksEndPoint: process.env.IRIS_API_URL + '/banks?country=bulgaria',
     ibansEndPoint: process.env.IRIS_API_URL + '/ibans',
     transactionsEndPoint: process.env.IRIS_API_URL + '/transactions',
+    billingAdminEmail: process.env.BILLING_ADMIN_MAIL,
   },
   tasks: {
     import_transactions: { interval: process.env.IMPORT_TRX_TASK_INTERVAL_MINUTES },

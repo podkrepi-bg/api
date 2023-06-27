@@ -38,7 +38,7 @@ export type IrisIbanAccountInfo = {
         status: 'valid' | string
       },
     ]
-    errorCodes: any
+    errorCodes: unknown
   }
 }
 
@@ -67,3 +67,28 @@ export type IrisTransactionInfo = {
 }
 
 export type GetIrisTransactionInfoResponse = { transactions: IrisTransactionInfo[] }
+
+export type IbanAccountConsentInfo = {
+  ibanId: string | null
+  consentId: string | null
+  iban: string
+  consentPermissions: ('BALANCES' | 'TRANSACTIONS')[]
+  validUntil: string
+  frequencyPerDay: number
+  givenAt: string
+  status: 'valid' | string
+  country: string | null
+}
+
+export type GetIrisUserIbanConsentsResponse = { consents: IbanAccountConsentInfo[] }
+
+export type GetConsentLinkResponse = {
+  startUrl: string
+  endUrl: string | null
+  psuIdType: string | null
+  sca: string | null
+  gatherPsu: string | null
+  hasAuthorization: boolean
+  externalApp: boolean
+  authorizationId: string | null
+}

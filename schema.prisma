@@ -548,6 +548,8 @@ model BankTransaction {
   type               BankTransactionType
   // For Bank donations, describes if campaign was recognized and donation imported
   bankDonationStatus BankDonationStatus?
+  // If a notification was sent about the failed status of the donation
+  notified           Boolean?            @default(false)
 
   @@map("bank_transactions")
 }

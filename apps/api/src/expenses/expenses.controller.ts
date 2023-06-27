@@ -95,7 +95,7 @@ export class ExpensesController {
     const file = await this.expensesService.downloadFile(fileId)
     res.set({
       'Content-Type': file.mimetype,
-      'Content-Disposition': 'attachment; filename="' + file.filename + '"',
+      'Content-Disposition': 'inline; filename="' + file.filename + '"',
     })
     return new StreamableFile(file.stream)
   }

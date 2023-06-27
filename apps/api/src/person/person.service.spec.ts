@@ -2,7 +2,6 @@ import client from '@sendgrid/client'
 import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
-import { PrismaService } from '../prisma/prisma.service'
 import { PersonService } from './person.service'
 
 const mockPerson = {
@@ -12,12 +11,11 @@ const mockPerson = {
   newsletter: true,
 }
 const url = '/test/url'
-const requestMock = jest.spyOn(client, 'request')
+const requestMock = jest.spyOn(client, 'request').mockImplementation()
 const setApiKeyMock = jest.spyOn(client, 'setApiKey')
 
 describe('PersonService with enable client list ', () => {
-  let service: PersonService
-  let prismaService: PrismaService
+  let personService: PersonService
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -31,8 +29,7 @@ describe('PersonService with enable client list ', () => {
       })
       .compile()
 
-    service = module.get<PersonService>(PersonService)
-    prismaService = prismaMock
+    personService = module.get<PersonService>(PersonService)
   })
 
   afterEach(() => {
@@ -40,14 +37,14 @@ describe('PersonService with enable client list ', () => {
   })
 
   it('should be defined', () => {
-    expect(service).toBeDefined()
+    expect(personService).toBeDefined()
     expect(setApiKeyMock).toHaveBeenCalled()
   })
 
   it('should create person and add it to contact list', async () => {
-    await service.create(mockPerson)
+    await personService.create(mockPerson)
 
-    expect(prismaService.person.create).toHaveBeenCalledWith({ data: mockPerson })
+    expect(prismaMock.person.create).toHaveBeenCalledWith({ data: mockPerson })
     expect(requestMock).toHaveBeenCalledWith(
       expect.objectContaining({
         url,
@@ -65,9 +62,9 @@ describe('PersonService with enable client list ', () => {
   })
 
   it('should create person without adding it to contact list', async () => {
-    await service.create({ ...mockPerson, ...{ newsletter: false } })
+    await personService.create({ ...mockPerson, ...{ newsletter: false } })
 
-    expect(prismaService.person.create).toHaveBeenCalledWith({
+    expect(prismaMock.person.create).toHaveBeenCalledWith({
       data: { ...mockPerson, ...{ newsletter: false } },
     })
     expect(requestMock).not.toHaveBeenCalled()
@@ -75,8 +72,7 @@ describe('PersonService with enable client list ', () => {
 })
 
 describe('PersonService with disable client list ', () => {
-  let service: PersonService
-  let prismaService: PrismaService
+  let personService: PersonService
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -88,8 +84,7 @@ describe('PersonService with disable client list ', () => {
       })
       .compile()
 
-    service = module.get<PersonService>(PersonService)
-    prismaService = prismaMock
+    personService = module.get<PersonService>(PersonService)
   })
 
   afterEach(() => {
@@ -97,14 +92,14 @@ describe('PersonService with disable client list ', () => {
   })
 
   it('should be defined', () => {
-    expect(service).toBeDefined()
+    expect(personService).toBeDefined()
     expect(setApiKeyMock).not.toHaveBeenCalled()
   })
 
   it('should create person without adding it to contact list', async () => {
-    await service.create(mockPerson)
+    await personService.create(mockPerson)
 
-    expect(prismaService.person.create).toHaveBeenCalledWith({
+    expect(prismaMock.person.create).toHaveBeenCalledWith({
       data: mockPerson,
     })
     expect(requestMock).not.toHaveBeenCalled()

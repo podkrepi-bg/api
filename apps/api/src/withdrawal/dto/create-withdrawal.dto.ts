@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Currency, Prisma, WithdrawStatus } from '@prisma/client'
+import { Currency, WithdrawStatus } from '@prisma/client'
 import { Expose } from 'class-transformer'
 import { IsEnum, IsNumber, IsString, IsUUID, IsOptional } from 'class-validator'
 export class CreateWithdrawalDto {
