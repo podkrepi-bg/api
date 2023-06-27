@@ -7,8 +7,6 @@ import {
   Param,
   Delete,
   Put,
-  Inject,
-  forwardRef,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common'
@@ -26,7 +24,7 @@ import { CampaignNewsState } from '@prisma/client'
 export class CampaignNewsController {
   constructor(
     private readonly campaignNewsService: CampaignNewsService,
-    @Inject(forwardRef(() => PersonService)) private personService: PersonService,
+    private personService: PersonService,
   ) {}
 
   @Post()
