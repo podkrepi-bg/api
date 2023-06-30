@@ -415,6 +415,9 @@ export class IrisTasks {
     const appUrl = this.config.get<string>(stage)
     const link = `${appUrl}/admin/bank-transactions`
 
+    // Format amount
+    transactions.forEach((trx) => (trx.amount /= 100))
+
     // Prepare Email data
     const recepient = { to: [this.billingAdminEmail] }
     const mail = new UnrecognizedDonationEmailDto({
