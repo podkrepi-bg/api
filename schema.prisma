@@ -222,7 +222,7 @@ model CampaignNews {
   id          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   campaignId  String             @map("campaign_id") @db.Uuid
   publisherId String             @map("publisher_id") @db.Uuid
-  slug        String
+  slug        String             @unique @db.VarChar(250)
   title       String
   author      String
   sourceLink  String?            @map("source_link")
