@@ -7,14 +7,14 @@ class CacheObject {
 
 export class HotCache {
   constructor(private ttl: number, private enabled: boolean) {}
-  private cache: { [key: string]: CacheObject } = {}
+  private cache = new Map<string, any>()
 
   lookup(key: string) {
     if (!this.enabled) {
       return null
     }
 
-    const cacheObject = this.cache[key]
+    const cacheObject = this.cache.get(key)
     if (cacheObject && !cacheObject.isExpired()) {
       return cacheObject.value
     }
@@ -29,6 +29,6 @@ export class HotCache {
 
     const expiration = Date.now() + (ttl || this.ttl) * 1000
 
-    this.cache[key] = new CacheObject(value, expiration)
+    this.cache.set(key, new CacheObject(value, expiration))
   }
 }
