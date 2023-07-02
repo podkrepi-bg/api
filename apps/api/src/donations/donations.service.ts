@@ -290,7 +290,7 @@ export class DonationsService {
     pageSize?: number,
   ): Promise<ListDonationsDto<DonationBaseDto>> {
     const cacheKey = `donations-${campaignId}-${status}-${pageIndex}-${pageSize}`
-    const cachedDonations = this.cache.get(cacheKey)
+    const cachedDonations = this.cache.lookup(cacheKey)
     if (cachedDonations) {
       return cachedDonations
     }
@@ -323,7 +323,7 @@ export class DonationsService {
       total: count,
     }
 
-    this.cache.set(cacheKey, result)
+    this.cache.store(cacheKey, result)
 
     return result
   }
@@ -681,7 +681,7 @@ export class DonationsService {
   }
 
   async getTotalDonatedMoney() {
-    const cachedAmount = this.cache.get('totalDonatedMoney')
+    const cachedAmount = this.cache.lookup('totalDonatedMoney')
     if (cachedAmount) {
         return { total: cachedAmount }
     }
@@ -694,13 +694,13 @@ export class DonationsService {
     })
 
     // cache the amount for 30 seconds
-    this.cache.set('totalDonatedMoney', totalMoney._sum.amount)
+    this.cache.store('totalDonatedMoney', totalMoney._sum.amount)
 
     return { total: totalMoney._sum.amount }
   }
 
   async getDonorsCount() {
-    const cachedCount = this.cache.get('donorsCount')
+    const cachedCount = this.cache.lookup('donorsCount')
     if (cachedCount) {
         return { count: cachedCount }
     }
@@ -720,7 +720,7 @@ export class DonationsService {
     const totalCount = donorsCount.length - 1 + anonymousDonations
 
     // cache the count for 30 seconds
-    this.cache.set('donorsCount', totalCount)
+    this.cache.store('donorsCount', totalCount)
 
     // substract one because we don't want to include anonymousDonation again
     return { count: totalCount }

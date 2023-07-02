@@ -9,7 +9,7 @@ export class HotCache {
   constructor(private ttl: number, private enabled: boolean) {}
   private cache: { [key: string]: CacheObject } = {}
 
-  get(key: string) {
+  lookup(key: string) {
     if (!this.enabled) {
       return null
     }
@@ -22,7 +22,7 @@ export class HotCache {
   }
 
   // make the ttl optional
-  set(key: string, value: any, ttl?: number) {
+  store(key: string, value: any, ttl?: number) {
     if (!this.enabled) {
       return
     }
