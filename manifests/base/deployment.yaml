@@ -224,3 +224,7 @@ spec:
                 secretKeyRef:
                   name: paypal-secret
                   key: webhook-id
+            - name: HOTCACHE_TTL
+              value: 30
+            - name: HOTCACHE_ENABLED
+              value: true

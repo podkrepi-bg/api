@@ -42,8 +42,7 @@ export class DonationsService {
     private exportService: ExportService,
   ) {}
 
-  private cache = new HotCache()
-  private cacheTimeout = 30 * 1000 // 30 seconds
+  private cache = new HotCache(this.config.get<number>('hotcache.ttl') || 0, !!this.config.get<boolean>('hotcache.enabled'))
 
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
     const listResponse = await this.stripeClient.prices.list({ active, type, limit: 100 }).then(
@@ -324,7 +323,7 @@ export class DonationsService {
       total: count,
     }
 
-    this.cache.set(cacheKey, result, Date.now() + this.cacheTimeout)
+    this.cache.set(cacheKey, result)
 
     return result
   }
@@ -695,7 +694,7 @@ export class DonationsService {
     })
 
     // cache the amount for 30 seconds
-    this.cache.set('totalDonatedMoney', totalMoney._sum.amount, Date.now() + this.cacheTimeout)
+    this.cache.set('totalDonatedMoney', totalMoney._sum.amount)
 
     return { total: totalMoney._sum.amount }
   }
@@ -721,7 +720,7 @@ export class DonationsService {
     const totalCount = donorsCount.length - 1 + anonymousDonations
 
     // cache the count for 30 seconds
-    this.cache.set('donorsCount', totalCount, Date.now() + this.cacheTimeout)
+    this.cache.set('donorsCount', totalCount)
 
     // substract one because we don't want to include anonymousDonation again
     return { count: totalCount }
