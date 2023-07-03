@@ -68,6 +68,8 @@ model Person {
   supporters         Supporter[]
   transfers          Transfer[]
   withdrawals        Withdrawal[]
+  publishedNews      CampaignNews[]
+  newsFiles          CampaignNewsFile[]
 
   @@index([keycloakId], map: "keycloak_id_idx")
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
@@ -211,8 +213,29 @@ model Campaign {
   vaults                  Vault[]
   withdrawals             Withdrawal[]
   slugArchive             SlugArchive[]
+  campaignNews            CampaignNews[]
 
   @@map("campaigns")
+}
+
+model CampaignNews {
+  id          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId  String             @map("campaign_id") @db.Uuid
+  publisherId String             @map("publisher_id") @db.Uuid
+  slug        String             @unique @db.VarChar(250)
+  title       String
+  author      String
+  sourceLink  String?            @map("source_link")
+  state       CampaignNewsState  @default(draft)
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  publishedAt DateTime?          @map("published_at") @db.Timestamptz(6)
+  editedAt    DateTime?          @map("edited_at") @db.Timestamptz(6)
+  description String
+  campaign    Campaign           @relation(fields: [campaignId], references: [id])
+  publisher   Person             @relation(fields: [publisherId], references: [id])
+  newsFiles   CampaignNewsFile[]
+
+  @@map("campaign_news")
 }
 
 /// Keeps track of previous slugs that are not used currently in any active campaign
@@ -253,6 +276,19 @@ model CampaignFile {
   person     Person           @relation(fields: [personId], references: [id])
 
   @@map("campaign_files")
+}
+
+model CampaignNewsFile {
+  id       String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename String           @db.VarChar(200)
+  newsId   String           @map("news_id") @db.Uuid
+  personId String           @map("person_id") @db.Uuid
+  mimetype String           @db.VarChar(100)
+  role     CampaignFileRole
+  news     CampaignNews     @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  person   Person           @relation(fields: [personId], references: [id])
+
+  @@map("campaign_news_files")
 }
 
 model IrregularityFile {
@@ -626,6 +662,13 @@ enum CampaignState {
   @@map("campaign_state")
 }
 
+enum CampaignNewsState {
+  draft
+  published
+
+  @@map("campaign_news_state")
+}
+
 enum Currency {
   BGN
   EUR
@@ -807,6 +850,7 @@ enum CampaignFileRole {
   campaignListPhoto
   beneficiaryPhoto
   organizerPhoto
+  gallery
 
   @@map("campaign_file_role")
 }
