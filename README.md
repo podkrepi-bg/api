@@ -260,11 +260,16 @@ We use S3 for storing the uploaded files in buckets. The code expects the bucket
 
 The creation of the buckets can happen using s3cmd client https://s3tools.org/s3cmd or any other S3 client and using the S3 secrets for the respective environment.
 
-To configure S3cmd run 's3cmd --configure'. All settings are self descriptive, however pay attention to these:
+To configure S3cmd run 
+```shell
+s3cmd --configure
+```
 
+All settings are self descriptive, however pay attention to these:
 - The default region is not a Country code but "object-store-dev" for development and "object-store" for prod
 - S3 endpoint: cdn-dev.podkrepi.bg
 - When asked for DNS-style bucket use: cdn-dev.podkrepi.bg
+- When asked for encryption password just press 'Enter' for leaving it empty
 
 Then bucket creation is like this:
 

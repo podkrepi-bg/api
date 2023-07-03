@@ -1,5 +1,5 @@
 <mjml>
-  <mj-body background-color="#ffffff" font-size="13px">
+  <mj-body background-color="#ffffff" font-size="13px" width="90%">
     <mj-section
       background-color="#009FE3"
       vertical-align="top"
@@ -34,7 +34,7 @@
         <mj-text
           align="left"
           color="#ffffff"
-          font-size="15px"
+          font-size="18px"
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
           padding-right="25px">
@@ -51,7 +51,7 @@
             font-family="open Sans Helvetica, Arial, sans-serif">
             <th style="padding: 10px" width="16%">Транз. №</th>
             <th style="padding: 10px" width="16%">Изпращач</th>
-            <th style="padding: 10px" width="16%">Сума</th>
+            <th style="padding: 10px" width="13%">Сума</th>
             <th style="padding: 10px" width="31%">Основание</th>
             <th style="padding: 10px" width="16%">Статус</th>
           </tr>
@@ -59,7 +59,7 @@
           <tr style="border-bottom: 1px solid #ffffff">
             <td style="padding: 10px">{{ id }}</td>
             <td style="padding: 10px">{{ senderName }}</td>
-            <td style="padding: 10px">{{ amount }}</td>
+            <td style="padding: 10px">{{ amount }} {{ currency }}</td>
             <td style="padding: 10px; word-break: break-word">{{ description }}</td>
             <td style="padding: 10px">{{ bankDonationStatus }}</td>
           </tr>
@@ -69,7 +69,7 @@
         <mj-button
           background-color="#feeb35"
           font-family="Helvetica, Arial, sans-serif"
-          font-size="16px"
+          font-size="17px"
           border-radius="30px"
           color="#000000"
           padding="15px 30px"
