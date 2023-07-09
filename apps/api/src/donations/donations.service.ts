@@ -29,7 +29,6 @@ import { donationWithPerson, DonationWithPerson } from './queries/donation.valid
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 import { ImportStatus } from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
-import { HotCache } from '../common/hotcache'
 
 @Injectable()
 export class DonationsService {
@@ -41,9 +40,6 @@ export class DonationsService {
     private vaultService: VaultService,
     private exportService: ExportService,
   ) {}
-
-  private cache = new HotCache(this.config.get<number>('hotcache.ttl') || 0, !!this.config.get<boolean>('hotcache.enabled'))
-
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
     const listResponse = await this.stripeClient.prices.list({ active, type, limit: 100 }).then(
       function (list) {
@@ -283,18 +279,13 @@ export class DonationsService {
    * @param pageSize (Optional)
    * @param type (Optional) Filter by type
    */
+
   async listDonationsPublic(
     campaignId?: string,
     status?: DonationStatus,
     pageIndex?: number,
     pageSize?: number,
   ): Promise<ListDonationsDto<DonationBaseDto>> {
-    const cacheKey = `donations-${campaignId}-${status}-${pageIndex}-${pageSize}`
-    const cachedDonations = this.cache.lookup(cacheKey)
-    if (cachedDonations) {
-      return cachedDonations
-    }
-
     const data = await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
       orderBy: [{ createdAt: 'desc' }],
@@ -322,8 +313,6 @@ export class DonationsService {
       items: data,
       total: count,
     }
-
-    this.cache.store(cacheKey, result)
 
     return result
   }
@@ -681,11 +670,6 @@ export class DonationsService {
   }
 
   async getTotalDonatedMoney() {
-    const cachedAmount = this.cache.lookup('totalDonatedMoney')
-    if (cachedAmount) {
-        return { total: cachedAmount }
-    }
-
     const totalMoney = await this.prisma.donation.aggregate({
       _sum: {
         amount: true,
@@ -693,18 +677,10 @@ export class DonationsService {
       where: { status: DonationStatus.succeeded },
     })
 
-    // cache the amount for 30 seconds
-    this.cache.store('totalDonatedMoney', totalMoney._sum.amount)
-
     return { total: totalMoney._sum.amount }
   }
 
   async getDonorsCount() {
-    const cachedCount = this.cache.lookup('donorsCount')
-    if (cachedCount) {
-        return { count: cachedCount }
-    }
-
     const donorsCount = await this.prisma.donation.groupBy({
       by: ['billingName'],
       where: { status: DonationStatus.succeeded },
@@ -718,9 +694,6 @@ export class DonationsService {
     const anonymousDonations = donorsCount[0]._count._all
 
     const totalCount = donorsCount.length - 1 + anonymousDonations
-
-    // cache the count for 30 seconds
-    this.cache.store('donorsCount', totalCount)
 
     // substract one because we don't want to include anonymousDonation again
     return { count: totalCount }

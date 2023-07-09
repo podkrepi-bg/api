@@ -48,6 +48,7 @@
     "@sentry/node": "^7.46.0",
     "@types/cron": "^2.0.0",
     "aws-sdk": "^2.1369.0",
+    "cache-manager": "^5.2.3",
     "class-transformer": "0.5.1",
     "class-validator": "0.14.0",
     "exceljs": "4.3.0",
