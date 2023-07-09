@@ -65,10 +65,10 @@ spec:
                 - NET_RAW
           resources:
             limits:
-              memory: 500Mi
-              cpu: 500m
+              memory: 700Mi
+              cpu: 1000m
             requests:
-              memory: 350Mi
+              memory: 450Mi
               cpu: 200m
           ports:
             - containerPort: 80
