@@ -47,9 +47,5 @@ export default () => ({
   },
   tasks: {
     import_transactions: { interval: process.env.IMPORT_TRX_TASK_INTERVAL_MINUTES },
-  },
-  hotcache: {
-    ttl: process.env.HOTCACHE_TTL,
-    enabled: process.env.HOTCACHE_ENABLED === 'true',
-  },
+  }
 })
