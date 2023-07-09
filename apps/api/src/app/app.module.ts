@@ -111,7 +111,7 @@ import { CacheModule, CacheInterceptor } from '@nestjs/cache-manager'
       }),
       isGlobal: true,
       inject: [ConfigService],
-    })
+    }),
   ],
   controllers: [AppController],
   providers: [
@@ -147,7 +147,7 @@ import { CacheModule, CacheInterceptor } from '@nestjs/cache-manager'
     /**
      * Enables cache interceptors globally
      * https://docs.nestjs.com/techniques/caching
-       */
+     */
     { provide: APP_INTERCEPTOR, useClass: CacheInterceptor },
   ],
 })

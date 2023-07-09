@@ -225,4 +225,4 @@ spec:
                   name: paypal-secret
                   key: webhook-id
             - name: CACHE_TTL
-              value: 30000
+              value: '60000'
