@@ -16,6 +16,8 @@ import {
   BadRequestException,
   Query,
   ForbiddenException,
+  ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common'
 
 import { CampaignService } from './campaign.service'
@@ -26,12 +28,14 @@ import { PersonService } from '../person/person.service'
 import { ApiQuery } from '@nestjs/swagger'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { ApiTags } from '@nestjs/swagger'
+import { CampaignNewsService } from '../campaign-news/campaign-news.service'
 
 @ApiTags('campaign')
 @Controller('campaign')
 export class CampaignController {
   constructor(
     private readonly campaignService: CampaignService,
+    private readonly campaignNewsService: CampaignNewsService,
     @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
   ) {}
 
@@ -60,11 +64,35 @@ export class CampaignController {
     return await this.campaignService.getUserDonatedCampaigns(user.sub)
   }
 
+  @Get('news')
+  @Public()
+  async listPublishedNews(@Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number) {
+    return this.campaignNewsService.listPublishedNewsWithPagination(page)
+  }
+
   @Get(':slug')
   @Public()
   async viewBySlug(@Param('slug') slug: string): Promise<{ campaign: Campaign | null }> {
     const campaign = await this.campaignService.getCampaignBySlug(slug)
     return { campaign }
+  }
+
+  @Get(':slug/can-edit')
+  async canEditCampaign(
+    @Param('slug') slug: string,
+    @AuthenticatedUser() user: KeycloakTokenParsed
+  ): Promise<boolean> {
+    const campaign = await this.campaignService.isUserCampaign(user.sub, slug)
+    return campaign
+  }
+
+  @Get(':slug/news')
+  @Public()
+  async listNewsForSingleCampaign(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Param(`slug`) slug: string,
+  ) {
+    return this.campaignNewsService.findArticlesByCampaignSlugWithPagination(slug, page)
   }
 
   @Post('create-campaign')

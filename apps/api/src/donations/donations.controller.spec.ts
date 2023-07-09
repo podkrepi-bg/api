@@ -19,6 +19,7 @@ import { VaultService } from '../vault/vault.service'
 import { DonationsController } from './donations.controller'
 import { DonationsService } from './donations.service'
 import { CreateSessionDto } from './dto/create-session.dto'
+import { UpdatePaymentDto } from './dto/update-payment.dto'
 
 describe('DonationsController', () => {
   let controller: DonationsController
@@ -210,16 +211,38 @@ describe('DonationsController', () => {
   })
 
   it('should update a donation status, when it is changed', async () => {
-    const updatePaymentDto = {
+    const updatePaymentDto: UpdatePaymentDto = {
       type: DonationType.donation,
       amount: 10,
       status: DonationStatus.succeeded,
+      targetPersonId: mockDonation.personId,
+      billingEmail: mockDonation.billingEmail,
+    }
+
+    const existingTargetPerson = {
+      id: mockDonation.personId,
+      firstName: 'string',
+      lastName: 'string',
+      email: mockDonation.billingEmail,
+      phone: 'string',
+      company: 'string',
+      createdAt: new Date('2022-01-01'),
+      updatedAt: new Date('2022-01-01'),
+      newsletter: false,
+      address: 'string',
+      birthday: new Date('2002-07-07'),
+      emailConfirmed: true,
+      personalNumber: 'string',
+      keycloakId: '00000000-0000-0000-0000-000000000012',
+      stripeCustomerId: 'string',
+      picture: 'string',
     }
 
     const existingDonation = { ...mockDonation, status: DonationStatus.initial }
     const expectedUpdatedDonation = { ...existingDonation, status: DonationStatus.succeeded }
 
     prismaMock.donation.findFirst.mockResolvedValueOnce(existingDonation)
+    prismaMock.person.findFirst.mockResolvedValueOnce(existingTargetPerson)
     prismaMock.donation.update.mockResolvedValueOnce(expectedUpdatedDonation)
 
     // act
@@ -230,7 +253,8 @@ describe('DonationsController', () => {
       where: { id: '123' },
       data: {
         status: DonationStatus.succeeded,
-        personId: '1',
+        personId: updatePaymentDto.targetPersonId,
+        billingEmail: updatePaymentDto.billingEmail,
       },
     })
     expect(vaultMock.incrementVaultAmount).toHaveBeenCalledWith(

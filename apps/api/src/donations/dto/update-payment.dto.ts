@@ -10,4 +10,9 @@ export class UpdatePaymentDto extends PartialType(CreatePaymentDto) {
   @IsOptional()
   @IsUUID()
   targetPersonId?: string
+
+  @Expose()
+  @ApiProperty()
+  @IsOptional()
+  billingEmail?: string  
 }

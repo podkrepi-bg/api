@@ -53,6 +53,8 @@ import { ScheduleModule } from '@nestjs/schedule'
 import { TasksModule } from '../tasks/tasks.module'
 import { BankTransactionsModule } from '../bank-transactions/bank-transactions.module'
 import { CacheModule, CacheInterceptor } from '@nestjs/cache-manager'
+import { CampaignNewsModule } from '../campaign-news/campaign-news.module'
+import { CampaignNewsFileModule } from '../campaign-news-file/campaign-news-file.module'
 
 @Module({
   imports: [
@@ -112,6 +114,8 @@ import { CacheModule, CacheInterceptor } from '@nestjs/cache-manager'
       isGlobal: true,
       inject: [ConfigService],
     }),
+    CampaignNewsModule,
+    CampaignNewsFileModule,
   ],
   controllers: [AppController],
   providers: [

@@ -16,6 +16,7 @@ import { expenseSeed } from './expense/seed'
 import { donationsSeed } from './donation/seed'
 import { companySeed } from './company/seed'
 import { donationsWishesSeed } from './donationWish/seed'
+import { campaignNewsSeed } from './campaignNews/seed'
 
 const prisma = new PrismaClient()
 
@@ -54,6 +55,7 @@ async function seedDevData() {
     await expenseSeed()
     await donationsSeed()
     await donationsWishesSeed()
+    await campaignNewsSeed()
   }
 }
 
