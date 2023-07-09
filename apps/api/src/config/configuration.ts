@@ -51,5 +51,5 @@ export default () => ({
   hotcache: {
     ttl: process.env.HOTCACHE_TTL,
     enabled: process.env.HOTCACHE_ENABLED === 'true',
-  }
+  },
 })
