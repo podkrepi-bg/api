@@ -577,12 +577,19 @@ export class DonationsService {
 
       const status = updatePaymentDto.status || currentDonation.status
       let donorId = currentDonation.personId
+      let billingEmail = ''
       if (
         updatePaymentDto.targetPersonId &&
-        currentDonation.personId !== updatePaymentDto.targetPersonId
+        currentDonation.personId !== updatePaymentDto.targetPersonId || 
+        updatePaymentDto.billingEmail
       ) {
         const targetDonor = await this.prisma.person.findFirst({
-          where: { id: updatePaymentDto.targetPersonId },
+          where: {
+             OR: [
+              {id: updatePaymentDto.targetPersonId },
+              {email: updatePaymentDto.billingEmail}
+            ]
+          },
         })
         if (!targetDonor) {
           throw new NotFoundException(
@@ -590,13 +597,15 @@ export class DonationsService {
           )
         }
         donorId = targetDonor.id
+        billingEmail = targetDonor.email
       }
 
       const donation = await this.prisma.donation.update({
         where: { id },
         data: {
           status: status,
-          personId: donorId,
+          personId:  updatePaymentDto.targetPersonId ? donorId : undefined,
+          billingEmail: updatePaymentDto.billingEmail ? billingEmail : undefined 
         },
       })
 
