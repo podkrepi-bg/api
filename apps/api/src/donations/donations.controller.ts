@@ -32,6 +32,8 @@ import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
 import { DonationsApiQuery } from './queries/donations.apiquery'
 import { PersonService } from '../person/person.service'
+import { CacheInterceptor } from '@nestjs/cache-manager'
+import { UseInterceptors } from '@nestjs/common'
 
 @ApiTags('donation')
 @Controller('donation')
@@ -85,18 +87,21 @@ export class DonationsController {
   }
 
   @Get('prices')
+  @UseInterceptors(CacheInterceptor)
   @Public()
   findPrices() {
     return this.donationsService.listPrices()
   }
 
   @Get('prices/single')
+  @UseInterceptors(CacheInterceptor)
   @Public()
   findSinglePrices() {
     return this.donationsService.listPrices('one_time')
   }
 
   @Get('prices/recurring')
+  @UseInterceptors(CacheInterceptor)
   @Public()
   findRecurringPrices() {
     return this.donationsService.listPrices('recurring')
@@ -110,18 +115,21 @@ export class DonationsController {
   }
 
   @Get('money')
+  @UseInterceptors(CacheInterceptor)
   @Public()
   async totalDonatedMoney() {
     return this.donationsService.getTotalDonatedMoney()
   }
 
   @Get('donors-count')
+  @UseInterceptors(CacheInterceptor)
   @Public()
   async donorsCount() {
     return await this.donationsService.getDonorsCount()
   }
 
   @Get('listPublic')
+  @UseInterceptors(CacheInterceptor)
   @Public()
   @ApiQuery({ name: 'campaignId', required: false, type: String })
   @ApiQuery({ name: 'status', required: false, enum: DonationStatus })

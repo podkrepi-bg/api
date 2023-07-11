@@ -52,6 +52,7 @@ import { NotificationModule } from '../sockets/notifications/notification.module
 import { ScheduleModule } from '@nestjs/schedule'
 import { TasksModule } from '../tasks/tasks.module'
 import { BankTransactionsModule } from '../bank-transactions/bank-transactions.module'
+import { CacheModule, CacheInterceptor } from '@nestjs/cache-manager'
 import { CampaignNewsModule } from '../campaign-news/campaign-news.module'
 import { CampaignNewsFileModule } from '../campaign-news-file/campaign-news-file.module'
 
@@ -105,6 +106,14 @@ import { CampaignNewsFileModule } from '../campaign-news-file/campaign-news-file
     JwtModule,
     NotificationModule,
     BankTransactionsModule,
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (config: ConfigService) => ({
+        ttl: Number(config.get<number>('CACHE_TTL', 30 * 1000 /* ms */)),
+      }),
+      isGlobal: true,
+      inject: [ConfigService],
+    }),
     CampaignNewsModule,
     CampaignNewsFileModule,
   ],
@@ -139,6 +148,11 @@ import { CampaignNewsFileModule } from '../campaign-news-file/campaign-news-file
      * specified role passed.
      */
     { provide: APP_GUARD, useClass: RoleGuard },
+    /**
+     * Enables cache interceptors globally
+     * https://docs.nestjs.com/techniques/caching
+     */
+    { provide: APP_INTERCEPTOR, useClass: CacheInterceptor },
   ],
 })
 export class AppModule implements NestModule {

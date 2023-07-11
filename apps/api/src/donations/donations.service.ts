@@ -40,7 +40,6 @@ export class DonationsService {
     private vaultService: VaultService,
     private exportService: ExportService,
   ) {}
-
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
     const listResponse = await this.stripeClient.prices.list({ active, type, limit: 100 }).then(
       function (list) {
@@ -280,6 +279,7 @@ export class DonationsService {
    * @param pageSize (Optional)
    * @param type (Optional) Filter by type
    */
+
   async listDonationsPublic(
     campaignId?: string,
     status?: DonationStatus,
@@ -685,6 +685,7 @@ export class DonationsService {
       },
       where: { status: DonationStatus.succeeded },
     })
+
     return { total: totalMoney._sum.amount }
   }
 
@@ -701,8 +702,10 @@ export class DonationsService {
     // get count of the donations with billingName == null
     const anonymousDonations = donorsCount[0]._count._all
 
+    const totalCount = donorsCount.length - 1 + anonymousDonations
+
     // substract one because we don't want to include anonymousDonation again
-    return { count: donorsCount.length - 1 + anonymousDonations }
+    return { count: totalCount }
   }
 
   /**
