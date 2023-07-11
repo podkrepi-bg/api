@@ -3361,6 +3361,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nestjs/cache-manager@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@nestjs/cache-manager@npm:2.0.1"
+  peerDependencies:
+    "@nestjs/common": ^9.0.0 || ^10.0.0
+    "@nestjs/core": ^9.0.0 || ^10.0.0
+    cache-manager: <=5
+    reflect-metadata: ^0.1.12
+    rxjs: ^7.0.0
+  checksum: 47aa6a9b818a4819669752d0fa8708e205b8c439fb4e30661a1a24f66b457d3b681fbc298630d8a99a2fc665052785dc78be7fca6c1f979e8b668fe98e2a020e
+  languageName: node
+  linkType: hard
+
 "@nestjs/cli@npm:^9.3.0":
   version: 9.3.0
   resolution: "@nestjs/cli@npm:9.3.0"
@@ -13336,6 +13349,7 @@ __metadata:
     "@golevelup/nestjs-webhooks": 0.2.14
     "@keycloak/keycloak-admin-client": 18.0.0
     "@nestjs/axios": ^2.0.0
+    "@nestjs/cache-manager": ^2.0.1
     "@nestjs/cli": ^9.3.0
     "@nestjs/common": ^9.3.12
     "@nestjs/config": ^2.3.1
