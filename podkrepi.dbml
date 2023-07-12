@@ -43,6 +43,8 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   supporters supporters [not null]
   transfers transfers [not null]
   withdrawals withdrawals [not null]
+  publishedNews campaign_news [not null]
+  newsFiles campaign_news_files [not null]
 
   Note: 'Generic person object'
 }
@@ -170,6 +172,25 @@ Table campaigns {
   vaults vaults [not null]
   withdrawals withdrawals [not null]
   slugArchive slug_archive [not null]
+  campaignNews campaign_news [not null]
+}
+
+Table campaign_news {
+  id String [pk]
+  campaignId String [not null]
+  publisherId String [not null]
+  slug String [unique, not null]
+  title String [not null]
+  author String [not null]
+  sourceLink String
+  state CampaignNewsState [not null, default: 'draft']
+  createdAt DateTime [default: `now()`, not null]
+  publishedAt DateTime
+  editedAt DateTime
+  description String [not null]
+  campaign campaigns [not null]
+  publisher people [not null]
+  newsFiles campaign_news_files [not null]
 }
 
 Table slug_archive {
@@ -203,6 +224,17 @@ Table campaign_files {
   mimetype String [not null]
   role CampaignFileRole [not null]
   campaign campaigns [not null]
+  person people [not null]
+}
+
+Table campaign_news_files {
+  id String [pk]
+  filename String [not null]
+  newsId String [not null]
+  personId String [not null]
+  mimetype String [not null]
+  role CampaignFileRole [not null]
+  news campaign_news [not null]
   person people [not null]
 }
 
@@ -517,6 +549,11 @@ Enum CampaignState {
   deleted
 }
 
+Enum CampaignNewsState {
+  draft
+  published
+}
+
 Enum Currency {
   BGN
   EUR
@@ -658,6 +695,7 @@ Enum CampaignFileRole {
   campaignListPhoto
   beneficiaryPhoto
   organizerPhoto
+  gallery
 }
 
 Enum IrregularityStatus {
@@ -721,6 +759,10 @@ Ref: campaigns.organizerId > organizers.id
 
 Ref: campaigns.companyId > companies.id
 
+Ref: campaign_news.campaignId > campaigns.id
+
+Ref: campaign_news.publisherId > people.id
+
 Ref: slug_archive.campaignId > campaigns.id
 
 Ref: irregularities.campaignId > campaigns.id
@@ -730,6 +772,10 @@ Ref: irregularities.personId > people.id
 Ref: campaign_files.campaignId > campaigns.id
 
 Ref: campaign_files.personId > people.id
+
+Ref: campaign_news_files.newsId > campaign_news.id [delete: Cascade]
+
+Ref: campaign_news_files.personId > people.id
 
 Ref: irregularity_files.irregularityId > irregularities.id
 

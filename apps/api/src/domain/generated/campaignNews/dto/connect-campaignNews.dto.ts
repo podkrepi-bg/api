@@ -1,3 +1,4 @@
 export class ConnectCampaignNewsDto {
-  id: string
+  id?: string
+  slug?: string
 }
