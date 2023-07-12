@@ -7,7 +7,6 @@ import { CampaignNewsService } from './campaign-news.service'
 
 describe('CampaignNewsController', () => {
   let controller: CampaignNewsController
-  let prismaService: PrismaService
 
   const personIdMock = 'testPersonId'
   const personServiceMock = {

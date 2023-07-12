@@ -16,6 +16,8 @@ import { RecurringDonation } from '../../recurringDonation/entities/recurringDon
 import { Supporter } from '../../supporter/entities/supporter.entity'
 import { Transfer } from '../../transfer/entities/transfer.entity'
 import { Withdrawal } from '../../withdrawal/entities/withdrawal.entity'
+import { CampaignNews } from '../../campaignNews/entities/campaignNews.entity'
+import { CampaignNewsFile } from '../../campaignNewsFile/entities/campaignNewsFile.entity'
 
 export class Person {
   id: string
@@ -52,4 +54,6 @@ export class Person {
   supporters?: Supporter[]
   transfers?: Transfer[]
   withdrawals?: Withdrawal[]
+  publishedNews?: CampaignNews[]
+  newsFiles?: CampaignNewsFile[]
 }
