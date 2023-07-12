@@ -11,7 +11,7 @@ describe('RefreshController', () => {
     const AuthServiceProvider = {
       provide: AuthService,
       useFactory: () => ({
-        issueTokenFromRefresh: jest.fn((refreshDto: RefreshDto) => ({
+        issueTokenFromRefresh: jest.fn(() => ({
           accessToken: 'SOME_JWT_TOKEN',
           refreshToken: 'SOME_JWT_REFRESH_TOKEN',
           expires: 300,
