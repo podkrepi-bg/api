@@ -20,6 +20,10 @@ import { ConfigService } from '@nestjs/config'
 import { CampaignService } from '../campaign/campaign.service'
 import { PersonService } from '../person/person.service'
 import { VaultService } from '../vault/vault.service'
+import { IrisTasks } from '../tasks/bank-import/import-transactions.task'
+import { SchedulerRegistry } from '@nestjs/schedule'
+import { EmailService } from '../email/email.service'
+import { TemplateService } from '../email/template.service'
 
 const bankTransactionsMock = [
   {
@@ -103,9 +107,16 @@ const stripeMock = {
   checkout: { sessions: { create: jest.fn() } },
 }
 
+// Mock the IrisTask check for environment variables
+jest
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+  .spyOn(IrisTasks.prototype as any, 'checkForRequiredVariables')
+  .mockImplementation(() => true)
+
 describe('BankTransactionsController', () => {
   let controller: BankTransactionsController
   let prismaService: PrismaService
+  let irisService: IrisTasks
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -129,10 +140,15 @@ describe('BankTransactionsController', () => {
         CampaignService,
         VaultService,
         PersonService,
+        IrisTasks,
+        SchedulerRegistry,
+        EmailService,
+        TemplateService,
       ],
     }).compile()
 
     controller = module.get<BankTransactionsController>(BankTransactionsController)
+    irisService = module.get<IrisTasks>(IrisTasks)
 
     prismaService = prismaMock
   })
@@ -191,6 +207,18 @@ describe('BankTransactionsController', () => {
       )
 
       expect(prismaService.$transaction).toHaveBeenCalled()
+    })
+  })
+
+  describe('rerunBankSync ', () => {
+    it('should rerun bank transactions for specific dates', async () => {
+      jest.spyOn(irisService, 'importBankTransactionsTASK').mockImplementation()
+
+      await controller.rerunBankTransactionsForDate({
+        startDate: '2022-12-01',
+        endDate: '2022-12-04',
+      })
+      expect(irisService.importBankTransactionsTASK).toHaveBeenCalledTimes(4)
     })
   })
 })

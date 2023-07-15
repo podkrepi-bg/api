@@ -266,21 +266,23 @@ describe('ImportTransactionsTask', () => {
           trx.creditDebitIndicator !== 'DEBIT',
       )
 
+      const transactionsDate = new Date()
+
       // Run task
-      await irisTasks.importBankTransactionsTASK()
+      await irisTasks.importBankTransactionsTASK(transactionsDate)
 
       // 1. Should get IRIS iban account
       expect(getIBANSpy).toHaveBeenCalled()
       // 2. Should get IBAN transactions  from IRIS
-      expect(getTrxSpy).toHaveBeenCalledWith(irisIBANAccountMock)
+      expect(getTrxSpy).toHaveBeenCalledWith(irisIBANAccountMock, transactionsDate)
       // 3. Should check if transactions are up-to-date
-      expect(checkTrxsSpy).toHaveBeenCalledWith(mockIrisTransactions)
+      expect(checkTrxsSpy).toHaveBeenCalledWith(mockIrisTransactions, transactionsDate)
       expect(prismaMock.bankTransaction.count).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
             transactionDate: {
-              gte: new Date(DateTime.now().toFormat('yyyy-MM-dd')),
-              lte: new Date(DateTime.now().toFormat('yyyy-MM-dd')),
+              gte: new Date(transactionsDate.toISOString().split('T')[0]),
+              lte: new Date(transactionsDate.toISOString().split('T')[0]),
             },
           },
         }),
@@ -446,15 +448,16 @@ describe('ImportTransactionsTask', () => {
       jest.spyOn(prismaMock, '$transaction').mockResolvedValue('SUCCESS')
       jest.spyOn(prismaMock.campaign, 'findMany').mockResolvedValue(mockDonatedCampaigns)
 
+      const transactionsDate = new Date()
       // Run task
-      await irisTasks.importBankTransactionsTASK()
+      await irisTasks.importBankTransactionsTASK(transactionsDate)
 
       // 1. Should get IRIS iban account
       expect(getIBANSpy).toHaveBeenCalled()
       // 2. Should get IBAN transactions  from IRIS
-      expect(getTrxSpy).toHaveBeenCalledWith(irisIBANAccountMock)
+      expect(getTrxSpy).toHaveBeenCalledWith(irisIBANAccountMock, transactionsDate)
       // 3. Should check if transactions are up-to-date
-      expect(checkTrxsSpy).toHaveBeenCalledWith(mockIrisTransactions)
+      expect(checkTrxsSpy).toHaveBeenCalledWith(mockIrisTransactions, transactionsDate)
       // The rest of the flow should not have been executed
       // 4. Should not be run
       expect(prepareBankTrxSpy).not.toHaveBeenCalled()
@@ -484,7 +487,7 @@ describe('ImportTransactionsTask', () => {
       )
 
       // Run task
-      await irisTasks.importBankTransactionsTASK()
+      await irisTasks.importBankTransactionsTASK(new Date())
 
       expect(prepareBankTrxSpy).not.toHaveBeenCalled()
     })

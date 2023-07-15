@@ -30,7 +30,7 @@ describe('ImportTransactionsTask', () => {
     checkout: { sessions: { create: jest.fn() } },
   }
 
-  // Mock this before instantiating service - else it failss
+  // Mock the IrisTask check for environment variables
   jest
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     .spyOn(IrisTasks.prototype as any, 'checkForRequiredVariables')
