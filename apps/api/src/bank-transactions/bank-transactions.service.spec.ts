@@ -19,6 +19,12 @@ const stripeMock = {
   checkout: { sessions: { create: jest.fn() } },
 }
 
+// Mock the IrisTask check for environment variables
+jest
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+  .spyOn(IrisTasks.prototype as any, 'checkForRequiredVariables')
+  .mockImplementation(() => true)
+
 describe('BankTransactionsService', () => {
   let service: BankTransactionsService
 

@@ -487,7 +487,7 @@ describe('ImportTransactionsTask', () => {
       )
 
       // Run task
-      await irisTasks.importBankTransactionsTASK(DateTime.now())
+      await irisTasks.importBankTransactionsTASK(new Date())
 
       expect(prepareBankTrxSpy).not.toHaveBeenCalled()
     })
