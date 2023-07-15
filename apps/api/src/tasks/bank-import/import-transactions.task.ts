@@ -116,7 +116,7 @@ export class IrisTasks {
     }
   }
 
-  async importBankTransactionsTASK() {
+  async importBankTransactionsTASK(transactionsDate: Date) {
     // De-register the task, so that it doesn't waste server resources
     if (!this.canRun) {
       this.deregisterTask('import-bank-transactions')
@@ -142,7 +142,7 @@ export class IrisTasks {
     // 2. Get transactions from IRIS
     let transactions: IrisTransactionInfo[]
     try {
-      transactions = await this.getTransactions(ibanAccount)
+      transactions = await this.getTransactions(ibanAccount, transactionsDate)
       // No transactions for the day yet
       if (!transactions.length) return
     } catch (e) {
@@ -151,7 +151,7 @@ export class IrisTasks {
 
     // 3. Check if the cron should actually run
     try {
-      const isUpToDate = await this.hasNewOrNonImportedTransactions(transactions)
+      const isUpToDate = await this.hasNewOrNonImportedTransactions(transactions, transactionsDate)
 
       /**
        Should we let it run every time, (giving it a chance to import some previously failed donation for example, because DB was down for 0.5 sec).
@@ -233,14 +233,16 @@ export class IrisTasks {
     return account
   }
 
-  private async getTransactions(ibanAccount: IrisIbanAccountInfo) {
+  private async getTransactions(ibanAccount: IrisIbanAccountInfo, transactionsDate: Date) {
     const endpoint = this.config.get<string>('iris.transactionsEndPoint', '')
 
-    const today = DateTime.now().toFormat('yyyy-MM-dd')
+    const dateToCheck = transactionsDate.toISOString().split('T')[0]
+
+    Logger.debug('Getting transactions for date:' + dateToCheck)
 
     const response = (
       await this.httpService.axiosRef.get<GetIrisTransactionInfoResponse>(
-        endpoint + `/${ibanAccount.id}` + `?dateFrom=${today}&dateTo=${today}`,
+        endpoint + `/${ibanAccount.id}` + `?dateFrom=${dateToCheck}&dateTo=${dateToCheck}`,
         {
           headers: {
             'x-user-hash': this.userHash,
@@ -254,14 +256,17 @@ export class IrisTasks {
   }
 
   // Checks to see if all transactions have been processed already
-  private async hasNewOrNonImportedTransactions(transactions: IrisTransactionInfo[]) {
-    const today = new Date(DateTime.now().toFormat('yyyy-MM-dd'))
+  private async hasNewOrNonImportedTransactions(
+    transactions: IrisTransactionInfo[],
+    transactionsDate: Date,
+  ) {
+    const dateToCheck = new Date(transactionsDate.toISOString().split('T')[0])
 
     const count = await this.prisma.bankTransaction.count({
       where: {
         transactionDate: {
-          gte: today,
-          lte: today,
+          gte: dateToCheck,
+          lte: dateToCheck,
         },
       },
     })

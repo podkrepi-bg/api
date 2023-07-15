@@ -15,6 +15,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { Response } from 'express'
 import { CreateBankPaymentDto } from '../donations/dto/create-bank-payment.dto'
 import { DonationsService } from '../donations/donations.service'
+import { IrisTasks } from '../tasks/bank-import/import-transactions.task'
 
 @Injectable()
 export class BankTransactionsService {
@@ -22,6 +23,7 @@ export class BankTransactionsService {
     private prisma: PrismaService,
     private exportService: ExportService,
     private donationService: DonationsService,
+    private irisBankImport: IrisTasks,
   ) {}
 
   /**
@@ -148,5 +150,9 @@ export class BankTransactionsService {
       // Import Donation
       await this.donationService.createUpdateBankPayment(bankPayment)
     })
+  }
+
+  async rerunBankTransactionsForDate(transactionsDate: Date) {
+    this.irisBankImport.importBankTransactionsTASK(transactionsDate)
   }
 }

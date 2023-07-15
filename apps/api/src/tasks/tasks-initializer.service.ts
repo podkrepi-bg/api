@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { IrisTasks } from './bank-import/import-transactions.task'
 import { ConfigService } from '@nestjs/config'
 import { Cron, SchedulerRegistry } from '@nestjs/schedule'
+import { DateTime } from 'luxon'
 
 // Schedules all background tasks
 @Injectable()
@@ -29,7 +30,7 @@ export class TasksInitializer {
 
     const callback = async () => {
       try {
-        await this.irisTasks.importBankTransactionsTASK()
+        await this.irisTasks.importBankTransactionsTASK(new Date())
       } catch (e) {
         Logger.error('An error occured while executing importBankTransactions \n', e)
       }

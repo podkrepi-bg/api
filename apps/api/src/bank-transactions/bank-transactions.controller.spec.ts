@@ -20,6 +20,10 @@ import { ConfigService } from '@nestjs/config'
 import { CampaignService } from '../campaign/campaign.service'
 import { PersonService } from '../person/person.service'
 import { VaultService } from '../vault/vault.service'
+import { IrisTasks } from '../tasks/bank-import/import-transactions.task'
+import { SchedulerRegistry } from '@nestjs/schedule'
+import { EmailService } from '../email/email.service'
+import { TemplateService } from '../email/template.service'
 
 const bankTransactionsMock = [
   {
@@ -129,6 +133,10 @@ describe('BankTransactionsController', () => {
         CampaignService,
         VaultService,
         PersonService,
+        IrisTasks,
+        SchedulerRegistry,
+        EmailService,
+        TemplateService,
       ],
     }).compile()
 

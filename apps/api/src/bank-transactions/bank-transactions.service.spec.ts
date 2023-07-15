@@ -10,6 +10,10 @@ import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 import { VaultService } from '../vault/vault.service'
 import { BankTransactionsService } from './bank-transactions.service'
+import { IrisTasks } from '../tasks/bank-import/import-transactions.task'
+import { SchedulerRegistry } from '@nestjs/schedule'
+import { EmailService } from '../email/email.service'
+import { TemplateService } from '../email/template.service'
 
 const stripeMock = {
   checkout: { sessions: { create: jest.fn() } },
@@ -39,6 +43,10 @@ describe('BankTransactionsService', () => {
         CampaignService,
         VaultService,
         PersonService,
+        IrisTasks,
+        SchedulerRegistry,
+        EmailService,
+        TemplateService,
       ],
     }).compile()
 

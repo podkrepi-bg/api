@@ -6,6 +6,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  Post,
   Put,
   Query,
   Res,
@@ -105,6 +106,31 @@ export class BankTransactionsController {
       trxId: bankTransaction.id,
       paymentRef: campaign.paymentReference,
       status: BankDonationStatus.reImported,
+    }
+  }
+
+  /** Manually rerun bank transaction for single date */
+  @Post('/rerun-dates')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async rerunBankTransactionsForDate(@Body() body: { startDate: string; endDate: string }) {
+    console.log('rerunBankTransactionsForDate startDate: ', body.startDate)
+    if (!body.startDate) throw new BadRequestException('Missing startDate in Request')
+    if (!body.endDate) throw new BadRequestException('Missing endDate in Request')
+
+    const startDate = new Date(body.startDate.split('T')[0])
+    const endDate = new Date(body.endDate.split('T')[0])
+
+    //rerun transactions iterating from startDate to endDate
+    for (
+      const dateToCheck = startDate;
+      dateToCheck <= endDate;
+      dateToCheck.setDate(dateToCheck.getDate() + 1)
+    ) {
+      console.log('Getting transactions for date: ' + dateToCheck.toISOString().split('T')[0])
+      await this.bankTransactionsService.rerunBankTransactionsForDate(dateToCheck)
     }
   }
 }
