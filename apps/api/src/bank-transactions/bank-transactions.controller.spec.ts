@@ -116,6 +116,7 @@ jest
 describe('BankTransactionsController', () => {
   let controller: BankTransactionsController
   let prismaService: PrismaService
+  let irisService: IrisTasks
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -147,6 +148,7 @@ describe('BankTransactionsController', () => {
     }).compile()
 
     controller = module.get<BankTransactionsController>(BankTransactionsController)
+    irisService = module.get<IrisTasks>(IrisTasks)
 
     prismaService = prismaMock
   })
@@ -205,6 +207,18 @@ describe('BankTransactionsController', () => {
       )
 
       expect(prismaService.$transaction).toHaveBeenCalled()
+    })
+  })
+
+  describe('rerunBankSync ', () => {
+    it('should rerun bank transactions for specific dates', async () => {
+      jest.spyOn(irisService, 'importBankTransactionsTASK').mockImplementation()
+
+      await controller.rerunBankTransactionsForDate({
+        startDate: '2022-12-01',
+        endDate: '2022-12-04',
+      })
+      expect(irisService.importBankTransactionsTASK).toHaveBeenCalledTimes(4)
     })
   })
 })

@@ -4,6 +4,7 @@ import {
   Body,
   Controller,
   Get,
+  Logger,
   NotFoundException,
   Param,
   Post,
@@ -109,14 +110,14 @@ export class BankTransactionsController {
     }
   }
 
-  /** Manually rerun bank transaction for single date */
+  /** Manually rerun bank transactions for date interval */
   @Post('/rerun-dates')
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],
     mode: RoleMatchingMode.ANY,
   })
   async rerunBankTransactionsForDate(@Body() body: { startDate: string; endDate: string }) {
-    console.log('rerunBankTransactionsForDate startDate: ', body.startDate)
+    Logger.debug('rerunBankTransactionsForDate startDate: ', body.startDate)
     if (!body.startDate) throw new BadRequestException('Missing startDate in Request')
     if (!body.endDate) throw new BadRequestException('Missing endDate in Request')
 
@@ -129,7 +130,7 @@ export class BankTransactionsController {
       dateToCheck <= endDate;
       dateToCheck.setDate(dateToCheck.getDate() + 1)
     ) {
-      console.log('Getting transactions for date: ' + dateToCheck.toISOString().split('T')[0])
+      Logger.debug('Getting transactions for date: ' + dateToCheck.toISOString().split('T')[0])
       await this.bankTransactionsService.rerunBankTransactionsForDate(dateToCheck)
     }
   }

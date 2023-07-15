@@ -123,7 +123,7 @@ export class IrisTasks {
       return
     }
 
-    Logger.debug('RUNNING TASK - import-bank-transactions')
+    Logger.debug('RUNNING TASK - import-bank-transactions for date: ' + transactionsDate)
 
     // 1.  Get IRIS IBAN Account Info
     let ibanAccount: IrisIbanAccountInfo
