@@ -148,7 +148,7 @@ export class AuthService {
       const user = await this.keycloak.grantManager.userInfo<string, KeycloakTokenParsed>(
         grant.access_token.token as string,
       )
-      const person = await this.prismaService.person.findFirst({ where: { email: user.email } })
+      const person = await this.prismaService.person.findUnique({ where: { email: user.email } })
       if (!person || person.keycloakId !== user.sub) {
         Logger.warn('No person found for the current keycloak user. Creating new one...')
         await this.authenticateAdmin()

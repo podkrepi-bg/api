@@ -210,7 +210,7 @@ describe('AuthService', () => {
         .spyOn(keycloak.grantManager, 'userInfo')
         .mockResolvedValue(token.access_token?.content)
 
-      prismaMock.person.findFirst.mockResolvedValue(person)
+      prismaMock.person.findUnique.mockResolvedValue(person)
       expect(await service.login(loginDto)).toBeObject()
       expect(loginSpy).toHaveBeenCalledWith(loginDto)
       expect(keycloakSpy).toHaveBeenCalledWith(email, password)
@@ -237,7 +237,7 @@ describe('AuthService', () => {
         .mockResolvedValue(token.access_token?.content)
       const createPersonSpy = jest.spyOn(Object.getPrototypeOf(service), 'createPerson')
 
-      prismaMock.person.findFirst.mockResolvedValue(person)
+      prismaMock.person.findUnique.mockResolvedValue(person)
       expect(await service.login(loginDto)).toBeObject()
       expect(loginSpy).toHaveBeenCalledWith(loginDto)
       expect(keycloakSpy).toHaveBeenCalledWith(email, password)
