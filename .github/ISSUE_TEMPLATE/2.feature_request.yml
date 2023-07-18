@@ -1,6 +1,6 @@
-name: Feature Report
-description: Create a feature report
-labels: ['type: enhancement', 'template: enhancement']
+name: Feature Request
+description: Create a feature request
+labels: ['type: enhancement']
 body:
   - type: dropdown
     attributes:
@@ -9,15 +9,15 @@ body:
       options:
         - 'Authentication'
         - 'Database'
-        - 'Prisma'
+        - 'Donations'
+        - 'Campaigns'
         - 'Seeds'
         - 'Migrations'
-        - 'Keycloak'
         - 'Storage'
         - 'Swagger'
         - 'Security'
         - 'Testing'
-        - 'TypeScript'
+        - 'Other'
   - type: markdown
     attributes:
       value: Thanks for taking the time to file a feature request! Please fill out this form as completely as possible.
