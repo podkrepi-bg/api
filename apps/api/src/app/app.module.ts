@@ -148,11 +148,6 @@ import { CampaignNewsFileModule } from '../campaign-news-file/campaign-news-file
      * specified role passed.
      */
     { provide: APP_GUARD, useClass: RoleGuard },
-    /**
-     * Enables cache interceptors globally
-     * https://docs.nestjs.com/techniques/caching
-     */
-    { provide: APP_INTERCEPTOR, useClass: CacheInterceptor },
   ],
 })
 export class AppModule implements NestModule {
