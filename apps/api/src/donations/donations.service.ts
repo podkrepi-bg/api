@@ -605,7 +605,9 @@ export class DonationsService {
         data: {
           status: status,
           personId:  updatePaymentDto.targetPersonId ? donorId : undefined,
-          billingEmail: updatePaymentDto.billingEmail ? billingEmail : undefined 
+          billingEmail: updatePaymentDto.billingEmail ? billingEmail : undefined,
+          //In case of personId or billingEmail change, take the last updatedAt property to prevent any changes to updatedAt property
+          updatedAt: updatePaymentDto.targetPersonId || updatePaymentDto.billingEmail ? currentDonation.updatedAt : undefined
         },
       })
 
