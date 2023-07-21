@@ -288,7 +288,7 @@ export class DonationsService {
   ): Promise<ListDonationsDto<DonationBaseDto>> {
     const data = await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
-      orderBy: [{ createdAt: 'desc' }],
+      orderBy: [{ updatedAt: 'desc' }],
       select: {
         id: true,
         type: true,
