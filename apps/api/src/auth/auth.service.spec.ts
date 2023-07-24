@@ -19,6 +19,7 @@ import { ProviderDto } from './dto/provider.dto'
 import { EmailService } from '../email/email.service'
 import { JwtService } from '@nestjs/jwt'
 import { TemplateService } from '../email/template.service'
+import { PrismaService } from '../prisma/prisma.service'
 
 jest.mock('@keycloak/keycloak-admin-client')
 
@@ -27,6 +28,25 @@ describe('AuthService', () => {
   let config: ConfigService
   let admin: KeycloakAdminClient
   let keycloak: KeycloakConnect.Keycloak
+
+  const person: Person = {
+    id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
+    firstName: 'Admin',
+    lastName: 'Dev',
+    keycloakId: '123',
+    email: 'test@podkrepi.bg',
+    emailConfirmed: false,
+    phone: null,
+    company: null,
+    picture: null,
+    createdAt: new Date('2021-10-07T13:38:11.097Z'),
+    updatedAt: new Date('2021-10-07T13:38:11.097Z'),
+    newsletter: false,
+    address: null,
+    birthday: null,
+    personalNumber: null,
+    stripeCustomerId: null,
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -167,12 +187,18 @@ describe('AuthService', () => {
   })
 
   describe('login', () => {
-    const email = 'someuser@example.com'
+    const email = person.email ?? ''
+    const firstName = person.firstName ?? ''
+    const lastName = person.lastName ?? ''
     const password = 's3cret'
+    const keycloakId = person.keycloakId ?? '123'
 
-    it('should call issueGrant', async () => {
+    it('should call issueGrant - without updating person', async () => {
       const token = mockDeep<Grant>({
-        access_token: { token: 't23456' },
+        access_token: {
+          token: 't23456',
+          content: { email: email, given_name: firstName, family_name: lastName, sub: keycloakId },
+        },
       })
       const keycloakSpy = jest
         .spyOn(keycloak.grantManager, 'obtainDirectly')
@@ -180,12 +206,72 @@ describe('AuthService', () => {
       const loginDto = plainToClass(LoginDto, { email, password })
       const loginSpy = jest.spyOn(service, 'login')
       const issueGrantSpy = jest.spyOn(service, 'issueGrant')
+      const userInfoSpy = jest
+        .spyOn(keycloak.grantManager, 'userInfo')
+        .mockResolvedValue(token.access_token?.content)
+
+      prismaMock.person.findUnique.mockResolvedValue(person)
+      expect(await service.login(loginDto)).toBeObject()
+      expect(loginSpy).toHaveBeenCalledWith(loginDto)
+      expect(keycloakSpy).toHaveBeenCalledWith(email, password)
+      expect(issueGrantSpy).toHaveBeenCalledWith(email, password)
+      expect(userInfoSpy).toHaveBeenCalledWith(token.access_token?.token)
+      expect(admin.auth).not.toHaveBeenCalled()
+    })
+
+    it('should call issueGrant - with updating person due to keycloak mismatch', async () => {
+      const token = mockDeep<Grant>({
+        access_token: {
+          token: 't23456',
+          content: { email: email, given_name: firstName, family_name: lastName, sub: '1234' },
+        },
+      })
+      const keycloakSpy = jest
+        .spyOn(keycloak.grantManager, 'obtainDirectly')
+        .mockResolvedValue(token)
+      const loginDto = plainToClass(LoginDto, { email, password })
+      const loginSpy = jest.spyOn(service, 'login')
+      const issueGrantSpy = jest.spyOn(service, 'issueGrant')
+      const userInfoSpy = jest
+        .spyOn(keycloak.grantManager, 'userInfo')
+        .mockResolvedValue(token.access_token?.content)
+      const createPersonSpy = jest.spyOn(Object.getPrototypeOf(service), 'createPerson')
+
+      prismaMock.person.findUnique.mockResolvedValue(person)
+      expect(await service.login(loginDto)).toBeObject()
+      expect(loginSpy).toHaveBeenCalledWith(loginDto)
+      expect(keycloakSpy).toHaveBeenCalledWith(email, password)
+      expect(issueGrantSpy).toHaveBeenCalledWith(email, password)
+      expect(userInfoSpy).toHaveBeenCalledWith(token.access_token?.token)
+      expect(admin.auth).toHaveBeenCalled()
+      expect(createPersonSpy).toHaveBeenCalled()
+    })
+
+    it('should call issueGrant - with creating person due to not being found', async () => {
+      const token = mockDeep<Grant>({
+        access_token: {
+          token: 't23456',
+          content: { email: email, given_name: firstName, family_name: lastName, sub: '1234' },
+        },
+      })
+      const keycloakSpy = jest
+        .spyOn(keycloak.grantManager, 'obtainDirectly')
+        .mockResolvedValue(token)
+      const loginDto = plainToClass(LoginDto, { email, password })
+      const loginSpy = jest.spyOn(service, 'login')
+      const issueGrantSpy = jest.spyOn(service, 'issueGrant')
+      const userInfoSpy = jest
+        .spyOn(keycloak.grantManager, 'userInfo')
+        .mockResolvedValue(token.access_token?.content)
+      const createPersonSpy = jest.spyOn(Object.getPrototypeOf(service), 'createPerson')
 
       expect(await service.login(loginDto)).toBeObject()
       expect(loginSpy).toHaveBeenCalledWith(loginDto)
       expect(keycloakSpy).toHaveBeenCalledWith(email, password)
       expect(issueGrantSpy).toHaveBeenCalledWith(email, password)
-      expect(admin.auth).not.toHaveBeenCalled()
+      expect(userInfoSpy).toHaveBeenCalledWith(token.access_token?.token)
+      expect(admin.auth).toHaveBeenCalled()
+      expect(createPersonSpy).toHaveBeenCalled()
     })
 
     it('should handle bad password on login', async () => {
@@ -223,24 +309,7 @@ describe('AuthService', () => {
       const registerDto = plainToClass(RegisterDto, { email, password, firstName, lastName })
       const createUserSpy = jest.spyOn(service, 'createUser')
       const adminSpy = jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
-      const person: Person = {
-        id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
-        firstName,
-        lastName,
-        keycloakId,
-        email,
-        emailConfirmed: false,
-        phone: null,
-        company: null,
-        picture: null,
-        createdAt: new Date('2021-10-07T13:38:11.097Z'),
-        updatedAt: new Date('2021-10-07T13:38:11.097Z'),
-        newsletter: false,
-        address: null,
-        birthday: null,
-        personalNumber: null,
-        stripeCustomerId: null,
-      }
+
       const prismaSpy = jest.spyOn(prismaMock.person, 'upsert').mockResolvedValue(person)
 
       expect(await service.createUser(registerDto)).toBe(person)
