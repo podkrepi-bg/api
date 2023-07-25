@@ -19,6 +19,8 @@ import { toMoney } from '../../common/money'
 import { DateTime } from 'luxon'
 import { EmailService } from '../../email/email.service'
 import { TemplateService } from '../../email/template.service'
+import { NotificationsInterface } from '../../notifications/notifications.interface'
+import { SendGridNotificationsService } from '../../notifications/notifications.sendgrid.service'
 
 const IBAN = 'BG77UNCR92900016740920'
 
@@ -187,6 +189,10 @@ describe('ImportTransactionsTask', () => {
         SchedulerRegistry,
         EmailService,
         TemplateService,
+        {
+          provide: NotificationsInterface,
+          useClass: SendGridNotificationsService,
+        },
       ],
     })
       .overrideProvider(PersonService)

@@ -7,8 +7,9 @@ import { PrismaService } from '../prisma/prisma.service'
 import { VaultController } from './vault.controller'
 import { VaultService } from './vault.service'
 import { NotificationModule } from '../sockets/notifications/notification.module'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 @Module({
-  imports: [forwardRef(() => CampaignModule), NotificationModule],
+  imports: [forwardRef(() => CampaignModule), NotificationModule, MarketingNotificationsModule],
 
   controllers: [VaultController],
   providers: [VaultService, CampaignService, PrismaService, PersonService, ConfigService],

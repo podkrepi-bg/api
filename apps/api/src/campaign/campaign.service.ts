@@ -9,6 +9,7 @@ import {
   Vault,
   CampaignFileRole,
   CampaignNewsState,
+  NotificationList,
 } from '@prisma/client'
 import {
   forwardRef,
@@ -40,6 +41,8 @@ import {
 } from '../sockets/notifications/notification.service'
 import { DonationMetadata } from '../donations/dontation-metadata.interface'
 import { Expense } from '@prisma/client'
+import { NotificationsInterface } from '../notifications/notifications.interface'
+import { SendGridParams } from '../notifications/notifications.sendgrid.types'
 
 @Injectable()
 export class CampaignService {
@@ -48,6 +51,7 @@ export class CampaignService {
     private notificationService: NotificationService,
     @Inject(forwardRef(() => VaultService)) private vaultService: VaultService,
     @Inject(forwardRef(() => PersonService)) private personService: PersonService,
+    private readonly generalNotificationsService: NotificationsInterface<SendGridParams>,
   ) {}
 
   async listCampaigns(): Promise<CampaignListItem[]> {
@@ -241,8 +245,11 @@ export class CampaignService {
         beneficiary: { select: { person: { select: { keycloakId: true } } } },
         coordinator: { select: { person: { select: { keycloakId: true } } } },
         organizer: { select: { person: { select: { keycloakId: true } } } },
+        notificationLists: true,
         state: true,
         slug: true,
+        title: true,
+        id: true,
       },
     })
 
@@ -684,19 +691,19 @@ export class CampaignService {
   async update(
     id: string,
     updateCampaignDto: UpdateCampaignDto,
-    campaign: Partial<Campaign> | null,
+    campaign: Awaited<ReturnType<CampaignService['getCampaignByIdWithPersonIds']>> | null,
   ): Promise<Campaign | null> {
-    const result = await this.prisma.campaign.update({
+    const updated = await this.prisma.campaign.update({
       where: { id: id },
       data: updateCampaignDto,
     })
 
-    if (!result) throw new NotFoundException(`Not found campaign with id: ${id}`)
+    if (!updated) throw new NotFoundException(`Not found campaign with id: ${id}`)
 
     // Make old slug redirect to this campaign
     if (
       campaign?.state === CampaignState.active &&
-      result?.state === CampaignState.active &&
+      updated?.state === CampaignState.active &&
       campaign?.slug &&
       updateCampaignDto.slug !== campaign.slug
     ) {
@@ -713,8 +720,69 @@ export class CampaignService {
         },
       })
     }
+    // Create a notification list for this campaign when updated to active
+    if (
+      campaign?.state !== CampaignState.active &&
+      updated?.state === CampaignState.active &&
+      // No list exists yet
+      !campaign?.notificationLists?.length
+    )
+      try {
+        await this.createCampaignNotificationList(updated)
+      } catch (e) {
+        Logger.error('Failed to create notification list', e)
+      }
 
-    return result
+    // Update notification list name with the new campaign name
+    if (
+      updated?.state === CampaignState.active &&
+      campaign?.notificationLists?.length &&
+      updated.title !== campaign.notificationLists[0]?.name
+    )
+      try {
+        // Get the list
+        const list = campaign?.notificationLists[0]
+        if (list) await this.updateCampaignNotificationList(updated, list)
+      } catch (e) {
+        Logger.error('Failed to update notification list', e)
+      }
+
+    return updated
+  }
+
+  async createCampaignNotificationList(updated: { title: string; id: string }) {
+    // Generate list in the marketing platform
+    const listId = await this.generalNotificationsService.createNewContactList({
+      name: updated.title || updated.id,
+    })
+    // Save the list_id in the DB
+    await this.prisma.notificationList.create({
+      data: {
+        id: listId,
+        name: updated.title,
+        campaignId: updated.id,
+      },
+    })
+
+    return listId
+  }
+
+  async updateCampaignNotificationList(
+    updated: { title: string; id: string },
+    list: NotificationList,
+  ) {
+    // Update list name in the Marketing Platform
+    await this.generalNotificationsService.updateContactList({
+      data: { name: updated.title },
+      id: list.id,
+    })
+    // update in DB
+    await this.prisma.notificationList.update({
+      where: { id: list.id },
+      data: {
+        name: updated.title,
+      },
+    })
   }
 
   async removeCampaign(campaignId: string) {

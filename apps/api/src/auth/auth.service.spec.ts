@@ -19,6 +19,8 @@ import { ProviderDto } from './dto/provider.dto'
 import { EmailService } from '../email/email.service'
 import { JwtService } from '@nestjs/jwt'
 import { TemplateService } from '../email/template.service'
+import { SendGridNotificationsService } from '../notifications/notifications.sendgrid.service'
+import { NotificationsInterface } from '../notifications/notifications.interface'
 
 jest.mock('@keycloak/keycloak-admin-client')
 
@@ -27,6 +29,7 @@ describe('AuthService', () => {
   let config: ConfigService
   let admin: KeycloakAdminClient
   let keycloak: KeycloakConnect.Keycloak
+  let marketing: NotificationsInterface<any>
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -38,6 +41,7 @@ describe('AuthService', () => {
             get: jest.fn((key: string) => {
               if (key === 'keycloak.clientId') return 'realm-a12345'
               if (key === 'keycloak.secret') return 'a12345'
+              if (key === 'sendgrid.marketingListId') return 'list-id'
               return null
             }),
           },
@@ -67,12 +71,17 @@ describe('AuthService', () => {
           provide: TemplateService,
           useValue: mockDeep<TemplateService>(),
         },
+        {
+          provide: NotificationsInterface,
+          useClass: SendGridNotificationsService,
+        },
       ],
     }).compile()
 
     service = module.get<AuthService>(AuthService)
     config = module.get<ConfigService>(ConfigService)
     admin = module.get<KeycloakAdminClient>(KeycloakAdminClient)
+    marketing = module.get<NotificationsInterface<any>>(NotificationsInterface)
     keycloak = module.get<KeycloakConnect.Keycloak>(KEYCLOAK_INSTANCE)
   })
 
@@ -217,10 +226,18 @@ describe('AuthService', () => {
     const password = 's3cret'
     const firstName = 'John'
     const lastName = 'Doe'
+    const newsletter = true
 
     it('should call keycloak and prisma', async () => {
       const keycloakId = 'u123'
-      const registerDto = plainToClass(RegisterDto, { email, password, firstName, lastName })
+      const registerDto = plainToClass(RegisterDto, {
+        email,
+        password,
+        firstName,
+        lastName,
+        newsletter,
+      })
+      jest.spyOn(marketing, 'addContactsToList').mockImplementation(async () => true)
       const createUserSpy = jest.spyOn(service, 'createUser')
       const adminSpy = jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
       const person: Person = {
@@ -235,7 +252,7 @@ describe('AuthService', () => {
         picture: null,
         createdAt: new Date('2021-10-07T13:38:11.097Z'),
         updatedAt: new Date('2021-10-07T13:38:11.097Z'),
-        newsletter: false,
+        newsletter: true,
         address: null,
         birthday: null,
         personalNumber: null,
@@ -277,7 +294,7 @@ describe('AuthService', () => {
 
       // Check db creation
       expect(prismaSpy).toHaveBeenCalledWith({
-        create: { keycloakId, email, firstName, lastName },
+        create: { keycloakId, email, firstName, lastName, newsletter },
         update: { keycloakId },
         where: { email },
       })
@@ -307,6 +324,95 @@ describe('AuthService', () => {
       expect(adminSpy).toHaveBeenCalled()
       expect(loggerSpy).toBeCalled()
       loggerSpy.mockRestore()
+    })
+
+    it('should subscribe email to marketing list if consent is given', async () => {
+      const keycloakId = 'u123'
+      const registerDto = plainToClass(RegisterDto, {
+        email,
+        password,
+        firstName,
+        lastName,
+        // Add to marketing list
+        newsletter: true,
+      })
+      const person: Person = {
+        id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
+        firstName,
+        lastName,
+        keycloakId,
+        email,
+        emailConfirmed: false,
+        phone: null,
+        company: null,
+        picture: null,
+        createdAt: new Date('2021-10-07T13:38:11.097Z'),
+        updatedAt: new Date('2021-10-07T13:38:11.097Z'),
+        newsletter: true,
+        address: null,
+        birthday: null,
+        personalNumber: null,
+        stripeCustomerId: null,
+      }
+      jest.spyOn(prismaMock.person, 'upsert').mockResolvedValue(person)
+      jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
+      const marketingSpy = jest
+        .spyOn(marketing, 'addContactsToList')
+        .mockImplementation(async () => true)
+
+      await service.createUser(registerDto)
+
+      // Check was added to list
+      expect(marketingSpy).toHaveBeenCalledWith({
+        contacts: [
+          {
+            email,
+            first_name: firstName,
+            last_name: lastName,
+          },
+        ],
+        list_ids: ['list-id'],
+      })
+    })
+
+    it('should NOT subscribe email to marketing list if NO consent is given', async () => {
+      const keycloakId = 'u123'
+      const registerDto = plainToClass(RegisterDto, {
+        email,
+        password,
+        firstName,
+        lastName,
+        // Don't subscribe to marketing list
+        newsletter: false,
+      })
+      const person: Person = {
+        id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
+        firstName,
+        lastName,
+        keycloakId,
+        email,
+        emailConfirmed: false,
+        phone: null,
+        company: null,
+        picture: null,
+        createdAt: new Date('2021-10-07T13:38:11.097Z'),
+        updatedAt: new Date('2021-10-07T13:38:11.097Z'),
+        newsletter: false,
+        address: null,
+        birthday: null,
+        personalNumber: null,
+        stripeCustomerId: null,
+      }
+      jest.spyOn(prismaMock.person, 'upsert').mockResolvedValue(person)
+      jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
+      const marketingSpy = jest
+        .spyOn(marketing, 'addContactsToList')
+        .mockImplementation(async () => true)
+
+      await service.createUser(registerDto)
+
+      // Check was not added to list
+      expect(marketingSpy).not.toHaveBeenCalled()
     })
   })
 })

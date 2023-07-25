@@ -38,6 +38,10 @@ export class PersonService {
     return await this.prisma.person.findFirst({ where: { id } })
   }
 
+  async findByEmail(email: string) {
+    return await this.prisma.person.findFirst({ where: { email } })
+  }
+
   async findOneByKeycloakId(keycloakId: string) {
     return await this.prisma.person.findFirst({ where: { keycloakId } })
   }
@@ -70,5 +74,21 @@ export class PersonService {
     } catch (error) {
       Logger.warn(`Adding person to contacts list failed with code: ${error.code}`)
     }
+  }
+
+  // Create/Update a marketing notifications consent for emails that are not registered
+  async upsertUnregisteredNotificationConsent(email: string, consent: boolean) {
+    await this.prisma.unregisteredNotificationConsent.upsert({
+      // Create new record
+      create: {
+        email,
+        consent,
+      },
+      // Update consent
+      update: { consent },
+      where: {
+        email,
+      },
+    })
   }
 }

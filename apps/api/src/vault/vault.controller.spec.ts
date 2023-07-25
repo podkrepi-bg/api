@@ -1,4 +1,4 @@
-import { ConfigService } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { UnauthorizedException } from '@nestjs/common'
 import { CampaignService } from '../campaign/campaign.service'
@@ -9,6 +9,7 @@ import { KeycloakTokenParsed } from '../auth/keycloak'
 import { Currency } from '@prisma/client'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { CreateVaultDto } from './dto/create-vault.dto'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 describe('VaultController', () => {
   let controller: VaultController
@@ -23,6 +24,7 @@ describe('VaultController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [MarketingNotificationsModule],
       controllers: [VaultController],
       providers: [
         VaultService,

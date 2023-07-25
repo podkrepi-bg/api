@@ -30,6 +30,8 @@ import { JwtService } from '@nestjs/jwt'
 import { EmailService } from '../email/email.service'
 import { ForgottenPasswordMailDto } from '../email/template.interface'
 import { NewPasswordDto } from './dto/recovery-password.dto'
+import { NotificationsInterface } from '../notifications/notifications.interface'
+import { SendGridParams } from '../notifications/notifications.sendgrid.types'
 
 type ErrorResponse = { error: string; data: unknown }
 type KeycloakErrorResponse = { error: string; error_description: string }
@@ -60,6 +62,7 @@ export class AuthService {
     private jwtService: JwtService,
     private sendEmail: EmailService,
     @Inject(KEYCLOAK_INSTANCE) private keycloak: KeycloakConnect.Keycloak,
+    private readonly marketingNotificationsService: NotificationsInterface<SendGridParams>,
   ) {}
 
   async issueGrant(email: string, password: string): Promise<KeycloakConnect.Grant> {
@@ -160,12 +163,13 @@ export class AuthService {
   }
 
   async createUser(registerDto: RegisterDto): Promise<Person | ErrorResponse> {
+    let person: Person
     try {
       await this.authenticateAdmin()
       // Create user in Keycloak
       const user = await this.createKeycloakUser(registerDto, false)
       // Insert or connect person in app db
-      return await this.createPerson(registerDto, user.id)
+      person = await this.createPerson(registerDto, user.id)
     } catch (error) {
       const response = {
         error: error.message,
@@ -174,6 +178,28 @@ export class AuthService {
       Logger.error(response)
       return response
     }
+
+    // Add to marketing platform
+    if (registerDto.newsletter)
+      try {
+        // Add email to general marketing notifications list
+        const mainList = this.config.get('sendgrid.marketingListId')
+        if (mainList)
+          await this.marketingNotificationsService.addContactsToList({
+            contacts: [
+              {
+                email: person.email,
+                first_name: person?.firstName || '',
+                last_name: person?.lastName || '',
+              },
+            ],
+            list_ids: [mainList],
+          })
+      } catch (e) {
+        Logger.error('Failed to subscribe email', e)
+      }
+
+    return person
   }
 
   private async authenticateAdmin() {
@@ -228,6 +254,7 @@ export class AuthService {
         email: registerDto.email,
         firstName: registerDto.firstName,
         lastName: registerDto.lastName,
+        newsletter: registerDto.newsletter ? registerDto.newsletter : false,
       },
       // Store keycloakId to the person with same email
       update: { keycloakId },

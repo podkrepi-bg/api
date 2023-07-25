@@ -1,5 +1,5 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common'
-import { Currency, SlugArchive } from '@prisma/client'
+import { Currency, Person, SlugArchive } from '@prisma/client'
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignState } from '@prisma/client'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
@@ -15,14 +15,47 @@ import * as paymentReferenceGenerator from './helpers/payment-reference'
 import { CampaignSummaryDto } from './dto/campaign-summary.dto'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 import { CampaignNewsModule } from '../campaign-news/campaign-news.module'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
+import { CampaignSubscribeDto } from './dto/campaign-subscribe.dto'
+import { NotificationsInterface } from '../notifications/notifications.interface'
 
 describe('CampaignController', () => {
   let controller: CampaignController
   let prismaService: PrismaService
+  let campaignService: CampaignService
+  let marketing: NotificationsInterface<any>
   const personServiceMock = {
     findOneByKeycloakId: jest.fn(() => {
       return { id: personIdMock }
     }),
+    findByEmail: jest.fn(async () => {
+      return person
+    }),
+    update: jest.fn(async () => {
+      return true
+    }),
+    upsertUnregisteredNotificationConsent: jest.fn(async () => {
+      return true
+    }),
+  }
+
+  const person: Person | null = {
+    id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
+    firstName: 'John',
+    lastName: 'Doe',
+    keycloakId: 'some-id',
+    email: 'user@email.com',
+    emailConfirmed: false,
+    phone: null,
+    company: null,
+    picture: null,
+    createdAt: new Date('2021-10-07T13:38:11.097Z'),
+    updatedAt: new Date('2021-10-07T13:38:11.097Z'),
+    newsletter: true,
+    address: null,
+    birthday: null,
+    personalNumber: null,
+    stripeCustomerId: null,
   }
 
   const mockCreateCampaign = {
@@ -111,9 +144,23 @@ describe('CampaignController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [NotificationModule, CampaignNewsModule],
+      imports: [NotificationModule, CampaignNewsModule, MarketingNotificationsModule],
       controllers: [CampaignController],
-      providers: [CampaignService, MockPrismaService, VaultService, PersonService, ConfigService],
+      providers: [
+        CampaignService,
+        MockPrismaService,
+        VaultService,
+        PersonService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              if (key === 'sendgrid.marketingListId') return 'list-id'
+              return null
+            }),
+          },
+        },
+      ],
     })
       .overrideProvider(PersonService)
       .useValue(personServiceMock)
@@ -121,6 +168,8 @@ describe('CampaignController', () => {
 
     controller = module.get<CampaignController>(CampaignController)
     prismaService = prismaMock
+    campaignService = module.get<CampaignService>(CampaignService)
+    marketing = module.get<NotificationsInterface<any>>(NotificationsInterface)
   })
 
   afterEach(() => {
@@ -338,6 +387,181 @@ describe('CampaignController', () => {
         new ForbiddenException(
           'The user is not coordinator,organizer or beneficiery to the requested campaign',
         ),
+      )
+    })
+  })
+  describe('subscribeToCampaignNotifications', () => {
+    it('should throw if no consent is provided', async () => {
+      const data: CampaignSubscribeDto = {
+        email: person.email,
+        consent: false,
+      }
+
+      await expect(
+        controller.subscribeToCampaignNotifications(mockUpdateCampaign.id, data),
+      ).rejects.toThrow('Notification consent should be provided')
+    })
+
+    it('should throw if the campaign is not active', async () => {
+      const data: CampaignSubscribeDto = {
+        email: person.email,
+        consent: true,
+      }
+
+      prismaMock.campaign.findFirst.mockResolvedValue(mockUpdateCampaign)
+
+      await expect(
+        controller.subscribeToCampaignNotifications(mockUpdateCampaign.id, data),
+      ).rejects.toThrow('Campaign inactive')
+    })
+
+    it('should subscribe the user to the campaign and general marketing list', async () => {
+      jest
+        .spyOn(campaignService, 'createCampaignNotificationList')
+        .mockResolvedValue('campaign-list-id')
+      jest.spyOn(marketing, 'addContactsToList').mockImplementation(async () => '')
+
+      const data: CampaignSubscribeDto = {
+        email: person.email,
+        // Valid consent
+        consent: true,
+      }
+
+      const campaign = {
+        ...mockUpdateCampaign,
+        // active campaign
+        state: CampaignState.active,
+      }
+
+      prismaMock.campaign.findFirst.mockResolvedValue(campaign)
+
+      await expect(
+        controller.subscribeToCampaignNotifications(mockUpdateCampaign.id, data),
+      ).resolves.not.toThrow()
+
+      expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
+      expect(personServiceMock.findByEmail).toHaveBeenCalled()
+      expect(campaignService.createCampaignNotificationList).toHaveBeenCalledWith(campaign)
+      expect(marketing.addContactsToList).toHaveBeenCalledWith({
+        contacts: [
+          {
+            email: person.email,
+            first_name: person.firstName,
+            last_name: person.lastName,
+          },
+        ],
+        list_ids: ['campaign-list-id', 'list-id'],
+      })
+      expect(personServiceMock.update).not.toHaveBeenCalled()
+    })
+
+    it('should not generate a campaign marketing list if exists already', async () => {
+      jest.spyOn(marketing, 'addContactsToList').mockImplementation(async () => '')
+      jest.spyOn(campaignService, 'createCampaignNotificationList')
+
+      const data: CampaignSubscribeDto = {
+        email: person.email,
+        // Valid consent
+        consent: true,
+      }
+
+      const campaign = {
+        ...mockUpdateCampaign,
+        // active campaign
+        state: CampaignState.active,
+        // already has notification list created for that campaign
+        notificationLists: [{ id: 'existing-campaign-list-id' }],
+      }
+
+      prismaMock.campaign.findFirst.mockResolvedValue(campaign)
+
+      await expect(
+        controller.subscribeToCampaignNotifications(mockUpdateCampaign.id, data),
+      ).resolves.not.toThrow()
+
+      expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
+      expect(personServiceMock.findByEmail).toHaveBeenCalled()
+      // Should not register a new list on the marketing platform
+      expect(campaignService.createCampaignNotificationList).not.toHaveBeenCalled()
+      expect(marketing.addContactsToList).toHaveBeenCalledWith({
+        contacts: [
+          {
+            email: person.email,
+            first_name: person.firstName,
+            last_name: person.lastName,
+          },
+        ],
+        list_ids: ['existing-campaign-list-id', 'list-id'],
+      })
+    })
+
+    it('should update the consent of a registered user if was not given previously', async () => {
+      jest.spyOn(marketing, 'addContactsToList').mockImplementation(async () => '')
+      jest.spyOn(campaignService, 'createCampaignNotificationList')
+
+      const data: CampaignSubscribeDto = {
+        email: person.email,
+        // Valid consent
+        consent: true,
+      }
+
+      const campaign = {
+        ...mockUpdateCampaign,
+        // active campaign
+        state: CampaignState.active,
+        // already has notification list created for that campaign
+        notificationLists: [{ id: 'existing-campaign-list-id' }],
+      }
+
+      prismaMock.campaign.findFirst.mockResolvedValue(campaign)
+      // No prior consent was given
+      personServiceMock.findByEmail.mockResolvedValue({ ...person, newsletter: false })
+
+      await expect(
+        controller.subscribeToCampaignNotifications(mockUpdateCampaign.id, data),
+      ).resolves.not.toThrow()
+
+      expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
+      expect(personServiceMock.findByEmail).toHaveBeenCalled()
+      // Update consent
+      expect(personServiceMock.update).toHaveBeenCalledWith(person.id, { newsletter: true })
+      expect(personServiceMock.upsertUnregisteredNotificationConsent).not.toHaveBeenCalled()
+    })
+
+    it('should create a saparate notification consent record for non-registered emails', async () => {
+      jest.spyOn(marketing, 'addContactsToList').mockImplementation(async () => '')
+      jest.spyOn(campaignService, 'createCampaignNotificationList')
+
+      const data: CampaignSubscribeDto = {
+        email: person.email,
+        // Valid consent
+        consent: true,
+      }
+
+      const campaign = {
+        ...mockUpdateCampaign,
+        // active campaign
+        state: CampaignState.active,
+        // already has notification list created for that campaign
+        notificationLists: [{ id: 'existing-campaign-list-id' }],
+      }
+
+      prismaMock.campaign.findFirst.mockResolvedValue(campaign)
+      // User is NOT registered
+      personServiceMock.findByEmail.mockResolvedValue(null)
+
+      await expect(
+        controller.subscribeToCampaignNotifications(mockUpdateCampaign.id, data),
+      ).resolves.not.toThrow()
+
+      expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
+      expect(personServiceMock.findByEmail).toHaveBeenCalled()
+
+      expect(personServiceMock.update).not.toHaveBeenCalled()
+      // Create a special consent for unregistered emails
+      expect(personServiceMock.upsertUnregisteredNotificationConsent).toHaveBeenCalledWith(
+        data.email,
+        data.consent,
       )
     })
   })

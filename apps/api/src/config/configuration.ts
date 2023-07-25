@@ -21,6 +21,7 @@ export default () => ({
     sender: process.env.SENDGRID_SENDER_EMAIL,
     internalNotificationsEmail: process.env.SENDGRID_INTERNAL_EMAIL,
     contactsUrl: process.env.SENDGRID_CONTACTS_URL,
+    marketingListId: process.env.MARKETING_LIST_ID,
   },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY,
@@ -47,5 +48,5 @@ export default () => ({
   },
   tasks: {
     import_transactions: { interval: process.env.IMPORT_TRX_TASK_INTERVAL_MINUTES },
-  }
+  },
 })

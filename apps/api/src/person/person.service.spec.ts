@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { PersonService } from './person.service'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 const mockPerson = {
   firstName: 'test',
@@ -19,6 +20,7 @@ describe('PersonService with enable client list ', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [MarketingNotificationsModule],
       providers: [PersonService, MockPrismaService, ConfigService],
     })
       .overrideProvider(ConfigService)
