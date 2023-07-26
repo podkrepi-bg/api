@@ -208,6 +208,7 @@ describe('DonationsController', () => {
       data: {
         status: existingDonation.status,
         personId: '2',
+        updatedAt: existingDonation.updatedAt,
       },
     })
     expect(vaultMock.incrementVaultAmount).toHaveBeenCalledTimes(0)
@@ -258,6 +259,7 @@ describe('DonationsController', () => {
         status: DonationStatus.succeeded,
         personId: updatePaymentDto.targetPersonId,
         billingEmail: updatePaymentDto.billingEmail,
+        updatedAt: expectedUpdatedDonation.updatedAt,
       },
     })
     expect(vaultMock.incrementVaultAmount).toHaveBeenCalledWith(

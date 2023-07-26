@@ -148,6 +148,22 @@ export class AuthService {
       if (!grant.access_token?.token) {
         throw new InternalServerErrorException('CannotIssueTokenError')
       }
+      const user = await this.keycloak.grantManager.userInfo<string, KeycloakTokenParsed>(
+        grant.access_token.token as string,
+      )
+      const person = await this.prismaService.person.findUnique({ where: { email: user.email } })
+      if (!person || person.keycloakId !== user.sub) {
+        Logger.warn('No person found for the current keycloak user. Creating new one...')
+        await this.authenticateAdmin()
+        const userData = await this.admin.users.findOne({ id: user.sub })
+        const registerDto: RegisterDto = {
+          email: userData?.email ?? '',
+          password: '',
+          firstName: userData?.firstName ?? '',
+          lastName: userData?.lastName ?? '',
+        }
+        await this.createPerson(registerDto, user.sub)
+      }
       return {
         refreshToken: grant.refresh_token?.token,
         accessToken: grant.access_token.token,

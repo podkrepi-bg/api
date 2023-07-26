@@ -288,7 +288,7 @@ export class DonationsService {
   ): Promise<ListDonationsDto<DonationBaseDto>> {
     const data = await this.prisma.donation.findMany({
       where: { status, targetVault: { campaign: { id: campaignId } } },
-      orderBy: [{ createdAt: 'desc' }],
+      orderBy: [{ updatedAt: 'desc' }],
       select: {
         id: true,
         type: true,
@@ -579,16 +579,13 @@ export class DonationsService {
       let donorId = currentDonation.personId
       let billingEmail = ''
       if (
-        updatePaymentDto.targetPersonId &&
-        currentDonation.personId !== updatePaymentDto.targetPersonId || 
+        (updatePaymentDto.targetPersonId &&
+          currentDonation.personId !== updatePaymentDto.targetPersonId) ||
         updatePaymentDto.billingEmail
       ) {
         const targetDonor = await this.prisma.person.findFirst({
           where: {
-             OR: [
-              {id: updatePaymentDto.targetPersonId },
-              {email: updatePaymentDto.billingEmail}
-            ]
+            OR: [{ id: updatePaymentDto.targetPersonId }, { email: updatePaymentDto.billingEmail }],
           },
         })
         if (!targetDonor) {
@@ -604,8 +601,13 @@ export class DonationsService {
         where: { id },
         data: {
           status: status,
-          personId:  updatePaymentDto.targetPersonId ? donorId : undefined,
-          billingEmail: updatePaymentDto.billingEmail ? billingEmail : undefined 
+          personId: updatePaymentDto.targetPersonId ? donorId : undefined,
+          billingEmail: updatePaymentDto.billingEmail ? billingEmail : undefined,
+          //In case of personId or billingEmail change, take the last updatedAt property to prevent any changes to updatedAt property
+          updatedAt:
+            updatePaymentDto.targetPersonId || updatePaymentDto.billingEmail
+              ? currentDonation.updatedAt
+              : undefined,
         },
       })
 
