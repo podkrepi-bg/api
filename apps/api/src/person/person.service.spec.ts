@@ -3,7 +3,12 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { PersonService } from './person.service'
-import { MarketingNotificationsModule } from '../notifications/notifications.module'
+import { CampaignService } from '../campaign/campaign.service'
+import { VaultService } from '../vault/vault.service'
+import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
+import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
+import { NotificationGateway } from '../sockets/notifications/gateway'
+import { NotificationService } from '../sockets/notifications/notification.service'
 
 const mockPerson = {
   firstName: 'test',
@@ -20,8 +25,22 @@ describe('PersonService with enable client list ', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [MarketingNotificationsModule],
-      providers: [PersonService, MockPrismaService, ConfigService],
+      imports: [],
+      providers: [
+        {
+          // Use the interface as token
+          provide: NotificationsProviderInterface,
+          // But actually provide the service that implements the interface
+          useClass: SendGridNotificationsProvider,
+        },
+        PersonService,
+        MockPrismaService,
+        ConfigService,
+        CampaignService,
+        NotificationService,
+        NotificationGateway,
+        VaultService,
+      ],
     })
       .overrideProvider(ConfigService)
       .useValue({

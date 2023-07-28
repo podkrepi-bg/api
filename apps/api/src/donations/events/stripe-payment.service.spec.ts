@@ -35,7 +35,8 @@ import { RecurringDonationService } from '../../recurring-donation/recurring-don
 import { HttpService } from '@nestjs/axios'
 import { mockDeep } from 'jest-mock-extended'
 import { NotificationModule } from '../../sockets/notifications/notification.module'
-import { MarketingNotificationsModule } from '../../notifications/notifications.module'
+import { NotificationsProviderInterface } from '../../notifications/providers/notifications.interface.providers'
+import { SendGridNotificationsProvider } from '../../notifications/providers/notifications.sendgrid.provider'
 
 const defaultStripeWebhookEndpoint = '/stripe/webhook'
 const stripeSecret = 'wh_123'
@@ -64,9 +65,14 @@ describe('StripePaymentService', () => {
           useFactory: () => moduleConfig,
         }),
         NotificationModule,
-        MarketingNotificationsModule,
       ],
       providers: [
+        {
+          // Use the interface as token
+          provide: NotificationsProviderInterface,
+          // But actually provide the service that implements the interface
+          useClass: SendGridNotificationsProvider,
+        },
         ConfigService,
         StripePaymentService,
         CampaignService,

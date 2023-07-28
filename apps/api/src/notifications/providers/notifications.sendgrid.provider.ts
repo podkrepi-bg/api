@@ -1,12 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import sgClient from '@sendgrid/client'
-import { NotificationsInterface } from './notifications.interface'
+import { NotificationsProviderInterface } from './notifications.interface.providers'
 import { SendGridParams } from './notifications.sendgrid.types'
 import { ClientRequest } from '@sendgrid/client/src/request'
 
 @Injectable()
-export class SendGridNotificationsService implements NotificationsInterface<SendGridParams> {
+export class SendGridNotificationsProvider
+  implements NotificationsProviderInterface<SendGridParams>
+{
   private emailSender: string
 
   constructor(private config: ConfigService) {

@@ -6,7 +6,7 @@ type NotificationsInterfaceParams = {
   RemoveFromListParams: any
 }
 
-export abstract class NotificationsInterface<T extends NotificationsInterfaceParams> {
+export abstract class NotificationsProviderInterface<T extends NotificationsInterfaceParams> {
   abstract createNewContactList(data: T['CreateListParams']): Promise<string>
   abstract updateContactList(data: T['UpdateListParams']): Promise<any>
   abstract deleteContactList(data: T['DeleteListParams']): Promise<any>

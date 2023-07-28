@@ -25,6 +25,7 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   keycloakId String [unique]
   stripeCustomerId String [unique]
   picture String
+  mailHash String
   benefactors benefactors [not null]
   beneficiaries beneficiaries [not null]
   campaignFiles campaign_files [not null]
@@ -205,6 +206,14 @@ Table unregistered_notification_consent {
   id String [pk]
   email String [unique, not null]
   consent Boolean [not null, default: false]
+  mailHash String [not null]
+}
+
+Table email_sent_registry {
+  id String [pk]
+  email String [not null]
+  dateSent DateTime [not null]
+  type EmailType [not null]
 }
 
 Table slug_archive {
@@ -741,6 +750,10 @@ Enum NotifierType {
 Enum BankTransactionsFileType {
   xml
   other
+}
+
+Enum EmailType {
+  confirmConsent
 }
 
 Ref: organizers.personId - people.id

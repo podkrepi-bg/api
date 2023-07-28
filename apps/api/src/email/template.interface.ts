@@ -11,6 +11,7 @@ export enum TemplateType {
   forgotPass = 'forgot-password',
   unrecognizedDonation = 'unrecognized-donation',
   expiringIrisConsent = 'expiring-iris-consent',
+  confirmConsent = 'confirm-notifications-consent',
 }
 export type TemplateTypeKeys = keyof typeof TemplateType
 export type TemplateTypeValues = typeof TemplateType[TemplateTypeKeys]
@@ -72,4 +73,10 @@ export class ExpiringIrisConsentEmailDto extends EmailTemplate<{
   renewLink: string
 }> {
   name = TemplateType.expiringIrisConsent
+}
+
+export class ConfirmConsentEmailDto extends EmailTemplate<{
+  subscribeLink: string
+}> {
+  name = TemplateType.confirmConsent
 }

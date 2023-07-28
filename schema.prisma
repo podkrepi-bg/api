@@ -50,7 +50,9 @@ model Person {
   personalNumber     String?             @unique @map("personal_number")
   keycloakId         String?             @unique @map("keycloak_id") @db.Uuid
   stripeCustomerId   String?             @unique @map("stripe_customer_id")
-  picture            String?             @db.VarChar(250)
+  picture            String?            @db.VarChar(250)
+  // Used to verify some emails sent to the user
+  mailHash           String?
   benefactors        Benefactor[]
   beneficiaries      Beneficiary[]
   campaignFiles      CampaignFile[]
@@ -179,38 +181,38 @@ model CampaignType {
 }
 
 model Campaign {
-  id                      String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  state                   CampaignState       @default(draft)
-  slug                    String              @unique @db.VarChar(250)
-  title                   String              @db.VarChar(200)
-  essence                 String              @db.VarChar(500)
-  coordinatorId           String              @map("coordinator_id") @db.Uuid
-  beneficiaryId           String              @map("beneficiary_id") @db.Uuid
-  campaignTypeId          String              @map("campaign_type_id") @db.Uuid
+  id                      String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  state                   CampaignState      @default(draft)
+  slug                    String             @unique @db.VarChar(250)
+  title                   String             @db.VarChar(200)
+  essence                 String             @db.VarChar(500)
+  coordinatorId           String             @map("coordinator_id") @db.Uuid
+  beneficiaryId           String             @map("beneficiary_id") @db.Uuid
+  campaignTypeId          String             @map("campaign_type_id") @db.Uuid
   description             String?
-  targetAmount            Int?                @default(0) @map("target_amount")
-  startDate               DateTime?           @map("start_date") @db.Timestamptz(6)
-  endDate                 DateTime?           @map("end_date") @db.Timestamptz(6)
-  createdAt               DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt               DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt               DateTime?           @map("deleted_at") @db.Timestamptz(6)
-  approvedById            String?             @map("approved_by_id") @db.Uuid
-  currency                Currency            @default(BGN)
-  allowDonationOnComplete Boolean             @default(false) @map("allow_donation_on_complete")
-  paymentReference        String              @unique @map("payment_reference") @db.VarChar(15)
-  organizerId             String?             @map("organizer_id") @db.Uuid
-  companyId               String?             @map("company_id") @db.Uuid
-  approvedBy              Person?             @relation(fields: [approvedById], references: [id])
-  beneficiary             Beneficiary         @relation(fields: [beneficiaryId], references: [id])
-  campaignType            CampaignType        @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  coordinator             Coordinator         @relation(fields: [coordinatorId], references: [id])
-  organizer               Organizer?          @relation(fields: [organizerId], references: [id])
-  company                 Company?            @relation(fields: [companyId], references: [id])
+  targetAmount            Int?               @default(0) @map("target_amount")
+  startDate               DateTime?          @map("start_date") @db.Timestamptz(6)
+  endDate                 DateTime?          @map("end_date") @db.Timestamptz(6)
+  createdAt               DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime?          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt               DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  approvedById            String?            @map("approved_by_id") @db.Uuid
+  currency                Currency           @default(BGN)
+  allowDonationOnComplete Boolean            @default(false) @map("allow_donation_on_complete")
+  paymentReference        String             @unique @map("payment_reference") @db.VarChar(15)
+  organizerId             String?            @map("organizer_id") @db.Uuid
+  companyId               String?            @map("company_id") @db.Uuid
+  approvedBy              Person?            @relation(fields: [approvedById], references: [id])
+  beneficiary             Beneficiary        @relation(fields: [beneficiaryId], references: [id])
+  campaignType            CampaignType       @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  coordinator             Coordinator        @relation(fields: [coordinatorId], references: [id])
+  organizer               Organizer?         @relation(fields: [organizerId], references: [id])
+  company                 Company?           @relation(fields: [companyId], references: [id])
   campaignFiles           CampaignFile[]
   donationWish            DonationWish[]
   irregularities          Irregularity[]
-  outgoingTransfers       Transfer[]          @relation("source_campaign")
-  incomingTransfers       Transfer[]          @relation("target_campaign")
+  outgoingTransfers       Transfer[]         @relation("source_campaign")
+  incomingTransfers       Transfer[]         @relation("target_campaign")
   vaults                  Vault[]
   withdrawals             Withdrawal[]
   slugArchive             SlugArchive[]
@@ -254,8 +256,19 @@ model UnregisteredNotificationConsent {
   id      String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email   String  @unique @db.Citext
   consent Boolean @default(false)
+  mailHash String
 
   @@map("unregistered_notification_consent")
+}
+
+// Keeps track of some email types being send
+model EmailSentRegistry {
+  id       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email    String    @db.Citext
+  dateSent DateTime  @map("date_sent") @db.Timestamptz(6)
+  type     EmailType
+
+  @@map("email_sent_registry")
 }
 
 /// Keeps track of previous slugs that are not used currently in any active campaign
@@ -912,4 +925,10 @@ enum BankTransactionsFileType {
   other
 
   @@map("bank_transactions_file_type")
+}
+
+enum EmailType {
+  confirmConsent
+
+  @@map("email_type")
 }

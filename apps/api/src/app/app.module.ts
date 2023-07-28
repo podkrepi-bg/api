@@ -52,9 +52,10 @@ import { NotificationModule } from '../sockets/notifications/notification.module
 import { ScheduleModule } from '@nestjs/schedule'
 import { TasksModule } from '../tasks/tasks.module'
 import { BankTransactionsModule } from '../bank-transactions/bank-transactions.module'
-import { CacheModule, CacheInterceptor } from '@nestjs/cache-manager'
+import { CacheModule } from '@nestjs/cache-manager'
 import { CampaignNewsModule } from '../campaign-news/campaign-news.module'
 import { CampaignNewsFileModule } from '../campaign-news-file/campaign-news-file.module'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 @Module({
   imports: [
@@ -116,6 +117,7 @@ import { CampaignNewsFileModule } from '../campaign-news-file/campaign-news-file
     }),
     CampaignNewsModule,
     CampaignNewsFileModule,
+    MarketingNotificationsModule,
   ],
   controllers: [AppController],
   providers: [

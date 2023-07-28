@@ -3,18 +3,20 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { PersonService } from '../person/person.service'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { NotificationModule } from '../sockets/notifications/notification.module'
-import { VaultModule } from '../vault/vault.module'
 import { VaultService } from '../vault/vault.service'
 import { CampaignService } from './campaign.service'
-import { MarketingNotificationsModule } from '../notifications/notifications.module'
 import { CampaignState, Currency } from '@prisma/client'
 import { CreateCampaignDto } from './dto/create-campaign.dto'
 import { UpdateCampaignDto } from './dto/update-campaign.dto'
-import { NotificationsInterface } from '../notifications/notifications.interface'
+import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
+import { NotificationGateway } from '../sockets/notifications/gateway'
+import { NotificationService } from '../sockets/notifications/notification.service'
+import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
+import { EmailService } from '../email/email.service'
 
 describe('CampaignService', () => {
   let service: CampaignService
-  let marketing: NotificationsInterface<any>
+  let marketing: NotificationsProviderInterface<any>
 
   const mockCreateCampaign = {
     slug: 'test-slug',
@@ -75,19 +77,33 @@ describe('CampaignService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [NotificationModule, MarketingNotificationsModule],
+      imports: [NotificationModule],
       providers: [
+        {
+          // Use the interface as token
+          provide: NotificationsProviderInterface,
+          // But actually provide the service that implements the interface
+          useClass: SendGridNotificationsProvider,
+        },
         VaultService,
         CampaignService,
         MockPrismaService,
-        VaultService,
+        NotificationService,
+        NotificationGateway,
         PersonService,
         ConfigService,
       ],
-    }).compile()
+    })
+      .overrideProvider(EmailService)
+      .useValue({
+        sendFromTemplate: jest.fn(() => {
+          return true
+        }),
+      })
+      .compile()
 
     service = module.get<CampaignService>(CampaignService)
-    marketing = module.get<NotificationsInterface<any>>(NotificationsInterface)
+    marketing = module.get<NotificationsProviderInterface<any>>(NotificationsProviderInterface)
   })
 
   describe('update', () => {

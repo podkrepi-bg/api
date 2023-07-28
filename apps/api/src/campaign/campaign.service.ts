@@ -41,8 +41,8 @@ import {
 } from '../sockets/notifications/notification.service'
 import { DonationMetadata } from '../donations/dontation-metadata.interface'
 import { Expense } from '@prisma/client'
-import { NotificationsInterface } from '../notifications/notifications.interface'
-import { SendGridParams } from '../notifications/notifications.sendgrid.types'
+import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
+import { SendGridParams } from '../notifications/providers/notifications.sendgrid.types'
 
 @Injectable()
 export class CampaignService {
@@ -51,7 +51,7 @@ export class CampaignService {
     private notificationService: NotificationService,
     @Inject(forwardRef(() => VaultService)) private vaultService: VaultService,
     @Inject(forwardRef(() => PersonService)) private personService: PersonService,
-    private readonly generalNotificationsService: NotificationsInterface<SendGridParams>,
+    private readonly marketingNotificationsProvider: NotificationsProviderInterface<SendGridParams>,
   ) {}
 
   async listCampaigns(): Promise<CampaignListItem[]> {
@@ -752,7 +752,7 @@ export class CampaignService {
 
   async createCampaignNotificationList(updated: { title: string; id: string }) {
     // Generate list in the marketing platform
-    const listId = await this.generalNotificationsService.createNewContactList({
+    const listId = await this.marketingNotificationsProvider.createNewContactList({
       name: updated.title || updated.id,
     })
     // Save the list_id in the DB
@@ -772,7 +772,7 @@ export class CampaignService {
     list: NotificationList,
   ) {
     // Update list name in the Marketing Platform
-    await this.generalNotificationsService.updateContactList({
+    await this.marketingNotificationsProvider.updateContactList({
       data: { name: updated.title },
       id: list.id,
     })

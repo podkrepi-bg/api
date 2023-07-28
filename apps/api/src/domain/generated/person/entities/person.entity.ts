@@ -36,6 +36,7 @@ export class Person {
   keycloakId: string | null
   stripeCustomerId: string | null
   picture: string | null
+  mailHash: string | null
   benefactors?: Benefactor[]
   beneficiaries?: Beneficiary[]
   campaignFiles?: CampaignFile[]

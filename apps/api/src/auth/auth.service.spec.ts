@@ -19,8 +19,8 @@ import { ProviderDto } from './dto/provider.dto'
 import { EmailService } from '../email/email.service'
 import { JwtService } from '@nestjs/jwt'
 import { TemplateService } from '../email/template.service'
-import { SendGridNotificationsService } from '../notifications/notifications.sendgrid.service'
-import { NotificationsInterface } from '../notifications/notifications.interface'
+import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
+import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
 
 jest.mock('@keycloak/keycloak-admin-client')
 
@@ -29,7 +29,7 @@ describe('AuthService', () => {
   let config: ConfigService
   let admin: KeycloakAdminClient
   let keycloak: KeycloakConnect.Keycloak
-  let marketing: NotificationsInterface<any>
+  let marketing: NotificationsProviderInterface<any>
 
   const person: Person = {
     id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
@@ -91,8 +91,8 @@ describe('AuthService', () => {
           useValue: mockDeep<TemplateService>(),
         },
         {
-          provide: NotificationsInterface,
-          useClass: SendGridNotificationsService,
+          provide: NotificationsProviderInterface,
+          useClass: SendGridNotificationsProvider,
         },
       ],
     }).compile()
@@ -100,7 +100,7 @@ describe('AuthService', () => {
     service = module.get<AuthService>(AuthService)
     config = module.get<ConfigService>(ConfigService)
     admin = module.get<KeycloakAdminClient>(KeycloakAdminClient)
-    marketing = module.get<NotificationsInterface<any>>(NotificationsInterface)
+    marketing = module.get<NotificationsProviderInterface<any>>(NotificationsProviderInterface)
     keycloak = module.get<KeycloakConnect.Keycloak>(KEYCLOAK_INSTANCE)
   })
 

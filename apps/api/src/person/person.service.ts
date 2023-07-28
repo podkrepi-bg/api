@@ -77,15 +77,9 @@ export class PersonService {
   }
 
   // Create/Update a marketing notifications consent for emails that are not registered
-  async upsertUnregisteredNotificationConsent(email: string, consent: boolean) {
-    await this.prisma.unregisteredNotificationConsent.upsert({
-      // Create new record
-      create: {
-        email,
-        consent,
-      },
-      // Update consent
-      update: { consent },
+  async updateUnregisteredNotificationConsent(email: string, consent: boolean) {
+    await this.prisma.unregisteredNotificationConsent.update({
+      data: { consent },
       where: {
         email,
       },
