@@ -46,7 +46,7 @@
     "@prisma/client": "4.9.0",
     "@sendgrid/client": "7.6.2",
     "@sendgrid/mail": "7.6.0",
-    "@sentry/node": "^7.46.0",
+    "@sentry/node": "^7.60.1",
     "@types/cron": "^2.0.0",
     "aws-sdk": "^2.1369.0",
     "cache-manager": "^5.2.3",
