@@ -55,6 +55,11 @@ export class DonationQueryDto {
 
   @Expose()
   @IsOptional()
+  @Transform(({ value }) => falsyToUndefined(value))
+  sortOrder?: string
+
+  @Expose()
+  @IsOptional()
   @Transform(({ value }) => toNumber(value))
   pageindex?: number
 
