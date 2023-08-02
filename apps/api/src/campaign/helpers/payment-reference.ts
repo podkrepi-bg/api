@@ -1,6 +1,6 @@
 import { customAlphabet as paymentReferenceGenerator } from 'nanoid'
 
-const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+const alphabet = '23456789ABCDEFGHJKMNPQRSTUVWXYZ' //Exclude 0, 1, O, I, L
 const nanoid = paymentReferenceGenerator(alphabet, 12)
 
 export function getPaymentReference(): string {
