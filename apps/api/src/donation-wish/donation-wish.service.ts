@@ -21,7 +21,6 @@ export class DonationWishService {
     pageIndex?: number,
     pageSize?: number,
   ) {
-
     const whereClause = {
       campaignId: campaignId,
       donation: {
