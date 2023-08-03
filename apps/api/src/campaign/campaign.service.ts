@@ -791,4 +791,12 @@ export class CampaignService {
 
     return articles
   }
+
+  async isMembershipCampaign(campaignTypeId: string): Promise<boolean> {
+    const campaignType = await this.prisma.campaignType.findUnique({
+      where: { id: campaignTypeId },
+    })
+
+    return campaignType?.name.toLowerCase() === 'membership'
+  }
 }
