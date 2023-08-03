@@ -41,7 +41,7 @@ export class DonationsController {
   constructor(
     private readonly donationsService: DonationsService,
     @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
-    ) {}
+  ) {}
 
   @Get('export-excel')
   @DonationsApiQuery()
@@ -109,8 +109,8 @@ export class DonationsController {
 
   @Get('user-donations')
   async userDonations(@AuthenticatedUser() user: KeycloakTokenParsed) {
-    const person = await this.personService.findOneByKeycloakId(user.sub);
-    if(!person) throw new NotFoundException("User was not found");
+    const person = await this.personService.findOneByKeycloakId(user.sub)
+    if (!person) throw new NotFoundException('User was not found')
     return await this.donationsService.getDonationsByUser(user.sub, person.email)
   }
 
@@ -165,6 +165,7 @@ export class DonationsController {
       query?.to,
       query?.search,
       query?.sortBy,
+      query?.sortOrder,
       query?.pageindex,
       query?.pagesize,
     )
@@ -178,15 +179,15 @@ export class DonationsController {
 
   @Get('user/:id')
   async userDonationById(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
-    const person = await this.personService.findOneByKeycloakId(user.sub);
-    if(!person) throw new NotFoundException("User was not found");
-    const donation =  await this.donationsService.getUserDonationById(id, user.sub, person.email)
+    const person = await this.personService.findOneByKeycloakId(user.sub)
+    if (!person) throw new NotFoundException('User was not found')
+    const donation = await this.donationsService.getUserDonationById(id, user.sub, person.email)
     return {
       ...donation,
       person: {
         firstName: person.firstName,
-        lastName: person.lastName
-      }
+        lastName: person.lastName,
+      },
     }
   }
 

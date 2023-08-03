@@ -338,6 +338,7 @@ export class DonationsService {
     to?: Date,
     search?: string,
     sortBy?: string,
+    sortOrder?: string,
     pageIndex?: number,
     pageSize?: number,
   ): Promise<ListDonationsDto<DonationWithPerson>> {
@@ -375,7 +376,7 @@ export class DonationsService {
 
     const data = await this.prisma.donation.findMany({
       where: whereClause,
-      orderBy: [sortBy ? { [sortBy]: 'desc' } : { createdAt: 'desc' }],
+      orderBy: [sortBy ? { [sortBy]: sortOrder ? sortOrder : 'desc' } : { createdAt: 'desc' }],
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
       ...donationWithPerson,
