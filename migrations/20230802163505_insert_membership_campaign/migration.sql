@@ -1,19 +1,20 @@
 --insert an internal campaign for members only and their membership fee
-
-select * from api.beneficiaries
-
+--insert an internal campaign for members only and their membership fee
 DO $$
 DECLARE
   v_coordinator_id UUID;
   v_beneficiary_id UUID;
   v_campaign_type_id UUID;
+
 BEGIN
 
-
-
-select id INTO v_coordinator_id from coordinators where name limit 1;
-select id INTO v_beneficiary_id from beneficiaries limit 1;
+select id INTO v_coordinator_id from coordinators limit 1;
+select id INTO v_beneficiary_id from beneficiaries where coordinator_id = v_coordinator_id limit 1;
 select id INTO v_campaign_type_id from campaign_types where name = 'Membership';
+
+IF v_beneficiary_id IS NULL THEN
+    RETURN;
+END IF;
 
 insert into campaigns (
 	state,
@@ -51,3 +52,4 @@ values ('approved',
 	   );
 END;
 $$ LANGUAGE plpgsql;
+
