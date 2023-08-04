@@ -33,9 +33,29 @@ export class SubscribePublicDto {
   public readonly campaignId?: string
 }
 
+export class UnsubscribePublicDto {
+  @ApiProperty()
+  @Expose()
+  @IsNotEmpty()
+  @IsEmail()
+  public readonly email: string
+
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  public readonly campaignId?: string
+}
+
 export class SubscribeDto {
   @ApiProperty()
   @Expose()
   @IsBoolean()
   public readonly consent: boolean
+}
+
+export class UnsubscribeDto {
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  public readonly campaignId?: string
 }

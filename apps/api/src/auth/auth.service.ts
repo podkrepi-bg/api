@@ -350,7 +350,10 @@ export class AuthService {
     }
     const userEmail = { to: [user.email] }
     const mail = new ForgottenPasswordMailDto(profile)
-    await this.sendEmail.sendFromTemplate(mail, userEmail)
+    await this.sendEmail.sendFromTemplate(mail, userEmail, {
+      //Allow users to receive the mail, regardles of unsubscribes
+      bypassUnsubscribeManagement: { enable: true },
+    })
   }
 
   async updateForgottenPassword(recoveryPasswordDto: NewPasswordDto) {

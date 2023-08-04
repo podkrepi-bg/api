@@ -1,6 +1,11 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import { SendConfirmationDto, SubscribePublicDto } from './dto/subscribe.dto'
+import {
+  SendConfirmationDto,
+  SubscribePublicDto,
+  UnsubscribeDto,
+  UnsubscribePublicDto,
+} from './dto/subscribe.dto'
 import { PersonService } from '../person/person.service'
 import { ConfirmConsentEmailDto } from '../email/template.interface'
 import { ConfigService } from '@nestjs/config'
@@ -80,18 +85,7 @@ export class MarketingNotificationsService {
             update: { mailHash: secret },
           })
 
-      // Public subscribe link
-      const link =
-        this.config.get<string>('APP_URL', '') +
-        `/notifications/subscribe?hash=${secret}&email=${data.email}&consent=true`
-
-      // Prepare Email data
-      const recepient = { to: [data.email] }
-      const mail = new ConfirmConsentEmailDto({
-        subscribeLink: link,
-      })
-
-      await this.sendEmail.sendFromTemplate(mail, recepient)
+      await this.sendConfirmationLink({ secret, email: data.email })
 
       sent
         ? // Update new send date
@@ -131,19 +125,7 @@ export class MarketingNotificationsService {
         update: { mailHash: secret },
       })
 
-      // Public subscribe link
-      let link =
-        this.config.get<string>('APP_URL', '') +
-        `/notifications/subscribe?hash=${secret}&email=${data.email}&consent=true`
-      if (data.campaignId) link += `&campaign=${data.campaignId}`
-
-      // Prepare Email data
-      const recepient = { to: [data.email] }
-      const mail = new ConfirmConsentEmailDto({
-        subscribeLink: link,
-      })
-
-      await this.sendEmail.sendFromTemplate(mail, recepient)
+      await this.sendConfirmationLink({ secret, email: data.email, campaignId: data.campaignId })
 
       sent
         ? // Update new send date
@@ -223,6 +205,7 @@ export class MarketingNotificationsService {
         contacts: [contact],
         list_ids: listIds,
       })
+      await this.marketingNotificationsProvider.removeFromUnsubscribed({ email: data.email })
     } catch (e) {
       Logger.error('Failed to subscribe email', e)
       throw new BadRequestException('Failed to subscribe email')
@@ -245,7 +228,148 @@ export class MarketingNotificationsService {
         throw new BadRequestException('Failed to save consent')
       }
 
-    return { email: data.email, subscribed: true }
+    return { message: 'Success' }
+  }
+
+  async unsubscribePublic(data: UnsubscribePublicDto) {
+    // Check if user is registered
+    let registered: Person | null
+    try {
+      registered = await this.prisma.person.findFirst({
+        where: { email: data.email },
+      })
+    } catch (e) {
+      return new BadRequestException('Failed to get email data')
+    }
+    // If registered and no existing consent -> user is already unsubscribed
+    if (registered && !registered.newsletter) return { message: 'Unsubscribed' }
+
+    // Check if un-registered consent already exists for this email
+    let unregisteredConsent: UnregisteredNotificationConsent | null
+    try {
+      unregisteredConsent = await this.prisma.unregisteredNotificationConsent.findFirst({
+        where: { email: data.email },
+      })
+    } catch (e) {
+      return new BadRequestException('Failed to get email data')
+    }
+    // If unregistered consent exists -> user is already subscribed
+    if (unregisteredConsent && !unregisteredConsent.consent) return { message: 'Unsubscribed' }
+
+    if (!registered && !unregisteredConsent) throw new BadRequestException('Invalid email')
+
+    //If the email wants a general unsubscribe from all notifications
+    // Add to unsubscribed list for all notifications
+    if (!data.campaignId)
+      try {
+        await this.marketingNotificationsProvider.addToUnsubscribed({ emails: [data.email] })
+      } catch (e) {
+        Logger.error('Failed to unsubscribe email', e)
+        throw new BadRequestException('Failed to unsubscribe email')
+      }
+    // else remove it only from the particular campaign list
+    else if (data.campaignId)
+      try {
+        //get campaign notification list
+        const campaign = await this.prisma.campaign.findFirst({
+          where: { id: data.campaignId },
+          select: { notificationLists: true },
+        })
+
+        if (!campaign) return new NotFoundException('Campaign not found')
+
+        // if such a list exists
+        if (campaign?.notificationLists?.length) {
+          // find the email id in the marketing platform
+          const contactsInfo = await this.marketingNotificationsProvider.getContactsInfo({
+            emails: [data.email],
+          })
+          // remove from the campaign notification list
+          Object.keys(contactsInfo) &&
+            (await this.marketingNotificationsProvider.removeContactsFromList({
+              list_id: campaign.notificationLists[0].id,
+              contact_ids: [contactsInfo[data.email]?.contact.id],
+            }))
+        }
+      } catch (e) {
+        Logger.error('Failed to unsubscribe email', e)
+        throw new BadRequestException('Failed to unsubscribe email')
+      }
+
+    // update consent status
+    try {
+      if (!data.campaignId && registered)
+        await this.personService.update(registered.id, { newsletter: false })
+      if (!data.campaignId && unregisteredConsent)
+        await this.personService.updateUnregisteredNotificationConsent(data.email, false)
+    } catch (e) {
+      Logger.error('Failed to update email consent', e)
+      throw new BadRequestException('Failed to update email consent')
+    }
+
+    return { message: 'Success' }
+  }
+
+  async unsubscribe(data: UnsubscribeDto, user: KeycloakTokenParsed) {
+    let userInfo: Person | null
+    try {
+      userInfo = await this.personService.findOneByKeycloakId(user.sub)
+    } catch (e) {
+      return new BadRequestException('Failed to get user')
+    }
+
+    if (!userInfo) return new BadRequestException('User not found')
+
+    // Already unsubscribed
+    if (!userInfo.newsletter) return { email: userInfo.email, subscribed: false }
+
+    //If the email wants a general unsubscribe from all notifications
+    // Add to unsubscribed list for all notifications
+    if (!data.campaignId)
+      try {
+        await this.marketingNotificationsProvider.addToUnsubscribed({ emails: [userInfo.email] })
+      } catch (e) {
+        Logger.error('Failed to unsubscribe email', e)
+        throw new BadRequestException('Failed to unsubscribe email')
+      }
+    // else remove it only from the particular campaign list
+    else if (data.campaignId)
+      try {
+        //get campaign notification list
+        const campaign = await this.prisma.campaign.findFirst({
+          where: { id: data.campaignId },
+          select: { notificationLists: true },
+        })
+
+        if (!campaign) return new NotFoundException('Campaign not found')
+
+        // if such a list exists
+        if (campaign?.notificationLists?.length) {
+          // find the email id in the marketing platform
+          const contactsInfo = await this.marketingNotificationsProvider.getContactsInfo({
+            emails: [userInfo.email],
+          })
+          // remove from the campaign notification list
+          Object.keys(contactsInfo) &&
+            (await this.marketingNotificationsProvider.removeContactsFromList({
+              list_id: campaign.notificationLists[0].id,
+              contact_ids: [contactsInfo[userInfo.email]?.contact.id],
+            }))
+        }
+      } catch (e) {
+        Logger.error('Failed to unsubscribe email', e)
+        throw new BadRequestException('Failed to unsubscribe email')
+      }
+
+    // update consent status
+    try {
+      if (!data.campaignId) await this.personService.update(userInfo.id, { newsletter: false })
+    } catch (e) {
+      Logger.error('Failed to update email consent', e)
+      throw new BadRequestException('Failed to update email consent')
+    }
+
+    return { message: 'Success' }
   }
 
   async subscribe(user: KeycloakTokenParsed) {
@@ -257,6 +381,9 @@ export class MarketingNotificationsService {
     }
 
     if (!userInfo) return new BadRequestException('User not found')
+
+    // Already subscribed
+    if (userInfo.newsletter) return { email: userInfo.email, subscribed: true }
 
     const contact: SendGridParams['ContactData'] = {
       email: userInfo.email,
@@ -276,6 +403,7 @@ export class MarketingNotificationsService {
         contacts: [contact],
         list_ids: listIds,
       })
+      await this.marketingNotificationsProvider.removeFromUnsubscribed({ email: userInfo.email })
     } catch (e) {
       Logger.error('Failed to subscribe email', e)
       throw new BadRequestException('Failed to subscribe email')
@@ -289,7 +417,38 @@ export class MarketingNotificationsService {
         throw new BadRequestException('Failed to update user consent')
       }
 
-    return { email: userInfo.email, subscribed: true }
+    return { message: 'Success' }
+  }
+
+  async getCampaignNotificationSubscriptions(email: string) {
+    let contactsInfo: SendGridParams['GetContactsInfoRes']
+    try {
+      // find the contact info in the marketing platform
+      contactsInfo = await this.marketingNotificationsProvider.getContactsInfo({
+        emails: [email],
+      })
+    } catch (e) {
+      console.log(e)
+      if (e.code === 404) return []
+      throw new BadRequestException('Failed to get contact data')
+    }
+
+    if (!contactsInfo[email]) return []
+
+    const campaignLists = contactsInfo[email].contact?.list_ids
+
+    if (!campaignLists?.length) return []
+
+    try {
+      const notificationLists = await this.prisma.notificationList.findMany({
+        where: { id: { in: campaignLists } },
+        include: { campaign: true },
+      })
+
+      return notificationLists
+    } catch (e) {
+      throw new BadRequestException('Failed to get campaign notification lists data')
+    }
   }
 
   generateHash(): string {
@@ -299,6 +458,25 @@ export class MarketingNotificationsService {
       .slice(0, 32)
 
     return hash
+  }
+
+  private async sendConfirmationLink(data: { secret: string; email: string; campaignId?: string }) {
+    // Public subscribe link
+    let link =
+      this.config.get<string>('APP_URL', '') +
+      `/notifications/subscribe?hash=${data.secret}&email=${data.email}&consent=true`
+    if (data.campaignId) link += `&campaign=${data.campaignId}`
+
+    // Prepare Email data
+    const recepient = { to: [data.email] }
+    const mail = new ConfirmConsentEmailDto({
+      subscribeLink: link,
+    })
+
+    await this.sendEmail.sendFromTemplate(mail, recepient, {
+      //Allow users to receive the mail, regardles of unsubscribes
+      bypassUnsubscribeManagement: { enable: true },
+    })
   }
 
   private emailWasSentRecently(record: EmailSentRegistry | null, period: number) {

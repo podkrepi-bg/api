@@ -83,4 +83,43 @@ export class SendGridNotificationsProvider
 
     return response
   }
+
+  async getContactsInfo(data: SendGridParams['GetContactsInfoParams']) {
+    const request = {
+      url: `/v3/marketing/contacts/search/emails`,
+      method: 'POST',
+      body: data,
+    } as ClientRequest
+
+    const [response] = await sgClient.request(request)
+
+    return response.body['result'] as SendGridParams['GetContactsInfoRes']
+  }
+
+  async addToUnsubscribed(data: SendGridParams['AddToUnsubscribedParams']) {
+    const payload = {
+      recipient_emails: data.emails,
+    }
+
+    const request = {
+      url: `/v3/asm/suppressions/global`,
+      method: 'POST',
+      body: payload,
+    } as ClientRequest
+
+    const [response] = await sgClient.request(request)
+
+    return response
+  }
+
+  async removeFromUnsubscribed(data: SendGridParams['RemoveFromUnsubscribedParams']) {
+    const request = {
+      url: `/v3/asm/suppressions/global/${data.email}`,
+      method: 'DELETE',
+    } as ClientRequest
+
+    const [response] = await sgClient.request(request)
+
+    return response
+  }
 }
