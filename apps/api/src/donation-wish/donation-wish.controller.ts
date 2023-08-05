@@ -20,9 +20,9 @@ export class DonationWishController {
   @Get('list/:campaignId')
   @Public()
   @DonationWishQueryDecorator()
-  findList(@Query() query?: DonationQueryDto) {
+  findList(@Param('campaignId') campaignId: string, @Query() query?: DonationQueryDto) {
     return this.donationWishService.findWishesByCampaignId(
-      query?.campaignId,
+      campaignId,
       query?.minAmount,
       query?.maxAmount,
       query?.from,

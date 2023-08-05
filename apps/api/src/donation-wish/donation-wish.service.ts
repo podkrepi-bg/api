@@ -59,7 +59,7 @@ export class DonationWishService {
       orderBy: [sortBy ? { [sortBy]: sortOrder ? sortOrder : 'desc' } : { createdAt: 'desc' }],
       include: {
         person: { select: { id: true, firstName: true, lastName: true } },
-        donation: { select: { amount: true } },
+        donation: { select: { amount: true, currency: true } },
       },
     })
 
