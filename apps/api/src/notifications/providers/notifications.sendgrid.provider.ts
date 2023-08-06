@@ -4,6 +4,7 @@ import sgClient from '@sendgrid/client'
 import { NotificationsProviderInterface } from './notifications.interface.providers'
 import { SendGridParams } from './notifications.sendgrid.types'
 import { ClientRequest } from '@sendgrid/client/src/request'
+import { DateTime } from 'luxon'
 
 @Injectable()
 export class SendGridNotificationsProvider
@@ -119,6 +120,54 @@ export class SendGridNotificationsProvider
     } as ClientRequest
 
     const [response] = await sgClient.request(request)
+
+    return response
+  }
+
+  async sendNotification(data: SendGridParams['SendNotificationParams']) {
+    // Get template from sendgrid
+    let request = {
+      url: `/v3/designs/${data.template_id}`,
+      method: 'GET',
+    } as ClientRequest
+    let [response] = await sgClient.request(request)
+
+    // Populate html variables
+    let html = response.body['html_content']
+    for (const field in data.template_data) {
+      html = html.replace(new RegExp(`%{${field}}%`, 'g'), data.template_data[field])
+    }
+
+    // Set unsubscribe link
+    let unsubscribeUrl = 'http://localhost:3040/notifications/unsubscribe?email={{ insert email }}'
+    if (data.campaignid) unsubscribeUrl += `&campaign=${data.campaignid}`
+
+    // Prepare SingleSend Email
+    request = {
+      url: `/v3/marketing/singlesends`,
+      method: 'POST',
+      body: {
+        name: `${response.body['name']} - ${DateTime.now().toFormat('dd-MM-yyyy HH:mm')}`,
+        send_to: { list_ids: data.list_ids },
+        email_config: {
+          subject: data.subject,
+          sender_id: parseInt(this.config.get('SENDGRID_SENDER_ID', '')),
+          html_content: html,
+          custom_unsubscribe_url: unsubscribeUrl,
+        },
+      },
+    } as ClientRequest
+    ;[response] = await sgClient.request(request)
+
+    // Send SingleSend Email
+    request = {
+      url: `/v3/marketing/singlesends/${response.body['id']}/schedule`,
+      method: 'PUT',
+      body: {
+        send_at: 'now',
+      },
+    } as ClientRequest
+    ;[response] = await sgClient.request(request)
 
     return response
   }

@@ -1,3 +1,5 @@
+import { MarketingTemplateHTMLFields } from '../marketing_templates/template.type'
+
 export type SendGridParams = {
   // Parameters
   CreateListParams: CreateListParams
@@ -8,6 +10,7 @@ export type SendGridParams = {
   GetContactsInfoParams: GetContactsInfoParams
   RemoveFromUnsubscribedParams: RemoveFromUnsubscribedParams
   AddToUnsubscribedParams: AddToUnsubscribedParams
+  SendNotificationParams: SendNotificationParams
 
   // Responses
   CreateListRes: string
@@ -18,9 +21,17 @@ export type SendGridParams = {
   GetContactsInfoRes: GetContactsInfoRes
   RemoveFromUnsubscribedRes: any
   AddToUnsubscribedRes: any
+  SendNotificationRes: any
 
   // Implementation specific
   ContactData: ContactData
+}
+
+type ContactData = {
+  email: string
+  first_name?: string
+  last_name?: string
+  custom_fields?: { [key: string]: string | number }
 }
 
 type CreateListParams = {
@@ -34,13 +45,6 @@ type UpdateListParams = {
 
 type DeleteListParams = {
   id: string
-}
-
-type ContactData = {
-  email: string
-  first_name?: string
-  last_name?: string
-  custom_fields?: { [key: string]: string | number }
 }
 
 type AddToListParams = {
@@ -63,6 +67,14 @@ type RemoveFromUnsubscribedParams = {
 
 type AddToUnsubscribedParams = {
   emails: string[]
+}
+
+type SendNotificationParams = {
+  template_id: string
+  template_data: MarketingTemplateHTMLFields
+  list_ids: string[]
+  subject: string
+  campaignid?: string
 }
 
 // Reponses

@@ -50,7 +50,7 @@ model Person {
   personalNumber     String?             @unique @map("personal_number")
   keycloakId         String?             @unique @map("keycloak_id") @db.Uuid
   stripeCustomerId   String?             @unique @map("stripe_customer_id")
-  picture            String?            @db.VarChar(250)
+  picture            String?             @db.VarChar(250)
   // Used to verify some emails sent to the user
   mailHash           String?
   benefactors        Benefactor[]
@@ -251,11 +251,19 @@ model NotificationList {
   @@map("notification_list")
 }
 
+// Stores the template id's on the marketing platform
+model MarketingTemplates {
+  id   String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String?
+
+  @@map("marketing_templates")
+}
+
 // Stores marketing notifications consents for non-registered emails
 model UnregisteredNotificationConsent {
-  id      String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email   String  @unique @db.Citext
-  consent Boolean @default(false)
+  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email    String  @unique @db.Citext
+  consent  Boolean @default(false)
   mailHash String
 
   @@map("unregistered_notification_consent")
@@ -263,10 +271,11 @@ model UnregisteredNotificationConsent {
 
 // Keeps track of some email types being send
 model EmailSentRegistry {
-  id       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email    String    @db.Citext
-  dateSent DateTime  @map("date_sent") @db.Timestamptz(6)
-  type     EmailType
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email      String    @db.Citext
+  dateSent   DateTime  @map("date_sent") @db.Timestamptz(6)
+  campaignId String?   @map("campaign_id") @db.Uuid
+  type       EmailType
 
   @@map("email_sent_registry")
 }
@@ -929,6 +938,9 @@ enum BankTransactionsFileType {
 
 enum EmailType {
   confirmConsent
+  raised50
+  raised90
+  raised100
 
   @@map("email_type")
 }

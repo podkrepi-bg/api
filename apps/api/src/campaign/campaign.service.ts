@@ -10,6 +10,7 @@ import {
   CampaignFileRole,
   CampaignNewsState,
   NotificationList,
+  EmailType,
 } from '@prisma/client'
 import {
   forwardRef,
@@ -43,6 +44,9 @@ import { DonationMetadata } from '../donations/dontation-metadata.interface'
 import { Expense } from '@prisma/client'
 import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
 import { SendGridParams } from '../notifications/providers/notifications.sendgrid.types'
+import * as NotificationData from '../notifications/notification-data.json'
+import { ConfigService } from '@nestjs/config'
+import { DateTime } from 'luxon'
 
 @Injectable()
 export class CampaignService {
@@ -51,6 +55,7 @@ export class CampaignService {
     private notificationService: NotificationService,
     @Inject(forwardRef(() => VaultService)) private vaultService: VaultService,
     @Inject(forwardRef(() => PersonService)) private personService: PersonService,
+    private readonly config: ConfigService,
     private readonly marketingNotificationsProvider: NotificationsProviderInterface<SendGridParams>,
   ) {}
 
@@ -245,6 +250,8 @@ export class CampaignService {
         beneficiary: { select: { person: { select: { keycloakId: true } } } },
         coordinator: { select: { person: { select: { keycloakId: true } } } },
         organizer: { select: { person: { select: { keycloakId: true } } } },
+        vaults: true,
+        targetAmount: true,
         notificationLists: true,
         state: true,
         slug: true,
@@ -667,9 +674,14 @@ export class CampaignService {
       },
       select: {
         vaults: true,
+        title: true,
+        startDate: true,
+        endDate: true,
         targetAmount: true,
+        slug: true,
         id: true,
         state: true,
+        notificationLists: true,
       },
     })
 
@@ -685,6 +697,84 @@ export class CampaignService {
           },
         })
       }
+
+      const percentRaised = (actualAmount / campaign.targetAmount) * 100
+
+      if (percentRaised >= 50 && percentRaised < 90)
+        // Do not await  -> send to background
+        this.sendAmountReachedNotification(campaign, 50, actualAmount).catch((e) => console.log(e))
+      if (percentRaised >= 90 && percentRaised < 100)
+        // Do not await  -> send to background
+        this.sendAmountReachedNotification(campaign, 90, actualAmount).catch((e) => console.log(e))
+      if (percentRaised >= 100)
+        // Do not await  -> send to background
+        this.sendAmountReachedNotification(campaign, 100, actualAmount).catch((e) => console.log(e))
+    }
+  }
+
+  async sendAmountReachedNotification(
+    campaign: {
+      title: string
+      startDate: Date | null
+      endDate: Date | null
+      id: string
+      slug: string
+      targetAmount: number | null
+      state: CampaignState
+      notificationLists: NotificationList[]
+    },
+    percent: 50 | 90 | 100,
+    raisedAmount: number,
+  ) {
+    // Check if such email was sent already
+    const wasSent = await this.prisma.emailSentRegistry.findFirst({
+      where: { type: EmailType[`raised${percent}`], campaignId: campaign.id },
+    })
+
+    if (wasSent) return
+
+    const template = await this.prisma.marketingTemplates.findFirst({
+      where: {
+        name: `${percent}% Raised`,
+      },
+    })
+
+    const emailLists = campaign.notificationLists
+
+    if (template && emailLists?.length) {
+      const data: SendGridParams['SendNotificationParams'] = {
+        template_id: template.id,
+        list_ids: [emailLists[0].id],
+        subject: NotificationData[`${percent}%`].subject,
+        // Allow user to un-subscribe only from this campaign notifications
+        campaignid: campaign.id,
+        template_data: {
+          'campaign.name': campaign?.title,
+          'campaign.target-amount': campaign?.targetAmount || 0,
+          'campaign.raised-amount': raisedAmount,
+          'campaign.start-date': campaign.startDate
+            ? DateTime.fromJSDate(campaign.startDate).toFormat('dd-MM-yyyy')
+            : '',
+          'campaign.end-date': campaign.endDate
+            ? DateTime.fromJSDate(campaign.endDate).toFormat('dd-MM-yyyy')
+            : '',
+          'campaign.link': (
+            this.config.get<string>('APP_URL') + `/campaigns/${campaign.slug}`
+          ).split('://')[1],
+        },
+      }
+
+      await this.marketingNotificationsProvider.sendNotification(data)
+
+      // register email sent
+      await this.prisma.emailSentRegistry.create({
+        data: {
+          email: '',
+          type: EmailType[`raised${percent}`],
+          dateSent: new Date(),
+          campaignId: campaign.id,
+        },
+      })
     }
   }
 
@@ -729,6 +819,10 @@ export class CampaignService {
     )
       try {
         await this.createCampaignNotificationList(updated)
+
+        // Notify for new activated campaign
+        //Do not await -> send in background
+        this.sendNewCampaignNotification(updated).catch((e) => console.log(e))
       } catch (e) {
         Logger.error('Failed to create notification list', e)
       }
@@ -765,6 +859,41 @@ export class CampaignService {
     })
 
     return listId
+  }
+
+  async sendNewCampaignNotification(campaign: Campaign) {
+    // Send notification for the new activated campaign
+    const template = await this.prisma.marketingTemplates.findFirst({
+      where: {
+        name: 'New Active Campaign',
+      },
+    })
+
+    // General marketing list
+    const mainList = this.config.get('sendgrid.marketingListId')
+
+    if (template) {
+      const data: SendGridParams['SendNotificationParams'] = {
+        template_id: template.id,
+        list_ids: [mainList],
+        subject: NotificationData['new-campaign'].subject,
+        template_data: {
+          'campaign.name': campaign?.title,
+          'campaign.target-amount': campaign?.targetAmount || 0,
+          'campaign.start-date': campaign.startDate
+            ? DateTime.fromJSDate(campaign.startDate).toFormat('dd-MM-yyyy')
+            : '',
+          'campaign.end-date': campaign.endDate
+            ? DateTime.fromJSDate(campaign.endDate).toFormat('dd-MM-yyyy')
+            : '',
+          'campaign.link': (
+            this.config.get<string>('APP_URL') + `/campaigns/${campaign.slug}`
+          ).split('://')[1],
+        },
+      }
+
+      await this.marketingNotificationsProvider.sendNotification(data)
+    }
   }
 
   async updateCampaignNotificationList(

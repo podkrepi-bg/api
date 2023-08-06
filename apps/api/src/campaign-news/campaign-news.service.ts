@@ -3,19 +3,80 @@ import { CreateCampaignNewsDto } from './dto/create-campaign-news.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { UpdateCampaignNewsDto } from './dto/update-campaign-news.dto'
 import { CampaignNewsState } from '@prisma/client'
+import { CampaignNews } from '../domain/generated/campaignNews/entities'
+import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
+import { SendGridParams } from '../notifications/providers/notifications.sendgrid.types'
+import { DateTime } from 'luxon'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class CampaignNewsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly config: ConfigService,
+    private readonly marketingNotificationsProvider: NotificationsProviderInterface<SendGridParams>,
+  ) {}
   private RECORDS_PER_PAGE = 4
 
   async createDraft(campaignNewsDto: CreateCampaignNewsDto) {
+    const notify = campaignNewsDto.notify
+    delete campaignNewsDto.notify
     try {
-      return await this.prisma.campaignNews.create({ data: campaignNewsDto })
+      const campaignNews = await this.prisma.campaignNews.create({ data: campaignNewsDto })
+      if (campaignNews.state === 'published' && notify)
+        //Don't await --> send to background
+        this.sendArticleNotification(campaignNews).catch((e) => console.log(e))
+      return campaignNews
     } catch (error) {
       const message = 'Creating article about campaign failed'
       Logger.warn(error)
       throw new BadRequestException(message)
+    }
+  }
+
+  async sendArticleNotification(news: CampaignNews) {
+    const template = await this.prisma.marketingTemplates.findFirst({
+      where: {
+        name: `Campaign News`,
+      },
+    })
+
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: news.campaignId },
+      include: { notificationLists: true, vaults: true },
+    })
+
+    if (!campaign) return
+
+    const emailLists = campaign.notificationLists
+
+    if (template && emailLists?.length) {
+      const data: SendGridParams['SendNotificationParams'] = {
+        template_id: template.id,
+        list_ids: [emailLists[0].id],
+        subject: news.title,
+        // Allow user to un-subscribe only from this campaign notifications
+        campaignid: campaign.id,
+        template_data: {
+          'campaign.name': campaign?.title,
+          'campaign.target-amount': campaign?.targetAmount || 0,
+          'campaign.raised-amount':
+            campaign.vaults?.map((vault) => vault.amount).reduce((a, b) => a + b, 0) || 0,
+          'campaign.start-date': campaign.startDate
+            ? DateTime.fromJSDate(campaign.startDate).toFormat('dd-MM-yyyy')
+            : '',
+          'campaign.end-date': campaign.endDate
+            ? DateTime.fromJSDate(campaign.endDate).toFormat('dd-MM-yyyy')
+            : '',
+          'campaign.news-title': news.title,
+          'campaign.news-desc': news.slug,
+          'campaign.news-link': (
+            this.config.get<string>('APP_URL') + `/campaigns/${campaign.slug}/news`
+          ).split('://')[1],
+        },
+      }
+
+      await this.marketingNotificationsProvider.sendNotification(data)
     }
   }
 
@@ -154,8 +215,11 @@ export class CampaignNewsService {
   }
 
   async editArticle(id: string, state: CampaignNewsState, editArticleDto: UpdateCampaignNewsDto) {
+    const notify = editArticleDto.notify
+    delete editArticleDto.notify
+
     try {
-      return await this.prisma.campaignNews.update({
+      const updated = await this.prisma.campaignNews.update({
         where: { id },
         data: {
           ...editArticleDto,
@@ -169,6 +233,16 @@ export class CampaignNewsService {
               : undefined,
         },
       })
+
+      if (
+        state === CampaignNewsState.draft &&
+        updated.state === CampaignNewsState.published &&
+        notify
+      )
+        //Don't await --> send to background
+        this.sendArticleNotification(updated).catch((e) => console.log(e))
+
+      return updated
     } catch (error) {
       const message = 'Updating news article has failed!'
       Logger.warn(error)

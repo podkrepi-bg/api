@@ -202,6 +202,11 @@ Table notification_list {
   campaign campaigns [not null]
 }
 
+Table marketing_templates {
+  id String [pk]
+  name String
+}
+
 Table unregistered_notification_consent {
   id String [pk]
   email String [unique, not null]
@@ -213,6 +218,7 @@ Table email_sent_registry {
   id String [pk]
   email String [not null]
   dateSent DateTime [not null]
+  campaignId String
   type EmailType [not null]
 }
 
@@ -754,6 +760,9 @@ Enum BankTransactionsFileType {
 
 Enum EmailType {
   confirmConsent
+  raised50
+  raised90
+  raised100
 }
 
 Ref: organizers.personId - people.id

@@ -23,6 +23,7 @@ import { NotificationGateway } from '../sockets/notifications/gateway'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
+import { CampaignNewsService } from '../campaign-news/campaign-news.service'
 
 describe('CampaignController', () => {
   let controller: CampaignController
@@ -68,6 +69,7 @@ describe('CampaignController', () => {
     birthday: null,
     personalNumber: null,
     stripeCustomerId: null,
+    mailHash: 'some-hash',
   }
 
   const mockCreateCampaign = {
@@ -156,7 +158,7 @@ describe('CampaignController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [NotificationModule, CampaignNewsModule],
+      imports: [NotificationModule],
       controllers: [CampaignController],
       providers: [
         {
@@ -171,6 +173,7 @@ describe('CampaignController', () => {
         PersonService,
         NotificationService,
         NotificationGateway,
+        CampaignNewsService,
         EmailService,
         TemplateService,
         MarketingNotificationsService,
@@ -198,6 +201,8 @@ describe('CampaignController', () => {
     marketingProvider = module.get<NotificationsProviderInterface<any>>(
       NotificationsProviderInterface,
     )
+
+    jest.spyOn(marketingProvider, 'sendNotification').mockImplementation(async () => true)
   })
 
   afterEach(() => {

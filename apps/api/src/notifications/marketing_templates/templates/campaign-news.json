@@ -1,0 +1,6 @@
+{
+  "name": "Campaign News",
+  "subject": "Used to notify for news that have been uploaded about the campaign",
+  "editor": "design",
+  "html_content": "<p>1. Campaign Name --> %{campaign.name}%</p> <hr/>  <p>2. Target Amount --> %{campaign.target-amount}%</p>  <hr/> <p>3. Amount Raised --> %{campaign.raised-amount}%</p> <hr/>  <p>4. Campaign Start --> %{campaign.start-date}%</p>  <hr/>  <p>5. Campaign End --> %{campaign.end-date}%</p> <hr/>  <p>6. Campaign Link --> %{campaign.link}%</p> <hr/>  <p>7. Campaign Link --> %{campaign.news-content}%</p>"
+}
