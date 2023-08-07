@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateDonationWishDto } from './dto/create-donation-wish.dto'
+import { Prisma } from '@prisma/client'
 
 @Injectable()
 export class DonationWishService {
@@ -21,7 +22,7 @@ export class DonationWishService {
     pageIndex?: number,
     pageSize?: number,
   ) {
-    const whereClause = {
+    const whereClause: Prisma.DonationWishWhereInput = {
       campaignId: campaignId,
       donation: {
         amount: {
@@ -35,15 +36,15 @@ export class DonationWishService {
       },
       ...(search && {
         OR: [
-          { message: { contains: search } },
+          { message: { contains: search, mode: 'insensitive' } },
           {
             person: {
               OR: [
                 {
-                  firstName: { contains: search },
+                  firstName: { contains: search, mode: 'insensitive' },
                 },
                 {
-                  lastName: { contains: search },
+                  lastName: { contains: search, mode: 'insensitive' },
                 },
               ],
             },
