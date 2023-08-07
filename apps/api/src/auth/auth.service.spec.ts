@@ -21,6 +21,7 @@ import { JwtService } from '@nestjs/jwt'
 import { TemplateService } from '../email/template.service'
 import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
 import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 jest.mock('@keycloak/keycloak-admin-client')
 
@@ -52,6 +53,7 @@ describe('AuthService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [MarketingNotificationsModule],
       providers: [
         AuthService,
         {
@@ -95,7 +97,17 @@ describe('AuthService', () => {
           useClass: SendGridNotificationsProvider,
         },
       ],
-    }).compile()
+    })
+      .overrideProvider(ConfigService)
+      .useValue({
+        get: jest.fn((key: string) => {
+          if (key === 'keycloak.clientId') return 'realm-a12345'
+          if (key === 'keycloak.secret') return 'a12345'
+          if (key === 'sendgrid.marketingListId') return 'list-id'
+          return null
+        }),
+      })
+      .compile()
 
     service = module.get<AuthService>(AuthService)
     config = module.get<ConfigService>(ConfigService)

@@ -59,3 +59,15 @@ export class UnsubscribeDto {
   @IsOptional()
   public readonly campaignId?: string
 }
+
+//Responses
+export type SendConfirmationResponse = {
+  message: 'Subscribed' | 'Email Sent'
+}
+export type SubscribePublicResponse = {
+  message: 'Subscribed' | 'Success'
+}
+
+export type UnsubscribePublicResponse = {
+  message: 'Unsubscribed' | 'Success'
+}

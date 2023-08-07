@@ -10,11 +10,14 @@ import { DateTime } from 'luxon'
 export class SendGridNotificationsProvider
   implements NotificationsProviderInterface<SendGridParams>
 {
-  private emailSender: string
+  private shouldRun: boolean
 
   constructor(private config: ConfigService) {
     const apiKey = config.get<string>('sendgrid.apiKey')
-    this.emailSender = this.config.get<string>('sendgrid.sender') ?? 'info@podkrepi.bg'
+    // If notification sending should be active
+    const shouldRun = config.get<string>('sendgrid.sendNotifications', '')
+    this.shouldRun = shouldRun === 'true'
+
     if (apiKey) {
       sgClient.setApiKey(apiKey)
     } else {
@@ -125,6 +128,8 @@ export class SendGridNotificationsProvider
   }
 
   async sendNotification(data: SendGridParams['SendNotificationParams']) {
+    if (!this.shouldRun) return
+
     // Get template from sendgrid
     let request = {
       url: `/v3/designs/${data.template_id}`,

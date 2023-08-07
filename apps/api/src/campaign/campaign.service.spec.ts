@@ -13,6 +13,7 @@ import { NotificationGateway } from '../sockets/notifications/gateway'
 import { NotificationService } from '../sockets/notifications/notification.service'
 import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
 import { EmailService } from '../email/email.service'
+import { MarketingNotificationsService } from '../notifications/notifications.service'
 
 describe('CampaignService', () => {
   let service: CampaignService
@@ -85,9 +86,11 @@ describe('CampaignService', () => {
           // But actually provide the service that implements the interface
           useClass: SendGridNotificationsProvider,
         },
+        MarketingNotificationsService,
         VaultService,
         CampaignService,
         MockPrismaService,
+        EmailService,
         NotificationService,
         NotificationGateway,
         PersonService,

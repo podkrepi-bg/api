@@ -4,17 +4,17 @@ import { PrismaService } from '../prisma/prisma.service'
 import { UpdateCampaignNewsDto } from './dto/update-campaign-news.dto'
 import { CampaignNewsState } from '@prisma/client'
 import { CampaignNews } from '../domain/generated/campaignNews/entities'
-import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
 import { SendGridParams } from '../notifications/providers/notifications.sendgrid.types'
 import { DateTime } from 'luxon'
 import { ConfigService } from '@nestjs/config'
+import { MarketingNotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
 export class CampaignNewsService {
   constructor(
     private prisma: PrismaService,
     private readonly config: ConfigService,
-    private readonly marketingNotificationsProvider: NotificationsProviderInterface<SendGridParams>,
+    private readonly marketingNotificationsService: MarketingNotificationsService,
   ) {}
   private RECORDS_PER_PAGE = 4
 
@@ -76,7 +76,7 @@ export class CampaignNewsService {
         },
       }
 
-      await this.marketingNotificationsProvider.sendNotification(data)
+      await this.marketingNotificationsService.provider.sendNotification(data)
     }
   }
 

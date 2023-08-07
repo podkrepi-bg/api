@@ -29,11 +29,7 @@ import { ApiQuery } from '@nestjs/swagger'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { ApiTags } from '@nestjs/swagger'
 import { CampaignNewsService } from '../campaign-news/campaign-news.service'
-import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
 import { CampaignSubscribeDto } from './dto/campaign-subscribe.dto'
-import { SendGridParams } from '../notifications/providers/notifications.sendgrid.types'
-import { ConfigService } from '@nestjs/config'
-import { MarketingNotificationsService } from '../notifications/notifications.service'
 
 @ApiTags('campaign')
 @Controller('campaign')
@@ -42,9 +38,6 @@ export class CampaignController {
     private readonly campaignService: CampaignService,
     private readonly campaignNewsService: CampaignNewsService,
     @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
-    private readonly marketingNotificationsProvider: NotificationsProviderInterface<SendGridParams>,
-    private readonly marketingNotificationsService: MarketingNotificationsService,
-    private readonly config: ConfigService,
   ) {}
 
   @Get('list')
@@ -184,76 +177,8 @@ export class CampaignController {
     if (data.consent === false)
       throw new BadRequestException('Notification consent should be provided')
 
-    // Check if campaign exists
-    let campaign: Awaited<ReturnType<CampaignService['getCampaignByIdWithPersonIds']>>
-    try {
-      campaign = await this.campaignService.getCampaignByIdWithPersonIds(id)
-    } catch (e) {
-      Logger.error(e)
-      throw new BadRequestException('Failed to get campaign info')
-    }
-
-    if (!campaign) throw new NotFoundException('Campaign not found')
-
-    if (campaign.state !== CampaignState.active) throw new BadRequestException('Campaign inactive')
-
-    // Check if user is registered
-    const registered = await this.personService.findByEmail(data.email)
-
-    // Add to marketing platform directly
-    if (registered) {
-      const contact: SendGridParams['ContactData'] = {
-        email: data.email,
-        first_name: registered?.firstName || '',
-        last_name: registered?.lastName || '',
-      }
-
-      const listIds: string[] = []
-
-      // Check if the campaign has a notification list
-      if (!campaign.notificationLists?.length) {
-        const campaignList = await this.campaignService.createCampaignNotificationList(campaign)
-        // Add email to this campaign's notification list
-        listIds.push(campaignList)
-      } else {
-        listIds.push(campaign.notificationLists[0].id)
-      }
-
-      // Add email to general marketing notifications list
-      const mainList = this.config.get('sendgrid.marketingListId')
-      mainList && listIds.push(mainList)
-
-      try {
-        await this.marketingNotificationsProvider.addContactsToList({
-          contacts: [contact],
-          list_ids: listIds,
-        })
-      } catch (e) {
-        Logger.error('Failed to subscribe email', e)
-        throw new BadRequestException('Failed to subscribe email')
-      }
-
-      // If no prior consent has been given by a registered user
-      if (!registered.newsletter)
-        try {
-          await this.personService.update(registered.id, { newsletter: true })
-        } catch (e) {
-          Logger.error('Failed to update user consent', e)
-          throw new BadRequestException('Failed to update user consent')
-        }
-    }
-
-    // If the email is not registered - send confirmation email
-    else if (!registered)
-      try {
-        await this.marketingNotificationsService.sendUnregisteredConfirmEmail({
-          email: data.email,
-          campaignId: campaign.id,
-        })
-      } catch (e) {
-        Logger.error('Failed to save unregistered consent', e)
-        throw new BadRequestException('Failed to save consent')
-      }
+    // Subscribe to campaign notifications list
+    await this.campaignService.subscribeToCampaignNotification(id, data)
 
     return { message: 'Success' }
   }

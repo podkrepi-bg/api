@@ -30,8 +30,7 @@ import { JwtService } from '@nestjs/jwt'
 import { EmailService } from '../email/email.service'
 import { ForgottenPasswordMailDto } from '../email/template.interface'
 import { NewPasswordDto } from './dto/recovery-password.dto'
-import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
-import { SendGridParams } from '../notifications/providers/notifications.sendgrid.types'
+import { MarketingNotificationsService } from '../notifications/notifications.service'
 
 type ErrorResponse = { error: string; data: unknown }
 type KeycloakErrorResponse = { error: string; error_description: string }
@@ -62,7 +61,7 @@ export class AuthService {
     private jwtService: JwtService,
     private sendEmail: EmailService,
     @Inject(KEYCLOAK_INSTANCE) private keycloak: KeycloakConnect.Keycloak,
-    private readonly marketingNotificationsProvider: NotificationsProviderInterface<SendGridParams>,
+    private readonly marketingNotificationsService: MarketingNotificationsService,
   ) {}
 
   async issueGrant(email: string, password: string): Promise<KeycloakConnect.Grant> {
@@ -201,7 +200,7 @@ export class AuthService {
         // Add email to general marketing notifications list
         const mainList = this.config.get('sendgrid.marketingListId')
         if (mainList)
-          await this.marketingNotificationsProvider.addContactsToList({
+          await this.marketingNotificationsService.provider.addContactsToList({
             contacts: [
               {
                 email: person.email,

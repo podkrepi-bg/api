@@ -37,6 +37,9 @@ import { mockDeep } from 'jest-mock-extended'
 import { NotificationModule } from '../../sockets/notifications/notification.module'
 import { NotificationsProviderInterface } from '../../notifications/providers/notifications.interface.providers'
 import { SendGridNotificationsProvider } from '../../notifications/providers/notifications.sendgrid.provider'
+import { MarketingNotificationsService } from '../../notifications/notifications.service'
+import { EmailService } from '../../email/email.service'
+import { TemplateService } from '../../email/template.service'
 
 const defaultStripeWebhookEndpoint = '/stripe/webhook'
 const stripeSecret = 'wh_123'
@@ -73,6 +76,9 @@ describe('StripePaymentService', () => {
           // But actually provide the service that implements the interface
           useClass: SendGridNotificationsProvider,
         },
+        MarketingNotificationsService,
+        EmailService,
+        TemplateService,
         ConfigService,
         StripePaymentService,
         CampaignService,

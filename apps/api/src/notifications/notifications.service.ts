@@ -1,10 +1,20 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import {
   SendConfirmationDto,
+  SendConfirmationResponse,
   SubscribePublicDto,
+  SubscribePublicResponse,
   UnsubscribeDto,
   UnsubscribePublicDto,
+  UnsubscribePublicResponse,
 } from './dto/subscribe.dto'
 import { PersonService } from '../person/person.service'
 import { ConfirmConsentEmailDto } from '../email/template.interface'
@@ -30,11 +40,18 @@ export class MarketingNotificationsService {
     private readonly personService: PersonService,
     private readonly config: ConfigService,
     private readonly sendEmail: EmailService,
-    private readonly campaignService: CampaignService,
+    @Inject(forwardRef(() => CampaignService)) private readonly campaignService: CampaignService,
     private readonly marketingNotificationsProvider: NotificationsProviderInterface<SendGridParams>,
   ) {}
 
-  async sendConfirmConsentEmail(data: SendConfirmationDto) {
+  // Getter for the  marketing provider
+  get provider() {
+    return this.marketingNotificationsProvider
+  }
+
+  async sendConfirmConsentEmail(
+    data: SendConfirmationDto,
+  ): Promise<SendConfirmationResponse | Error> {
     // Check if user is registered
     let registered: Person | null
     try {
@@ -46,57 +63,39 @@ export class MarketingNotificationsService {
     if (registered?.newsletter) return { message: 'Subscribed' }
 
     // Check if un-registered consent already exists for this email
-    let unregisteredConsent: UnregisteredNotificationConsent | null
-    try {
-      unregisteredConsent = await this.prisma.unregisteredNotificationConsent.findFirst({
-        where: { email: data.email, consent: true },
-      })
-    } catch (e) {
-      return new BadRequestException('Failed to get email data')
-    }
+    let unregisteredConsent: UnregisteredNotificationConsent | null = null
+    if (!registered)
+      try {
+        unregisteredConsent = await this.prisma.unregisteredNotificationConsent.findFirst({
+          where: { email: data.email },
+        })
+      } catch (e) {
+        return new BadRequestException('Failed to get email data')
+      }
 
     // If unregistered consent exists -> user is already subscribed
     if (unregisteredConsent?.consent) return { message: 'Subscribed' }
 
     // Send confirmation email
     try {
-      const sent = await this.prisma.emailSentRegistry.findFirst({
-        where: { email: data.email, type: EmailType.confirmConsent },
+      let record: Person | UnregisteredNotificationConsent
+
+      if (registered) {
+        record = registered
+      } else {
+        unregisteredConsent
+          ? (record = unregisteredConsent)
+          : // Create
+            (record = await this.prisma.unregisteredNotificationConsent.create({
+              data: { email: data.email },
+            }))
+      }
+
+      // Send confirmation link
+      await this.sendConfirmEmail({
+        record_id: record.id,
+        email: data.email,
       })
-      // Check if email was sent already in the past 1 minutes
-      const wasSent = this.emailWasSentRecently(sent, 1)
-
-      if (wasSent) return { message: 'Email Sent' }
-
-      // Secret hash to verify data in the subscribe route
-      const secret = this.generateHash()
-
-      // Save hash to record
-      registered
-        ? // Update
-          await this.prisma.person.update({
-            where: { id: registered.id },
-            data: { mailHash: secret },
-          })
-        : // Create/Update
-          await this.prisma.unregisteredNotificationConsent.upsert({
-            where: { email: data.email },
-            create: { mailHash: secret, email: data.email },
-            update: { mailHash: secret },
-          })
-
-      await this.sendConfirmationLink({ secret, email: data.email })
-
-      sent
-        ? // Update new send date
-          await this.prisma.emailSentRegistry.update({
-            where: { id: sent.id },
-            data: { dateSent: new Date() },
-          })
-        : // Create new record for the email sent
-          await this.prisma.emailSentRegistry.create({
-            data: { email: data.email, type: EmailType.confirmConsent, dateSent: new Date() },
-          })
     } catch (e) {
       return new BadRequestException('Failed to send email ')
     }
@@ -104,26 +103,19 @@ export class MarketingNotificationsService {
     return { message: 'Email Sent' }
   }
 
-  async sendUnregisteredConfirmEmail(data: { email: string; campaignId?: string }) {
+  async sendConfirmEmail(data: { record_id: string; email: string; campaignId?: string }) {
     // Send confirmation email
     try {
       const sent = await this.prisma.emailSentRegistry.findFirst({
         where: { email: data.email, type: EmailType.confirmConsent },
       })
-      // Check if email was sent already in the past 1 minutes
-      const wasSent = this.emailWasSentRecently(sent, 1)
+      // Check if email was sent already in the past 10 minutes
+      const wasSent = this.emailWasSentRecently(sent, 10)
 
       if (wasSent) return
 
       // Secret hash to verify data in the subscribe route
-      const secret = this.generateHash()
-
-      // Save hash to record
-      await this.prisma.unregisteredNotificationConsent.upsert({
-        where: { email: data.email },
-        create: { mailHash: secret, email: data.email },
-        update: { mailHash: secret },
-      })
+      const secret = this.generateHash(data.record_id)
 
       await this.sendConfirmationLink({ secret, email: data.email, campaignId: data.campaignId })
 
@@ -142,70 +134,50 @@ export class MarketingNotificationsService {
     }
   }
 
-  async subscribePublic(data: SubscribePublicDto) {
+  async subscribePublic(data: SubscribePublicDto): Promise<SubscribePublicResponse | Error> {
     // Check if user is registered
-    let registered: Person | null
+    let registered: Person | null = null
     try {
-      registered = await this.prisma.person.findFirst({
-        where: { email: data.email, mailHash: data.hash },
+      const result = await this.prisma.person.findFirst({
+        where: { email: data.email },
       })
+
+      // Check hash
+      if (this.generateHash(result?.id || '') === data.hash) registered = result
     } catch (e) {
       return new BadRequestException('Failed to get email data')
     }
     // If registered and has given consent -> user is already subscribed
     if (!data.campaignId && registered?.newsletter) return { message: 'Subscribed' }
 
-    // Check if un-registered consent already exists for this email
-    let unregisteredConsent: UnregisteredNotificationConsent | null
-    try {
-      unregisteredConsent = await this.prisma.unregisteredNotificationConsent.findFirst({
-        where: { email: data.email, mailHash: data.hash },
-      })
-    } catch (e) {
-      return new BadRequestException('Failed to get email data')
-    }
+    // Check if un-registered consent exists for this email
+    let unregisteredConsent: UnregisteredNotificationConsent | null = null
+    if (!registered)
+      try {
+        const result = await this.prisma.unregisteredNotificationConsent.findFirst({
+          where: { email: data.email },
+        })
+
+        // Check hash
+        if (this.generateHash(result?.id || '') === data.hash) unregisteredConsent = result
+      } catch (e) {
+        return new BadRequestException('Failed to get email data')
+      }
+
     // If unregistered consent exists -> user is already subscribed
     if (!data.campaignId && unregisteredConsent?.consent) return { message: 'Subscribed' }
 
     if (!registered && !unregisteredConsent) throw new BadRequestException('Invalid hash/email')
 
-    const contact: SendGridParams['ContactData'] = {
-      email: data.email,
-      first_name: registered?.firstName || '',
-      last_name: registered?.lastName || '',
-    }
-
-    const listIds: string[] = []
-
-    // Find campaign lists if provided
-    if (data.campaignId)
-      try {
-        const campaign = await this.campaignService.getCampaignByIdWithPersonIds(data.campaignId)
-        if (campaign)
-          if (!campaign?.notificationLists?.length) {
-            // Check if the campaign has a notification list
-            const campaignList = await this.campaignService.createCampaignNotificationList(campaign)
-            // Add email to this campaign's notification list
-            listIds.push(campaignList)
-          } else {
-            listIds.push(campaign.notificationLists[0].id)
-          }
-      } catch (e) {
-        Logger.error(e)
-        throw new BadRequestException('Failed to get campaign info')
-      }
-
-    // Add email to general marketing notifications list
-    const mainList = this.config.get('sendgrid.marketingListId')
-    mainList && listIds.push(mainList)
-
-    // Add to marketing platform
     try {
-      await this.marketingNotificationsProvider.addContactsToList({
-        contacts: [contact],
-        list_ids: listIds,
+      await this.addContactsToList({
+        userInfo: {
+          email: data.email,
+          firstName: registered?.firstName || '',
+          lastName: registered?.lastName || '',
+        },
+        campaignId: data.campaignId,
       })
-      await this.marketingNotificationsProvider.removeFromUnsubscribed({ email: data.email })
     } catch (e) {
       Logger.error('Failed to subscribe email', e)
       throw new BadRequestException('Failed to subscribe email')
@@ -231,7 +203,7 @@ export class MarketingNotificationsService {
     return { message: 'Success' }
   }
 
-  async unsubscribePublic(data: UnsubscribePublicDto) {
+  async unsubscribePublic(data: UnsubscribePublicDto): Promise<UnsubscribePublicResponse | Error> {
     // Check if user is registered
     let registered: Person | null
     try {
@@ -258,43 +230,15 @@ export class MarketingNotificationsService {
 
     if (!registered && !unregisteredConsent) throw new BadRequestException('Invalid email')
 
-    //If the email wants a general unsubscribe from all notifications
-    // Add to unsubscribed list for all notifications
-    if (!data.campaignId)
-      try {
-        await this.marketingNotificationsProvider.addToUnsubscribed({ emails: [data.email] })
-      } catch (e) {
-        Logger.error('Failed to unsubscribe email', e)
-        throw new BadRequestException('Failed to unsubscribe email')
-      }
-    // else remove it only from the particular campaign list
-    else if (data.campaignId)
-      try {
-        //get campaign notification list
-        const campaign = await this.prisma.campaign.findFirst({
-          where: { id: data.campaignId },
-          select: { notificationLists: true },
-        })
-
-        if (!campaign) return new NotFoundException('Campaign not found')
-
-        // if such a list exists
-        if (campaign?.notificationLists?.length) {
-          // find the email id in the marketing platform
-          const contactsInfo = await this.marketingNotificationsProvider.getContactsInfo({
-            emails: [data.email],
-          })
-          // remove from the campaign notification list
-          Object.keys(contactsInfo) &&
-            (await this.marketingNotificationsProvider.removeContactsFromList({
-              list_id: campaign.notificationLists[0].id,
-              contact_ids: [contactsInfo[data.email]?.contact.id],
-            }))
-        }
-      } catch (e) {
-        Logger.error('Failed to unsubscribe email', e)
-        throw new BadRequestException('Failed to unsubscribe email')
-      }
+    try {
+      await this.unsubscribeEmail({
+        userInfo: { email: data.email },
+        campaignId: data.campaignId,
+      })
+    } catch (e) {
+      Logger.error('Failed to unsubscribe email', e)
+      throw new BadRequestException('Failed to unsubscribe email')
+    }
 
     // update consent status
     try {
@@ -323,43 +267,15 @@ export class MarketingNotificationsService {
     // Already unsubscribed
     if (!userInfo.newsletter) return { email: userInfo.email, subscribed: false }
 
-    //If the email wants a general unsubscribe from all notifications
-    // Add to unsubscribed list for all notifications
-    if (!data.campaignId)
-      try {
-        await this.marketingNotificationsProvider.addToUnsubscribed({ emails: [userInfo.email] })
-      } catch (e) {
-        Logger.error('Failed to unsubscribe email', e)
-        throw new BadRequestException('Failed to unsubscribe email')
-      }
-    // else remove it only from the particular campaign list
-    else if (data.campaignId)
-      try {
-        //get campaign notification list
-        const campaign = await this.prisma.campaign.findFirst({
-          where: { id: data.campaignId },
-          select: { notificationLists: true },
-        })
-
-        if (!campaign) return new NotFoundException('Campaign not found')
-
-        // if such a list exists
-        if (campaign?.notificationLists?.length) {
-          // find the email id in the marketing platform
-          const contactsInfo = await this.marketingNotificationsProvider.getContactsInfo({
-            emails: [userInfo.email],
-          })
-          // remove from the campaign notification list
-          Object.keys(contactsInfo) &&
-            (await this.marketingNotificationsProvider.removeContactsFromList({
-              list_id: campaign.notificationLists[0].id,
-              contact_ids: [contactsInfo[userInfo.email]?.contact.id],
-            }))
-        }
-      } catch (e) {
-        Logger.error('Failed to unsubscribe email', e)
-        throw new BadRequestException('Failed to unsubscribe email')
-      }
+    try {
+      await this.unsubscribeEmail({
+        userInfo: { email: userInfo.email },
+        campaignId: data.campaignId,
+      })
+    } catch (e) {
+      Logger.error('Failed to unsubscribe email', e)
+      throw new BadRequestException('Failed to unsubscribe email')
+    }
 
     // update consent status
     try {
@@ -385,25 +301,14 @@ export class MarketingNotificationsService {
     // Already subscribed
     if (userInfo.newsletter) return { email: userInfo.email, subscribed: true }
 
-    const contact: SendGridParams['ContactData'] = {
-      email: userInfo.email,
-      first_name: userInfo?.firstName || '',
-      last_name: userInfo?.lastName || '',
-    }
-
-    const listIds: string[] = []
-
-    // Add email to general marketing notifications list
-    const mainList = this.config.get('sendgrid.marketingListId')
-    mainList && listIds.push(mainList)
-
-    // Add to marketing platform
     try {
-      await this.marketingNotificationsProvider.addContactsToList({
-        contacts: [contact],
-        list_ids: listIds,
+      await this.addContactsToList({
+        userInfo: {
+          email: userInfo.email,
+          firstName: userInfo?.firstName || '',
+          lastName: userInfo?.lastName || '',
+        },
       })
-      await this.marketingNotificationsProvider.removeFromUnsubscribed({ email: userInfo.email })
     } catch (e) {
       Logger.error('Failed to subscribe email', e)
       throw new BadRequestException('Failed to subscribe email')
@@ -451,11 +356,99 @@ export class MarketingNotificationsService {
     }
   }
 
-  generateHash(): string {
-    const hash = crypto
-      .randomBytes(Math.ceil(32 / 2))
-      .toString('hex')
-      .slice(0, 32)
+  async unsubscribeEmail(data: { userInfo: { email: string }; campaignId?: string }) {
+    //If the email wants a general unsubscribe from all notifications
+    // Add to unsubscribed list for all notifications
+    if (!data.campaignId)
+      try {
+        await this.marketingNotificationsProvider.addToUnsubscribed({
+          emails: [data.userInfo.email],
+        })
+      } catch (e) {
+        Logger.error('Failed to unsubscribe email', e)
+        throw new BadRequestException('Failed to unsubscribe email')
+      }
+    // else remove it only from the particular campaign list
+    else if (data.campaignId)
+      try {
+        //get campaign notification list
+        const campaign = await this.prisma.campaign.findFirst({
+          where: { id: data.campaignId },
+          select: { notificationLists: true },
+        })
+
+        if (!campaign) return new NotFoundException('Campaign not found')
+
+        // if such a list exists
+        if (campaign?.notificationLists?.length) {
+          // find the email id in the marketing platform
+          const contactsInfo = await this.marketingNotificationsProvider.getContactsInfo({
+            emails: [data.userInfo.email],
+          })
+          // remove from the campaign notification list
+          Object.keys(contactsInfo) &&
+            (await this.marketingNotificationsProvider.removeContactsFromList({
+              list_id: campaign.notificationLists[0].id,
+              contact_ids: [contactsInfo[data.userInfo.email]?.contact.id],
+            }))
+        }
+      } catch (e) {
+        Logger.error('Failed to unsubscribe email', e)
+        throw new BadRequestException('Failed to unsubscribe email')
+      }
+  }
+
+  async addContactsToList(data: {
+    userInfo: { email: string; firstName: string; lastName: string }
+    campaignId?: string
+  }) {
+    const contact: SendGridParams['ContactData'] = {
+      email: data.userInfo.email,
+      first_name: data.userInfo?.firstName || '',
+      last_name: data.userInfo?.lastName || '',
+    }
+
+    const listIds: string[] = []
+
+    // Find campaign lists if provided
+    if (data.campaignId)
+      try {
+        const campaign = await this.campaignService.getCampaignByIdWithPersonIds(data.campaignId)
+        if (campaign)
+          if (!campaign?.notificationLists?.length) {
+            // Check if the campaign has a notification list
+            const campaignList = await this.campaignService.createCampaignNotificationList(campaign)
+            // Add email to this campaign's notification list
+            listIds.push(campaignList)
+          } else {
+            listIds.push(campaign.notificationLists[0].id)
+          }
+      } catch (e) {
+        Logger.error(e)
+        throw new BadRequestException('Failed to get campaign info')
+      }
+
+    // Add email to general marketing notifications list
+    const mainList = this.config.get('sendgrid.marketingListId')
+    mainList && listIds.push(mainList)
+
+    // Add to marketing platform
+    try {
+      await this.marketingNotificationsProvider.addContactsToList({
+        contacts: [contact],
+        list_ids: listIds,
+      })
+      await this.marketingNotificationsProvider.removeFromUnsubscribed({
+        email: data.userInfo.email,
+      })
+    } catch (e) {
+      Logger.error('Failed to subscribe email', e)
+      throw new BadRequestException('Failed to subscribe email')
+    }
+  }
+
+  generateHash(record_id: string): string {
+    const hash = crypto.createHash('sha256').update(record_id).digest('hex')
 
     return hash
   }

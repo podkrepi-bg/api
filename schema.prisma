@@ -52,7 +52,6 @@ model Person {
   stripeCustomerId   String?             @unique @map("stripe_customer_id")
   picture            String?             @db.VarChar(250)
   // Used to verify some emails sent to the user
-  mailHash           String?
   benefactors        Benefactor[]
   beneficiaries      Beneficiary[]
   campaignFiles      CampaignFile[]
@@ -264,7 +263,6 @@ model UnregisteredNotificationConsent {
   id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email    String  @unique @db.Citext
   consent  Boolean @default(false)
-  mailHash String
 
   @@map("unregistered_notification_consent")
 }

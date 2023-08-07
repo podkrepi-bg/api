@@ -25,7 +25,6 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   keycloakId String [unique]
   stripeCustomerId String [unique]
   picture String
-  mailHash String
   benefactors benefactors [not null]
   beneficiaries beneficiaries [not null]
   campaignFiles campaign_files [not null]
@@ -211,7 +210,6 @@ Table unregistered_notification_consent {
   id String [pk]
   email String [unique, not null]
   consent Boolean [not null, default: false]
-  mailHash String [not null]
 }
 
 Table email_sent_registry {

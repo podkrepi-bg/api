@@ -6,6 +6,7 @@ import { CampaignNewsService } from './campaign-news.service'
 import { ConfigService } from '@nestjs/config'
 import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
 import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 describe('CampaignNewsController', () => {
   let controller: CampaignNewsController
@@ -19,6 +20,7 @@ describe('CampaignNewsController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [MarketingNotificationsModule],
       controllers: [CampaignNewsController],
       providers: [
         CampaignNewsService,

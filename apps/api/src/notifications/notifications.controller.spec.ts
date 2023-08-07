@@ -38,8 +38,8 @@ const UnRegisteredMock = {
 
 const EmailRecordMock = {
   id: 'some-id',
-  //   Now minus 3 minutes
-  dateSent: new Date(Date.now() - 1000 * 60 * 3),
+  //   Now minus 12 minutes
+  dateSent: new Date(Date.now() - 1000 * 60 * 12),
   email: 'unregistered@gmail.com',
 } as EmailSentRegistry
 
@@ -58,6 +58,7 @@ describe('MarketingNotificationsController', () => {
   let controller: MarketingNotificationsController
   let marketingProvider: NotificationsProviderInterface<SendGridParams>
   let emailService: EmailService
+  let marketingService: MarketingNotificationsService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -97,6 +98,7 @@ describe('MarketingNotificationsController', () => {
 
     controller = module.get<MarketingNotificationsController>(MarketingNotificationsController)
     emailService = module.get<EmailService>(EmailService)
+    marketingService = module.get<MarketingNotificationsService>(MarketingNotificationsService)
     marketingProvider = module.get<NotificationsProviderInterface<SendGridParams>>(
       NotificationsProviderInterface,
     )
@@ -159,7 +161,7 @@ describe('MarketingNotificationsController', () => {
         where: { email: UnRegisteredMock.email },
       })
       expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
-        where: { email: UnRegisteredMock.email, consent: true },
+        where: { email: UnRegisteredMock.email },
       })
 
       // All other functions should nat have been called
@@ -192,17 +194,13 @@ describe('MarketingNotificationsController', () => {
         where: { email: UnRegisteredMock.email },
       })
       expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
-        where: { email: UnRegisteredMock.email, consent: true },
+        where: { email: UnRegisteredMock.email },
       })
 
       expect(prismaMock.emailSentRegistry.findFirst).toHaveBeenCalledWith({
         where: { email: UnRegisteredMock.email, type: EmailType.confirmConsent },
       })
-      expect(prismaMock.unregisteredNotificationConsent.upsert).toHaveBeenCalledWith({
-        where: { email: UnRegisteredMock.email },
-        create: { mailHash: 'hash-value', email: UnRegisteredMock.email },
-        update: { mailHash: 'hash-value' },
-      })
+
       expect(emailService.sendFromTemplate).toHaveBeenCalledWith(
         expect.any(Object),
         {
@@ -234,17 +232,12 @@ describe('MarketingNotificationsController', () => {
       expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email },
       })
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
-        where: { email: RegisteredMock.email, consent: true },
-      })
+      expect(prismaMock.unregisteredNotificationConsent.findFirst).not.toHaveBeenCalled()
 
       expect(prismaMock.emailSentRegistry.findFirst).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email, type: EmailType.confirmConsent },
       })
-      expect(prismaMock.person.update).toHaveBeenCalledWith({
-        where: { id: RegisteredMock.id },
-        data: { mailHash: 'hash-value' },
-      })
+
       expect(emailService.sendFromTemplate).toHaveBeenCalledWith(
         expect.any(Object),
         {
@@ -258,7 +251,7 @@ describe('MarketingNotificationsController', () => {
       })
 
       // All other functions should nat have been called
-      expect(prismaMock.unregisteredNotificationConsent.upsert).not.toHaveBeenCalled()
+      expect(prismaMock.unregisteredNotificationConsent.create).not.toHaveBeenCalled()
       expect(prismaMock.emailSentRegistry.create).not.toHaveBeenCalled()
     })
 
@@ -279,9 +272,7 @@ describe('MarketingNotificationsController', () => {
       expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email },
       })
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
-        where: { email: RegisteredMock.email, consent: true },
-      })
+      expect(prismaMock.unregisteredNotificationConsent.findFirst).not.toHaveBeenCalled()
 
       expect(prismaMock.emailSentRegistry.findFirst).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email, type: EmailType.confirmConsent },
@@ -305,16 +296,16 @@ describe('MarketingNotificationsController', () => {
         controller.subscribePublic({
           email: RegisteredMock.email,
           consent: true,
-          hash: 'some-hash',
+          hash: `${marketingService.generateHash(UnRegisteredMock.id)}`,
         }),
       ).rejects.toThrow('Invalid hash/email')
 
       expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
-        where: { email: RegisteredMock.email, mailHash: 'some-hash' },
+        where: { email: RegisteredMock.email },
       })
 
       expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
-        where: { email: RegisteredMock.email, mailHash: 'some-hash' },
+        where: { email: RegisteredMock.email },
       })
 
       // All other functions should nat have been called
@@ -333,14 +324,14 @@ describe('MarketingNotificationsController', () => {
         controller.subscribePublic({
           email: RegisteredMock.email,
           consent: true,
-          hash: 'some-hash',
+          hash: `${marketingService.generateHash(RegisteredMock.id)}`,
         }),
       ).resolves.toEqual({
         message: 'Subscribed',
       })
 
       expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
-        where: { email: RegisteredMock.email, mailHash: 'some-hash' },
+        where: { email: RegisteredMock.email },
       })
 
       // All other functions should nat have been called
@@ -361,18 +352,18 @@ describe('MarketingNotificationsController', () => {
         controller.subscribePublic({
           email: UnRegisteredMock.email,
           consent: true,
-          hash: 'some-hash',
+          hash: `${marketingService.generateHash(UnRegisteredMock.id)}`,
         }),
       ).resolves.toEqual({
         message: 'Subscribed',
       })
 
       expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
-        where: { email: UnRegisteredMock.email, mailHash: 'some-hash' },
+        where: { email: UnRegisteredMock.email },
       })
 
       expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
-        where: { email: UnRegisteredMock.email, mailHash: 'some-hash' },
+        where: { email: UnRegisteredMock.email },
       })
 
       // All other functions should nat have been called
@@ -395,16 +386,16 @@ describe('MarketingNotificationsController', () => {
         controller.subscribePublic({
           email: UnRegisteredMock.email,
           consent: true,
-          hash: 'some-hash',
+          hash: `${marketingService.generateHash(UnRegisteredMock.id)}`,
         }),
       ).resolves.toEqual({ message: 'Success' })
 
       expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
-        where: { email: UnRegisteredMock.email, mailHash: 'some-hash' },
+        where: { email: UnRegisteredMock.email },
       })
 
       expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
-        where: { email: UnRegisteredMock.email, mailHash: 'some-hash' },
+        where: { email: UnRegisteredMock.email },
       })
 
       // No campaign provided to be subscribed to
@@ -442,17 +433,15 @@ describe('MarketingNotificationsController', () => {
         controller.subscribePublic({
           email: RegisteredMock.email,
           consent: true,
-          hash: 'some-hash',
+          hash: `${marketingService.generateHash(RegisteredMock.id)}`,
         }),
       ).resolves.toEqual({ message: 'Success' })
 
       expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
-        where: { email: RegisteredMock.email, mailHash: 'some-hash' },
+        where: { email: RegisteredMock.email },
       })
 
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
-        where: { email: RegisteredMock.email, mailHash: 'some-hash' },
-      })
+      expect(prismaMock.unregisteredNotificationConsent.findFirst).not.toHaveBeenCalled()
 
       // No campaign provided to be subscribed to
       expect(prismaMock.campaign.findFirst).not.toHaveBeenCalled()
@@ -490,18 +479,16 @@ describe('MarketingNotificationsController', () => {
         controller.subscribePublic({
           email: RegisteredMock.email,
           consent: true,
-          hash: 'some-hash',
+          hash: `${marketingService.generateHash(RegisteredMock.id)}`,
           campaignId: CampaignMock.notificationLists[0].id,
         }),
       ).resolves.toEqual({ message: 'Success' })
 
       expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
-        where: { email: RegisteredMock.email, mailHash: 'some-hash' },
+        where: { email: RegisteredMock.email },
       })
 
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
-        where: { email: RegisteredMock.email, mailHash: 'some-hash' },
-      })
+      expect(prismaMock.unregisteredNotificationConsent.findFirst).not.toHaveBeenCalled()
 
       // No campaign provided to be subscribed to
       expect(prismaMock.campaign.findFirst).toHaveBeenCalledWith(

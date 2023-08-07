@@ -12,5 +12,4 @@ export class CreatePersonDto {
   keycloakId?: string
   stripeCustomerId?: string
   picture?: string
-  mailHash?: string
 }

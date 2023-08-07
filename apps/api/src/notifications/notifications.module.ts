@@ -35,10 +35,14 @@ import { NotificationGateway } from '../sockets/notifications/gateway'
   ],
   controllers: [MarketingNotificationsController],
   exports: [
-    {
-      provide: NotificationsProviderInterface,
-      useClass: SendGridNotificationsProvider,
-    },
+    PrismaService,
+    PersonService,
+    EmailService,
+    TemplateService,
+    CampaignService,
+    VaultService,
+    NotificationService,
+    NotificationGateway,
     MarketingNotificationsService,
   ],
 })

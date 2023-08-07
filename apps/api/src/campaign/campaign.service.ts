@@ -13,6 +13,7 @@ import {
   EmailType,
 } from '@prisma/client'
 import {
+  BadRequestException,
   forwardRef,
   Inject,
   Injectable,
@@ -42,11 +43,12 @@ import {
 } from '../sockets/notifications/notification.service'
 import { DonationMetadata } from '../donations/dontation-metadata.interface'
 import { Expense } from '@prisma/client'
-import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
 import { SendGridParams } from '../notifications/providers/notifications.sendgrid.types'
 import * as NotificationData from '../notifications/notification-data.json'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
+import { CampaignSubscribeDto } from './dto/campaign-subscribe.dto'
+import { MarketingNotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
 export class CampaignService {
@@ -55,8 +57,9 @@ export class CampaignService {
     private notificationService: NotificationService,
     @Inject(forwardRef(() => VaultService)) private vaultService: VaultService,
     @Inject(forwardRef(() => PersonService)) private personService: PersonService,
+    @Inject(forwardRef(() => MarketingNotificationsService))
+    private marketingNotificationsService: MarketingNotificationsService,
     private readonly config: ConfigService,
-    private readonly marketingNotificationsProvider: NotificationsProviderInterface<SendGridParams>,
   ) {}
 
   async listCampaigns(): Promise<CampaignListItem[]> {
@@ -261,6 +264,86 @@ export class CampaignService {
     })
 
     return campaign
+  }
+
+  async subscribeToCampaignNotification(campaign_id: string, data: CampaignSubscribeDto) {
+    // Check if campaign exists
+    let campaign: Awaited<ReturnType<CampaignService['getCampaignByIdWithPersonIds']>>
+    try {
+      campaign = await this.getCampaignByIdWithPersonIds(campaign_id)
+    } catch (e) {
+      Logger.error(e)
+      throw new BadRequestException('Failed to get campaign info')
+    }
+
+    if (!campaign) throw new NotFoundException('Campaign not found')
+
+    if (campaign.state !== CampaignState.active) throw new BadRequestException('Campaign inactive')
+
+    // Check if user is registered
+    const registered = await this.personService.findByEmail(data.email)
+
+    // Add to marketing platform directly
+    if (registered) {
+      const contact: SendGridParams['ContactData'] = {
+        email: data.email,
+        first_name: registered?.firstName || '',
+        last_name: registered?.lastName || '',
+      }
+
+      const listIds: string[] = []
+
+      // Check if the campaign has a notification list
+      if (!campaign.notificationLists?.length) {
+        const campaignList = await this.createCampaignNotificationList(campaign)
+        // Add email to this campaign's notification list
+        listIds.push(campaignList)
+      } else {
+        listIds.push(campaign.notificationLists[0].id)
+      }
+
+      // Add email to general marketing notifications list
+      const mainList = this.config.get('sendgrid.marketingListId')
+      mainList && listIds.push(mainList)
+
+      try {
+        await this.marketingNotificationsService.provider.addContactsToList({
+          contacts: [contact],
+          list_ids: listIds,
+        })
+      } catch (e) {
+        Logger.error('Failed to subscribe email', e)
+        throw new BadRequestException('Failed to subscribe email')
+      }
+
+      // If no prior consent has been given by a registered user
+      if (!registered.newsletter)
+        try {
+          await this.personService.update(registered.id, { newsletter: true })
+        } catch (e) {
+          Logger.error('Failed to update user consent', e)
+          throw new BadRequestException('Failed to update user consent')
+        }
+    }
+
+    // If the email is not registered - send confirmation email
+    else if (!registered)
+      try {
+        const record = await this.prisma.unregisteredNotificationConsent.upsert({
+          where: { email: data.email },
+          create: { email: data.email },
+          update: {},
+        })
+
+        await this.marketingNotificationsService.sendConfirmEmail({
+          record_id: record.id,
+          email: data.email,
+          campaignId: campaign.id,
+        })
+      } catch (e) {
+        Logger.error('Failed to send confirmation email', e)
+        throw new BadRequestException('Failed to send confirmation email')
+      }
   }
 
   async getCampaignByVaultIdAndPersonId(
@@ -764,7 +847,7 @@ export class CampaignService {
         },
       }
 
-      await this.marketingNotificationsProvider.sendNotification(data)
+      await this.marketingNotificationsService.provider.sendNotification(data)
 
       // register email sent
       await this.prisma.emailSentRegistry.create({
@@ -846,7 +929,7 @@ export class CampaignService {
 
   async createCampaignNotificationList(updated: { title: string; id: string }) {
     // Generate list in the marketing platform
-    const listId = await this.marketingNotificationsProvider.createNewContactList({
+    const listId = await this.marketingNotificationsService.provider.createNewContactList({
       name: updated.title || updated.id,
     })
     // Save the list_id in the DB
@@ -892,7 +975,7 @@ export class CampaignService {
         },
       }
 
-      await this.marketingNotificationsProvider.sendNotification(data)
+      await this.marketingNotificationsService.provider.sendNotification(data)
     }
   }
 
@@ -901,7 +984,7 @@ export class CampaignService {
     list: NotificationList,
   ) {
     // Update list name in the Marketing Platform
-    await this.marketingNotificationsProvider.updateContactList({
+    await this.marketingNotificationsService.provider.updateContactList({
       data: { name: updated.title },
       id: list.id,
     })

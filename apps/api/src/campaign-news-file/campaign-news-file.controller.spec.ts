@@ -11,6 +11,10 @@ import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CampaignNewsService } from '../campaign-news/campaign-news.service'
 import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
 import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
+import { MarketingNotificationsService } from '../notifications/notifications.service'
+import { EmailService } from '../email/email.service'
+import { TemplateService } from '../email/template.service'
 
 describe('CampaignFileController', () => {
   let controller: CampaignNewsFileController
@@ -28,13 +32,15 @@ describe('CampaignFileController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [CampaignNewsFileController],
+      controllers: [CampaignNewsFileController, MarketingNotificationsModule],
       providers: [
         {
           provide: CampaignNewsFileService,
           useValue: { create: jest.fn(() => fileId) },
         },
         MockPrismaService,
+        EmailService,
+        TemplateService,
         S3Service,
         {
           provide: PersonService,
@@ -53,6 +59,7 @@ describe('CampaignFileController', () => {
           // But actually provide the service that implements the interface
           useClass: SendGridNotificationsProvider,
         },
+        MarketingNotificationsService,
       ],
     }).compile()
 

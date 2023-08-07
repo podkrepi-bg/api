@@ -12,5 +12,4 @@ export class UpdatePersonDto {
   keycloakId?: string
   stripeCustomerId?: string
   picture?: string
-  mailHash?: string
 }

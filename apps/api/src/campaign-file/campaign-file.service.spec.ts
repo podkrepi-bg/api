@@ -7,17 +7,24 @@ import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { CampaignNewsService } from '../campaign-news/campaign-news.service'
 import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
 import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
+import { EmailService } from '../email/email.service'
+import { MarketingNotificationsService } from '../notifications/notifications.service'
+import { TemplateService } from '../email/template.service'
 
 describe('CampaignFileService', () => {
   let service: CampaignFileService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [MarketingNotificationsModule],
       providers: [
         CampaignFileService,
         MockPrismaService,
         S3Service,
         PersonService,
+        EmailService,
+        TemplateService,
         ConfigService,
         CampaignNewsService,
         {
@@ -26,6 +33,7 @@ describe('CampaignFileService', () => {
           // But actually provide the service that implements the interface
           useClass: SendGridNotificationsProvider,
         },
+        MarketingNotificationsService,
       ],
     }).compile()
 
