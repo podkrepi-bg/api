@@ -56,7 +56,13 @@ export class DonationWishService {
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
       where: whereClause,
-      orderBy: [sortBy ? { [sortBy]: sortOrder ? sortOrder : 'desc' } : { createdAt: 'desc' }],
+      orderBy: [
+        sortBy
+          ? sortBy == 'amount'
+            ? { donation: { amount: sortOrder == 'asc' ? 'asc' : 'desc' } }
+            : { [sortBy]: sortOrder ?? 'desc' }
+          : { createdAt: 'desc' },
+      ],
       include: {
         person: { select: { id: true, firstName: true, lastName: true } },
         donation: { select: { amount: true, currency: true } },
