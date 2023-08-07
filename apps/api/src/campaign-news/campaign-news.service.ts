@@ -72,7 +72,7 @@ export class CampaignNewsService {
           'campaign.news-desc': news.slug,
           'campaign.news-link': (
             this.config.get<string>('APP_URL') + `/campaigns/${campaign.slug}/news`
-          ).split('://')[1],
+          ).replace(/(http:\/\/|https:\/\/)/gi, ''),
         },
       }
 

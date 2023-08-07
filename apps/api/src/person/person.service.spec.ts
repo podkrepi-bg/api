@@ -10,9 +10,7 @@ import { SendGridNotificationsProvider } from '../notifications/providers/notifi
 import { NotificationGateway } from '../sockets/notifications/gateway'
 import { NotificationService } from '../sockets/notifications/notification.service'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
-import { MarketingNotificationsModule } from '../notifications/notifications.module'
 import { EmailService } from '../email/email.service'
-import { CampaignModule } from '../campaign/campaign.module'
 import { TemplateService } from '../email/template.service'
 
 const mockPerson = {

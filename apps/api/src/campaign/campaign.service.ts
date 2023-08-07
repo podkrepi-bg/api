@@ -781,6 +781,7 @@ export class CampaignService {
         })
       }
 
+      // TODO - should be managed from the admin UI
       const percentRaised = (actualAmount / campaign.targetAmount) * 100
 
       if (percentRaised >= 50 && percentRaised < 90)
@@ -843,7 +844,7 @@ export class CampaignService {
             : '',
           'campaign.link': (
             this.config.get<string>('APP_URL') + `/campaigns/${campaign.slug}`
-          ).split('://')[1],
+          ).replace(/(http:\/\/|https:\/\/)/gi, ''),
         },
       }
 
@@ -971,7 +972,7 @@ export class CampaignService {
             : '',
           'campaign.link': (
             this.config.get<string>('APP_URL') + `/campaigns/${campaign.slug}`
-          ).split('://')[1],
+          ).replace(/(http:\/\/|https:\/\/)/gi, ''),
         },
       }
 

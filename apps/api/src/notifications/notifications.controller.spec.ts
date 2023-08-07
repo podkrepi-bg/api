@@ -137,7 +137,7 @@ describe('MarketingNotificationsController', () => {
       })
 
       // All other functions should nat have been called
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).not.toHaveBeenCalled()
       expect(prismaMock.emailSentRegistry.findFirst).not.toHaveBeenCalled()
       expect(prismaMock.person.update).not.toHaveBeenCalled()
       expect(prismaMock.unregisteredNotificationConsent.upsert).not.toHaveBeenCalled()
@@ -148,8 +148,8 @@ describe('MarketingNotificationsController', () => {
 
     it('should skip sending if user is non-registered + subscribed', async () => {
       // Not registered
-      prismaMock.person.findFirst.mockResolvedValue(null)
-      prismaMock.unregisteredNotificationConsent.findFirst.mockResolvedValue(UnRegisteredMock)
+      prismaMock.person.findUnique.mockResolvedValue(null)
+      prismaMock.unregisteredNotificationConsent.findUnique.mockResolvedValue(UnRegisteredMock)
 
       await expect(controller.sendConfirmation({ email: UnRegisteredMock.email })).resolves.toEqual(
         {
@@ -160,7 +160,7 @@ describe('MarketingNotificationsController', () => {
       expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
         where: { email: UnRegisteredMock.email },
       })
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).toHaveBeenCalledWith({
         where: { email: UnRegisteredMock.email },
       })
 
@@ -175,9 +175,9 @@ describe('MarketingNotificationsController', () => {
 
     it('should send email to non logged user with no-consent', async () => {
       // Not registered
-      prismaMock.person.findFirst.mockResolvedValue(null)
+      prismaMock.person.findUnique.mockResolvedValue(null)
       //   No consent
-      prismaMock.unregisteredNotificationConsent.findFirst.mockResolvedValue({
+      prismaMock.unregisteredNotificationConsent.findUnique.mockResolvedValue({
         ...UnRegisteredMock,
         consent: false,
       })
@@ -193,7 +193,7 @@ describe('MarketingNotificationsController', () => {
       expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
         where: { email: UnRegisteredMock.email },
       })
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).toHaveBeenCalledWith({
         where: { email: UnRegisteredMock.email },
       })
 
@@ -221,7 +221,7 @@ describe('MarketingNotificationsController', () => {
     it('should send email to logged user with no-consent', async () => {
       // Registered - no consent
       prismaMock.person.findFirst.mockResolvedValue({ ...RegisteredMock, newsletter: false })
-      prismaMock.unregisteredNotificationConsent.findFirst.mockResolvedValue(null)
+      prismaMock.unregisteredNotificationConsent.findUnique.mockResolvedValue(null)
       //Mock that email was sent already previously
       prismaMock.emailSentRegistry.findFirst.mockResolvedValue(EmailRecordMock)
 
@@ -232,7 +232,7 @@ describe('MarketingNotificationsController', () => {
       expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email },
       })
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).not.toHaveBeenCalled()
 
       expect(prismaMock.emailSentRegistry.findFirst).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email, type: EmailType.confirmConsent },
@@ -258,7 +258,7 @@ describe('MarketingNotificationsController', () => {
     it('should skip sending email if last sent was less than one minute ago', async () => {
       // Registered - no consent
       prismaMock.person.findFirst.mockResolvedValue({ ...RegisteredMock, newsletter: false })
-      prismaMock.unregisteredNotificationConsent.findFirst.mockResolvedValue(null)
+      prismaMock.unregisteredNotificationConsent.findUnique.mockResolvedValue(null)
       //Mock that email was sent already previously - 5 sec ago
       prismaMock.emailSentRegistry.findFirst.mockResolvedValue({
         ...EmailRecordMock,
@@ -272,7 +272,7 @@ describe('MarketingNotificationsController', () => {
       expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email },
       })
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).not.toHaveBeenCalled()
 
       expect(prismaMock.emailSentRegistry.findFirst).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email, type: EmailType.confirmConsent },
@@ -289,8 +289,8 @@ describe('MarketingNotificationsController', () => {
 
   describe('subscribePublic', () => {
     it('should throw if email+hash not found', async () => {
-      prismaMock.person.findFirst.mockResolvedValue(null)
-      prismaMock.unregisteredNotificationConsent.findFirst.mockResolvedValue(null)
+      prismaMock.person.findUnique.mockResolvedValue(null)
+      prismaMock.unregisteredNotificationConsent.findUnique.mockResolvedValue(null)
 
       await expect(
         controller.subscribePublic({
@@ -300,16 +300,16 @@ describe('MarketingNotificationsController', () => {
         }),
       ).rejects.toThrow('Invalid hash/email')
 
-      expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.person.findUnique).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email },
       })
 
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email },
       })
 
       // All other functions should nat have been called
-      expect(prismaMock.campaign.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.campaign.findUnique).not.toHaveBeenCalled()
       expect(prismaMock.notificationList.create).not.toHaveBeenCalled()
       expect(marketingProvider.createNewContactList).not.toHaveBeenCalled()
       expect(marketingProvider.addContactsToList).not.toHaveBeenCalled()
@@ -318,7 +318,7 @@ describe('MarketingNotificationsController', () => {
     })
 
     it('should skip calling Marketing Platform if user is registered + subscribed', async () => {
-      prismaMock.person.findFirst.mockResolvedValue(RegisteredMock)
+      prismaMock.person.findUnique.mockResolvedValue(RegisteredMock)
 
       await expect(
         controller.subscribePublic({
@@ -330,13 +330,13 @@ describe('MarketingNotificationsController', () => {
         message: 'Subscribed',
       })
 
-      expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.person.findUnique).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email },
       })
 
       // All other functions should nat have been called
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).not.toHaveBeenCalled()
-      expect(prismaMock.campaign.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).not.toHaveBeenCalled()
+      expect(prismaMock.campaign.findUnique).not.toHaveBeenCalled()
       expect(prismaMock.notificationList.create).not.toHaveBeenCalled()
       expect(marketingProvider.createNewContactList).not.toHaveBeenCalled()
       expect(marketingProvider.addContactsToList).not.toHaveBeenCalled()
@@ -345,8 +345,8 @@ describe('MarketingNotificationsController', () => {
     })
 
     it('should skip calling Marketing Platform if user is non-registered + subscribed', async () => {
-      prismaMock.person.findFirst.mockResolvedValue(null)
-      prismaMock.unregisteredNotificationConsent.findFirst.mockResolvedValue(UnRegisteredMock)
+      prismaMock.person.findUnique.mockResolvedValue(null)
+      prismaMock.unregisteredNotificationConsent.findUnique.mockResolvedValue(UnRegisteredMock)
 
       await expect(
         controller.subscribePublic({
@@ -358,16 +358,16 @@ describe('MarketingNotificationsController', () => {
         message: 'Subscribed',
       })
 
-      expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.person.findUnique).toHaveBeenCalledWith({
         where: { email: UnRegisteredMock.email },
       })
 
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).toHaveBeenCalledWith({
         where: { email: UnRegisteredMock.email },
       })
 
       // All other functions should nat have been called
-      expect(prismaMock.campaign.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.campaign.findUnique).not.toHaveBeenCalled()
       expect(prismaMock.notificationList.create).not.toHaveBeenCalled()
       expect(marketingProvider.createNewContactList).not.toHaveBeenCalled()
       expect(marketingProvider.addContactsToList).not.toHaveBeenCalled()
@@ -376,8 +376,8 @@ describe('MarketingNotificationsController', () => {
     })
 
     it('should add unsubscribed NOT registered email to Marketing Platform main marketing list', async () => {
-      prismaMock.person.findFirst.mockResolvedValue(null)
-      prismaMock.unregisteredNotificationConsent.findFirst.mockResolvedValue({
+      prismaMock.person.findUnique.mockResolvedValue(null)
+      prismaMock.unregisteredNotificationConsent.findUnique.mockResolvedValue({
         ...UnRegisteredMock,
         consent: false,
       })
@@ -390,16 +390,16 @@ describe('MarketingNotificationsController', () => {
         }),
       ).resolves.toEqual({ message: 'Success' })
 
-      expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.person.findUnique).toHaveBeenCalledWith({
         where: { email: UnRegisteredMock.email },
       })
 
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).toHaveBeenCalledWith({
         where: { email: UnRegisteredMock.email },
       })
 
       // No campaign provided to be subscribed to
-      expect(prismaMock.campaign.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.campaign.findUnique).not.toHaveBeenCalled()
       expect(prismaMock.notificationList.create).not.toHaveBeenCalled()
       expect(marketingProvider.createNewContactList).not.toHaveBeenCalled()
 
@@ -423,11 +423,11 @@ describe('MarketingNotificationsController', () => {
     })
 
     it('should add unsubscribed registered email to Marketing Platform main marketing list', async () => {
-      prismaMock.person.findFirst.mockResolvedValue({
+      prismaMock.person.findUnique.mockResolvedValue({
         ...RegisteredMock,
         newsletter: false,
       })
-      prismaMock.unregisteredNotificationConsent.findFirst.mockResolvedValue(null)
+      prismaMock.unregisteredNotificationConsent.findUnique.mockResolvedValue(null)
 
       await expect(
         controller.subscribePublic({
@@ -437,14 +437,14 @@ describe('MarketingNotificationsController', () => {
         }),
       ).resolves.toEqual({ message: 'Success' })
 
-      expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.person.findUnique).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email },
       })
 
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).not.toHaveBeenCalled()
 
       // No campaign provided to be subscribed to
-      expect(prismaMock.campaign.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.campaign.findUnique).not.toHaveBeenCalled()
       expect(prismaMock.notificationList.create).not.toHaveBeenCalled()
       expect(marketingProvider.createNewContactList).not.toHaveBeenCalled()
 
@@ -468,11 +468,11 @@ describe('MarketingNotificationsController', () => {
     })
 
     it('should add email to Marketing Platform marketing list + campaign list if provided campaign id', async () => {
-      prismaMock.person.findFirst.mockResolvedValue({
+      prismaMock.person.findUnique.mockResolvedValue({
         ...RegisteredMock,
         newsletter: false,
       })
-      prismaMock.unregisteredNotificationConsent.findFirst.mockResolvedValue(null)
+      prismaMock.unregisteredNotificationConsent.findUnique.mockResolvedValue(null)
       prismaMock.campaign.findFirst.mockResolvedValue(CampaignMock)
 
       await expect(
@@ -484,11 +484,11 @@ describe('MarketingNotificationsController', () => {
         }),
       ).resolves.toEqual({ message: 'Success' })
 
-      expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.person.findUnique).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email },
       })
 
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).not.toHaveBeenCalled()
 
       // No campaign provided to be subscribed to
       expect(prismaMock.campaign.findFirst).toHaveBeenCalledWith(
@@ -520,8 +520,8 @@ describe('MarketingNotificationsController', () => {
 
   describe('unsubscribePublic', () => {
     it('should throw if email not found', async () => {
-      prismaMock.person.findFirst.mockResolvedValue(null)
-      prismaMock.unregisteredNotificationConsent.findFirst.mockResolvedValue(null)
+      prismaMock.person.findUnique.mockResolvedValue(null)
+      prismaMock.unregisteredNotificationConsent.findUnique.mockResolvedValue(null)
 
       await expect(
         controller.unsubscribePublic({
@@ -529,17 +529,17 @@ describe('MarketingNotificationsController', () => {
         }),
       ).rejects.toThrow('Invalid email')
 
-      expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.person.findUnique).toHaveBeenCalledWith({
         where: { email: 'nonexisting@mail.com' },
       })
 
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).toHaveBeenCalledWith({
         where: { email: 'nonexisting@mail.com' },
       })
 
       // All other functions should nat have been called
       expect(marketingProvider.addToUnsubscribed).not.toHaveBeenCalled()
-      expect(prismaMock.campaign.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.campaign.findUnique).not.toHaveBeenCalled()
       expect(marketingProvider.getContactsInfo).not.toHaveBeenCalled()
       expect(marketingProvider.removeContactsFromList).not.toHaveBeenCalled()
       expect(prismaMock.person.update).not.toHaveBeenCalled()
@@ -547,7 +547,7 @@ describe('MarketingNotificationsController', () => {
     })
 
     it('should skip calling Marketing Platform if user is registered + UNsubscribed already', async () => {
-      prismaMock.person.findFirst.mockResolvedValue({ ...RegisteredMock, newsletter: false })
+      prismaMock.person.findUnique.mockResolvedValue({ ...RegisteredMock, newsletter: false })
 
       await expect(
         controller.unsubscribePublic({
@@ -557,14 +557,14 @@ describe('MarketingNotificationsController', () => {
         message: 'Unsubscribed',
       })
 
-      expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.person.findUnique).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email },
       })
 
       // All other functions should nat have been called
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).not.toHaveBeenCalled()
       expect(marketingProvider.addToUnsubscribed).not.toHaveBeenCalled()
-      expect(prismaMock.campaign.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.campaign.findUnique).not.toHaveBeenCalled()
       expect(marketingProvider.getContactsInfo).not.toHaveBeenCalled()
       expect(marketingProvider.removeContactsFromList).not.toHaveBeenCalled()
       expect(prismaMock.person.update).not.toHaveBeenCalled()
@@ -572,8 +572,8 @@ describe('MarketingNotificationsController', () => {
     })
 
     it('should skip calling Marketing Platform if user is non-registered + UNsubscribed already', async () => {
-      prismaMock.person.findFirst.mockResolvedValue(null)
-      prismaMock.unregisteredNotificationConsent.findFirst.mockResolvedValue({
+      prismaMock.person.findUnique.mockResolvedValue(null)
+      prismaMock.unregisteredNotificationConsent.findUnique.mockResolvedValue({
         ...UnRegisteredMock,
         consent: false,
       })
@@ -586,17 +586,17 @@ describe('MarketingNotificationsController', () => {
         message: 'Unsubscribed',
       })
 
-      expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.person.findUnique).toHaveBeenCalledWith({
         where: { email: UnRegisteredMock.email },
       })
 
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).toHaveBeenCalledWith({
         where: { email: UnRegisteredMock.email },
       })
 
       // All other functions should nat have been called
       expect(marketingProvider.addToUnsubscribed).not.toHaveBeenCalled()
-      expect(prismaMock.campaign.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.campaign.findUnique).not.toHaveBeenCalled()
       expect(marketingProvider.getContactsInfo).not.toHaveBeenCalled()
       expect(marketingProvider.removeContactsFromList).not.toHaveBeenCalled()
       expect(prismaMock.person.update).not.toHaveBeenCalled()
@@ -604,8 +604,8 @@ describe('MarketingNotificationsController', () => {
     })
 
     it('should add subscribed NOT registered email to Marketing Platform global unsubscribe list', async () => {
-      prismaMock.person.findFirst.mockResolvedValue(null)
-      prismaMock.unregisteredNotificationConsent.findFirst.mockResolvedValue(UnRegisteredMock)
+      prismaMock.person.findUnique.mockResolvedValue(null)
+      prismaMock.unregisteredNotificationConsent.findUnique.mockResolvedValue(UnRegisteredMock)
 
       await expect(
         controller.unsubscribePublic({
@@ -615,11 +615,11 @@ describe('MarketingNotificationsController', () => {
         message: 'Success',
       })
 
-      expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.person.findUnique).toHaveBeenCalledWith({
         where: { email: UnRegisteredMock.email },
       })
 
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).toHaveBeenCalledWith({
         where: { email: UnRegisteredMock.email },
       })
 
@@ -628,7 +628,7 @@ describe('MarketingNotificationsController', () => {
       })
 
       // Remove from campaign notification lists should not be called
-      expect(prismaMock.campaign.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.campaign.findUnique).not.toHaveBeenCalled()
       expect(marketingProvider.getContactsInfo).not.toHaveBeenCalled()
       expect(marketingProvider.removeContactsFromList).not.toHaveBeenCalled()
       expect(prismaMock.person.update).not.toHaveBeenCalled()
@@ -641,8 +641,8 @@ describe('MarketingNotificationsController', () => {
     })
 
     it('should add subscribed registered email to Marketing Platform global unsubscribe list', async () => {
-      prismaMock.person.findFirst.mockResolvedValue(RegisteredMock)
-      prismaMock.unregisteredNotificationConsent.findFirst.mockResolvedValue(null)
+      prismaMock.person.findUnique.mockResolvedValue(RegisteredMock)
+      prismaMock.unregisteredNotificationConsent.findUnique.mockResolvedValue(null)
 
       await expect(
         controller.unsubscribePublic({
@@ -652,11 +652,11 @@ describe('MarketingNotificationsController', () => {
         message: 'Success',
       })
 
-      expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.person.findUnique).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email },
       })
 
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email },
       })
 
@@ -665,7 +665,7 @@ describe('MarketingNotificationsController', () => {
       })
 
       // Remove from campaign notification lists should not be called
-      expect(prismaMock.campaign.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.campaign.findUnique).not.toHaveBeenCalled()
       expect(marketingProvider.getContactsInfo).not.toHaveBeenCalled()
       expect(marketingProvider.removeContactsFromList).not.toHaveBeenCalled()
       expect(prismaMock.unregisteredNotificationConsent.update).not.toHaveBeenCalled()
@@ -678,9 +678,9 @@ describe('MarketingNotificationsController', () => {
     })
 
     it('should remove email only from Marketing Platform campaign list -  WITHOUT adding it to global unsubscribe list', async () => {
-      prismaMock.person.findFirst.mockResolvedValue(RegisteredMock)
-      prismaMock.unregisteredNotificationConsent.findFirst.mockResolvedValue(null)
-      prismaMock.campaign.findFirst.mockResolvedValue(CampaignMock)
+      prismaMock.person.findUnique.mockResolvedValue(RegisteredMock)
+      prismaMock.unregisteredNotificationConsent.findUnique.mockResolvedValue(null)
+      prismaMock.campaign.findUnique.mockResolvedValue(CampaignMock)
       jest.spyOn(marketingProvider, 'getContactsInfo').mockImplementation(async () => ({
         [RegisteredMock.email]: { contact: { id: 'marketing-platform-id', list_ids: [''] } },
       }))
@@ -695,11 +695,11 @@ describe('MarketingNotificationsController', () => {
         message: 'Success',
       })
 
-      expect(prismaMock.person.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.person.findUnique).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email },
       })
 
-      expect(prismaMock.unregisteredNotificationConsent.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.unregisteredNotificationConsent.findUnique).toHaveBeenCalledWith({
         where: { email: RegisteredMock.email },
       })
 
@@ -707,7 +707,7 @@ describe('MarketingNotificationsController', () => {
       expect(marketingProvider.addToUnsubscribed).not.toHaveBeenCalled()
 
       // Remove from campaign notification lists should be called
-      expect(prismaMock.campaign.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.campaign.findUnique).toHaveBeenCalledWith({
         where: { id: CampaignMock.id },
         select: { notificationLists: true },
       })
@@ -740,7 +740,7 @@ describe('MarketingNotificationsController', () => {
         ),
       ).rejects.toThrow('Notification consent should be provided')
 
-      prismaMock.person.findFirst.mockResolvedValue({
+      prismaMock.person.findUnique.mockResolvedValue({
         ...RegisteredMock,
         newsletter: false,
       })
@@ -797,7 +797,7 @@ describe('MarketingNotificationsController', () => {
 
       // All others should not be called
       expect(marketingProvider.addToUnsubscribed).not.toHaveBeenCalled()
-      expect(prismaMock.campaign.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.campaign.findUnique).not.toHaveBeenCalled()
       expect(marketingProvider.getContactsInfo).not.toHaveBeenCalled()
       expect(marketingProvider.removeContactsFromList).not.toHaveBeenCalled()
       expect(prismaMock.person.update).not.toHaveBeenCalled()
@@ -822,7 +822,7 @@ describe('MarketingNotificationsController', () => {
       })
 
       // Remove from campaign notification lists should not be called
-      expect(prismaMock.campaign.findFirst).not.toHaveBeenCalled()
+      expect(prismaMock.campaign.findUnique).not.toHaveBeenCalled()
       expect(marketingProvider.getContactsInfo).not.toHaveBeenCalled()
       expect(marketingProvider.removeContactsFromList).not.toHaveBeenCalled()
 
@@ -834,7 +834,7 @@ describe('MarketingNotificationsController', () => {
 
     it('should remove logged user ONLY from Marketing Platform campaign list - WITHOUT adding to global unsubscribe list', async () => {
       prismaMock.person.findFirst.mockResolvedValue(RegisteredMock)
-      prismaMock.campaign.findFirst.mockResolvedValue(CampaignMock)
+      prismaMock.campaign.findUnique.mockResolvedValue(CampaignMock)
       jest.spyOn(marketingProvider, 'getContactsInfo').mockImplementation(async () => ({
         [RegisteredMock.email]: { contact: { id: 'marketing-platform-id', list_ids: [''] } },
       }))
@@ -855,7 +855,7 @@ describe('MarketingNotificationsController', () => {
       expect(marketingProvider.addToUnsubscribed).not.toHaveBeenCalled()
 
       // Remove from campaign notification lists should be called
-      expect(prismaMock.campaign.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.campaign.findUnique).toHaveBeenCalledWith({
         where: { id: CampaignMock.id },
         select: { notificationLists: true },
       })

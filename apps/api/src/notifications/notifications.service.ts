@@ -66,7 +66,7 @@ export class MarketingNotificationsService {
     let unregisteredConsent: UnregisteredNotificationConsent | null = null
     if (!registered)
       try {
-        unregisteredConsent = await this.prisma.unregisteredNotificationConsent.findFirst({
+        unregisteredConsent = await this.prisma.unregisteredNotificationConsent.findUnique({
           where: { email: data.email },
         })
       } catch (e) {
@@ -138,7 +138,7 @@ export class MarketingNotificationsService {
     // Check if user is registered
     let registered: Person | null = null
     try {
-      const result = await this.prisma.person.findFirst({
+      const result = await this.prisma.person.findUnique({
         where: { email: data.email },
       })
 
@@ -154,7 +154,7 @@ export class MarketingNotificationsService {
     let unregisteredConsent: UnregisteredNotificationConsent | null = null
     if (!registered)
       try {
-        const result = await this.prisma.unregisteredNotificationConsent.findFirst({
+        const result = await this.prisma.unregisteredNotificationConsent.findUnique({
           where: { email: data.email },
         })
 
@@ -207,7 +207,7 @@ export class MarketingNotificationsService {
     // Check if user is registered
     let registered: Person | null
     try {
-      registered = await this.prisma.person.findFirst({
+      registered = await this.prisma.person.findUnique({
         where: { email: data.email },
       })
     } catch (e) {
@@ -219,7 +219,7 @@ export class MarketingNotificationsService {
     // Check if un-registered consent already exists for this email
     let unregisteredConsent: UnregisteredNotificationConsent | null
     try {
-      unregisteredConsent = await this.prisma.unregisteredNotificationConsent.findFirst({
+      unregisteredConsent = await this.prisma.unregisteredNotificationConsent.findUnique({
         where: { email: data.email },
       })
     } catch (e) {
@@ -372,7 +372,7 @@ export class MarketingNotificationsService {
     else if (data.campaignId)
       try {
         //get campaign notification list
-        const campaign = await this.prisma.campaign.findFirst({
+        const campaign = await this.prisma.campaign.findUnique({
           where: { id: data.campaignId },
           select: { notificationLists: true },
         })
