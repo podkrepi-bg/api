@@ -194,7 +194,7 @@ Table campaign_news {
 }
 
 Table slug_archive {
-  slug String [pk, unique]
+  slug String [pk]
   campaignId String [not null, note: 'Stores the id of the last campaign that has used it']
   campaign campaigns [not null]
 
@@ -439,7 +439,7 @@ Table bank_accounts {
 }
 
 Table bank_transactions {
-  id String [pk, unique]
+  id String [pk]
   ibanNumber String [not null, note: 'IBAN number of the account tracked']
   bankName String [not null, note: 'Bank name']
   bankIdCode String [not null, note: 'Bank Identification Code, BIC/SWIFT code']

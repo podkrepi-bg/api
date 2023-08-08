@@ -402,9 +402,8 @@ export class DonationsService {
    */
   async getDonationById(id: string): Promise<Donation> {
     try {
-      const donation = await this.prisma.donation.findFirst({
+      const donation = await this.prisma.donation.findFirstOrThrow({
         where: { id },
-        rejectOnNotFound: true,
       })
       return donation
     } catch (err) {

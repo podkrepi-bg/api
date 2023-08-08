@@ -62,9 +62,8 @@ export class ExpensesService {
    * Updates an expense, where status changes to approved/canceled state will finilize the expense and perform vault transaction.
    */
   async update(id: string, dto: UpdateExpenseDto) {
-    const expense = await this.prisma.expense.findFirst({
+    const expense = await this.prisma.expense.findFirstOrThrow({
       where: { id: id },
-      rejectOnNotFound: true,
     })
     if (
       [ExpenseStatus.approved.valueOf(), ExpenseStatus.canceled.valueOf()].includes(
@@ -77,11 +76,10 @@ export class ExpensesService {
       throw new BadRequestException('Vault or amount cannot be changed.')
     }
 
-    const vault = await this.prisma.vault.findFirst({
+    const vault = await this.prisma.vault.findFirstOrThrow({
       where: {
         id: expense.vaultId,
       },
-      rejectOnNotFound: true,
     })
 
     // TODO: figure out how to initialize empty vault promise

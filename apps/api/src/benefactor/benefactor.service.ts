@@ -1,5 +1,5 @@
 import { Benefactor } from '@prisma/client'
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
+import { Prisma } from '@prisma/client'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 
 import { PrismaService } from '../prisma/prisma.service'
@@ -20,7 +20,7 @@ export class BenefactorService {
 
   async findOne(id: string): Promise<Benefactor> {
     try {
-      return await this.prisma.benefactor.findFirst({
+      return await this.prisma.benefactor.findFirstOrThrow({
         where: { id },
         include: {
           person: {
@@ -30,7 +30,6 @@ export class BenefactorService {
             },
           },
         },
-        rejectOnNotFound: true,
       })
     } catch (err) {
       const msg = `No Document found with ID: ${id}`
@@ -48,7 +47,7 @@ export class BenefactorService {
       })
       return result
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
         Logger.warn('No record with id', +id)
         throw new NotFoundException('No record with id' + id)
       }
