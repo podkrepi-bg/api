@@ -198,7 +198,7 @@ describe('MarketingNotificationsController', () => {
       })
 
       expect(prismaMock.emailSentRegistry.findFirst).toHaveBeenCalledWith({
-        where: { email: UnRegisteredMock.email, type: EmailType.confirmConsent },
+        where: { email: UnRegisteredMock.email, type: EmailType.confirmConsent, campaignId: null },
       })
 
       expect(emailService.sendFromTemplate).toHaveBeenCalledWith(
@@ -235,7 +235,7 @@ describe('MarketingNotificationsController', () => {
       expect(prismaMock.unregisteredNotificationConsent.findUnique).not.toHaveBeenCalled()
 
       expect(prismaMock.emailSentRegistry.findFirst).toHaveBeenCalledWith({
-        where: { email: RegisteredMock.email, type: EmailType.confirmConsent },
+        where: { email: RegisteredMock.email, type: EmailType.confirmConsent, campaignId: null },
       })
 
       expect(emailService.sendFromTemplate).toHaveBeenCalledWith(
@@ -275,7 +275,7 @@ describe('MarketingNotificationsController', () => {
       expect(prismaMock.unregisteredNotificationConsent.findUnique).not.toHaveBeenCalled()
 
       expect(prismaMock.emailSentRegistry.findFirst).toHaveBeenCalledWith({
-        where: { email: RegisteredMock.email, type: EmailType.confirmConsent },
+        where: { email: RegisteredMock.email, type: EmailType.confirmConsent, campaignId: null },
       })
 
       // All other functions should nat have been called
