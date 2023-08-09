@@ -144,7 +144,8 @@ export class SendGridNotificationsProvider
     }
 
     // Set unsubscribe link
-    let unsubscribeUrl = 'http://localhost:3040/notifications/unsubscribe?email={{ insert email }}'
+    let unsubscribeUrl =
+      this.config.get<string>('APP_URL') + `/notifications/unsubscribe?email={{ insert email }}`
     if (data.campaignid) unsubscribeUrl += `&campaign=${data.campaignid}`
 
     // Prepare SingleSend Email

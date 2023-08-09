@@ -73,6 +73,10 @@ export class CampaignNewsService {
           'campaign.news-link': (
             this.config.get<string>('APP_URL') + `/campaigns/${campaign.slug}/news`
           ).replace(/(http:\/\/|https:\/\/)/gi, ''),
+          'general-unsubscribe': (
+            this.config.get<string>('APP_URL') +
+            `/notifications/unsubscribe?email={{ insert email }}`
+          ).replace(/(http:\/\/|https:\/\/)/gi, ''),
         },
       }
 

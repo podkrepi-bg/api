@@ -6,6 +6,7 @@
 -- the enum.
 
 
+ALTER TYPE "email_type" ADD VALUE 'confirmCampaignConsent';
 ALTER TYPE "email_type" ADD VALUE 'raised50';
 ALTER TYPE "email_type" ADD VALUE 'raised90';
 ALTER TYPE "email_type" ADD VALUE 'raised100';

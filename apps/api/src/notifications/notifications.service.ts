@@ -107,8 +107,13 @@ export class MarketingNotificationsService {
     // Send confirmation email
     try {
       const sent = await this.prisma.emailSentRegistry.findFirst({
-        where: { email: data.email, type: EmailType.confirmConsent },
+        where: {
+          email: data.email,
+          type: data.campaignId ? EmailType.confirmCampaignConsent : EmailType.confirmConsent,
+          campaignId: data.campaignId ? data.campaignId : null,
+        },
       })
+
       // Check if email was sent already in the past 10 minutes
       const wasSent = this.emailWasSentRecently(sent, 10)
 
@@ -127,7 +132,12 @@ export class MarketingNotificationsService {
           })
         : // Create new record for the email sent
           await this.prisma.emailSentRegistry.create({
-            data: { email: data.email, type: EmailType.confirmConsent, dateSent: new Date() },
+            data: {
+              email: data.email,
+              type: data.campaignId ? EmailType.confirmCampaignConsent : EmailType.confirmConsent,
+              campaignId: data.campaignId ? data.campaignId : null,
+              dateSent: new Date(),
+            },
           })
     } catch (e) {
       return new BadRequestException('Failed to send email ')

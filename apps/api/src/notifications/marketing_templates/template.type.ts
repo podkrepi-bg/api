@@ -9,4 +9,5 @@ export type MarketingTemplateHTMLFields = {
   'campaign.news-link'?: string
   'campaign.news-title'?: string
   'campaign.news-desc'?: string
+  'general-unsubscribe'?: string
 }

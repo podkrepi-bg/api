@@ -936,6 +936,7 @@ enum BankTransactionsFileType {
 
 enum EmailType {
   confirmConsent
+  confirmCampaignConsent
   raised50
   raised90
   raised100
