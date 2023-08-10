@@ -239,13 +239,18 @@ export class DonationsService {
     campaign: Campaign,
   ): Promise<Stripe.Checkout.SessionCreateParams.LineItem[]> {
     if (sessionDto.mode == 'subscription') {
+      // the membership campaign is internal only
+      // we need to make the subscriptions once a year
+      const isMembership = await this.campaignService.isMembershipCampaign(campaign.campaignTypeId)
+      const interval = isMembership ? 'year' : 'month'
+
       //use an inline price for subscriptions
       const stripeItem = {
         price_data: {
           currency: campaign.currency,
           unit_amount: sessionDto.amount,
           recurring: {
-            interval: 'month' as Stripe.Price.Recurring.Interval,
+            interval: interval as Stripe.Price.Recurring.Interval,
             interval_count: 1,
           },
           product_data: {
