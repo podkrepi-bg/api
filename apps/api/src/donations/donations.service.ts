@@ -460,22 +460,6 @@ export class DonationsService {
     })
   }
 
-  /** Describe the function below
-   * @param inputDto
-   * @param user
-   * @returns {Promise<Donation>}
-   *
-   */
-  async create(inputDto: CreatePaymentDto, user: KeycloakTokenParsed): Promise<Donation> {
-    const donation = await this.prisma.donation.create({ data: inputDto.toEntity(user) })
-
-    if (donation.status === DonationStatus.succeeded) {
-      await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
-    }
-
-    return donation
-  }
-
   /**
    * Create a payment intent for a donation
    * @param inputDto Payment intent create params

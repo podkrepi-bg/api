@@ -191,24 +191,6 @@ export class DonationsController {
     }
   }
 
-  @Post('create-payment')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
-  create(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
-    @Body()
-    createPaymentDto: CreatePaymentDto,
-  ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
-
-    return this.donationsService.create(createPaymentDto, user)
-  }
-
   @Post('payment-intent')
   @Public()
   createPaymentIntent(
