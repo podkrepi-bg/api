@@ -489,7 +489,7 @@ export class CampaignService {
         select: donationNotificationSelect,
       })
 
-      if (donation) {
+      if (donation && newDonationStatus == DonationStatus.succeeded) {
         donation.status = newDonationStatus
         this.notificationService.sendNotification('successfulDonation', donation)
       }
@@ -525,8 +525,9 @@ export class CampaignService {
           },
           select: donationNotificationSelect,
         })
-
-        this.notificationService.sendNotification('successfulDonation', donation)
+        if (newDonationStatus === DonationStatus.succeeded) {
+          this.notificationService.sendNotification('successfulDonation', donation)
+        }
       } catch (error) {
         Logger.error(
           `Error while creating donation with paymentIntentId: ${paymentData.paymentIntentId} and status: ${newDonationStatus} . Error is: ${error}`,
@@ -552,11 +553,12 @@ export class CampaignService {
           },
           select: donationNotificationSelect,
         })
-
-        this.notificationService.sendNotification('successfulDonation', {
-          ...updatedDonation,
-          person: donation.person,
-        })
+        if (newDonationStatus === DonationStatus.succeeded) {
+          this.notificationService.sendNotification('successfulDonation', {
+            ...updatedDonation,
+            person: donation.person,
+          })
+        }
       } catch (error) {
         Logger.error(
           `Error wile updating donation with paymentIntentId: ${paymentData.paymentIntentId} in database. Error is: ${error}`,
