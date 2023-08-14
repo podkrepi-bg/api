@@ -8,6 +8,7 @@ export const donationNotificationSelect = {
   amount: true,
   createdAt: true,
   extPaymentMethodId: true,
+  targetVaultId: true,
   person: {
     select: {
       firstName: true,

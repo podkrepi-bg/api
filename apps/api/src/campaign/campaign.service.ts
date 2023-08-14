@@ -467,132 +467,133 @@ export class CampaignService {
       : // Create new vault for the campaign
         { create: { campaignId, currency: campaign.currency, name: campaign.title } }
 
-    // Find donation by extPaymentIntentId and update if status allows
-
-    let donation = await this.prisma.donation.findUnique({
-      where: { extPaymentIntentId: paymentData.paymentIntentId },
-      select: donationNotificationSelect,
-    })
-
-    // check for UUID length of personId
-    // subscriptions always have a personId
-    if (!donation && paymentData.personId && paymentData.personId.length === 36) {
-      // search for a subscription donation
-      // for subscriptions, we don't have a paymentIntentId
-      donation = await this.prisma.donation.findFirst({
-        where: {
-          status: DonationStatus.initial,
-          personId: paymentData.personId,
-          chargedAmount: paymentData.chargedAmount,
-          extPaymentMethodId: 'subscription',
-        },
+    //Update existing donation or create new in a transaction that
+    //also increments the vault amount and marks campaign as completed
+    //if target amount is reached
+    return await this.prisma.$transaction(async (tx) => {
+      // Find donation by extPaymentIntentId and update if status allows
+      let donation = await tx.donation.findUnique({
+        where: { extPaymentIntentId: paymentData.paymentIntentId },
         select: donationNotificationSelect,
       })
 
-      if (donation && newDonationStatus == DonationStatus.succeeded) {
-        donation.status = newDonationStatus
-        this.notificationService.sendNotification('successfulDonation', donation)
-      }
-
-      Logger.debug('Donation found by subscription: ', donation)
-    }
-
-    //if missing create the donation with the incoming status
-    if (!donation) {
-      Logger.debug(
-        'No donation exists with extPaymentIntentId: ' +
-          paymentData.paymentIntentId +
-          ' Creating new donation with status: ' +
-          newDonationStatus,
-      )
-
-      try {
-        donation = await this.prisma.donation.create({
-          data: {
-            amount: paymentData.netAmount,
-            chargedAmount: paymentData.chargedAmount,
-            currency: campaign.currency,
-            targetVault: targetVaultData,
-            provider: paymentData.paymentProvider,
-            type: DonationType.donation,
-            status: newDonationStatus,
-            extCustomerId: paymentData.stripeCustomerId ?? '',
-            extPaymentIntentId: paymentData.paymentIntentId,
-            extPaymentMethodId: paymentData.paymentMethodId ?? '',
-            billingName: paymentData.billingName,
-            billingEmail: paymentData.billingEmail,
-            person: paymentData.personId ? { connect: { id: paymentData.personId } } : {},
-          },
-          select: donationNotificationSelect,
-        })
-        if (newDonationStatus === DonationStatus.succeeded) {
-          this.notificationService.sendNotification('successfulDonation', donation)
-        }
-      } catch (error) {
-        Logger.error(
-          `Error while creating donation with paymentIntentId: ${paymentData.paymentIntentId} and status: ${newDonationStatus} . Error is: ${error}`,
-        )
-        throw new InternalServerErrorException(error)
-      }
-    }
-    //donation exists, so check if it is safe to update it
-    else if (shouldAllowStatusChange(donation.status, newDonationStatus)) {
-      try {
-        const updatedDonation = await this.prisma.donation.update({
+      // if not found by paymentIntent, check for if this is payment on subscription
+      // by checking if there is a personId in the metadata
+      if (!donation && paymentData.personId && paymentData.personId.length === 36) {
+        // search for a subscription donation
+        // for subscriptions, we don't have a paymentIntentId
+        donation = await tx.donation.findFirst({
           where: {
-            id: donation.id,
-          },
-          data: {
-            status: newDonationStatus,
-            amount: paymentData.netAmount,
-            extCustomerId: paymentData.stripeCustomerId,
-            extPaymentMethodId: paymentData.paymentMethodId,
-            extPaymentIntentId: paymentData.paymentIntentId,
-            billingName: paymentData.billingName,
-            billingEmail: paymentData.billingEmail,
+            status: DonationStatus.initial,
+            personId: paymentData.personId,
+            chargedAmount: paymentData.chargedAmount,
+            extPaymentMethodId: 'subscription',
           },
           select: donationNotificationSelect,
         })
-        if (newDonationStatus === DonationStatus.succeeded) {
-          this.notificationService.sendNotification('successfulDonation', {
-            ...updatedDonation,
-            person: donation.person,
-          })
-        }
-      } catch (error) {
-        Logger.error(
-          `Error wile updating donation with paymentIntentId: ${paymentData.paymentIntentId} in database. Error is: ${error}`,
-        )
-        throw new InternalServerErrorException(error)
+        Logger.debug('Donation found by subscription: ', donation)
       }
-    }
-    //donation exists but we need to skip because previous status is from later event than the incoming
-    else {
-      Logger.warn(
-        `Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId}
-        and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
-      )
-    }
 
-    //For successful donations we will also need to link them to user and add donation wish:
-    if (newDonationStatus === DonationStatus.succeeded) {
-      Logger.debug('metadata?.isAnonymous = ' + metadata?.isAnonymous)
+      //if missing create the donation with the incoming status
+      if (!donation) {
+        Logger.debug(
+          'No donation exists with extPaymentIntentId: ' +
+            paymentData.paymentIntentId +
+            ' Creating new donation with status: ' +
+            newDonationStatus,
+        )
 
-      if (metadata?.isAnonymous != 'true') {
-        await this.prisma.donation.update({
-          where: { id: donation.id },
-          data: {
-            person: {
-              connect: {
-                email: paymentData.billingEmail,
+        try {
+          donation = await tx.donation.create({
+            data: {
+              amount: paymentData.netAmount,
+              chargedAmount: paymentData.chargedAmount,
+              currency: campaign.currency,
+              targetVault: targetVaultData,
+              provider: paymentData.paymentProvider,
+              type: DonationType.donation,
+              status: newDonationStatus,
+              extCustomerId: paymentData.stripeCustomerId ?? '',
+              extPaymentIntentId: paymentData.paymentIntentId,
+              extPaymentMethodId: paymentData.paymentMethodId ?? '',
+              billingName: paymentData.billingName,
+              billingEmail: paymentData.billingEmail,
+              person: paymentData.personId ? { connect: { id: paymentData.personId } } : {},
+            },
+            select: donationNotificationSelect,
+          })
+
+          if (newDonationStatus === DonationStatus.succeeded) {
+            this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount, tx)
+            this.notificationService.sendNotification('successfulDonation', donation)
+          }
+        } catch (error) {
+          Logger.error(
+            `Error while creating donation with paymentIntentId: ${paymentData.paymentIntentId} and status: ${newDonationStatus} . Error is: ${error}`,
+          )
+          throw new InternalServerErrorException(error)
+        }
+      }
+      //donation exists, so check if it is safe to update it
+      else if (shouldAllowStatusChange(donation.status, newDonationStatus)) {
+        try {
+          const updatedDonation = await tx.donation.update({
+            where: {
+              id: donation.id,
+            },
+            data: {
+              status: newDonationStatus,
+              amount: paymentData.netAmount,
+              extCustomerId: paymentData.stripeCustomerId,
+              extPaymentMethodId: paymentData.paymentMethodId,
+              extPaymentIntentId: paymentData.paymentIntentId,
+              billingName: paymentData.billingName,
+              billingEmail: paymentData.billingEmail,
+            },
+            select: donationNotificationSelect,
+          })
+
+          //if donation is switching to successful, increment the vault amount and send notification
+          if (newDonationStatus === DonationStatus.succeeded) {
+            this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount, tx)
+            this.notificationService.sendNotification('successfulDonation', {
+              ...updatedDonation,
+              person: donation.person,
+            })
+          }
+        } catch (error) {
+          Logger.error(
+            `Error wile updating donation with paymentIntentId: ${paymentData.paymentIntentId} in database. Error is: ${error}`,
+          )
+          throw new InternalServerErrorException(error)
+        }
+      }
+      //donation exists but we need to skip because previous status is from later event than the incoming
+      else {
+        Logger.warn(
+          `Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId}
+          and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
+        )
+      }
+
+      //For successful donations we will also need to link them to user and add donation wish:
+      if (newDonationStatus === DonationStatus.succeeded) {
+        if (metadata?.isAnonymous != 'true') {
+          await tx.donation.update({
+            where: { id: donation.id },
+            data: {
+              person: {
+                connect: {
+                  email: paymentData.billingEmail,
+                },
               },
             },
-          },
-        })
+          })
+        }
       }
-    }
 
-    return donation.id
+      return donation.id
+    }) //end of the transaction scope
   }
 
   async createDonationWish(wish: string, donationId: string, campaignId: string) {
@@ -605,22 +606,6 @@ export class CampaignService {
         personId: person?.id,
       },
     })
-  }
-
-  async donateToCampaign(campaign: Campaign, paymentData: PaymentData) {
-    Logger.debug('Update amounts with successful donation', {
-      campaignId: campaign.id,
-      paymentIntentId: paymentData.paymentIntentId,
-      netAmount: paymentData.netAmount,
-      chargedAmount: paymentData.chargedAmount,
-    })
-
-    const vault = await this.getCampaignVault(campaign.id)
-    if (vault) {
-      await this.vaultService.incrementVaultAmount(vault.id, paymentData.netAmount)
-    } else {
-      //vault is already checked and created if not existing in updateDonationPayment() above
-    }
   }
 
   async validateCampaignId(campaignId: string): Promise<Campaign> {
@@ -655,8 +640,11 @@ export class CampaignService {
    * Call after executing a successful donation and adding the amount to a vault.
    * This will set the campaign state to 'complete' if the campaign's target amount has been reached
    */
-  public async updateCampaignStatusIfTargetReached(campaignId: string) {
-    const campaign = await this.prisma.campaign.findFirst({
+  public async updateCampaignStatusIfTargetReached(
+    campaignId: string,
+    tx: Prisma.TransactionClient,
+  ) {
+    const campaign = await tx.campaign.findFirst({
       where: {
         id: campaignId,
       },
@@ -671,7 +659,7 @@ export class CampaignService {
     if (campaign && campaign.state !== CampaignState.complete && campaign.targetAmount) {
       const actualAmount = campaign.vaults.map((vault) => vault.amount).reduce((a, b) => a + b, 0)
       if (actualAmount >= campaign.targetAmount) {
-        await this.prisma.campaign.update({
+        await tx.campaign.update({
           where: {
             id: campaign.id,
           },

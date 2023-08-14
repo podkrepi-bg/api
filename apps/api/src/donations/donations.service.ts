@@ -550,69 +550,75 @@ export class DonationsService {
    */
   async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Donation> {
     try {
-      const currentDonation = await this.prisma.donation.findFirst({
-        where: { id },
-      })
-      if (!currentDonation) {
-        throw new NotFoundException(`Update failed. No donation found with ID: ${id}`)
-      }
+      // execute the below in prisma transaction
+      return await this.prisma.$transaction(async (tx) => {
+        const currentDonation = await tx.donation.findFirst({
+          where: { id },
+        })
+        if (!currentDonation) {
+          throw new NotFoundException(`Update failed. No donation found with ID: ${id}`)
+        }
 
-      if (
-        currentDonation.status === DonationStatus.succeeded &&
-        updatePaymentDto.status &&
-        updatePaymentDto.status !== DonationStatus.succeeded
-      ) {
-        throw new BadRequestException('Succeeded donations cannot be updated.')
-      }
+        if (
+          currentDonation.status === DonationStatus.succeeded &&
+          updatePaymentDto.status &&
+          updatePaymentDto.status !== DonationStatus.succeeded
+        ) {
+          throw new BadRequestException('Succeeded donations cannot be updated.')
+        }
 
-      const status = updatePaymentDto.status || currentDonation.status
-      let donorId = currentDonation.personId
-      let billingEmail = ''
-      if (
-        (updatePaymentDto.targetPersonId &&
-          currentDonation.personId !== updatePaymentDto.targetPersonId) ||
-        updatePaymentDto.billingEmail
-      ) {
-        const targetDonor = await this.prisma.person.findFirst({
-          where: {
-            OR: [{ id: updatePaymentDto.targetPersonId }, { email: updatePaymentDto.billingEmail }],
+        const status = updatePaymentDto.status || currentDonation.status
+        let donorId = currentDonation.personId
+        let billingEmail = ''
+        if (
+          (updatePaymentDto.targetPersonId &&
+            currentDonation.personId !== updatePaymentDto.targetPersonId) ||
+          updatePaymentDto.billingEmail
+        ) {
+          const targetDonor = await tx.person.findFirst({
+            where: {
+              OR: [
+                { id: updatePaymentDto.targetPersonId },
+                { email: updatePaymentDto.billingEmail },
+              ],
+            },
+          })
+          if (!targetDonor) {
+            throw new NotFoundException(
+              `Update failed. No person found with ID: ${updatePaymentDto.targetPersonId}`,
+            )
+          }
+          donorId = targetDonor.id
+          billingEmail = targetDonor.email
+        }
+
+        const donation = await tx.donation.update({
+          where: { id },
+          data: {
+            status: status,
+            personId: updatePaymentDto.targetPersonId ? donorId : undefined,
+            billingEmail: updatePaymentDto.billingEmail ? billingEmail : undefined,
+            //In case of personId or billingEmail change, take the last updatedAt property to prevent any changes to updatedAt property
+            updatedAt:
+              updatePaymentDto.targetPersonId || updatePaymentDto.billingEmail
+                ? currentDonation.updatedAt
+                : undefined,
           },
         })
-        if (!targetDonor) {
-          throw new NotFoundException(
-            `Update failed. No person found with ID: ${updatePaymentDto.targetPersonId}`,
+
+        if (
+          currentDonation.status !== DonationStatus.succeeded &&
+          updatePaymentDto.status === DonationStatus.succeeded &&
+          donation.status === DonationStatus.succeeded
+        ) {
+          await this.vaultService.incrementVaultAmount(
+            currentDonation.targetVaultId,
+            currentDonation.amount,
+            tx,
           )
         }
-        donorId = targetDonor.id
-        billingEmail = targetDonor.email
-      }
-
-      const donation = await this.prisma.donation.update({
-        where: { id },
-        data: {
-          status: status,
-          personId: updatePaymentDto.targetPersonId ? donorId : undefined,
-          billingEmail: updatePaymentDto.billingEmail ? billingEmail : undefined,
-          //In case of personId or billingEmail change, take the last updatedAt property to prevent any changes to updatedAt property
-          updatedAt:
-            updatePaymentDto.targetPersonId || updatePaymentDto.billingEmail
-              ? currentDonation.updatedAt
-              : undefined,
-        },
-      })
-
-      if (
-        currentDonation.status !== DonationStatus.succeeded &&
-        updatePaymentDto.status === DonationStatus.succeeded &&
-        donation.status === DonationStatus.succeeded
-      ) {
-        await this.vaultService.incrementVaultAmount(
-          currentDonation.targetVaultId,
-          currentDonation.amount,
-        )
-      }
-
-      return donation
+        return donation
+      }) //end of transaction
     } catch (err) {
       Logger.warn(err.message || err)
       throw err
