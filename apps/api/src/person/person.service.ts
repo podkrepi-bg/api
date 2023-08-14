@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import client from '@sendgrid/client'
+import { Prisma } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreatePersonDto } from './dto/create-person.dto'
 import { UpdatePersonDto } from './dto/update-person.dto'
@@ -30,8 +31,40 @@ export class PersonService {
     return person
   }
 
-  async findAll() {
-    return await this.prisma.person.findMany()
+  async findAll(
+    search?: string,
+    sortBy?: string,
+    sortOrder?: string,
+    pageIndex?: number,
+    pageSize?: number,
+  ) {
+    const whereClause: Prisma.PersonWhereInput = {
+      ...(search && {
+        OR: [
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          { phone: { contains: search } },
+        ],
+      }),
+    }
+    const data = await this.prisma.person.findMany({
+      skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
+      take: pageSize ? pageSize : undefined,
+      where: whereClause,
+      orderBy: [sortBy ? { [sortBy]: sortOrder ? sortOrder : 'desc' } : { createdAt: 'desc' }],
+    })
+
+    const count = await this.prisma.person.count({
+      where: whereClause,
+    })
+
+    const result = {
+      items: data,
+      total: count,
+    }
+
+    return result
   }
 
   async findOne(id: string) {
