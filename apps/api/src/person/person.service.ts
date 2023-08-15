@@ -53,6 +53,11 @@ export class PersonService {
       take: pageSize ? pageSize : undefined,
       where: whereClause,
       orderBy: [sortBy ? { [sortBy]: sortOrder ? sortOrder : 'desc' } : { createdAt: 'desc' }],
+      include: {
+        organizer: { select: { id: true } },
+        coordinators: { select: { id: true } },
+        beneficiaries: { select: { id: true } },
+      },
     })
 
     const count = await this.prisma.person.count({
