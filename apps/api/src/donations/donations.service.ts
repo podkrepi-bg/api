@@ -199,8 +199,6 @@ export class DonationsService {
       tax_id_collection: { enabled: true },
     }
 
-    Logger.debug('[ CreateCheckoutSession ]', createSessionRequest)
-
     const sessionResponse = await this.stripeClient.checkout.sessions
       .create(createSessionRequest)
       .then(
