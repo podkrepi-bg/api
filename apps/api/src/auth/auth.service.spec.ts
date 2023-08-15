@@ -19,7 +19,6 @@ import { ProviderDto } from './dto/provider.dto'
 import { EmailService } from '../email/email.service'
 import { JwtService } from '@nestjs/jwt'
 import { TemplateService } from '../email/template.service'
-import { PrismaService } from '../prisma/prisma.service'
 
 jest.mock('@keycloak/keycloak-admin-client')
 

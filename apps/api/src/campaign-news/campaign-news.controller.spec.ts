@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { PersonService } from '../person/person.service'
 import { MockPrismaService } from '../prisma/prisma-client.mock'
-import { PrismaService } from '../prisma/prisma.service'
 import { CampaignNewsController } from './campaign-news.controller'
 import { CampaignNewsService } from './campaign-news.service'
 
