@@ -9,6 +9,7 @@ import {
   DonationStatus,
   DonationType,
   PaymentProvider,
+  Vault,
 } from '@prisma/client'
 import { CampaignService } from '../campaign/campaign.service'
 import { ExportService } from '../export/export.service'
@@ -24,6 +25,8 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager'
 
 describe('DonationsController', () => {
   let controller: DonationsController
+  let vaultService: VaultService
+
   const stripeMock = {
     checkout: { sessions: { create: jest.fn() } },
   }
@@ -37,9 +40,6 @@ describe('DonationsController', () => {
     cancelUrl: 'http://test.com',
     isAnonymous: true,
   } as CreateSessionDto
-  const vaultMock = {
-    incrementVaultAmount: jest.fn(),
-  }
 
   const mockDonation = {
     id: '123',
@@ -77,10 +77,7 @@ describe('DonationsController', () => {
         },
         CampaignService,
         DonationsService,
-        {
-          provide: VaultService,
-          useValue: vaultMock,
-        },
+        VaultService,
         MockPrismaService,
         {
           provide: STRIPE_CLIENT_TOKEN,
@@ -93,6 +90,7 @@ describe('DonationsController', () => {
     }).compile()
 
     controller = module.get<DonationsController>(DonationsController)
+    vaultService = module.get<VaultService>(VaultService)
   })
 
   afterEach(() => {
@@ -195,6 +193,11 @@ describe('DonationsController', () => {
       picture: 'string',
     }
 
+    jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
+    const mockedIncrementVaultAmount = jest
+      .spyOn(vaultService, 'incrementVaultAmount')
+      .mockImplementation()
+
     prismaMock.donation.findFirst.mockResolvedValueOnce(existingDonation)
     prismaMock.person.findFirst.mockResolvedValueOnce(existingTargetPerson)
 
@@ -210,7 +213,7 @@ describe('DonationsController', () => {
         updatedAt: existingDonation.updatedAt,
       },
     })
-    expect(vaultMock.incrementVaultAmount).toHaveBeenCalledTimes(0)
+    expect(mockedIncrementVaultAmount).toHaveBeenCalledTimes(0)
   })
 
   it('should update a donation status, when it is changed', async () => {
@@ -244,9 +247,12 @@ describe('DonationsController', () => {
     const existingDonation = { ...mockDonation, status: DonationStatus.initial }
     const expectedUpdatedDonation = { ...existingDonation, status: DonationStatus.succeeded }
 
+    jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
+
     prismaMock.donation.findFirst.mockResolvedValueOnce(existingDonation)
     prismaMock.person.findFirst.mockResolvedValueOnce(existingTargetPerson)
     prismaMock.donation.update.mockResolvedValueOnce(expectedUpdatedDonation)
+    prismaMock.vault.update.mockResolvedValueOnce({ id: '1000', campaignId: '111' } as Vault)
 
     // act
     await controller.update('123', updatePaymentDto)
@@ -261,9 +267,13 @@ describe('DonationsController', () => {
         updatedAt: expectedUpdatedDonation.updatedAt,
       },
     })
-    expect(vaultMock.incrementVaultAmount).toHaveBeenCalledWith(
-      existingDonation.targetVaultId,
-      existingDonation.amount,
-    )
+    expect(prismaMock.vault.update).toHaveBeenCalledWith({
+      where: { id: existingDonation.targetVaultId },
+      data: {
+        amount: {
+          increment: existingDonation.amount,
+        },
+      },
+    })
   })
 })

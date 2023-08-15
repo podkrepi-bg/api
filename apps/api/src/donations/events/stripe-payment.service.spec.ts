@@ -11,7 +11,7 @@ import { INestApplication } from '@nestjs/common'
 import request from 'supertest'
 import { StripeModule, StripeModuleConfig, StripePayloadService } from '@golevelup/nestjs-stripe'
 
-import { DonationType, RecurringDonationStatus } from '@prisma/client'
+import { Donation, DonationType, RecurringDonationStatus } from '@prisma/client'
 
 import {
   campaignId,
@@ -411,14 +411,27 @@ describe('StripePaymentService', () => {
     })
 
     const campaignService = app.get<CampaignService>(CampaignService)
+    const vaultService = app.get<VaultService>(VaultService)
+
     const mockedCampaignById = jest
       .spyOn(campaignService, 'getCampaignById')
       .mockImplementation(() => Promise.resolve(mockedCampaign))
 
+    jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
+
     const mockedupdateDonationPayment = jest
       .spyOn(campaignService, 'updateDonationPayment')
-      .mockImplementation(() => Promise.resolve(''))
       .mockName('updateDonationPayment')
+
+    prismaMock.donation.findFirst.mockResolvedValue({
+      targetVaultId: '1',
+      amount: (mockInvoicePaidEvent.data.object as Stripe.Invoice).amount_paid,
+      status: 'initial',
+    } as Donation)
+
+    const mockedIncrementVaultAmount = jest
+      .spyOn(vaultService, 'incrementVaultAmount')
+      .mockImplementation()
 
     return request(app.getHttpServer())
       .post(defaultStripeWebhookEndpoint)
@@ -432,6 +445,7 @@ describe('StripePaymentService', () => {
             .campaignId,
         ) //campaignId from the Stripe Event
         expect(mockedupdateDonationPayment).toHaveBeenCalled()
+        expect(mockedIncrementVaultAmount).toHaveBeenCalled()
       })
   })
 

@@ -524,7 +524,11 @@ export class CampaignService {
           })
 
           if (newDonationStatus === DonationStatus.succeeded) {
-            this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount, tx)
+            await this.vaultService.incrementVaultAmount(
+              donation.targetVaultId,
+              donation.amount,
+              tx,
+            )
             this.notificationService.sendNotification('successfulDonation', donation)
           }
         } catch (error) {
@@ -555,7 +559,11 @@ export class CampaignService {
 
           //if donation is switching to successful, increment the vault amount and send notification
           if (newDonationStatus === DonationStatus.succeeded) {
-            this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount, tx)
+            await this.vaultService.incrementVaultAmount(
+              donation.targetVaultId,
+              donation.amount,
+              tx,
+            )
             this.notificationService.sendNotification('successfulDonation', {
               ...updatedDonation,
               person: donation.person,
