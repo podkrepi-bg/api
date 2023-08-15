@@ -491,6 +491,137 @@ describe('ImportTransactionsTask', () => {
 
       expect(prepareBankTrxSpy).not.toHaveBeenCalled()
     })
+
+    it('should handle EUR currency and parse the BGN equivalent from the transactionId', () => {
+      const eurTransaction: IrisTransactionInfo = {
+        transactionId: 'Booked_6516347588_70001524349032963FTRO23184809601C202307034024.69_20230703',
+        bookingDate: '2023-07-03',
+        creditorAccount: {
+          iban: 'BG66UNCR70001524349032',
+        },
+        creditorName: 'СДРУЖЕНИЕ ПОДКРЕПИ БГ',
+        debtorAccount: {
+          iban: 'BG21UNCR111111111111',
+        },
+        debtorName: 'Name not relevant for the example',
+        remittanceInformationUnstructured: '98XF-SZ50-RC8H',
+        transactionAmount: {
+          amount: 2069.25,
+          currency: 'EUR',
+        },
+        exchangeRate: null,
+        valueDate: '2023-07-03',
+        creditDebitIndicator: 'CREDIT',
+      }
+
+      // eslint-disable-next-line
+      // @ts-ignore
+      const preparedTransactions = irisTasks.prepareBankTransactionRecords(
+        [eurTransaction],
+        irisIBANAccountMock,
+      )
+
+      expect(preparedTransactions.length).toEqual(1)
+      const actual = preparedTransactions[0]
+
+      // We expect to have converted the Amount from EUR to BGN by parsing the transaction ID
+      const expected = {
+        id: 'Booked_6516347588_70001524349032963FTRO23184809601C202307034024.69_20230703',
+        ibanNumber: 'BG66UNCR70009994349032',
+        bankName: 'UniCredit',
+        transactionDate: new Date('2023-07-03T00:00:00.000Z'),
+        senderName: 'Name not relevant for the example',
+        recipientName: 'СДРУЖЕНИЕ ПОДКРЕПИ БГ',
+        senderIban: 'BG21UNCR111111111111',
+        recipientIban: 'BG66UNCR70001524349032',
+        type: 'credit',
+        amount: 402469,
+        currency: 'BGN',
+        description: '98XF-SZ50-RC8H',
+        matchedRef: '98XF-SZ50-RC8H',
+      }
+
+      expect(actual).toEqual(expected)
+    })
+
+    describe('extractAmountFromTransactionId', () => {
+      it('can parse a whole number', () => {
+        // eslint-disable-next-line
+        // @ts-ignore
+        const amount = irisTasks.extractAmountFromTransactionId(
+          'Booked_6516347588_70001524349032963FTRO23184809601C202307032018_20230703',
+          '2023-07-03',
+        )
+
+        expect(amount).toBe(2018)
+      })
+
+      it('can parse a floating number', () => {
+        // eslint-disable-next-line
+        // @ts-ignore
+        const amount = irisTasks.extractAmountFromTransactionId(
+          'Booked_6516347588_70001524349032963FTRO23184809601C202307031300.500_20230703',
+          '2023-07-03',
+        )
+
+        expect(amount).toBe(1300.5)
+      })
+
+      it('can parse a zero', () => {
+        // eslint-disable-next-line
+        // @ts-ignore
+        const amount = irisTasks.extractAmountFromTransactionId(
+          'Booked_6516347588_70001524349032963FTRO23184809601C202307030_20230703',
+          '2023-07-03',
+        )
+
+        expect(amount).toBe(0)
+      })
+
+      it('will not parse a negative number', () => {
+        // eslint-disable-next-line
+        // @ts-ignore
+        const amount = irisTasks.extractAmountFromTransactionId(
+          'Booked_6516347588_70001524349032963FTRO23184809601C20230703-2018_20230703',
+          '2023-07-03',
+        )
+
+        expect(amount).toBe(NaN)
+      })
+
+      it('will not parse empty number', () => {
+        // eslint-disable-next-line
+        // @ts-ignore
+        const amount = irisTasks.extractAmountFromTransactionId(
+          'Booked_6516347588_70001524349032963FTRO23184809601C20230703_20230703',
+          '2023-07-03',
+        )
+
+        expect(amount).toBe(NaN)
+      })
+
+      it('will not parse invalid floating number', () => {
+        // eslint-disable-next-line
+        // @ts-ignore
+        const amount = irisTasks.extractAmountFromTransactionId(
+          'Booked_6516347588_70001524349032963FTRO23184809601C20230703130.10.500_20230703',
+          '2023-07-03',
+        )
+
+        expect(amount).toBe(NaN)
+      })
+
+      it('will not parse string', () => {
+        // eslint-disable-next-line
+        // @ts-ignore
+        const amount = irisTasks.extractAmountFromTransactionId(
+          'Booked_6516347588_70001524349032963FTRO23184809601C20230703test_20230703',
+          '2023-07-03',
+        )
+
+        expect(amount).toBe(NaN)
+      })
+    })
   })
 
   describe('notifyForExpiringIrisConsentTASK', () => {

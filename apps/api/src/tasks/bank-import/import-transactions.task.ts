@@ -274,6 +274,15 @@ export class IrisTasks {
     return transactions.length === count
   }
 
+  private extractAmountFromTransactionId(transactionId, transactionValueDate): number {
+    const formattedDate = DateTime.fromISO(transactionValueDate).toFormat('yyyyMMdd')
+    const matchAmountRegex = new RegExp(`${formattedDate}(?<amount>[0-9.]+)_${formattedDate}`)
+
+    const amount = Number(transactionId.match(matchAmountRegex)?.groups?.amount)
+
+    return amount
+  }
+
   // Only prepares the data, without inserting it in the DB
   private prepareBankTransactionRecords(
     transactions: IrisTransactionInfo[],
@@ -298,8 +307,23 @@ export class IrisTasks {
         .replace(/[ _]+/g, '-')
         .match(this.regexPaymentRef)
 
+      const transactionAmount = {
+        amount: trx.transactionAmount?.amount,
+        currency: trx.transactionAmount?.currency,
+      }
+      const id = trx.transactionId?.trim() || ''
+
+      // If we receive EUR in the BGN account - try parsing from the transaction id the amount in BGN
+      if (trx.transactionAmount?.currency === Currency.EUR && trx.transactionAmount?.amount > 0) {
+        const amount = this.extractAmountFromTransactionId(id, trx.valueDate)
+        if (amount) {
+          transactionAmount.amount = amount
+          transactionAmount.currency = Currency.BGN
+        }
+      }
+
       filteredTransactions.push({
-        id: trx.transactionId?.trim() || ``,
+        id: id,
         ibanNumber: ibanAccount.iban,
         bankName: ibanAccount.bankName,
         bankIdCode: this.bankBIC,
@@ -309,8 +333,8 @@ export class IrisTasks {
         senderIban: trx.debtorAccount?.iban?.trim(),
         recipientIban: trx.creditorAccount?.iban?.trim(),
         type: trx.creditDebitIndicator === 'CREDIT' ? 'credit' : 'debit',
-        amount: toMoney(trx.transactionAmount?.amount),
-        currency: trx.transactionAmount?.currency,
+        amount: toMoney(transactionAmount.amount),
+        currency: transactionAmount.currency,
         description: trx.remittanceInformationUnstructured?.trim(),
         // Not saved in the DB, it's added only for convinience and efficiency
         matchedRef: matchedRef ? matchedRef[0] : null,
