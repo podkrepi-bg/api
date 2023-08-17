@@ -139,6 +139,9 @@ export class SendGridNotificationsProvider
 
     // Populate html variables
     let html = response.body['html_content']
+
+    if (!html) return
+
     for (const field in data.template_data) {
       html = html.replace(new RegExp(`%{${field}}%`, 'g'), data.template_data[field])
     }

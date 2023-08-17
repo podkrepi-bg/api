@@ -304,7 +304,9 @@ export class CampaignService {
 
       // Add email to general marketing notifications list
       const mainList = this.config.get('sendgrid.marketingListId')
-      mainList && listIds.push(mainList)
+      if (mainList) {
+        listIds.push(mainList)
+      }
 
       try {
         await this.marketingNotificationsService.provider.addContactsToList({
