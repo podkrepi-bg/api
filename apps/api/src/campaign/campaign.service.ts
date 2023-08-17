@@ -450,145 +450,47 @@ export class CampaignService {
     paymentData: PaymentData,
     newDonationStatus: DonationStatus,
     metadata?: DonationMetadata,
-  ): Promise<string> {
+  ): Promise<string | undefined> {
     const campaignId = campaign.id
     Logger.debug('Update donation to status: ' + newDonationStatus, {
       campaignId,
       paymentIntentId: paymentData.paymentIntentId,
     })
 
-    /**
-     * Create or connect campaign vault
-     */
-    const vault = await this.prisma.vault.findFirst({ where: { campaignId } })
-    const targetVaultData = vault
-      ? // Connect the existing vault to this donation
-        { connect: { id: vault.id } }
-      : // Create new vault for the campaign
-        { create: { campaignId, currency: campaign.currency, name: campaign.title } }
-
     //Update existing donation or create new in a transaction that
     //also increments the vault amount and marks campaign as completed
     //if target amount is reached
     return await this.prisma.$transaction(async (tx) => {
-      // Find donation by extPaymentIntentId and update if status allows
-      let donation = await tx.donation.findUnique({
-        where: { extPaymentIntentId: paymentData.paymentIntentId },
-        select: donationNotificationSelect,
-      })
-
-      // if not found by paymentIntent, check for if this is payment on subscription
-      // by checking if there is a personId in the metadata
-      if (!donation && paymentData.personId && paymentData.personId.length === 36) {
-        // search for a subscription donation
-        // for subscriptions, we don't have a paymentIntentId
-        donation = await tx.donation.findFirst({
-          where: {
-            status: DonationStatus.initial,
-            personId: paymentData.personId,
-            chargedAmount: paymentData.chargedAmount,
-            extPaymentMethodId: 'subscription',
-          },
-          select: donationNotificationSelect,
-        })
-        Logger.debug('Donation found by subscription: ', donation)
-      }
+      let donationId
+      // Find donation by extPaymentIntentId
+      const existingDonation = await this.findExistingDonation(tx, paymentData)
 
       //if missing create the donation with the incoming status
-      if (!donation) {
-        Logger.debug(
-          'No donation exists with extPaymentIntentId: ' +
-            paymentData.paymentIntentId +
-            ' Creating new donation with status: ' +
-            newDonationStatus,
+      if (!existingDonation) {
+        const newDonation = await this.createIncomingDonation(
+          tx,
+          paymentData,
+          newDonationStatus,
+          campaign,
         )
-
-        try {
-          donation = await tx.donation.create({
-            data: {
-              amount: paymentData.netAmount,
-              chargedAmount: paymentData.chargedAmount,
-              currency: campaign.currency,
-              targetVault: targetVaultData,
-              provider: paymentData.paymentProvider,
-              type: DonationType.donation,
-              status: newDonationStatus,
-              extCustomerId: paymentData.stripeCustomerId ?? '',
-              extPaymentIntentId: paymentData.paymentIntentId,
-              extPaymentMethodId: paymentData.paymentMethodId ?? '',
-              billingName: paymentData.billingName,
-              billingEmail: paymentData.billingEmail,
-              person: paymentData.personId ? { connect: { id: paymentData.personId } } : {},
-            },
-            select: donationNotificationSelect,
-          })
-
-          if (newDonationStatus === DonationStatus.succeeded) {
-            await this.vaultService.incrementVaultAmount(
-              donation.targetVaultId,
-              donation.amount,
-              tx,
-            )
-            this.notificationService.sendNotification('successfulDonation', donation)
-          }
-        } catch (error) {
-          Logger.error(
-            `Error while creating donation with paymentIntentId: ${paymentData.paymentIntentId} and status: ${newDonationStatus} . Error is: ${error}`,
-          )
-          throw new InternalServerErrorException(error)
-        }
+        donationId = newDonation.id
       }
       //donation exists, so check if it is safe to update it
-      else if (shouldAllowStatusChange(donation.status, newDonationStatus)) {
-        try {
-          const updatedDonation = await tx.donation.update({
-            where: {
-              id: donation.id,
-            },
-            data: {
-              status: newDonationStatus,
-              amount: paymentData.netAmount,
-              extCustomerId: paymentData.stripeCustomerId,
-              extPaymentMethodId: paymentData.paymentMethodId,
-              extPaymentIntentId: paymentData.paymentIntentId,
-              billingName: paymentData.billingName,
-              billingEmail: paymentData.billingEmail,
-            },
-            select: donationNotificationSelect,
-          })
-
-          //if donation is switching to successful, increment the vault amount and send notification
-          if (newDonationStatus === DonationStatus.succeeded) {
-            await this.vaultService.incrementVaultAmount(
-              donation.targetVaultId,
-              donation.amount,
-              tx,
-            )
-            this.notificationService.sendNotification('successfulDonation', {
-              ...updatedDonation,
-              person: donation.person,
-            })
-          }
-        } catch (error) {
-          Logger.error(
-            `Error wile updating donation with paymentIntentId: ${paymentData.paymentIntentId} in database. Error is: ${error}`,
-          )
-          throw new InternalServerErrorException(error)
-        }
-      }
-      //donation exists but we need to skip because previous status is from later event than the incoming
       else {
-        Logger.warn(
-          `Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId}
-          and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
+        const updatedDonation = await this.updateDonationIfAllowed(
+          tx,
+          existingDonation,
+          newDonationStatus,
+          paymentData,
         )
+        donationId = updatedDonation?.id
       }
 
-      //For successful donations we will also need to link them to user and add donation wish:
-      if (newDonationStatus === DonationStatus.succeeded) {
+      //For successful donations we will also need to link them to user if not marked as anonymous
+      if (donationId && newDonationStatus === DonationStatus.succeeded) {
         if (metadata?.isAnonymous != 'true') {
           await tx.donation.update({
-            where: { id: donation.id },
+            where: { id: donationId },
             data: {
               person: {
                 connect: {
@@ -600,8 +502,140 @@ export class CampaignService {
         }
       }
 
-      return donation.id
+      return donationId
     }) //end of the transaction scope
+  }
+
+  private async updateDonationIfAllowed(
+    tx: Prisma.TransactionClient,
+    donation: Donation,
+    newDonationStatus: DonationStatus,
+    paymentData: PaymentData,
+  ) {
+    if (shouldAllowStatusChange(donation.status, newDonationStatus)) {
+      try {
+        const updatedDonation = await tx.donation.update({
+          where: {
+            id: donation.id,
+          },
+          data: {
+            status: newDonationStatus,
+            amount: paymentData.netAmount,
+            extCustomerId: paymentData.stripeCustomerId,
+            extPaymentMethodId: paymentData.paymentMethodId,
+            extPaymentIntentId: paymentData.paymentIntentId,
+            billingName: paymentData.billingName,
+            billingEmail: paymentData.billingEmail,
+          },
+          select: donationNotificationSelect,
+        })
+
+        //if donation is switching to successful, increment the vault amount and send notification
+        if (newDonationStatus === DonationStatus.succeeded) {
+          await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount, tx)
+          this.notificationService.sendNotification('successfulDonation', {
+            ...updatedDonation,
+            person: updatedDonation.person,
+          })
+        }
+
+        return updatedDonation
+      } catch (error) {
+        Logger.error(
+          `Error wile updating donation with paymentIntentId: ${paymentData.paymentIntentId} in database. Error is: ${error}`,
+        )
+        throw new InternalServerErrorException(error)
+      }
+    }
+    //donation exists but we need to skip because previous status is from later event than the incoming
+    else {
+      Logger.warn(
+        `Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId}
+        and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
+      )
+    }
+  }
+
+  private async createIncomingDonation(
+    tx: Prisma.TransactionClient,
+    paymentData: PaymentData,
+    newDonationStatus: DonationStatus,
+    campaign: Campaign,
+  ) {
+    Logger.debug(
+      'No donation exists with extPaymentIntentId: ' +
+        paymentData.paymentIntentId +
+        ' Creating new donation with status: ' +
+        newDonationStatus,
+    )
+
+    /**
+     * Create or connect campaign vault
+     */
+    const vault = await this.prisma.vault.findFirst({ where: { campaignId: campaign.id } })
+    const targetVaultData = vault
+      ? // Connect the existing vault to this donation
+        { connect: { id: vault.id } }
+      : // Create new vault for the campaign
+        { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
+
+    try {
+      const donation = await tx.donation.create({
+        data: {
+          amount: paymentData.netAmount,
+          chargedAmount: paymentData.chargedAmount,
+          currency: campaign.currency,
+          targetVault: targetVaultData,
+          provider: paymentData.paymentProvider,
+          type: DonationType.donation,
+          status: newDonationStatus,
+          extCustomerId: paymentData.stripeCustomerId ?? '',
+          extPaymentIntentId: paymentData.paymentIntentId,
+          extPaymentMethodId: paymentData.paymentMethodId ?? '',
+          billingName: paymentData.billingName,
+          billingEmail: paymentData.billingEmail,
+          person: paymentData.personId ? { connect: { id: paymentData.personId } } : {},
+        },
+        select: donationNotificationSelect,
+      })
+
+      if (newDonationStatus === DonationStatus.succeeded) {
+        await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount, tx)
+        this.notificationService.sendNotification('successfulDonation', donation)
+      }
+
+      return donation
+    } catch (error) {
+      Logger.error(
+        `Error while creating donation with paymentIntentId: ${paymentData.paymentIntentId} and status: ${newDonationStatus} . Error is: ${error}`,
+      )
+      throw new InternalServerErrorException(error)
+    }
+  }
+
+  private async findExistingDonation(tx: Prisma.TransactionClient, paymentData: PaymentData) {
+    //first try to find by paymentIntentId
+    let donation = await tx.donation.findUnique({
+      where: { extPaymentIntentId: paymentData.paymentIntentId },
+    })
+
+    // if not found by paymentIntent, check for if this is payment on subscription
+    // check for UUID length of personId
+    // subscriptions always have a personId
+    if (!donation && paymentData.personId && paymentData.personId.length === 36) {
+      // search for a subscription donation
+      // for subscriptions, we don't have a paymentIntentId
+      donation = await tx.donation.findFirst({
+        where: {
+          status: DonationStatus.initial,
+          personId: paymentData.personId,
+          chargedAmount: paymentData.chargedAmount,
+          extPaymentMethodId: 'subscription',
+        },
+      })
+      Logger.debug('Donation found by subscription: ', donation)
+    }
+    return donation
   }
 
   async createDonationWish(wish: string, donationId: string, campaignId: string) {

@@ -429,6 +429,13 @@ describe('StripePaymentService', () => {
       status: 'initial',
     } as Donation)
 
+    prismaMock.donation.update.mockResolvedValue({
+      targetVaultId: '1',
+      amount: (mockInvoicePaidEvent.data.object as Stripe.Invoice).amount_paid,
+      status: 'initial',
+      person: {},
+    } as Donation & { person: unknown })
+
     const mockedIncrementVaultAmount = jest
       .spyOn(vaultService, 'incrementVaultAmount')
       .mockImplementation()
