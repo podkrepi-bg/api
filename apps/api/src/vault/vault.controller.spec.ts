@@ -125,7 +125,7 @@ describe('VaultController', () => {
   })
 
   it('should call remove on empty vaults', async () => {
-    prismaMock.vault.findFirst.mockResolvedValue({
+    prismaMock.vault.findFirstOrThrow.mockResolvedValue({
       id: vaultId,
       name: 'vault1',
       currency: 'BGN',

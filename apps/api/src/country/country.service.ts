@@ -22,14 +22,13 @@ export class CountryService {
 
   async getCountryById(id: string): Promise<Country> {
     try {
-      const country = await this.prisma.country.findFirst({
+      const country = await this.prisma.country.findFirstOrThrow({
         where: {
           id: id,
         },
         include: {
           cities: true,
         },
-        rejectOnNotFound: true,
       })
       return country
     } catch (err) {

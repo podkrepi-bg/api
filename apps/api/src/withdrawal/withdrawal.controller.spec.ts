@@ -122,7 +122,7 @@ describe('WithdrawalController', () => {
       }
       prismaMock.withdrawal.create.mockResolvedValue(withdrawal)
       prismaMock.vault.update.mockResolvedValue(vault)
-      prismaMock.vault.findFirst.mockResolvedValue(vault)
+      prismaMock.vault.findFirstOrThrow.mockResolvedValue(vault)
       prismaMock.$transaction.mockResolvedValue([withdrawal, vault])
 
       const createDto: CreateWithdrawalDto = {
@@ -193,8 +193,8 @@ describe('WithdrawalController', () => {
         amount: 1000,
         blockedAmount: 350,
       }
-      prismaMock.vault.findFirst.mockResolvedValue(vault)
-      prismaMock.withdrawal.findFirst.mockResolvedValue(withdrawal)
+      prismaMock.vault.findFirstOrThrow.mockResolvedValue(vault)
+      prismaMock.withdrawal.findFirstOrThrow.mockResolvedValue(withdrawal)
       prismaMock.vault.update.mockResolvedValue(vault)
       prismaMock.withdrawal.update.mockResolvedValue(withdrawal)
       prismaMock.$transaction.mockResolvedValue([withdrawal, vault])
@@ -242,8 +242,8 @@ describe('WithdrawalController', () => {
         amount: 1000,
         blockedAmount: 350,
       }
-      prismaMock.vault.findFirst.mockResolvedValue(vault)
-      prismaMock.withdrawal.findFirst.mockResolvedValue(withdrawal)
+      prismaMock.vault.findFirstOrThrow.mockResolvedValue(vault)
+      prismaMock.withdrawal.findFirstOrThrow.mockResolvedValue(withdrawal)
       prismaMock.vault.update.mockResolvedValue(vault)
       prismaMock.withdrawal.update.mockResolvedValue(withdrawal)
       prismaMock.$transaction.mockResolvedValue([withdrawal, vault])
