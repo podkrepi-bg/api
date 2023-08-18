@@ -12,6 +12,7 @@ import { StripeModule } from '@golevelup/nestjs-stripe'
 import { StripeConfigFactory } from '../donations/helpers/stripe-config-factory'
 import { ExportService } from '../export/export.service'
 import { NotificationModule } from '../sockets/notifications/notification.module'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { NotificationModule } from '../sockets/notifications/notification.module
       useFactory: StripeConfigFactory.useFactory,
     }),
     NotificationModule,
+    MarketingNotificationsModule,
   ],
   controllers: [BankTransactionsFileController],
   providers: [

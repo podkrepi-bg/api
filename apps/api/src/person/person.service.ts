@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import client from '@sendgrid/client'
+import { Prisma } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreatePersonDto } from './dto/create-person.dto'
 import { UpdatePersonDto } from './dto/update-person.dto'
@@ -30,12 +31,71 @@ export class PersonService {
     return person
   }
 
-  async findAll() {
-    return await this.prisma.person.findMany()
+  async findAll(
+    search?: string,
+    sortBy?: string,
+    sortOrder?: string,
+    pageIndex?: number,
+    pageSize?: number,
+  ) {
+    const whereClause: Prisma.PersonWhereInput = {
+      ...(search && {
+        OR: [
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          { phone: { contains: search } },
+        ],
+      }),
+    }
+
+    let sort: Prisma.PersonOrderByWithRelationInput = { createdAt: 'desc' }
+
+    if (sortBy)
+      switch (sortBy) {
+        case 'organizer':
+          sort = { organizer: { createdAt: sortOrder == 'asc' ? 'asc' : 'desc' } }
+          break
+        case 'coordinators':
+          sort = { coordinators: { createdAt: sortOrder == 'asc' ? 'asc' : 'desc' } }
+          break
+        case 'beneficiaries':
+          sort = { beneficiaries: { _count: sortOrder == 'asc' ? 'desc' : 'asc' } }
+          break
+        default:
+          sort = { [sortBy]: sortOrder ?? 'desc' }
+      }
+
+    const data = await this.prisma.person.findMany({
+      skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
+      take: pageSize ? pageSize : undefined,
+      where: whereClause,
+      orderBy: [sort],
+      include: {
+        organizer: { select: { id: true } },
+        coordinators: { select: { id: true } },
+        beneficiaries: { select: { id: true } },
+      },
+    })
+
+    const count = await this.prisma.person.count({
+      where: whereClause,
+    })
+
+    const result = {
+      items: data,
+      total: count,
+    }
+
+    return result
   }
 
   async findOne(id: string) {
     return await this.prisma.person.findFirst({ where: { id } })
+  }
+
+  async findByEmail(email: string) {
+    return await this.prisma.person.findFirst({ where: { email } })
   }
 
   async findOneByKeycloakId(keycloakId: string) {
@@ -70,5 +130,15 @@ export class PersonService {
     } catch (error) {
       Logger.warn(`Adding person to contacts list failed with code: ${error.code}`)
     }
+  }
+
+  // Create/Update a marketing notifications consent for emails that are not registered
+  async updateUnregisteredNotificationConsent(email: string, consent: boolean) {
+    await this.prisma.unregisteredNotificationConsent.update({
+      data: { consent },
+      where: {
+        email,
+      },
+    })
   }
 }

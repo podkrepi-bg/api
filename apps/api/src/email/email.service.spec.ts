@@ -53,12 +53,15 @@ describe('EmailService enabled ', () => {
 
   it('send() should send email successfully', async () => {
     await emailService.send(emailMock)
-    expect(sendMock).toHaveBeenCalledWith(emailMock)
+    expect(sendMock).toHaveBeenCalledWith({
+      ...emailMock,
+      mailSettings: expect.any(Object),
+    })
   })
 
   it('sendFromTemplate() should send email successfully', async () => {
     await emailService.sendFromTemplate({} as EmailTemplate<CreateRequestDto>, partialEmail)
-    expect(sendMock).toHaveBeenCalledWith(emailMock)
+    expect(sendMock).toHaveBeenCalledWith({ ...emailMock, mailSettings: expect.any(Object) })
   })
 
   it('sendFromTemplate() should send email successfully with default sender', async () => {
@@ -66,7 +69,11 @@ describe('EmailService enabled ', () => {
       ...partialEmail,
       ...{ from: undefined },
     })
-    expect(sendMock).toHaveBeenCalledWith({ ...emailMock, ...{ from: 'info@podkrepi.bg' } })
+    expect(sendMock).toHaveBeenCalledWith({
+      ...emailMock,
+      ...{ from: 'info@podkrepi.bg' },
+      mailSettings: expect.any(Object),
+    })
   })
 
   it('sendFromTemplate() should throw error for missing recipient', async () => {

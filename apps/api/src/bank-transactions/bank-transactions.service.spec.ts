@@ -14,6 +14,7 @@ import { IrisTasks } from '../tasks/bank-import/import-transactions.task'
 import { SchedulerRegistry } from '@nestjs/schedule'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 const stripeMock = {
   checkout: { sessions: { create: jest.fn() } },
@@ -30,7 +31,7 @@ describe('BankTransactionsService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [HttpModule, NotificationModule],
+      imports: [HttpModule, NotificationModule, MarketingNotificationsModule],
       providers: [
         BankTransactionsService,
         MockPrismaService,

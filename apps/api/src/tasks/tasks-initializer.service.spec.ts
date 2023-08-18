@@ -16,6 +16,7 @@ import { ExportService } from '../export/export.service'
 import { TasksInitializer } from './tasks-initializer.service'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 describe('ImportTransactionsTask', () => {
   let taskService: TasksInitializer
@@ -38,7 +39,7 @@ describe('ImportTransactionsTask', () => {
 
   beforeEach(async () => {
     testModule = await Test.createTestingModule({
-      imports: [HttpModule, NotificationModule],
+      imports: [HttpModule, NotificationModule, MarketingNotificationsModule],
       providers: [
         IrisTasks,
         MockPrismaService,

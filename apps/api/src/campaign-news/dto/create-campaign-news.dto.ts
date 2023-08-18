@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { CampaignNewsState } from '@prisma/client'
 import { Expose } from 'class-transformer'
-import { IsDate, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator'
+import { IsBoolean, IsDate, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator'
 
 @Expose()
 export class CreateCampaignNewsDto {
@@ -60,4 +60,10 @@ export class CreateCampaignNewsDto {
   @Expose()
   @IsString()
   description: string
+
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  @IsBoolean()
+  notify?: boolean
 }

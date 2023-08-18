@@ -173,6 +173,7 @@ Table campaigns {
   withdrawals withdrawals [not null]
   slugArchive slug_archive [not null]
   campaignNews campaign_news [not null]
+  notificationLists notification_list [not null]
 }
 
 Table campaign_news {
@@ -191,6 +192,32 @@ Table campaign_news {
   campaign campaigns [not null]
   publisher people [not null]
   newsFiles campaign_news_files [not null]
+}
+
+Table notification_list {
+  id String [pk]
+  campaignId String [not null]
+  name String
+  campaign campaigns [not null]
+}
+
+Table marketing_templates {
+  id String [pk]
+  name String
+}
+
+Table unregistered_notification_consent {
+  id String [pk]
+  email String [unique, not null]
+  consent Boolean [not null, default: false]
+}
+
+Table email_sent_registry {
+  id String [pk]
+  email String [not null]
+  dateSent DateTime [not null]
+  campaignId String
+  type EmailType [not null]
 }
 
 Table slug_archive {
@@ -729,6 +756,14 @@ Enum BankTransactionsFileType {
   other
 }
 
+Enum EmailType {
+  confirmConsent
+  confirmCampaignConsent
+  raised50
+  raised90
+  raised100
+}
+
 Ref: organizers.personId - people.id
 
 Ref: coordinators.personId - people.id
@@ -762,6 +797,8 @@ Ref: campaigns.companyId > companies.id
 Ref: campaign_news.campaignId > campaigns.id
 
 Ref: campaign_news.publisherId > people.id
+
+Ref: notification_list.campaignId > campaigns.id
 
 Ref: slug_archive.campaignId > campaigns.id
 
