@@ -6,13 +6,14 @@ import { PersonService } from '../person/person.service'
 import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 import { VaultService } from './vault.service'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 describe('VaultService', () => {
   let service: VaultService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [CampaignModule, NotificationModule],
+      imports: [CampaignModule, NotificationModule, MarketingNotificationsModule],
       providers: [VaultService, MockPrismaService, CampaignService, PersonService, ConfigService],
     }).compile()
 

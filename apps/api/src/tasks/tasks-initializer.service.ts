@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common'
 import { IrisTasks } from './bank-import/import-transactions.task'
 import { ConfigService } from '@nestjs/config'
 import { Cron, SchedulerRegistry } from '@nestjs/schedule'
-import { DateTime } from 'luxon'
 
 // Schedules all background tasks
 @Injectable()

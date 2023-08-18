@@ -75,22 +75,50 @@ export class SupportService {
 
   async sendWelcomeEmail(inputDto: CreateRequestDto) {
     const email = new WelcomeEmailDto(inputDto)
-    this.emailService.sendFromTemplate(email, { to: [inputDto.person.email] })
+    this.emailService.sendFromTemplate(
+      email,
+      { to: [inputDto.person.email] },
+      {
+        //Allow users to receive the mail, regardles of unsubscribes
+        bypassUnsubscribeManagement: { enable: true },
+      },
+    )
   }
 
   async sendWelcomeInternalEmail(inputDto: CreateRequestDto) {
     const email = new WelcomeInternalEmailDto(inputDto)
-    this.emailService.sendFromTemplate(email, { to: [this.getInternalEmail()] })
+    this.emailService.sendFromTemplate(
+      email,
+      { to: [this.getInternalEmail()] },
+      {
+        //Allow users to receive the mail, regardles of unsubscribes
+        bypassUnsubscribeManagement: { enable: true },
+      },
+    )
   }
 
   async sendInquiryReceivedEmail(inputDto: CreateInquiryDto) {
     const email = new InquiryReceivedEmailDto(inputDto)
-    this.emailService.sendFromTemplate(email, { to: [inputDto.email] })
+    this.emailService.sendFromTemplate(
+      email,
+      { to: [inputDto.email] },
+      {
+        //Allow users to receive the mail, regardles of unsubscribes
+        bypassUnsubscribeManagement: { enable: true },
+      },
+    )
   }
 
   async sendInquiryReceivedInternalEmail(inputDto: CreateInquiryDto) {
     const email = new InquiryReceivedInternalEmailDto(inputDto)
-    this.emailService.sendFromTemplate(email, { to: [this.getInternalEmail()] })
+    this.emailService.sendFromTemplate(
+      email,
+      { to: [this.getInternalEmail()] },
+      {
+        //Allow users to receive the mail, regardles of unsubscribes
+        bypassUnsubscribeManagement: { enable: true },
+      },
+    )
   }
 
   getInternalEmail(): string {

@@ -11,6 +11,7 @@ import { NotificationModule } from '../sockets/notifications/notification.module
 import { VaultService } from '../vault/vault.service'
 import { BankTransactionsFileController } from './bank-transactions-file.controller'
 import { BankTransactionsFileService } from './bank-transactions-file.service'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 describe('BankTransactionsFileController', () => {
   let controller: BankTransactionsFileController
@@ -19,7 +20,7 @@ describe('BankTransactionsFileController', () => {
   }
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [NotificationModule],
+      imports: [NotificationModule, MarketingNotificationsModule],
       controllers: [BankTransactionsFileController],
       providers: [
         {

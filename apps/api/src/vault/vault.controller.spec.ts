@@ -9,6 +9,11 @@ import { KeycloakTokenParsed } from '../auth/keycloak'
 import { Currency } from '@prisma/client'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { CreateVaultDto } from './dto/create-vault.dto'
+import { EmailService } from '../email/email.service'
+import { TemplateService } from '../email/template.service'
+import { MarketingNotificationsService } from '../notifications/notifications.service'
+import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
+import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
 
 describe('VaultController', () => {
   let controller: VaultController
@@ -23,6 +28,7 @@ describe('VaultController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [],
       controllers: [VaultController],
       providers: [
         VaultService,
@@ -36,6 +42,15 @@ describe('VaultController', () => {
         MockPrismaService,
         PersonServiceMock,
         ConfigService,
+        {
+          // Use the interface as token
+          provide: NotificationsProviderInterface,
+          // But actually provide the service that implements the interface
+          useClass: SendGridNotificationsProvider,
+        },
+        EmailService,
+        TemplateService,
+        MarketingNotificationsService,
       ],
     }).compile()
 

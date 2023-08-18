@@ -2,7 +2,7 @@ import { Body, Controller, Post } from '@nestjs/common'
 import { Public, Resource, Scopes } from 'nest-keycloak-connect'
 import { AuthService } from './auth.service'
 import { RegisterDto } from './dto/register.dto'
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger'
 
 @ApiTags('register')
 @Controller('register')

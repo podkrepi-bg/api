@@ -21,6 +21,7 @@ import { DonationsService } from './donations.service'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 describe('DonationsController', () => {
   let controller: DonationsController
@@ -66,7 +67,7 @@ describe('DonationsController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [NotificationModule],
+      imports: [NotificationModule, MarketingNotificationsModule],
       controllers: [DonationsController],
       providers: [
         {
