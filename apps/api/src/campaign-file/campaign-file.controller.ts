@@ -12,6 +12,7 @@ import {
   Body,
   Inject,
   forwardRef,
+  Header,
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'
@@ -78,6 +79,7 @@ export class CampaignFileController {
 
   @Get(':id')
   @Public()
+  @Header('Cache-Control', 'public, s-maxage=15552000, stale-while-revalidate=15552000, immutable')
   async findOne(
     @Param('id') id: string,
     @Response({ passthrough: true }) res,
