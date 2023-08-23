@@ -87,7 +87,7 @@ export class CampaignFileController {
     res.set({
       'Content-Type': file.mimetype,
       'Content-Disposition': 'attachment; filename="' + file.filename + '"',
-      'Cache-Control': file.role === CampaignFileRole.campaignListPhoto 
+      'Cache-Control': file.mimetype.startsWith('image/')
                         ? 'public, s-maxage=15552000, stale-while-revalidate=15552000, immutable' 
                         : 'no-store'
     })
