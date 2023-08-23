@@ -12,7 +12,6 @@ import {
   Body,
   Inject,
   forwardRef,
-  Header,
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'
@@ -25,6 +24,7 @@ import { CampaignFileService } from './campaign-file.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { ApiTags } from '@nestjs/swagger';
+import { CampaignFileRole } from '@prisma/client'
 
 @ApiTags('campaign-file')
 @Controller('campaign-file')
@@ -79,7 +79,6 @@ export class CampaignFileController {
 
   @Get(':id')
   @Public()
-  @Header('Cache-Control', 'public, s-maxage=15552000, stale-while-revalidate=15552000, immutable')
   async findOne(
     @Param('id') id: string,
     @Response({ passthrough: true }) res,
@@ -88,6 +87,9 @@ export class CampaignFileController {
     res.set({
       'Content-Type': file.mimetype,
       'Content-Disposition': 'attachment; filename="' + file.filename + '"',
+      'Cache-Control': file.role === CampaignFileRole.campaignListPhoto 
+                        ? 'public, s-maxage=15552000, stale-while-revalidate=15552000, immutable' 
+                        : 'no-store'
     })
 
     return new StreamableFile(file.stream)

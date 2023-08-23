@@ -52,6 +52,7 @@ export class CampaignFileService {
   async findOne(id: string): Promise<{
     filename: CampaignFile['filename']
     mimetype: CampaignFile['mimetype']
+    role: CampaignFile['role']
     stream: Readable
   }> {
     const file = await this.prisma.campaignFile.findFirst({ where: { id: id } })
@@ -63,6 +64,7 @@ export class CampaignFileService {
       filename: encodeURIComponent(file.filename),
       mimetype: file.mimetype,
       stream: await this.s3.streamFile(this.bucketName, id),
+      role: file.role
     }
   }
 
