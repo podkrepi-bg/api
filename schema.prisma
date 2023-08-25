@@ -1,7 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
   binaryTargets   = ["native"]
-  previewFeatures = ["orderByNulls"]
 }
 
 generator dbml {
@@ -566,7 +565,7 @@ model BankAccount {
   @@map("bank_accounts")
 }
 
-// Stores all movements for Podkrepi.bg IBAN 
+// Stores all movements for Podkrepi.bg IBAN
 model BankTransaction {
   id                 String              @id @unique @db.VarChar(250)
   /// IBAN number of the account tracked
