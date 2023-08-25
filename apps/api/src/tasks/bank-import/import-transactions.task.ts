@@ -302,7 +302,7 @@ export class IrisTasks {
       }
 
       // Try to recognize campaign payment reference
-      const matchedRef = trx.remittanceInformationUnstructured
+      let matchedRef = trx.remittanceInformationUnstructured
         ?.trim()
         .replace(/[ _]+/g, '-')
         .match(this.regexPaymentRef)
@@ -313,12 +313,15 @@ export class IrisTasks {
       }
       const id = trx.transactionId?.trim() || ''
 
-      // If we receive EUR in the BGN account - try parsing from the transaction id the amount in BGN
-      if (trx.transactionAmount?.currency === Currency.EUR && trx.transactionAmount?.amount > 0) {
+      // If we receive a transaction with Currency different than BGN - try parsing from the transaction id the amount in BGN
+      if (trx.transactionAmount?.currency !== Currency.BGN && trx.transactionAmount?.amount > 0) {
         const amount = this.extractAmountFromTransactionId(id, trx.valueDate)
         if (amount) {
           transactionAmount.amount = amount
           transactionAmount.currency = Currency.BGN
+        } else {
+          // mark as unrecognized
+          matchedRef = null;
         }
       }
 

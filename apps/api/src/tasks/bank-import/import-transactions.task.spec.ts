@@ -494,7 +494,8 @@ describe('ImportTransactionsTask', () => {
 
     it('should handle EUR currency and parse the BGN equivalent from the transactionId', () => {
       const eurTransaction: IrisTransactionInfo = {
-        transactionId: 'Booked_6516347588_70001524349032963FTRO23184809601C202307034024.69_20230703',
+        transactionId:
+          'Booked_6516347588_70001524349032963FTRO23184809601C202307034024.69_20230703',
         bookingDate: '2023-07-03',
         creditorAccount: {
           iban: 'BG66UNCR70001524349032',
@@ -539,6 +540,112 @@ describe('ImportTransactionsTask', () => {
         currency: 'BGN',
         description: '98XF-SZ50-RC8H',
         matchedRef: '98XF-SZ50-RC8H',
+      }
+
+      expect(actual).toEqual(expected)
+    })
+
+    it('should handle USD currency and parse the BGN equivalent from the transactionId', () => {
+      const eurTransaction: IrisTransactionInfo = {
+        transactionId:
+          'Booked_6516347588_70001524349032963FTRO23184809601C2023010361.12_20230103',
+        bookingDate: '2023-01-03',
+        creditorAccount: {
+          iban: 'BG66UNCR70001524349032',
+        },
+        creditorName: 'СДРУЖЕНИЕ ПОДКРЕПИ БГ',
+        debtorAccount: {
+          iban: 'BG21UNCR111111111111',
+        },
+        debtorName: 'Name not relevant for the example',
+        remittanceInformationUnstructured: '98XF-SZ50-RC8H',
+        transactionAmount: {
+          amount: 30.56,
+          currency: 'USD',
+        },
+        exchangeRate: null,
+        valueDate: '2023-01-03',
+        creditDebitIndicator: 'CREDIT',
+      }
+
+      // eslint-disable-next-line
+      // @ts-ignore
+      const preparedTransactions = irisTasks.prepareBankTransactionRecords(
+        [eurTransaction],
+        irisIBANAccountMock,
+      )
+
+      expect(preparedTransactions.length).toEqual(1)
+      const actual = preparedTransactions[0]
+
+      // We expect to have converted the Amount from EUR to BGN by parsing the transaction ID
+      const expected = {
+        id: 'Booked_6516347588_70001524349032963FTRO23184809601C2023010361.12_20230103',
+        ibanNumber: 'BG66UNCR70009994349032',
+        bankName: 'UniCredit',
+        transactionDate: new Date('2023-01-03T00:00:00.000Z'),
+        senderName: 'Name not relevant for the example',
+        recipientName: 'СДРУЖЕНИЕ ПОДКРЕПИ БГ',
+        senderIban: 'BG21UNCR111111111111',
+        recipientIban: 'BG66UNCR70001524349032',
+        type: 'credit',
+        amount: 6112,
+        currency: 'BGN',
+        description: '98XF-SZ50-RC8H',
+        matchedRef: '98XF-SZ50-RC8H',
+      }
+
+      expect(actual).toEqual(expected)
+    })
+
+    it('should set matchedRef to null when the EUR currency amount cannot be parsed from the transaction id', () => {
+      const eurTransaction: IrisTransactionInfo = {
+        transactionId:
+          'Booked_6516347588_70001524349032963FTRO23184809601C20230703notanumber_20230703',
+        bookingDate: '2023-07-03',
+        creditorAccount: {
+          iban: 'BG66UNCR70001524349032',
+        },
+        creditorName: 'СДРУЖЕНИЕ ПОДКРЕПИ БГ',
+        debtorAccount: {
+          iban: 'BG21UNCR111111111111',
+        },
+        debtorName: 'Name not relevant for the example',
+        remittanceInformationUnstructured: '98XF-SZ50-RC8H',
+        transactionAmount: {
+          amount: 2069.25,
+          currency: 'EUR',
+        },
+        exchangeRate: null,
+        valueDate: '2023-07-03',
+        creditDebitIndicator: 'CREDIT',
+      }
+
+      // eslint-disable-next-line
+      // @ts-ignore
+      const preparedTransactions = irisTasks.prepareBankTransactionRecords(
+        [eurTransaction],
+        irisIBANAccountMock,
+      )
+
+      expect(preparedTransactions.length).toEqual(1)
+      const actual = preparedTransactions[0]
+
+      // We expect to have converted the Amount from EUR to BGN by parsing the transaction ID
+      const expected = {
+        id: 'Booked_6516347588_70001524349032963FTRO23184809601C20230703notanumber_20230703',
+        ibanNumber: 'BG66UNCR70009994349032',
+        bankName: 'UniCredit',
+        transactionDate: new Date('2023-07-03T00:00:00.000Z'),
+        senderName: 'Name not relevant for the example',
+        recipientName: 'СДРУЖЕНИЕ ПОДКРЕПИ БГ',
+        senderIban: 'BG21UNCR111111111111',
+        recipientIban: 'BG66UNCR70001524349032',
+        type: 'credit',
+        amount: 206925,
+        currency: 'EUR',
+        description: '98XF-SZ50-RC8H',
+        matchedRef: null,
       }
 
       expect(actual).toEqual(expected)
