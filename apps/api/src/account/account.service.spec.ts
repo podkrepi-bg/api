@@ -12,11 +12,14 @@ import { PersonService } from '../person/person.service'
 import { MockPrismaService } from '../prisma/prisma-client.mock'
 import { AccountService } from './account.service'
 
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
+
 describe('AccountService', () => {
   let service: AccountService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [MarketingNotificationsModule],
       providers: [
         AccountService,
         PersonService,

@@ -13,6 +13,7 @@ import { Vault } from '../../vault/entities/vault.entity'
 import { Withdrawal } from '../../withdrawal/entities/withdrawal.entity'
 import { SlugArchive } from '../../slugArchive/entities/slugArchive.entity'
 import { CampaignNews } from '../../campaignNews/entities/campaignNews.entity'
+import { NotificationList } from '../../notificationList/entities/notificationList.entity'
 
 export class Campaign {
   id: string
@@ -51,4 +52,5 @@ export class Campaign {
   withdrawals?: Withdrawal[]
   slugArchive?: SlugArchive[]
   campaignNews?: CampaignNews[]
+  notificationLists?: NotificationList[]
 }

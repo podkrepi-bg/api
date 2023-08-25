@@ -8,7 +8,7 @@ import { Person } from '../domain/generated/person/entities'
 import { UpdatePersonDto } from '../person/dto/update-person.dto'
 import { PersonService } from '../person/person.service'
 import { AccountService } from './account.service'
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger'
 
 @Controller('account')
 @ApiTags('account')

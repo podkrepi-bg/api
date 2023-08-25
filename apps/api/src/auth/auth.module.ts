@@ -13,6 +13,7 @@ import { ProviderLoginController } from './provider-login.controller'
 import { JwtModule, JwtService } from '@nestjs/jwt'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 @Module({
   controllers: [LoginController, RegisterController, RefreshController, ProviderLoginController],
@@ -25,6 +26,7 @@ import { TemplateService } from '../email/template.service'
       useExisting: KeycloakConfigService,
       imports: [AppConfigModule],
     }),
+    MarketingNotificationsModule,
   ],
   exports: [AuthService],
 })

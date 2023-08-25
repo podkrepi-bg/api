@@ -1,0 +1,71 @@
+<mjml>
+  <mj-body background-color="#ffffff" font-size="13px" width="90%">
+    <mj-section
+      background-color="#009FE3"
+      vertical-align="top"
+      padding-bottom="0px"
+      padding-top="0">
+      <mj-column vertical-align="top" width="100%">
+        <mj-text
+          align="left"
+          color="#ffffff"
+          font-size="45px"
+          font-weight="bold"
+          font-family="open Sans Helvetica, Arial, sans-serif"
+          padding-left="25px"
+          padding-right="25px"
+          padding-bottom="15px"
+          padding-top="50px">
+          Потвърдете съгласието си за получаване на известия и новини от Podkrepi.bg
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#009fe3" padding-bottom="20px" padding-top="20px">
+      <mj-column vertical-align="middle" width="100%">
+        <mj-text
+          align="left"
+          color="#ffffff"
+          font-size="22px"
+          font-family="open Sans Helvetica, Arial, sans-serif"
+          padding-left="25px"
+          padding-right="25px">
+          <br /><br />
+        </mj-text>
+        <mj-text
+          align="left"
+          color="#ffffff"
+          font-size="18px"
+          font-family="open Sans Helvetica, Arial, sans-serif"
+          padding-left="25px"
+          padding-right="25px">
+          Благодарим ти, че ставаш част от нещо смислено. Абонирайки се ще получаваш актуална
+          информация за всичко, което се случва в нашата платформа - събрани дарения, нови кампании,
+          интересни новини.
+        </mj-text>
+
+        <mj-button
+          background-color="#FFCB57"
+          font-family="Helvetica, Arial, sans-serif"
+          font-size="17px"
+          border-radius="30px"
+          color="#000000"
+          padding="15px 30px"
+          href="{{subscribeLink}}"
+          target="_blank">
+          Потвърждавам абонирането си
+        </mj-button>
+
+        <mj-text
+          align="left"
+          color="#ffffff"
+          font-size="15px"
+          font-family="open Sans Helvetica, Arial, sans-serif"
+          padding-left="25px"
+          padding-right="25px">
+          Поздрави, <br />
+          Екипът на Подкрепи.бг
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

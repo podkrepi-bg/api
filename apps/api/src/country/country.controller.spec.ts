@@ -60,25 +60,24 @@ describe('CountryController', () => {
 
   it('should get 1 country', async () => {
     const country = mockData[0]
-    prismaMock.country.findFirst.mockResolvedValue(country)
+    prismaMock.country.findFirstOrThrow.mockResolvedValue(country)
 
     const result = await controller.findOne(country.id)
     expect(result).toEqual(country)
-    expect(prismaMock.country.findFirst).toHaveBeenCalledWith({
+    expect(prismaMock.country.findFirstOrThrow).toHaveBeenCalledWith({
       where: {
         id: country.id,
       },
       include: {
         cities: true,
       },
-      rejectOnNotFound: true,
     })
   })
 
   it('should throw error if trying to get a country that does not exist', async () => {
     const notExistingId = '12345'
 
-    const prismaSpy = jest.spyOn(prismaMock.country, 'findFirst').mockImplementation(() => {
+    const prismaSpy = jest.spyOn(prismaMock.country, 'findFirstOrThrow').mockImplementation(() => {
       const msg = 'No Country record with ID: ' + notExistingId
       throw new NotFoundException(msg)
     })

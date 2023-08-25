@@ -24,6 +24,7 @@ import { IrisTasks } from '../tasks/bank-import/import-transactions.task'
 import { SchedulerRegistry } from '@nestjs/schedule'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 const bankTransactionsMock = [
   {
@@ -121,7 +122,7 @@ describe('BankTransactionsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [BankTransactionsController],
-      imports: [HttpModule, NotificationModule],
+      imports: [HttpModule, NotificationModule, MarketingNotificationsModule],
       providers: [
         BankTransactionsService,
         MockPrismaService,

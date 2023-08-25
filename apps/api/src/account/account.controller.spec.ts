@@ -13,6 +13,7 @@ import KeycloakConnect from 'keycloak-connect'
 import { mock, mockDeep } from 'jest-mock-extended'
 import { JwtService } from '@nestjs/jwt'
 import { EmailService } from '../email/email.service'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 describe('AccountController', () => {
   let controller: AccountController
@@ -28,6 +29,7 @@ describe('AccountController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [MarketingNotificationsModule],
       controllers: [AccountController],
       providers: [
         AccountService,

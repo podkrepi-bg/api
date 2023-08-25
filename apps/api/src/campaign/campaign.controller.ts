@@ -29,6 +29,7 @@ import { ApiQuery } from '@nestjs/swagger'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { ApiTags } from '@nestjs/swagger'
 import { CampaignNewsService } from '../campaign-news/campaign-news.service'
+import { CampaignSubscribeDto } from './dto/campaign-subscribe.dto'
 
 @ApiTags('campaign')
 @Controller('campaign')
@@ -80,7 +81,7 @@ export class CampaignController {
   @Get(':slug/can-edit')
   async canEditCampaign(
     @Param('slug') slug: string,
-    @AuthenticatedUser() user: KeycloakTokenParsed
+    @AuthenticatedUser() user: KeycloakTokenParsed,
   ): Promise<boolean> {
     const campaign = await this.campaignService.isUserCampaign(user.sub, slug)
     return campaign
@@ -165,6 +166,21 @@ export class CampaignController {
       throw new ForbiddenException(
         'The user is not coordinator,organizer or beneficiery to the requested campaign',
       )
+  }
+
+  @Post(':id/subscribe')
+  @Public()
+  async subscribeToCampaignNotifications(
+    @Param('id') id: string,
+    @Body() data: CampaignSubscribeDto,
+  ) {
+    if (data.consent === false)
+      throw new BadRequestException('Notification consent should be provided')
+
+    // Subscribe to campaign notifications list
+    await this.campaignService.subscribeToCampaignNotification(id, data)
+
+    return { message: 'Success' }
   }
 
   @Delete(':id')

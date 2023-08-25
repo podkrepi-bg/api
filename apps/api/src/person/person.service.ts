@@ -48,11 +48,34 @@ export class PersonService {
         ],
       }),
     }
+
+    let sort: Prisma.PersonOrderByWithRelationInput = { createdAt: 'desc' }
+
+    if (sortBy)
+      switch (sortBy) {
+        case 'organizer':
+          sort = { organizer: { createdAt: sortOrder == 'asc' ? 'asc' : 'desc' } }
+          break
+        case 'coordinators':
+          sort = { coordinators: { createdAt: sortOrder == 'asc' ? 'asc' : 'desc' } }
+          break
+        case 'beneficiaries':
+          sort = { beneficiaries: { _count: sortOrder == 'asc' ? 'desc' : 'asc' } }
+          break
+        default:
+          sort = { [sortBy]: sortOrder ?? 'desc' }
+      }
+
     const data = await this.prisma.person.findMany({
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
       where: whereClause,
-      orderBy: [sortBy ? { [sortBy]: sortOrder ? sortOrder : 'desc' } : { createdAt: 'desc' }],
+      orderBy: [sort],
+      include: {
+        organizer: { select: { id: true } },
+        coordinators: { select: { id: true } },
+        beneficiaries: { select: { id: true } },
+      },
     })
 
     const count = await this.prisma.person.count({
@@ -69,6 +92,10 @@ export class PersonService {
 
   async findOne(id: string) {
     return await this.prisma.person.findFirst({ where: { id } })
+  }
+
+  async findByEmail(email: string) {
+    return await this.prisma.person.findFirst({ where: { email } })
   }
 
   async findOneByKeycloakId(keycloakId: string) {
@@ -103,5 +130,15 @@ export class PersonService {
     } catch (error) {
       Logger.warn(`Adding person to contacts list failed with code: ${error.code}`)
     }
+  }
+
+  // Create/Update a marketing notifications consent for emails that are not registered
+  async updateUnregisteredNotificationConsent(email: string, consent: boolean) {
+    await this.prisma.unregisteredNotificationConsent.update({
+      data: { consent },
+      where: {
+        email,
+      },
+    })
   }
 }

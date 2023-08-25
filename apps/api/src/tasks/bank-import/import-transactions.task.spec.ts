@@ -19,6 +19,9 @@ import { toMoney } from '../../common/money'
 import { DateTime } from 'luxon'
 import { EmailService } from '../../email/email.service'
 import { TemplateService } from '../../email/template.service'
+import { NotificationsProviderInterface } from '../../notifications/providers/notifications.interface.providers'
+import { SendGridNotificationsProvider } from '../../notifications/providers/notifications.sendgrid.provider'
+import { MarketingNotificationsService } from '../../notifications/notifications.service'
 
 const IBAN = 'BG77UNCR92900016740920'
 
@@ -187,10 +190,19 @@ describe('ImportTransactionsTask', () => {
         SchedulerRegistry,
         EmailService,
         TemplateService,
+        {
+          provide: NotificationsProviderInterface,
+          useClass: SendGridNotificationsProvider,
+        },
+        MarketingNotificationsService,
       ],
     })
       .overrideProvider(PersonService)
       .useValue(personServiceMock)
+      .overrideProvider(ConfigService)
+      .useValue({
+        get: jest.fn(),
+      })
       .compile()
 
     irisTasks = await testModule.get(MockIrisTasks)

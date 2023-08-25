@@ -1,4 +1,5 @@
 import sgMail from '@sendgrid/mail'
+import * as sg from '@sendgrid/mail'
 import { ConfigService } from '@nestjs/config'
 import { Injectable, Logger } from '@nestjs/common'
 
@@ -22,11 +23,11 @@ export class EmailService {
     }
   }
 
-  async send(email: Email): Promise<void> {
+  async send(email: Email, settings: sg.MailDataRequired['mailSettings'] = {}): Promise<void> {
     if (!this.enabled) return
 
     try {
-      await sgMail.send(email)
+      await sgMail.send({ ...email, mailSettings: { ...settings } })
     } catch (err) {
       Logger.warn(`error sending email`, err)
     }
@@ -35,17 +36,21 @@ export class EmailService {
   async sendFromTemplate<C>(
     template: EmailTemplate<C>,
     emailInfo: Partial<Email> & { to: EmailData[] },
+    settings: sg.MailDataRequired['mailSettings'] = {},
   ) {
     if (!emailInfo.to) {
       throw new Error('emailInfo.to is required')
     }
     const { html, metadata } = await this.template.getTemplate(template)
 
-    this.send({
-      to: emailInfo.to,
-      from: emailInfo.from ?? this.emailSender,
-      subject: metadata.subject,
-      html,
-    })
+    this.send(
+      {
+        to: emailInfo.to,
+        from: emailInfo.from ?? this.emailSender,
+        subject: metadata.subject,
+        html,
+      },
+      settings,
+    )
   }
 }

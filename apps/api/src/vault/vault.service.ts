@@ -38,11 +38,10 @@ export class VaultService {
   }
   async findOne(id: string): Promise<Vault> {
     try {
-      return await this.prisma.vault.findFirst({
+      return await this.prisma.vault.findFirstOrThrow({
         where: {
           id,
         },
-        rejectOnNotFound: true,
       })
     } catch (err) {
       const msg = `No Vault found with ID: ${id} Exception was: ${err.message}`
@@ -71,11 +70,10 @@ export class VaultService {
   }
 
   async remove(id: string): Promise<Vault> {
-    const vault = await this.prisma.vault.findFirst({
+    const vault = await this.prisma.vault.findFirstOrThrow({
       where: {
         id,
       },
-      rejectOnNotFound: true,
     })
     if (vault.amount != 0 || vault.blockedAmount != 0) {
       throw new BadRequestException('Cannot delete non-empty vaults!')

@@ -19,11 +19,10 @@ export class TransferService {
    * Creates a transfer, while blocking the corresponding amount in the source vault.
    */
   async create(createTransferDto: CreateTransferDto): Promise<Transfer | undefined> {
-    const sourceVault = await this.prisma.vault.findFirst({
+    const sourceVault = await this.prisma.vault.findFirstOrThrow({
       where: {
         id: createTransferDto.sourceVaultId,
       },
-      rejectOnNotFound: true,
     })
 
     if (sourceVault.amount - sourceVault.blockedAmount - createTransferDto.amount < 0) {
@@ -70,13 +69,16 @@ export class TransferService {
    * Updates a transfer, where status changes to completed/declined state will finilize the transfer and perform vault transaction between source and target.
    */
   async update(id: string, updateTransferDto: UpdateTransferDto): Promise<Transfer | null> {
-    const transfer = await this.prisma.transfer.findFirst({
+    const transfer = await this.prisma.transfer.findFirstOrThrow({
       where: { id: id },
-      rejectOnNotFound: true,
     })
 
     if (
-      [ TransferStatus.succeeded.valueOf(), TransferStatus.cancelled.valueOf(), TransferStatus.declined.valueOf()].includes(transfer.status.valueOf())
+      [
+        TransferStatus.succeeded.valueOf(),
+        TransferStatus.cancelled.valueOf(),
+        TransferStatus.declined.valueOf(),
+      ].includes(transfer.status.valueOf())
     ) {
       throw new BadRequestException('Transfer has already been finilized and cannot be updated')
     }
@@ -91,17 +93,15 @@ export class TransferService {
     }
 
     // TODO: figure out how to initialize empty vault promise
-    const srcVault = await this.prisma.vault.findFirst({
+    const srcVault = await this.prisma.vault.findFirstOrThrow({
       where: {
         id: transfer.sourceVaultId,
       },
-      rejectOnNotFound: true,
     })
-    const targetVault = await this.prisma.vault.findFirst({
+    const targetVault = await this.prisma.vault.findFirstOrThrow({
       where: {
         id: transfer.targetVaultId,
       },
-      rejectOnNotFound: true,
     })
 
     let writeSrcVault = this.prisma.vault.update({

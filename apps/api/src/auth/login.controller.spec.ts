@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { AuthService } from './auth.service'
 import { LoginController } from './login.controller'
 import { LoginDto } from './dto/login.dto'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 describe('LoginController', () => {
   let controller: LoginController
@@ -19,6 +20,7 @@ describe('LoginController', () => {
     }
 
     const module: TestingModule = await Test.createTestingModule({
+      imports: [MarketingNotificationsModule],
       controllers: [LoginController],
       providers: [AuthService, AuthServiceProvider],
     }).compile()

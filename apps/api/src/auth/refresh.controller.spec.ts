@@ -3,6 +3,8 @@ import { AuthService } from './auth.service'
 import { RefreshDto } from './dto/refresh.dto'
 import { RefreshController } from './refresh.controller'
 
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
+
 describe('RefreshController', () => {
   let controller: RefreshController
   let spyService: AuthService
@@ -20,6 +22,7 @@ describe('RefreshController', () => {
     }
 
     const module: TestingModule = await Test.createTestingModule({
+      imports: [MarketingNotificationsModule],
       controllers: [RefreshController],
       providers: [AuthService, AuthServiceProvider],
     }).compile()

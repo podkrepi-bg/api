@@ -24,6 +24,7 @@ import { CampaignFileService } from './campaign-file.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { ApiTags } from '@nestjs/swagger';
+import { CampaignFileRole } from '@prisma/client'
 
 @ApiTags('campaign-file')
 @Controller('campaign-file')
@@ -86,6 +87,9 @@ export class CampaignFileController {
     res.set({
       'Content-Type': file.mimetype,
       'Content-Disposition': 'attachment; filename="' + file.filename + '"',
+      'Cache-Control': file.mimetype.startsWith('image/')
+                        ? 'public, s-maxage=15552000, stale-while-revalidate=15552000, immutable' 
+                        : 'no-store'
     })
 
     return new StreamableFile(file.stream)

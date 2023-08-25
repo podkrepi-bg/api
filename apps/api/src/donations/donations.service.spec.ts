@@ -9,13 +9,14 @@ import { NotificationModule } from '../sockets/notifications/notification.module
 import { VaultModule } from '../vault/vault.module'
 import { VaultService } from '../vault/vault.service'
 import { DonationsService } from './donations.service'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 describe('DonationsService', () => {
   let service: DonationsService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [VaultModule, NotificationModule],
+      imports: [VaultModule, NotificationModule, MarketingNotificationsModule],
       providers: [
         ConfigService,
         CampaignService,
