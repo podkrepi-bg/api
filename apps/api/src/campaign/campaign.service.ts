@@ -941,11 +941,14 @@ export class CampaignService {
     const listId = await this.marketingNotificationsService.provider.createNewContactList({
       name: updated.title || updated.id,
     })
+
+    const name = updated.title || ''
+
     // Save the list_id in the DB
     await this.prisma.notificationList.create({
       data: {
         id: listId,
-        name: updated.title,
+        name: name.slice(0, 99),
         campaignId: updated.id,
       },
     })
