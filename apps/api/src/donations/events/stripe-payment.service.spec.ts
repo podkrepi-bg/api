@@ -238,7 +238,7 @@ describe('StripePaymentService', () => {
     })
 
     jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
-    const mockedupdateDonationPayment = jest
+    const mockedUpdateDonationPayment = jest
       .spyOn(campaignService, 'updateDonationPayment')
       .mockName('updateDonationPayment')
 
