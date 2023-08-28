@@ -587,7 +587,7 @@ export class CampaignService {
 
       //For successful donations we will also need to link them to user if not marked as anonymous
       if (donationId && newDonationStatus === DonationStatus.succeeded) {
-        if (metadata?.isAnonymous != 'true') {
+        if (metadata?.isAnonymous !== 'true') {
           await tx.donation.update({
             where: { id: donationId },
             data: {
@@ -671,7 +671,7 @@ export class CampaignService {
     /**
      * Create or connect campaign vault
      */
-    const vault = await this.prisma.vault.findFirst({ where: { campaignId: campaign.id } })
+    const vault = await tx.vault.findFirst({ where: { campaignId: campaign.id } })
     const targetVaultData = vault
       ? // Connect the existing vault to this donation
         { connect: { id: vault.id } }
