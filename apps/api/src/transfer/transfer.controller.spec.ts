@@ -135,7 +135,7 @@ describe('TransferController', () => {
 
       prismaMock.transfer.create.mockResolvedValue(transfer)
       prismaMock.vault.update.mockResolvedValue(vault)
-      prismaMock.vault.findFirst.mockResolvedValue(vault)
+      prismaMock.vault.findFirstOrThrow.mockResolvedValue(vault)
       prismaMock.$transaction.mockResolvedValue([transfer, vault])
 
       const createDto: CreateTransferDto = { ...transfer }
@@ -198,9 +198,9 @@ describe('TransferController', () => {
         blockedAmount: 0,
       }
 
-      prismaMock.transfer.findFirst.mockResolvedValue(transfer)
-      prismaMock.vault.findFirst.mockResolvedValueOnce(srcVault)
-      prismaMock.vault.findFirst.mockResolvedValueOnce(dstVault)
+      prismaMock.transfer.findFirstOrThrow.mockResolvedValue(transfer)
+      prismaMock.vault.findFirstOrThrow.mockResolvedValueOnce(srcVault)
+      prismaMock.vault.findFirstOrThrow.mockResolvedValueOnce(dstVault)
       prismaMock.transfer.update.mockResolvedValue(transfer)
       prismaMock.vault.update.mockResolvedValueOnce(srcVault)
       prismaMock.vault.update.mockResolvedValueOnce(dstVault)
@@ -256,9 +256,9 @@ describe('TransferController', () => {
         blockedAmount: 0,
       }
 
-      prismaMock.transfer.findFirst.mockResolvedValue(transfer)
-      prismaMock.vault.findFirst.mockResolvedValueOnce(srcVault)
-      prismaMock.vault.findFirst.mockResolvedValueOnce(dstVault)
+      prismaMock.transfer.findFirstOrThrow.mockResolvedValue(transfer)
+      prismaMock.vault.findFirstOrThrow.mockResolvedValueOnce(srcVault)
+      prismaMock.vault.findFirstOrThrow.mockResolvedValueOnce(dstVault)
       prismaMock.transfer.update.mockResolvedValue(transfer)
       prismaMock.vault.update.mockResolvedValueOnce(srcVault)
       prismaMock.vault.update.mockResolvedValueOnce(dstVault)

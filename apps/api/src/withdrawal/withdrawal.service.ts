@@ -18,11 +18,10 @@ export class WithdrawalService {
    * Creates a withdrawal, while blocking the corresponding amount in the source vault.
    */
   async create(createWithdrawalDto: CreateWithdrawalDto): Promise<Withdrawal> {
-    const vault = await this.prisma.vault.findFirst({
+    const vault = await this.prisma.vault.findFirstOrThrow({
       where: {
         id: createWithdrawalDto.sourceVaultId,
       },
-      rejectOnNotFound: true,
     })
     if (vault.amount - vault.blockedAmount - createWithdrawalDto.amount < 0) {
       throw new BadRequestException('Insufficient amount in vault.')
@@ -59,14 +58,16 @@ export class WithdrawalService {
    * Updates a withdrawal, where status changes to completed/declined state will finilize the withdrawal and perform vault transaction.
    */
   async update(id: string, updateWithdrawalDto: UpdateWithdrawalDto): Promise<Withdrawal | null> {
-    const withdrawal = await this.prisma.withdrawal.findFirst({
+    const withdrawal = await this.prisma.withdrawal.findFirstOrThrow({
       where: { id: id },
-      rejectOnNotFound: true,
     })
 
     if (
-      [ WithdrawStatus.succeeded.valueOf(), WithdrawStatus.cancelled.valueOf(), WithdrawStatus.declined.valueOf()]
-        .includes(withdrawal.status.valueOf())
+      [
+        WithdrawStatus.succeeded.valueOf(),
+        WithdrawStatus.cancelled.valueOf(),
+        WithdrawStatus.declined.valueOf(),
+      ].includes(withdrawal.status.valueOf())
     ) {
       throw new BadRequestException('Withdrawal has already been finilized and cannot be updated.')
     }
@@ -79,11 +80,10 @@ export class WithdrawalService {
       )
     }
 
-    const vault = await this.prisma.vault.findFirst({
+    const vault = await this.prisma.vault.findFirstOrThrow({
       where: {
         id: withdrawal.sourceVaultId,
       },
-      rejectOnNotFound: true,
     })
 
     // TODO: figure out how to initialize empty vault promise

@@ -7,9 +7,10 @@ import { PersonService } from '../person/person.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { VaultService } from '../vault/vault.service'
 import { NotificationModule } from '../sockets/notifications/notification.module'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 @Module({
-  imports: [NotificationModule],
+  imports: [NotificationModule, MarketingNotificationsModule],
 
   controllers: [CampaignFileController],
   providers: [

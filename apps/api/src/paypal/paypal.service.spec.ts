@@ -5,13 +5,21 @@ import { CampaignModule } from '../campaign/campaign.module'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 import { PaypalModule } from './paypal.module'
 import { PaypalService } from './paypal.service'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 describe('PaypalService', () => {
   let service: PaypalService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [PaypalModule, CampaignModule, ConfigModule, HttpModule, NotificationModule],
+      imports: [
+        PaypalModule,
+        CampaignModule,
+        ConfigModule,
+        HttpModule,
+        NotificationModule,
+        MarketingNotificationsModule,
+      ],
       providers: [PaypalService],
     }).compile()
 

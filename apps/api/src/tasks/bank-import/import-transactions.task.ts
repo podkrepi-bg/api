@@ -112,7 +112,10 @@ export class IrisTasks {
       })
 
       // Send Notification
-      await this.sendEmail.sendFromTemplate(mail, recepient)
+      await this.sendEmail.sendFromTemplate(mail, recepient, {
+        //Allow users to receive the mail, regardles of unsubscribes
+        bypassUnsubscribeManagement: { enable: true },
+      })
     }
   }
 
@@ -432,7 +435,10 @@ export class IrisTasks {
     })
 
     // Send Notification
-    await this.sendEmail.sendFromTemplate(mail, recepient)
+    await this.sendEmail.sendFromTemplate(mail, recepient, {
+      //Allow users to receive the mail, regardles of unsubscribes
+      bypassUnsubscribeManagement: { enable: true },
+    })
 
     // Mark notified
     await this.prisma.bankTransaction.updateMany({

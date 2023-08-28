@@ -1,7 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
   binaryTargets   = ["native"]
-  previewFeatures = ["orderByNulls"]
 }
 
 generator dbml {
@@ -40,6 +39,7 @@ model Person {
   company            String?             @db.VarChar(50)
   createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  // Receive marketing notifications
   newsletter         Boolean?            @default(false)
   address            String?             @db.VarChar(100)
   birthday           DateTime?           @db.Timestamptz(6)
@@ -50,6 +50,7 @@ model Person {
   keycloakId         String?             @unique @map("keycloak_id") @db.Uuid
   stripeCustomerId   String?             @unique @map("stripe_customer_id")
   picture            String?             @db.VarChar(250)
+  // Used to verify some emails sent to the user
   benefactors        Benefactor[]
   beneficiaries      Beneficiary[]
   campaignFiles      CampaignFile[]
@@ -178,42 +179,43 @@ model CampaignType {
 }
 
 model Campaign {
-  id                      String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  state                   CampaignState  @default(draft)
-  slug                    String         @unique @db.VarChar(250)
-  title                   String         @db.VarChar(200)
-  essence                 String         @db.VarChar(500)
-  coordinatorId           String         @map("coordinator_id") @db.Uuid
-  beneficiaryId           String         @map("beneficiary_id") @db.Uuid
-  campaignTypeId          String         @map("campaign_type_id") @db.Uuid
+  id                      String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  state                   CampaignState      @default(draft)
+  slug                    String             @unique @db.VarChar(250)
+  title                   String             @db.VarChar(200)
+  essence                 String             @db.VarChar(500)
+  coordinatorId           String             @map("coordinator_id") @db.Uuid
+  beneficiaryId           String             @map("beneficiary_id") @db.Uuid
+  campaignTypeId          String             @map("campaign_type_id") @db.Uuid
   description             String?
-  targetAmount            Int?           @default(0) @map("target_amount")
-  startDate               DateTime?      @map("start_date") @db.Timestamptz(6)
-  endDate                 DateTime?      @map("end_date") @db.Timestamptz(6)
-  createdAt               DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt               DateTime?      @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt               DateTime?      @map("deleted_at") @db.Timestamptz(6)
-  approvedById            String?        @map("approved_by_id") @db.Uuid
-  currency                Currency       @default(BGN)
-  allowDonationOnComplete Boolean        @default(false) @map("allow_donation_on_complete")
-  paymentReference        String         @unique @map("payment_reference") @db.VarChar(15)
-  organizerId             String?        @map("organizer_id") @db.Uuid
-  companyId               String?        @map("company_id") @db.Uuid
-  approvedBy              Person?        @relation(fields: [approvedById], references: [id])
-  beneficiary             Beneficiary    @relation(fields: [beneficiaryId], references: [id])
-  campaignType            CampaignType   @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  coordinator             Coordinator    @relation(fields: [coordinatorId], references: [id])
-  organizer               Organizer?     @relation(fields: [organizerId], references: [id])
-  company                 Company?       @relation(fields: [companyId], references: [id])
+  targetAmount            Int?               @default(0) @map("target_amount")
+  startDate               DateTime?          @map("start_date") @db.Timestamptz(6)
+  endDate                 DateTime?          @map("end_date") @db.Timestamptz(6)
+  createdAt               DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime?          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt               DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  approvedById            String?            @map("approved_by_id") @db.Uuid
+  currency                Currency           @default(BGN)
+  allowDonationOnComplete Boolean            @default(false) @map("allow_donation_on_complete")
+  paymentReference        String             @unique @map("payment_reference") @db.VarChar(15)
+  organizerId             String?            @map("organizer_id") @db.Uuid
+  companyId               String?            @map("company_id") @db.Uuid
+  approvedBy              Person?            @relation(fields: [approvedById], references: [id])
+  beneficiary             Beneficiary        @relation(fields: [beneficiaryId], references: [id])
+  campaignType            CampaignType       @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  coordinator             Coordinator        @relation(fields: [coordinatorId], references: [id])
+  organizer               Organizer?         @relation(fields: [organizerId], references: [id])
+  company                 Company?           @relation(fields: [companyId], references: [id])
   campaignFiles           CampaignFile[]
   donationWish            DonationWish[]
   irregularities          Irregularity[]
-  outgoingTransfers       Transfer[]     @relation("source_campaign")
-  incomingTransfers       Transfer[]     @relation("target_campaign")
+  outgoingTransfers       Transfer[]         @relation("source_campaign")
+  incomingTransfers       Transfer[]         @relation("target_campaign")
   vaults                  Vault[]
   withdrawals             Withdrawal[]
   slugArchive             SlugArchive[]
   campaignNews            CampaignNews[]
+  notificationLists       NotificationList[]
 
   @@map("campaigns")
 }
@@ -236,6 +238,43 @@ model CampaignNews {
   newsFiles   CampaignNewsFile[]
 
   @@map("campaign_news")
+}
+
+model NotificationList {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId String   @map("campaign_id") @db.Uuid
+  name       String?
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+
+  @@map("notification_list")
+}
+
+// Stores the template id's on the marketing platform
+model MarketingTemplates {
+  id   String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String?
+
+  @@map("marketing_templates")
+}
+
+// Stores marketing notifications consents for non-registered emails
+model UnregisteredNotificationConsent {
+  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email    String  @unique @db.Citext
+  consent  Boolean @default(false)
+
+  @@map("unregistered_notification_consent")
+}
+
+// Keeps track of some email types being send
+model EmailSentRegistry {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email      String    @db.Citext
+  dateSent   DateTime  @map("date_sent") @db.Timestamptz(6)
+  campaignId String?   @map("campaign_id") @db.Uuid
+  type       EmailType
+
+  @@map("email_sent_registry")
 }
 
 /// Keeps track of previous slugs that are not used currently in any active campaign
@@ -526,7 +565,7 @@ model BankAccount {
   @@map("bank_accounts")
 }
 
-// Stores all movements for Podkrepi.bg IBAN 
+// Stores all movements for Podkrepi.bg IBAN
 model BankTransaction {
   id                 String              @id @unique @db.VarChar(250)
   /// IBAN number of the account tracked
@@ -892,4 +931,14 @@ enum BankTransactionsFileType {
   other
 
   @@map("bank_transactions_file_type")
+}
+
+enum EmailType {
+  confirmConsent
+  confirmCampaignConsent
+  raised50
+  raised90
+  raised100
+
+  @@map("email_type")
 }

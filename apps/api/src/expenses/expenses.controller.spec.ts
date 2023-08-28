@@ -134,8 +134,8 @@ describe('ExpensesController', () => {
 
       prismaMock.person.findFirst.mockResolvedValue(person)
       prismaMock.campaign.findFirst.mockResolvedValue(campaign)
-      prismaMock.vault.findFirst.mockResolvedValue(vault)
-      prismaMock.expense.findFirst.mockResolvedValue(expense)
+      prismaMock.vault.findFirstOrThrow.mockResolvedValue(vault)
+      prismaMock.expense.findFirstOrThrow.mockResolvedValue(expense)
       prismaMock.vault.update.mockResolvedValue(vault)
       prismaMock.expense.update.mockResolvedValue(expense)
       prismaMock.$transaction.mockResolvedValue([expense, vault])
@@ -181,8 +181,8 @@ describe('ExpensesController', () => {
         sub: '00000000-0000-0000-0000-000000000012',
       }
 
-      prismaMock.vault.findFirst.mockResolvedValue(vault)
-      prismaMock.expense.findFirst.mockResolvedValue(expense)
+      prismaMock.vault.findFirstOrThrow.mockResolvedValue(vault)
+      prismaMock.expense.findFirstOrThrow.mockResolvedValue(expense)
       prismaMock.vault.update.mockResolvedValue(vault)
       prismaMock.expense.update.mockResolvedValue(expense)
       prismaMock.$transaction.mockResolvedValue([expense, vault])
@@ -222,9 +222,9 @@ describe('ExpensesController', () => {
         sub: '00000000-0000-0000-0000-000000000012',
       }
 
-      prismaMock.vault.findFirst.mockResolvedValue(vault)
-      prismaMock.expense.findFirst.mockResolvedValueOnce(approvedExpense)
-      prismaMock.expense.findFirst.mockResolvedValueOnce(cancelledExpense)
+      prismaMock.vault.findFirstOrThrow.mockResolvedValue(vault)
+      prismaMock.expense.findFirstOrThrow.mockResolvedValueOnce(approvedExpense)
+      prismaMock.expense.findFirstOrThrow.mockResolvedValueOnce(cancelledExpense)
 
       const updateDto: UpdateExpenseDto = {
         ...approvedExpense,
@@ -252,8 +252,8 @@ describe('ExpensesController', () => {
         amount: 1000,
         blockedAmount: 350,
       }
-      prismaMock.vault.findFirst.mockResolvedValue(vault)
-      prismaMock.expense.findFirst.mockResolvedValueOnce(expense)
+      prismaMock.vault.findFirstOrThrow.mockResolvedValue(vault)
+      prismaMock.expense.findFirstOrThrow.mockResolvedValueOnce(expense)
 
       const updateDto: UpdateExpenseDto = {
         ...expense,

@@ -180,6 +180,21 @@ spec:
                 configMapKeyRef:
                   name: sendgrid-config
                   key: contacts-endpoint
+            - name: MARKETING_LIST_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: sendgrid-config
+                  key: marketing-list-id
+            - name: SENDGRID_SENDER_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: sendgrid-config
+                  key: sender-id
+            - name: SEND_MARKETING_NOTIFICATIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: sendgrid-config
+                  key: enable-notifications
             - name: SENDGRID_API_KEY
               valueFrom:
                 secretKeyRef:

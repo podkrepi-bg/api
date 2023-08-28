@@ -55,6 +55,7 @@ import { BankTransactionsModule } from '../bank-transactions/bank-transactions.m
 import { CacheModule } from '@nestjs/cache-manager'
 import { CampaignNewsModule } from '../campaign-news/campaign-news.module'
 import { CampaignNewsFileModule } from '../campaign-news-file/campaign-news-file.module'
+import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
 @Module({
   imports: [
@@ -116,6 +117,7 @@ import { CampaignNewsFileModule } from '../campaign-news-file/campaign-news-file
     }),
     CampaignNewsModule,
     CampaignNewsFileModule,
+    MarketingNotificationsModule,
   ],
   controllers: [AppController],
   providers: [

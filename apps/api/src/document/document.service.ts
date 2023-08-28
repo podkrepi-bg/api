@@ -20,11 +20,10 @@ export class DocumentService {
 
   async findOne(id: string): Promise<Document> {
     try {
-      return await this.prisma.document.findFirst({
+      return await this.prisma.document.findFirstOrThrow({
         where: {
           id,
         },
-        rejectOnNotFound: true,
       })
     } catch (err) {
       const msg = `No Document found with ID: ${id}`
