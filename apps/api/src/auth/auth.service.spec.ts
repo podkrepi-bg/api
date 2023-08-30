@@ -19,6 +19,7 @@ import { ProviderDto } from './dto/provider.dto'
 import { EmailService } from '../email/email.service'
 import { JwtService } from '@nestjs/jwt'
 import { TemplateService } from '../email/template.service'
+
 import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
 import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'

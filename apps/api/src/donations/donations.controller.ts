@@ -22,7 +22,6 @@ import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types
 import { isAdmin, KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
 import { CreateSessionDto } from './dto/create-session.dto'
-import { CreatePaymentDto } from './dto/create-payment.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto'
@@ -189,24 +188,6 @@ export class DonationsController {
         lastName: person.lastName,
       },
     }
-  }
-
-  @Post('create-payment')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
-  create(
-    @AuthenticatedUser()
-    user: KeycloakTokenParsed,
-    @Body()
-    createPaymentDto: CreatePaymentDto,
-  ) {
-    if (!user) {
-      throw new UnauthorizedException()
-    }
-
-    return this.donationsService.create(createPaymentDto, user)
   }
 
   @Post('payment-intent')

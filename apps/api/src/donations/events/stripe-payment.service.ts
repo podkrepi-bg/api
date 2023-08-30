@@ -117,9 +117,11 @@ export class StripePaymentService {
       DonationStatus.succeeded,
       metadata,
     )
-    await this.campaignService.donateToCampaign(campaign, billingData)
+    //updateDonationPayment will mark the campaign as completed if amount is reached
     await this.checkForCompletedCampaign(metadata.campaignId)
-    if (metadata?.wish) {
+
+    //and finally save the donation wish
+    if (donationId && metadata?.wish) {
       await this.campaignService.createDonationWish(metadata.wish, donationId, campaign.id)
     }
   }
@@ -302,7 +304,8 @@ export class StripePaymentService {
       paymentData,
       DonationStatus.succeeded,
     )
-    await this.campaignService.donateToCampaign(campaign, paymentData)
+
+    //updateDonationPayment will mark the campaign as completed if amount is reached
     await this.checkForCompletedCampaign(metadata.campaignId)
   }
 

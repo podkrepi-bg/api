@@ -13,14 +13,12 @@ import {
 import { Response } from 'express'
 import { getTemplateByTable } from '../export/helpers/exportableData'
 
-import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CampaignService } from '../campaign/campaign.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { VaultService } from '../vault/vault.service'
 import { ExportService } from '../export/export.service'
 import { DonationMetadata } from './dontation-metadata.interface'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
-import { CreatePaymentDto } from './dto/create-payment.dto'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { Person } from '../person/entities/person.entity'
@@ -200,8 +198,6 @@ export class DonationsService {
       cancel_url: sessionDto.cancelUrl ?? `${appUrl}/canceled`,
       tax_id_collection: { enabled: true },
     }
-
-    Logger.debug('[ CreateCheckoutSession ]', createSessionRequest)
 
     const sessionResponse = await this.stripeClient.checkout.sessions
       .create(createSessionRequest)
@@ -459,22 +455,6 @@ export class DonationsService {
     })
   }
 
-  /** Describe the function below
-   * @param inputDto
-   * @param user
-   * @returns {Promise<Donation>}
-   *
-   */
-  async create(inputDto: CreatePaymentDto, user: KeycloakTokenParsed): Promise<Donation> {
-    const donation = await this.prisma.donation.create({ data: inputDto.toEntity(user) })
-
-    if (donation.status === DonationStatus.succeeded) {
-      await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount)
-    }
-
-    return donation
-  }
-
   /**
    * Create a payment intent for a donation
    * @param inputDto Payment intent create params
@@ -565,69 +545,75 @@ export class DonationsService {
    */
   async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Donation> {
     try {
-      const currentDonation = await this.prisma.donation.findFirst({
-        where: { id },
-      })
-      if (!currentDonation) {
-        throw new NotFoundException(`Update failed. No donation found with ID: ${id}`)
-      }
+      // execute the below in prisma transaction
+      return await this.prisma.$transaction(async (tx) => {
+        const currentDonation = await tx.donation.findFirst({
+          where: { id },
+        })
+        if (!currentDonation) {
+          throw new NotFoundException(`Update failed. No donation found with ID: ${id}`)
+        }
 
-      if (
-        currentDonation.status === DonationStatus.succeeded &&
-        updatePaymentDto.status &&
-        updatePaymentDto.status !== DonationStatus.succeeded
-      ) {
-        throw new BadRequestException('Succeeded donations cannot be updated.')
-      }
+        if (
+          currentDonation.status === DonationStatus.succeeded &&
+          updatePaymentDto.status &&
+          updatePaymentDto.status !== DonationStatus.succeeded
+        ) {
+          throw new BadRequestException('Succeeded donations cannot be updated.')
+        }
 
-      const status = updatePaymentDto.status || currentDonation.status
-      let donorId = currentDonation.personId
-      let billingEmail = ''
-      if (
-        (updatePaymentDto.targetPersonId &&
-          currentDonation.personId !== updatePaymentDto.targetPersonId) ||
-        updatePaymentDto.billingEmail
-      ) {
-        const targetDonor = await this.prisma.person.findFirst({
-          where: {
-            OR: [{ id: updatePaymentDto.targetPersonId }, { email: updatePaymentDto.billingEmail }],
+        const status = updatePaymentDto.status || currentDonation.status
+        let donorId = currentDonation.personId
+        let billingEmail = ''
+        if (
+          (updatePaymentDto.targetPersonId &&
+            currentDonation.personId !== updatePaymentDto.targetPersonId) ||
+          updatePaymentDto.billingEmail
+        ) {
+          const targetDonor = await tx.person.findFirst({
+            where: {
+              OR: [
+                { id: updatePaymentDto.targetPersonId },
+                { email: updatePaymentDto.billingEmail },
+              ],
+            },
+          })
+          if (!targetDonor) {
+            throw new NotFoundException(
+              `Update failed. No person found with ID: ${updatePaymentDto.targetPersonId}`,
+            )
+          }
+          donorId = targetDonor.id
+          billingEmail = targetDonor.email
+        }
+
+        const donation = await tx.donation.update({
+          where: { id },
+          data: {
+            status: status,
+            personId: updatePaymentDto.targetPersonId ? donorId : undefined,
+            billingEmail: updatePaymentDto.billingEmail ? billingEmail : undefined,
+            //In case of personId or billingEmail change, take the last updatedAt property to prevent any changes to updatedAt property
+            updatedAt:
+              updatePaymentDto.targetPersonId || updatePaymentDto.billingEmail
+                ? currentDonation.updatedAt
+                : undefined,
           },
         })
-        if (!targetDonor) {
-          throw new NotFoundException(
-            `Update failed. No person found with ID: ${updatePaymentDto.targetPersonId}`,
+
+        if (
+          currentDonation.status !== DonationStatus.succeeded &&
+          updatePaymentDto.status === DonationStatus.succeeded &&
+          donation.status === DonationStatus.succeeded
+        ) {
+          await this.vaultService.incrementVaultAmount(
+            currentDonation.targetVaultId,
+            currentDonation.amount,
+            tx,
           )
         }
-        donorId = targetDonor.id
-        billingEmail = targetDonor.email
-      }
-
-      const donation = await this.prisma.donation.update({
-        where: { id },
-        data: {
-          status: status,
-          personId: updatePaymentDto.targetPersonId ? donorId : undefined,
-          billingEmail: updatePaymentDto.billingEmail ? billingEmail : undefined,
-          //In case of personId or billingEmail change, take the last updatedAt property to prevent any changes to updatedAt property
-          updatedAt:
-            updatePaymentDto.targetPersonId || updatePaymentDto.billingEmail
-              ? currentDonation.updatedAt
-              : undefined,
-        },
-      })
-
-      if (
-        currentDonation.status !== DonationStatus.succeeded &&
-        updatePaymentDto.status === DonationStatus.succeeded &&
-        donation.status === DonationStatus.succeeded
-      ) {
-        await this.vaultService.incrementVaultAmount(
-          currentDonation.targetVaultId,
-          currentDonation.amount,
-        )
-      }
-
-      return donation
+        return donation
+      }) //end of transaction
     } catch (err) {
       Logger.warn(err.message || err)
       throw err
