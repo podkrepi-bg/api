@@ -11,7 +11,14 @@ import { INestApplication } from '@nestjs/common'
 import request from 'supertest'
 import { StripeModule, StripeModuleConfig, StripePayloadService } from '@golevelup/nestjs-stripe'
 
-import { Donation, DonationType, RecurringDonationStatus, Vault } from '@prisma/client'
+import {
+  Campaign,
+  CampaignState,
+  Donation,
+  DonationType,
+  RecurringDonationStatus,
+  Vault,
+} from '@prisma/client'
 
 import {
   campaignId,
@@ -240,12 +247,19 @@ describe('StripePaymentService', () => {
     prismaMock.donation.update.mockResolvedValue({
       id: 'test-donation-id',
       targetVaultId: 'test-vault-id',
-      amount: (mockInvoicePaidEvent.data.object as Stripe.Invoice).amount_paid,
+      amount: paymentData.netAmount,
       status: 'succeeded',
       person: { firstName: 'Full', lastName: 'Name' },
     } as Donation & { person: unknown })
 
     prismaMock.vault.update.mockResolvedValue({ campaignId: 'test-campaign' } as Vault)
+
+    prismaMock.campaign.findFirst.mockResolvedValue({
+      id: 'test-campaign',
+      state: CampaignState.active,
+      targetAmount: paymentData.netAmount,
+      vaults: [{ amount: paymentData.netAmount }],
+    } as unknown as Campaign)
 
     jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
     const mockedUpdateDonationPayment = jest
@@ -253,6 +267,11 @@ describe('StripePaymentService', () => {
       .mockName('updateDonationPayment')
 
     const mockedIncrementVaultAmount = jest.spyOn(vaultService, 'incrementVaultAmount')
+
+    const mockedUpdateCampaignStatusIfTargetReached = jest.spyOn(
+      campaignService,
+      'updateCampaignStatusIfTargetReached',
+    )
 
     return request(app.getHttpServer())
       .post(defaultStripeWebhookEndpoint)
@@ -267,6 +286,15 @@ describe('StripePaymentService', () => {
         expect(prismaMock.donation.create).not.toHaveBeenCalled()
         expect(mockedIncrementVaultAmount).toHaveBeenCalled()
         expect(prismaMock.donation.update).toHaveBeenCalledTimes(2) //once for the amount and second time for assigning donation to the person
+        expect(mockedUpdateCampaignStatusIfTargetReached).toHaveBeenCalled()
+        expect(prismaMock.campaign.update).toHaveBeenCalledWith({
+          where: {
+            id: 'test-campaign',
+          },
+          data: {
+            state: CampaignState.complete,
+          },
+        })
         expect(mockedcreateDonationWish).toHaveBeenCalled()
       })
   })
