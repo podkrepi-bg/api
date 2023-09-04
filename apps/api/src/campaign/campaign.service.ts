@@ -631,7 +631,11 @@ export class CampaignService {
 
         //if donation is switching to successful, increment the vault amount and send notification
         if (newDonationStatus === DonationStatus.succeeded) {
-          await this.vaultService.incrementVaultAmount(donation.targetVaultId, paymentData.netAmount, tx)
+          await this.vaultService.incrementVaultAmount(
+            donation.targetVaultId,
+            paymentData.netAmount,
+            tx,
+          )
           this.notificationService.sendNotification('successfulDonation', {
             ...updatedDonation,
             person: updatedDonation.person,
