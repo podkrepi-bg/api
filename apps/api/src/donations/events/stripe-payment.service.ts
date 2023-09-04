@@ -117,6 +117,7 @@ export class StripePaymentService {
       DonationStatus.succeeded,
       metadata,
     )
+
     //updateDonationPayment will mark the campaign as completed if amount is reached
     await this.checkForCompletedCampaign(metadata.campaignId)
 

@@ -11,7 +11,7 @@ import { INestApplication } from '@nestjs/common'
 import request from 'supertest'
 import { StripeModule, StripeModuleConfig, StripePayloadService } from '@golevelup/nestjs-stripe'
 
-import { Donation, DonationType, RecurringDonationStatus } from '@prisma/client'
+import { Donation, DonationType, RecurringDonationStatus, Vault } from '@prisma/client'
 
 import {
   campaignId,
@@ -218,17 +218,17 @@ describe('StripePaymentService', () => {
       .mockName('createDonationWish')
       .mockImplementation(() => Promise.resolve())
 
-    prismaMock.donation.create.mockResolvedValue({
+    prismaMock.donation.findUnique.mockResolvedValue({
       id: 'test-donation-id',
       type: DonationType.donation,
-      status: DonationStatus.succeeded,
+      status: DonationStatus.waiting,
       provider: 'stripe',
       extCustomerId: paymentData.stripeCustomerId ?? '',
       extPaymentIntentId: paymentData.paymentIntentId,
       extPaymentMethodId: 'card',
       targetVaultId: 'test-vault-id',
-      amount: paymentData.netAmount,
-      chargedAmount: paymentData.netAmount,
+      amount: 0, //amount is 0 on donation created from payment-intent
+      chargedAmount: 0,
       currency: 'BGN',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -237,6 +237,18 @@ describe('StripePaymentService', () => {
       personId: 'donation-person',
     })
 
+    prismaMock.donation.update.mockResolvedValue({
+      id: 'test-donation-id',
+      targetVaultId: 'test-vault-id',
+      amount: (mockInvoicePaidEvent.data.object as Stripe.Invoice).amount_paid,
+      status: 'succeeded',
+      person: { firstName: "Full", lastName: "Name"},
+    } as Donation & { person: unknown })
+
+    prismaMock.vault.update.mockResolvedValue(
+      {campaignId: 'test-campaign'} as Vault
+    )
+
     jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
     const mockedUpdateDonationPayment = jest
       .spyOn(campaignService, 'updateDonationPayment')
@@ -244,7 +256,6 @@ describe('StripePaymentService', () => {
 
     const mockedIncrementVaultAmount = jest
       .spyOn(vaultService, 'incrementVaultAmount')
-      .mockImplementation()
 
     return request(app.getHttpServer())
       .post(defaultStripeWebhookEndpoint)
@@ -255,18 +266,10 @@ describe('StripePaymentService', () => {
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
-        expect(prismaMock.donation.create).toHaveBeenCalled()
+        expect(prismaMock.donation.findUnique).toHaveBeenCalled()
+        expect(prismaMock.donation.create).not.toHaveBeenCalled()
         expect(mockedIncrementVaultAmount).toHaveBeenCalled()
-        expect(prismaMock.donation.update).toHaveBeenCalledWith({
-          where: { id: 'test-donation-id' },
-          data: {
-            person: {
-              connect: {
-                email: paymentData.billingEmail,
-              },
-            },
-          },
-        })
+        expect(prismaMock.donation.update).toHaveBeenCalledTimes(2) //once for the amount and second time for assigning donation to the person
         expect(mockedcreateDonationWish).toHaveBeenCalled()
       })
   })
@@ -293,31 +296,22 @@ describe('StripePaymentService', () => {
       mockChargeEventSucceeded.data.object as Stripe.Charge,
     )
 
-    jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
-    const mockedUpdateDonationPayment = jest
-      .spyOn(campaignService, 'updateDonationPayment')
-      .mockName('updateDonationPayment')
-
-    const mockedIncrementVaultAmount = jest
-      .spyOn(vaultService, 'incrementVaultAmount')
-      .mockImplementation()
-
     const mockedcreateDonationWish = jest
       .spyOn(campaignService, 'createDonationWish')
       .mockName('createDonationWish')
       .mockImplementation(() => Promise.resolve())
 
-    prismaMock.donation.create.mockResolvedValue({
+    prismaMock.donation.findUnique.mockResolvedValue({
       id: 'test-donation-id',
       type: DonationType.donation,
-      status: DonationStatus.succeeded,
+      status: DonationStatus.waiting,
       provider: 'stripe',
       extCustomerId: paymentData.stripeCustomerId ?? '',
       extPaymentIntentId: paymentData.paymentIntentId,
       extPaymentMethodId: 'card',
       targetVaultId: 'test-vault-id',
-      amount: paymentData.netAmount,
-      chargedAmount: paymentData.netAmount,
+      amount: 0, //amount is 0 on donation created from payment-intent
+      chargedAmount: 0,
       currency: 'BGN',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -325,6 +319,26 @@ describe('StripePaymentService', () => {
       billingEmail: paymentData.billingEmail ?? '',
       personId: 'donation-person',
     })
+
+    prismaMock.donation.update.mockResolvedValue({
+      id: 'test-donation-id',
+      targetVaultId: 'test-vault-id',
+      amount: (mockInvoicePaidEvent.data.object as Stripe.Invoice).amount_paid,
+      status: 'succeeded',
+      person: { firstName: "Full", lastName: "Name"},
+    } as Donation & { person: unknown })
+
+    prismaMock.vault.update.mockResolvedValue(
+      {campaignId: 'test-campaign'} as Vault
+    )
+
+    jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
+    const mockedUpdateDonationPayment = jest
+      .spyOn(campaignService, 'updateDonationPayment')
+      .mockName('updateDonationPayment')
+
+    const mockedIncrementVaultAmount = jest
+      .spyOn(vaultService, 'incrementVaultAmount')
 
     return request(app.getHttpServer())
       .post(defaultStripeWebhookEndpoint)
@@ -335,8 +349,9 @@ describe('StripePaymentService', () => {
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
-        expect(prismaMock.donation.create).toHaveBeenCalled()
-        expect(prismaMock.donation.update).not.toHaveBeenCalled()
+        expect(prismaMock.donation.findUnique).toHaveBeenCalled()
+        expect(prismaMock.donation.create).not.toHaveBeenCalled()
+        expect(prismaMock.donation.update).toHaveBeenCalledOnce()  //for the donation to succeeded
         expect(mockedIncrementVaultAmount).toHaveBeenCalled()
         expect(mockedcreateDonationWish).toHaveBeenCalled()
       })
