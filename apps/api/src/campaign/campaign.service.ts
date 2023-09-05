@@ -235,15 +235,23 @@ export class CampaignService {
     return campaigns
   }
 
-  async getCampaignByIdAndCoordinatorId(
-    campaignId: string,
-    coordinatorId: string,
-  ): Promise<Campaign | null> {
-    const campaign = await this.prisma.campaign.findFirst({
-      where: { id: campaignId, coordinator: { personId: coordinatorId } },
-      include: { coordinator: true },
+  // Check if the campaign exists by coordinator or organizer
+  async verifyCampaignOwner(campaignId: string, personId: string): Promise<Campaign | null> {
+    const campaignByCoordinator = await this.prisma.campaign.findFirst({
+      where: { id: campaignId, coordinator: { personId } },
+      include: { coordinator: true, organizer: true },
     })
-    return campaign
+
+    if (campaignByCoordinator !== null) {
+      return campaignByCoordinator
+    }
+
+    const campaignByOrganizer = await this.prisma.campaign.findFirst({
+      where: { id: campaignId, organizer: { personId } },
+      include: { coordinator: true, organizer: true },
+    })
+
+    return campaignByOrganizer
   }
 
   async getCampaignByIdWithPersonIds(id: string) {
@@ -1060,7 +1068,7 @@ export class CampaignService {
       throw new UnauthorizedException()
     }
 
-    const campaign = await this.getCampaignByIdAndCoordinatorId(campaignId, person.id)
+    const campaign = await this.verifyCampaignOwner(campaignId, person.id)
     if (!campaign) {
       throw new UnauthorizedException()
     }

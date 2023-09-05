@@ -23,7 +23,7 @@ import { FilesRoleDto } from './dto/files-role.dto'
 import { CampaignFileService } from './campaign-file.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger'
 import { CampaignFileRole } from '@prisma/client'
 
 @ApiTags('campaign-file')
@@ -51,10 +51,7 @@ export class CampaignFileController {
     }
 
     if (!isAdmin(user)) {
-      const campaign = await this.campaignService.getCampaignByIdAndCoordinatorId(
-        campaignId,
-        person.id,
-      )
+      const campaign = await this.campaignService.verifyCampaignOwner(campaignId, person.id)
       if (!campaign) {
         throw new NotFoundException(
           'User ' + user.name + 'is not admin or coordinator of campaign with id: ' + campaignId,
@@ -88,8 +85,8 @@ export class CampaignFileController {
       'Content-Type': file.mimetype,
       'Content-Disposition': 'attachment; filename="' + file.filename + '"',
       'Cache-Control': file.mimetype.startsWith('image/')
-                        ? 'public, s-maxage=15552000, stale-while-revalidate=15552000, immutable' 
-                        : 'no-store'
+        ? 'public, s-maxage=15552000, stale-while-revalidate=15552000, immutable'
+        : 'no-store',
     })
 
     return new StreamableFile(file.stream)
