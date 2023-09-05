@@ -119,7 +119,7 @@ export class StripePaymentService {
     )
 
     //updateDonationPayment will mark the campaign as completed if amount is reached
-    await this.checkForCompletedCampaign(metadata.campaignId)
+    await this.cancelSubscriptionsIfCompletedCampaign(metadata.campaignId)
 
     //and finally save the donation wish
     if (donationId && metadata?.wish) {
@@ -307,11 +307,11 @@ export class StripePaymentService {
     )
 
     //updateDonationPayment will mark the campaign as completed if amount is reached
-    await this.checkForCompletedCampaign(metadata.campaignId)
+    await this.cancelSubscriptionsIfCompletedCampaign(metadata.campaignId)
   }
 
   //if the campaign is finished, we need to stop all active subscriptions
-  async checkForCompletedCampaign(campaignId: string) {
+  async cancelSubscriptionsIfCompletedCampaign(campaignId: string) {
     const updatedCampaign = await this.campaignService.getCampaignById(campaignId)
     if (updatedCampaign.state === CampaignState.complete) {
       const recurring =
