@@ -630,7 +630,10 @@ export class CampaignService {
         })
 
         //if donation is switching to successful, increment the vault amount and send notification
-        if (newDonationStatus === DonationStatus.succeeded) {
+        if (
+          donation.status != DonationStatus.succeeded &&
+          newDonationStatus === DonationStatus.succeeded
+        ) {
           await this.vaultService.incrementVaultAmount(
             donation.targetVaultId,
             paymentData.netAmount,
@@ -743,8 +746,15 @@ export class CampaignService {
 
   async createDonationWish(wish: string, donationId: string, campaignId: string) {
     const person = await this.prisma.donation.findUnique({ where: { id: donationId } }).person()
-    await this.prisma.donationWish.create({
-      data: {
+    await this.prisma.donationWish.upsert({
+      where: { donationId },
+      create: {
+        message: wish,
+        donationId,
+        campaignId,
+        personId: person?.id,
+      },
+      update: {
         message: wish,
         donationId,
         campaignId,
