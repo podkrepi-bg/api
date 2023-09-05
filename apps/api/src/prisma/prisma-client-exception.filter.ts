@@ -67,11 +67,13 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
         return { property: el, children: [], constraints }
       })
 
-    response.status(status).json({
-      statusCode: status,
-      message,
-      error: this.cleanUpException(exception),
-    })
+    if (response) {
+      response.status(status).json({
+        statusCode: status,
+        message,
+        error: this.cleanUpException(exception),
+      })
+    }
   }
 
   /**
