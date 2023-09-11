@@ -125,6 +125,8 @@ spec:
               value: '10'
             - name: BILLING_ADMIN_MAIL
               value: billing_admin@podkrepi.bg
+            - name: CAMPAIGN_ADMIN_MAIL
+              value: campaign_coordinators@podkrepi.bg
             - name: IRIS_AGENT_HASH
               valueFrom:
                 secretKeyRef:
