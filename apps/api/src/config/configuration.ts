@@ -45,7 +45,10 @@ export default () => ({
     banksEndPoint: process.env.IRIS_API_URL + '/banks?country=bulgaria',
     ibansEndPoint: process.env.IRIS_API_URL + '/ibans',
     transactionsEndPoint: process.env.IRIS_API_URL + '/transactions',
+  },
+  mail: {
     billingAdminEmail: process.env.BILLING_ADMIN_MAIL,
+    campaignAdminEmail: process.env.CAMPAIGN_ADMIN_MAIL,
   },
   tasks: {
     import_transactions: { interval: process.env.IMPORT_TRX_TASK_INTERVAL_MINUTES },
