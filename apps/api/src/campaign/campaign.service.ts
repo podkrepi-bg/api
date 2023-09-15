@@ -235,15 +235,23 @@ export class CampaignService {
     return campaigns
   }
 
-  async getCampaignByIdAndCoordinatorId(
-    campaignId: string,
-    coordinatorId: string,
-  ): Promise<Campaign | null> {
-    const campaign = await this.prisma.campaign.findFirst({
-      where: { id: campaignId, coordinator: { personId: coordinatorId } },
-      include: { coordinator: true },
+  // Check if the campaign exists by coordinator or organizer
+  async verifyCampaignOwner(campaignId: string, personId: string): Promise<Campaign | null> {
+    const campaignByCoordinator = await this.prisma.campaign.findFirst({
+      where: { id: campaignId, coordinator: { personId } },
+      include: { coordinator: true, organizer: true },
     })
-    return campaign
+
+    if (campaignByCoordinator !== null) {
+      return campaignByCoordinator
+    }
+
+    const campaignByOrganizer = await this.prisma.campaign.findFirst({
+      where: { id: campaignId, organizer: { personId } },
+      include: { coordinator: true, organizer: true },
+    })
+
+    return campaignByOrganizer
   }
 
   async getCampaignByIdWithPersonIds(id: string) {
@@ -630,8 +638,15 @@ export class CampaignService {
         })
 
         //if donation is switching to successful, increment the vault amount and send notification
-        if (newDonationStatus === DonationStatus.succeeded) {
-          await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount, tx)
+        if (
+          donation.status != DonationStatus.succeeded &&
+          newDonationStatus === DonationStatus.succeeded
+        ) {
+          await this.vaultService.incrementVaultAmount(
+            donation.targetVaultId,
+            paymentData.netAmount,
+            tx,
+          )
           this.notificationService.sendNotification('successfulDonation', {
             ...updatedDonation,
             person: updatedDonation.person,
@@ -739,8 +754,15 @@ export class CampaignService {
 
   async createDonationWish(wish: string, donationId: string, campaignId: string) {
     const person = await this.prisma.donation.findUnique({ where: { id: donationId } }).person()
-    await this.prisma.donationWish.create({
-      data: {
+    await this.prisma.donationWish.upsert({
+      where: { donationId },
+      create: {
+        message: wish,
+        donationId,
+        campaignId,
+        personId: person?.id,
+      },
+      update: {
         message: wish,
         donationId,
         campaignId,
@@ -1056,7 +1078,7 @@ export class CampaignService {
       throw new UnauthorizedException()
     }
 
-    const campaign = await this.getCampaignByIdAndCoordinatorId(campaignId, person.id)
+    const campaign = await this.verifyCampaignOwner(campaignId, person.id)
     if (!campaign) {
       throw new UnauthorizedException()
     }

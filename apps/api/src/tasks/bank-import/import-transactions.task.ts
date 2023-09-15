@@ -62,7 +62,7 @@ export class IrisTasks {
     this.bankBIC = this.config.get<string>('iris.bankBIC', '')
     this.IBAN = this.config.get<string>('iris.platformIBAN', '')
     this.apiUrl = this.config.get<string>('iris.apiUrl', '')
-    this.billingAdminEmail = this.config.get<string>('iris.billingAdminEmail', '')
+    this.billingAdminEmail = this.config.get<string>('mail.billingAdminEmail', '')
 
     this.checkForRequiredVariables()
   }
@@ -324,7 +324,7 @@ export class IrisTasks {
           transactionAmount.currency = Currency.BGN
         } else {
           // mark as unrecognized
-          matchedRef = null;
+          matchedRef = null
         }
       }
 

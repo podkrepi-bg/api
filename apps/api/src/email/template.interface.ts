@@ -12,6 +12,7 @@ export enum TemplateType {
   unrecognizedDonation = 'unrecognized-donation',
   expiringIrisConsent = 'expiring-iris-consent',
   confirmConsent = 'confirm-notifications-consent',
+  campaignNewsDraft = 'campaign-news-draft',
 }
 export type TemplateTypeKeys = keyof typeof TemplateType
 export type TemplateTypeValues = typeof TemplateType[TemplateTypeKeys]
@@ -79,4 +80,13 @@ export class ConfirmConsentEmailDto extends EmailTemplate<{
   subscribeLink: string
 }> {
   name = TemplateType.confirmConsent
+}
+
+export class CampaignNewsDraftEmailDto extends EmailTemplate<{
+  campaignLink: string
+  campaignName: string
+  newsLink: string
+  campaignNewsTitle: string
+}> {
+  name = TemplateType.campaignNewsDraft
 }
