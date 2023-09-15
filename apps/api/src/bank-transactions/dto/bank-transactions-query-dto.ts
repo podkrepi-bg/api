@@ -43,6 +43,16 @@ export class BankTransactionsQueryDto {
   @IsOptional()
   @Transform(({ value }) => toNumber(value))
   pagesize?: number
+
+  @Expose()
+  @IsOptional()
+  @Transform(({ value }) => falsyToUndefined(value))
+  sortBy?: string
+
+  @Expose()
+  @IsOptional()
+  @Transform(({ value }) => falsyToUndefined(value))
+  sortOrder?: string
 }
 
 function toNumber(value: string, opts: ToNumberOptions = {}): number | undefined {

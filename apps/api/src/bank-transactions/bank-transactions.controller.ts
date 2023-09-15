@@ -44,6 +44,8 @@ export class BankTransactionsController {
   @ApiQuery({ name: 'from', required: false, type: Date })
   @ApiQuery({ name: 'to', required: false, type: Date })
   @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'sortBy', required: false, type: String })
+  @ApiQuery({ name: 'sortOrder', required: false, type: String })
   findAll(@Query() query?: BankTransactionsQueryDto) {
     return this.bankTransactionsService.listBankTransactions(
       query?.status,
@@ -53,6 +55,8 @@ export class BankTransactionsController {
       query?.search,
       query?.pageindex,
       query?.pagesize,
+      query?.sortBy,
+      query?.sortOrder,
     )
   }
 

@@ -44,6 +44,8 @@ export class BankTransactionsService {
     search?: string,
     pageIndex?: number,
     pageSize?: number,
+    sortBy?: string,
+    sortOrder?: string,
   ) {
     const data = await this.prisma.bankTransaction.findMany({
       where: {
@@ -65,6 +67,11 @@ export class BankTransactionsService {
       },
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
+      orderBy: [
+        {
+          [sortBy as string]: sortOrder,
+        },
+      ],
     })
 
     const count = await this.prisma.bankTransaction.count({
