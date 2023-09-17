@@ -212,9 +212,7 @@ describe('StripePaymentService', () => {
       .spyOn(campaignService, 'getCampaignById')
       .mockImplementation(() => Promise.resolve(mockedCampaign))
 
-    const paymentData = getPaymentData(
-      mockPaymentEventCancelled.data.object as Stripe.PaymentIntent,
-    )
+    const paymentData = getPaymentData(mockPaymentEventFailed.data.object as Stripe.PaymentIntent)
 
     const mockedUpdateDonationPayment = jest
       .spyOn(campaignService, 'updateDonationPayment')
