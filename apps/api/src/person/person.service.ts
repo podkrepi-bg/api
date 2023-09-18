@@ -91,7 +91,14 @@ export class PersonService {
   }
 
   async findOne(id: string) {
-    return await this.prisma.person.findFirst({ where: { id } })
+    return await this.prisma.person.findFirst({
+      where: { id },
+      include: {
+        organizer: { select: { id: true, _count: { select: { campaigns: true } } } },
+        coordinators: { select: { id: true, _count: { select: { campaigns: true } } } },
+        beneficiaries: { select: { id: true, _count: { select: { campaigns: true } } } },
+      },
+    })
   }
 
   async findByEmail(email: string) {
