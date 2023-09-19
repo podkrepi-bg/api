@@ -96,7 +96,16 @@ export class PersonService {
       include: {
         organizer: { select: { id: true, _count: { select: { campaigns: true } } } },
         coordinators: { select: { id: true, _count: { select: { campaigns: true } } } },
-        beneficiaries: { select: { id: true, _count: { select: { campaigns: true } } } },
+        beneficiaries: {
+          select: {
+            id: true,
+            countryCode: true,
+            cityId: true,
+            description: true,
+            organizerRelation: true,
+            _count: { select: { campaigns: true } },
+          },
+        },
       },
     })
   }
