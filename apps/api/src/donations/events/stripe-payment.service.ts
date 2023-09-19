@@ -13,6 +13,7 @@ import {
   string2RecurringDonationStatus,
   getInvoiceData,
   getPaymentDataFromCharge,
+  PaymentData,
 } from '../helpers/payment-intent-helpers'
 import { DonationStatus, CampaignState } from '@prisma/client'
 
@@ -69,6 +70,30 @@ export class StripePaymentService {
       paymentIntent.metadata as DonationMetadata,
     )
 
+    const billingData = getPaymentData(paymentIntent)
+
+    this.updatePaymentDonationStatus(paymentIntent, billingData, DonationStatus.cancelled)
+  }
+
+  @StripeWebhookHandler('payment_intent.payment_failed')
+  async handlePaymentIntentFailed(event: Stripe.Event) {
+    const paymentIntent: Stripe.PaymentIntent = event.data.object as Stripe.PaymentIntent
+    Logger.log(
+      '[ handlePaymentIntentFailed ]',
+      paymentIntent,
+      paymentIntent.metadata as DonationMetadata,
+    )
+
+    const billingData = getPaymentData(paymentIntent)
+
+    await this.updatePaymentDonationStatus(paymentIntent, billingData, DonationStatus.declined)
+  }
+
+  async updatePaymentDonationStatus(
+    paymentIntent: Stripe.PaymentIntent,
+    billingData: PaymentData,
+    donationStatus: DonationStatus,
+  ) {
     const metadata: DonationMetadata = paymentIntent.metadata as DonationMetadata
     if (!metadata.campaignId) {
       throw new BadRequestException(
@@ -79,12 +104,7 @@ export class StripePaymentService {
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
 
-    const billingData = getPaymentData(paymentIntent)
-    await this.campaignService.updateDonationPayment(
-      campaign,
-      billingData,
-      DonationStatus.cancelled,
-    )
+    await this.campaignService.updateDonationPayment(campaign, billingData, donationStatus)
   }
 
   @StripeWebhookHandler('charge.succeeded')
