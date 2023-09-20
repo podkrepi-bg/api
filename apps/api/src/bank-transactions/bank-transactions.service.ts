@@ -11,6 +11,7 @@ import {
 } from '@prisma/client'
 import { ExportService } from '../export/export.service'
 import { getTemplateByTable } from '../export/helpers/exportableData'
+import { Prisma } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { Response } from 'express'
 import { CreateBankPaymentDto } from '../donations/dto/create-bank-payment.dto'
@@ -35,6 +36,8 @@ export class BankTransactionsService {
    * @param search (Optional) Search by sender info or description
    * @param pageIndex (Optional)
    * @param pageSize (Optional)
+   * @param sortBy (Optional) Sort by a specific field
+   * @param sortOrder (Optional) Sort order (ascending or descending)
    */
   async listBankTransactions(
     bankDonationStatus?: BankDonationStatus,
@@ -44,7 +47,13 @@ export class BankTransactionsService {
     search?: string,
     pageIndex?: number,
     pageSize?: number,
+    sortBy?: string,
+    sortOrder?: string,
   ) {
+    const defaultSort: Prisma.BankTransactionOrderByWithRelationInput = {
+      transactionDate: 'desc',
+    }
+
     const data = await this.prisma.bankTransaction.findMany({
       where: {
         bankDonationStatus,
@@ -65,6 +74,7 @@ export class BankTransactionsService {
       },
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
+      orderBy: [sortBy ? { [sortBy]: sortOrder ? sortOrder : 'desc' } : defaultSort],
     })
 
     const count = await this.prisma.bankTransaction.count({
