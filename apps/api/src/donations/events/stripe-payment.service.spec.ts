@@ -36,6 +36,7 @@ import {
   mockedCampaignCompeleted,
   mockedVault,
   mockChargeEventSucceeded,
+  mockPaymentEventFailed,
 } from './stripe-payment.testdata'
 import { DonationStatus } from '@prisma/client'
 import { RecurringDonationService } from '../../recurring-donation/recurring-donation.service'
@@ -194,6 +195,42 @@ describe('StripePaymentService', () => {
           mockedCampaign,
           paymentData,
           DonationStatus.cancelled,
+        )
+      })
+  })
+
+  it('should handle payment_intent.payment_failed', () => {
+    const payloadString = JSON.stringify(mockPaymentEventFailed, null, 2)
+
+    const header = stripe.webhooks.generateTestHeaderString({
+      payload: payloadString,
+      secret: stripeSecret,
+    })
+
+    const campaignService = app.get<CampaignService>(CampaignService)
+    const mockedCampaignById = jest
+      .spyOn(campaignService, 'getCampaignById')
+      .mockImplementation(() => Promise.resolve(mockedCampaign))
+
+    const paymentData = getPaymentData(mockPaymentEventFailed.data.object as Stripe.PaymentIntent)
+
+    const mockedUpdateDonationPayment = jest
+      .spyOn(campaignService, 'updateDonationPayment')
+      .mockImplementation(() => Promise.resolve(''))
+      .mockName('updateDonationPayment')
+
+    return request(app.getHttpServer())
+      .post(defaultStripeWebhookEndpoint)
+      .set('stripe-signature', header)
+      .type('json')
+      .send(payloadString)
+      .expect(201)
+      .then(() => {
+        expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
+        expect(mockedUpdateDonationPayment).toHaveBeenCalledWith(
+          mockedCampaign,
+          paymentData,
+          DonationStatus.declined,
         )
       })
   })
