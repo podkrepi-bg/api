@@ -90,13 +90,15 @@ export class IrisTasks {
       })
     ).data
 
-    // Filter to current IBAN
-    const consent = consents.consents.find((consent) => consent.iban.trim() === this.IBAN)
+    // Filter valid consents to the current IBAN
+    const consent = consents.consents.find(
+      (consent) => consent.iban.trim() === this.IBAN && consent.status === 'valid',
+    )
 
-    if (!consent) return
-
-    const expDate = DateTime.fromFormat(consent.validUntil, 'yyyy-MM-dd')
-    const daysToExpire = Math.ceil(expDate.diff(DateTime.local(), 'days').toObject().days || 0)
+    const expDate = consent
+      ? DateTime.fromFormat(consent.validUntil, 'yyyy-MM-dd')
+      : DateTime.local() //if no valid consent use today to send mail with days to expire 0
+    const daysToExpire = Math.ceil(expDate.diff(DateTime.local(), 'days').days || 0)
 
     // If less than 5 days till expiration -> notify
     if (daysToExpire <= this.daysToExpCondition) {
@@ -107,7 +109,7 @@ export class IrisTasks {
       const recepient = { to: [this.billingAdminEmail] }
       const mail = new ExpiringIrisConsentEmailDto({
         daysToExpire,
-        expiresAt: consent.validUntil,
+        expiresAt: expDate.toISODate(),
         renewLink,
       })
 
