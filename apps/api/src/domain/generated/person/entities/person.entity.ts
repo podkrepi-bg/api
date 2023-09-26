@@ -23,7 +23,7 @@ export class Person {
   id: string
   firstName: string
   lastName: string
-  email: string
+  email: string | null
   phone: string | null
   company: string | null
   createdAt: Date

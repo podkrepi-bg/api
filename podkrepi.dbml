@@ -11,7 +11,7 @@ Table people {
   id String [pk]
   firstName String [not null]
   lastName String [not null]
-  email String [unique, not null]
+  email String [unique]
   phone String
   company String
   createdAt DateTime [default: `now()`, not null]
