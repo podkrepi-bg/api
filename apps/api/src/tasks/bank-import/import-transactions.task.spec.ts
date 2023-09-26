@@ -559,8 +559,7 @@ describe('ImportTransactionsTask', () => {
 
     it('should handle USD currency and parse the BGN equivalent from the transactionId', () => {
       const eurTransaction: IrisTransactionInfo = {
-        transactionId:
-          'Booked_6516347588_70001524349032963FTRO23184809601C2023010361.12_20230103',
+        transactionId: 'Booked_6516347588_70001524349032963FTRO23184809601C2023010361.12_20230103',
         bookingDate: '2023-01-03',
         creditorAccount: {
           iban: 'BG66UNCR70001524349032',
@@ -764,7 +763,13 @@ describe('ImportTransactionsTask', () => {
           consents: [
             {
               iban: IBAN,
+              status: 'valid',
               validUntil: DateTime.now().plus({ days: 3 }).toFormat('yyyy-MM-dd'),
+            },
+            {
+              iban: IBAN,
+              status: 'expired',
+              validUntil: DateTime.now().minus({ days: 3 }).toFormat('yyyy-MM-dd'),
             },
           ],
         },
@@ -781,6 +786,7 @@ describe('ImportTransactionsTask', () => {
 
       // 3 < 5 => notify for expiring consent
       expect(getConsentLinkSpy).toHaveBeenCalled()
+
       expect(emailService.sendFromTemplate).toHaveBeenCalled()
     })
   })
@@ -805,6 +811,7 @@ describe('ImportTransactionsTask', () => {
         consents: [
           {
             iban: IBAN,
+            status: 'valid',
             validUntil: DateTime.now().plus({ days: 6 }).toFormat('yyyy-MM-dd'),
           },
         ],
