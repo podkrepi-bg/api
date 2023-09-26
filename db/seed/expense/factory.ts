@@ -11,9 +11,9 @@ export const expenseFactory = Factory.define<Expense>(({ associations }) => ({
   vaultId: associations.vaultId || faker.datatype.uuid(),
   documentId: associations.documentId || null,
   approvedById: associations.approvedById || null,
-  amount: faker.datatype.number(),
+  amount: faker.datatype.number({ min: 1, max: 20000 }),
   currency: faker.helpers.arrayElement(Object.values(Currency)),
-  status: faker.helpers.arrayElement(Object.values(ExpenseStatus)),
+  status: ExpenseStatus.pending,
   deleted: faker.datatype.boolean(),
   spentAt: faker.date.past(),
 }))
