@@ -12,7 +12,6 @@ import {
   Res,
   Inject,
   forwardRef,
-  NotFoundException,
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
 import { DonationStatus } from '@prisma/client'
@@ -176,9 +175,7 @@ export class DonationsController {
 
   @Get('user/:id')
   async userDonationById(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
-
     return await this.donationsService.getUserDonationById(id, user.sub, user.email)
-    
   }
 
   @Post('payment-intent')
