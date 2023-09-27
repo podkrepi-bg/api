@@ -16,7 +16,8 @@ export class CreatePersonDto {
   @ApiProperty()
   @Expose()
   @IsEmail()
-  email: string
+  @IsOptional()
+  email?: string
 
   @ApiProperty()
   @Expose()
