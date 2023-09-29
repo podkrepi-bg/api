@@ -1,7 +1,7 @@
 export class CreatePersonDto {
   firstName: string
   lastName: string
-  email: string
+  email?: string
   phone?: string
   company?: string
   newsletter?: boolean
