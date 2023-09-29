@@ -2,11 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { ExpensesController } from './expenses.controller'
 import { ExpensesService } from './expenses.service'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
-import { ExpenseStatus, ExpenseType, Currency } from '@prisma/client'
+import { ExpenseStatus, ExpenseType, Currency, Person, Campaign } from '@prisma/client'
 import { mockReset } from 'jest-mock-extended'
 import { CreateExpenseDto } from './dto/create-expense.dto'
 import { UpdateExpenseDto } from './dto/update-expense.dto'
 import { S3Service } from '../s3/s3.service'
+import { KeycloakTokenParsed } from '../auth/keycloak'
 
 const mockData = [
   {
@@ -69,8 +70,8 @@ describe('ExpensesController', () => {
       const campaign = {}
       const user = { sub: '00000000-0000-0000-0000-000000000013' }
 
-      prismaMock.person.findFirst.mockResolvedValue(person)
-      prismaMock.campaign.findFirst.mockResolvedValue(campaign)
+      prismaMock.person.findFirst.mockResolvedValue(person as Person)
+      prismaMock.campaign.findFirst.mockResolvedValue(campaign as Campaign)
       prismaMock.expense.create.mockResolvedValue(expense)
       prismaMock.vault.update.mockResolvedValue(vault)
       prismaMock.vault.findFirst.mockResolvedValue(vault)
@@ -78,7 +79,7 @@ describe('ExpensesController', () => {
 
       const createDto: CreateExpenseDto = { ...expense }
 
-      const result = await controller.create(user, createDto, [])
+      const result = await controller.create(user as KeycloakTokenParsed, createDto)
 
       expect(result).toEqual(expense)
       expect(prismaMock.expense.create).toHaveBeenCalledWith({ data: createDto })
@@ -132,8 +133,8 @@ describe('ExpensesController', () => {
 
       const campaign = {}
 
-      prismaMock.person.findFirst.mockResolvedValue(person)
-      prismaMock.campaign.findFirst.mockResolvedValue(campaign)
+      prismaMock.person.findFirst.mockResolvedValue(person as Person)
+      prismaMock.campaign.findFirst.mockResolvedValue(campaign as Campaign)
       prismaMock.vault.findFirstOrThrow.mockResolvedValue(vault)
       prismaMock.expense.findFirstOrThrow.mockResolvedValue(expense)
       prismaMock.vault.update.mockResolvedValue(vault)
@@ -147,7 +148,7 @@ describe('ExpensesController', () => {
       }
 
       // act
-      const result = await controller.update(user, expense.id, updateDto)
+      const result = await controller.update(user as KeycloakTokenParsed, expense.id, updateDto)
 
       // assert
       expect(result).toEqual(expense)
@@ -193,7 +194,9 @@ describe('ExpensesController', () => {
         vaultId: vault.id,
       }
 
-      await expect(controller.update(user, expense.id, updateDto)).rejects.toThrow()
+      await expect(
+        controller.update(user as KeycloakTokenParsed, expense.id, updateDto),
+      ).rejects.toThrow()
       //expect an exception
       expect(prismaMock.expense.update).not.toHaveBeenCalled()
     })
@@ -233,14 +236,22 @@ describe('ExpensesController', () => {
       }
 
       // assert
-      await expect(controller.update(user, approvedExpense.id, updateDto)).rejects.toThrow()
-      await expect(controller.update(user, cancelledExpense.id, updateDto)).rejects.toThrow()
+      await expect(
+        controller.update(user as KeycloakTokenParsed, approvedExpense.id, updateDto),
+      ).rejects.toThrow()
+      await expect(
+        controller.update(user as KeycloakTokenParsed, cancelledExpense.id, updateDto),
+      ).rejects.toThrow()
       expect(prismaMock.expense.update).not.toHaveBeenCalled()
       expect(prismaMock.vault.update).not.toHaveBeenCalled()
     })
 
     it('should not update an expense, when its vault is being changed', async () => {
       const expense = mockData[0]
+
+      const user: KeycloakTokenParsed = {
+        sub: '00000000-0000-0000-0000-000000000012',
+      } as KeycloakTokenParsed
 
       const vault = {
         id: '00000000-0000-0000-0000-000000000016',
@@ -262,7 +273,7 @@ describe('ExpensesController', () => {
       }
 
       // assert
-      await expect(controller.update(expense.id, updateDto)).rejects.toThrow()
+      await expect(controller.update(user, expense.id, updateDto)).rejects.toThrow()
       expect(prismaMock.expense.update).not.toHaveBeenCalled()
       expect(prismaMock.vault.update).not.toHaveBeenCalled()
     })
