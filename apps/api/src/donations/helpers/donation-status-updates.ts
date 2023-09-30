@@ -26,6 +26,11 @@ function isChangeable(status: DonationStatus) {
 function isFinal(status: DonationStatus) {
   return final.includes(status)
 }
+
+function isRefundable(oldStatus: DonationStatus, newStatus: DonationStatus) {
+  return oldStatus === DonationStatus.succeeded && newStatus === DonationStatus.refund
+}
+
 /**
  * The function returns the allowed previous status that can be changed/updated by the incoming donation event
  * @param newStatus the incoming status of the payment event
@@ -35,7 +40,7 @@ export function shouldAllowStatusChange(
   oldStatus: DonationStatus,
   newStatus: DonationStatus,
 ): boolean {
-  if (oldStatus === newStatus) {
+  if (oldStatus === newStatus || isRefundable(oldStatus, newStatus)) {
     return true
   }
 

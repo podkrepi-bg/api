@@ -651,6 +651,19 @@ export class CampaignService {
             ...updatedDonation,
             person: updatedDonation.person,
           })
+        } else if (
+          donation.status === DonationStatus.succeeded &&
+          newDonationStatus === DonationStatus.refund
+        ) {
+          await this.vaultService.decrementVaultAmount(
+            donation.targetVaultId,
+            paymentData.netAmount,
+            tx,
+          )
+          this.notificationService.sendNotification('successfulRefund', {
+            ...updatedDonation,
+            person: updatedDonation.person,
+          })
         }
 
         return updatedDonation
