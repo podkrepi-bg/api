@@ -23,6 +23,7 @@ import {
 } from './dto/bank-transactions-query-dto'
 import { CampaignService } from '../campaign/campaign.service'
 import { BankDonationStatus } from '@prisma/client'
+import { DateTime, Interval } from 'luxon'
 
 @ApiTags('bank-transaction')
 @Controller('bank-transaction')
@@ -121,21 +122,27 @@ export class BankTransactionsController {
     mode: RoleMatchingMode.ANY,
   })
   async rerunBankTransactionsForDate(@Body() body: { startDate: string; endDate: string }) {
-    Logger.debug('rerunBankTransactionsForDate startDate: ', body.startDate)
+    Logger.debug(
+      'rerunBankTransactionsForDate startDate: ' + body.startDate + ' endDate: ' + body.endDate,
+    )
     if (!body.startDate) throw new BadRequestException('Missing startDate in Request')
     if (!body.endDate) throw new BadRequestException('Missing endDate in Request')
 
-    const startDate = new Date(body.startDate.split('T')[0])
-    const endDate = new Date(body.endDate.split('T')[0])
+    const startDate = DateTime.fromISO(body.startDate)
+    const endDate = DateTime.fromISO(body.endDate).plus({ days: 1 }) //include endDate in the interval
+    const interval = Interval.fromDateTimes(startDate, endDate)
+    const dayCount = interval.length('days')
 
-    //rerun transactions iterating from startDate to endDate
-    for (
-      const dateToCheck = startDate;
-      dateToCheck <= endDate;
-      dateToCheck.setDate(dateToCheck.getDate() + 1)
-    ) {
-      Logger.debug('Getting transactions for date: ' + dateToCheck.toISOString().split('T')[0])
-      await this.bankTransactionsService.rerunBankTransactionsForDate(dateToCheck)
-    }
+    Logger.debug('rerunBankTransactionsForDate days: ' + dayCount)
+    if (dayCount > 31)
+      throw new BadRequestException(
+        'Date range is more than 31 days. Please select a smaller date range',
+      )
+
+    //iterate over all dates in the interval
+    interval.splitBy({ days: 1 }).map(async (d) => {
+      Logger.debug('rerunBankTransactionsForDate date: ', d.start.toISODate())
+      await this.bankTransactionsService.rerunBankTransactionsForDate(new Date(d.start.toISODate()))
+    })
   }
 }
