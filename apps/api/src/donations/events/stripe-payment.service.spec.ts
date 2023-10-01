@@ -37,6 +37,7 @@ import {
   mockedVault,
   mockChargeEventSucceeded,
   mockPaymentEventFailed,
+  mockChargeRefundEventSucceeded,
 } from './stripe-payment.testdata'
 import { DonationStatus } from '@prisma/client'
 import { RecurringDonationService } from '../../recurring-donation/recurring-donation.service'
@@ -67,6 +68,11 @@ describe('StripePaymentService', () => {
         logMatchingEventHandlers: true,
       },
     },
+  }
+  const emailServiceMock = {
+    sendFromTemplate: jest.fn(() => {
+      return true
+    }),
   }
 
   beforeEach(async () => {
@@ -99,7 +105,10 @@ describe('StripePaymentService', () => {
           useValue: mockDeep<HttpService>(),
         },
       ],
-    }).compile()
+    })
+      .overrideProvider(EmailService)
+      .useValue(emailServiceMock)
+      .compile()
 
     app = module.createNestApplication()
     await app.init()
@@ -413,6 +422,84 @@ describe('StripePaymentService', () => {
         expect(prismaMock.donation.update).toHaveBeenCalledOnce() //for the donation to succeeded
         expect(mockedIncrementVaultAmount).toHaveBeenCalled()
         expect(mockedcreateDonationWish).toHaveBeenCalled()
+      })
+  })
+
+  it('should handle charge.refunded', () => {
+    const payloadString = JSON.stringify(mockChargeRefundEventSucceeded, null, 2)
+
+    const header = stripe.webhooks.generateTestHeaderString({
+      payload: payloadString,
+      secret: stripeSecret,
+    })
+
+    const campaignService = app.get<CampaignService>(CampaignService)
+    const vaultService = app.get<VaultService>(VaultService)
+
+    const mockedCampaignById = jest
+      .spyOn(campaignService, 'getCampaignById')
+      .mockImplementation(() => Promise.resolve(mockedCampaign))
+
+    const paymentData = getPaymentDataFromCharge(
+      mockChargeEventSucceeded.data.object as Stripe.Charge,
+    )
+
+    prismaMock.donation.findUnique.mockResolvedValue({
+      id: 'test-donation-id',
+      type: DonationType.donation,
+      status: DonationStatus.succeeded,
+      provider: 'stripe',
+      extCustomerId: paymentData.stripeCustomerId ?? '',
+      extPaymentIntentId: paymentData.paymentIntentId,
+      extPaymentMethodId: 'card',
+      targetVaultId: 'test-vault-id',
+      amount: 1000, //amount is 0 on donation created from payment-intent
+      chargedAmount: 800,
+      currency: 'BGN',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      billingName: paymentData.billingName ?? '',
+      billingEmail: paymentData.billingEmail ?? '',
+      personId: 'donation-person',
+    })
+
+    prismaMock.donation.update.mockResolvedValue({
+      id: 'test-donation-id',
+      targetVaultId: 'test-vault-id',
+      amount: paymentData.netAmount,
+      status: DonationStatus.refund,
+      person: { firstName: 'Full', lastName: 'Name' },
+    } as Donation & { person: unknown })
+
+    prismaMock.vault.update.mockResolvedValue({ campaignId: 'test-campaign' } as Vault)
+
+    prismaMock.campaign.findFirst.mockResolvedValue({
+      id: 'test-campaign',
+      state: CampaignState.active,
+      targetAmount: paymentData.netAmount,
+      vaults: [{ amount: paymentData.netAmount }],
+    } as unknown as Campaign)
+
+    jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
+    const mockedUpdateDonationPayment = jest
+      .spyOn(campaignService, 'updateDonationPayment')
+      .mockName('updateDonationPayment')
+
+    const mockDecremementVaultAmount = jest.spyOn(vaultService, 'decrementVaultAmount')
+
+    return request(app.getHttpServer())
+      .post(defaultStripeWebhookEndpoint)
+      .set('stripe-signature', header)
+      .type('json')
+      .send(payloadString)
+      .expect(201)
+      .then(() => {
+        expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
+        expect(mockedUpdateDonationPayment).toHaveBeenCalled()
+        expect(prismaMock.donation.findUnique).toHaveBeenCalled()
+        expect(prismaMock.donation.create).not.toHaveBeenCalled()
+        expect(mockDecremementVaultAmount).toHaveBeenCalled()
+        expect(prismaMock.donation.update).toHaveBeenCalled()
       })
   })
 
