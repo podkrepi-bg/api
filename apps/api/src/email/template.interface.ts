@@ -94,8 +94,9 @@ export class CampaignNewsDraftEmailDto extends EmailTemplate<{
 
 export class RefundDonationDto extends EmailTemplate<{
   campaignName: string
-  firstName: string
-  lastName: string
+  netAmount: number
+  taxAmount: number
+  currency: string
 }> {
-  name = TemplateType.campaignNewsDraft
+  name = TemplateType.refundDonation
 }

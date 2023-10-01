@@ -179,16 +179,13 @@ export class StripePaymentService {
       metadata,
     )
 
-    const user = await this.prismaService.person.findFirst({
-      where: { email: billingData.billingEmail },
-    })
-
-    if (user) {
-      const recepient = { to: [user.email] }
+    if (billingData.billingEmail !== undefined) {
+      const recepient = { to: [billingData.billingEmail] }
       const mail = new RefundDonationDto({
         campaignName: campaign.title,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        currency: billingData.currency.toUpperCase(),
+        netAmount: billingData.netAmount / 100,
+        taxAmount: (billingData.chargedAmount - billingData.netAmount) / 100,
       })
       // Send Notification
 

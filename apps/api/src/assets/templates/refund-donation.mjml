@@ -29,7 +29,7 @@
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
           padding-right="25px">
-          <span style="color: #feeb35"> Здравейте {{firstName}} {{lastName}}, </span>
+          <span style="color: #feeb35"> Здравейте, </span>
           <br /><br />
         </mj-text>
         <mj-text
@@ -39,10 +39,16 @@
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
           padding-right="25px">
-          Това е автоматичен e-mail, който потвърждава, че ще получите обратно вашите пари от <br /><br />
-          вашето дарение към кампанията {{campaignName}}. <br /><br />
-          Транзакцията ще отнеме от 5 до 10 дни и  за съжеление ще е без таксите който Stripe удържа.<br /><br />
+          Това е автоматичен e-mail, който потвърждава, че ще получите обратно парите от <br />
+          вашето дарение към кампанията {{campaignName}}. <br />
+          За съжаление, поради ограничения на Stripe, не можем да ви възстановим таксите, които са
+          удържани от тях. <br /><br />
 
+          Допълнителни подробности:<br />
+          Сумата която ще възстановим е на стойност {{netAmount}} {{currency}}.<br />
+          Таксата удържана от Stripe е на стойност {{taxAmount}} {{currency}}<br />
+          Транзакцията ще отнеме от 5 до 10 дни и парите ви ще бъдат върнати по същия начин, по
+          който са били получени. <br /><br />
 
           Благодарим ви за разбирането!
         </mj-text>
