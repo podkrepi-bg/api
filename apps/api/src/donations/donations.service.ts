@@ -423,7 +423,7 @@ export class DonationsService {
   async getUserDonationById(
     id: string,
     keycloakId: string,
-    email: string,
+    email?: string,
   ): Promise<(Donation & { person: Person | null }) | null> {
     return await this.prisma.donation.findFirst({
       where: {
@@ -564,7 +564,7 @@ export class DonationsService {
 
         const status = updatePaymentDto.status || currentDonation.status
         let donorId = currentDonation.personId
-        let billingEmail = ''
+        let billingEmail: string | null = ''
         if (
           (updatePaymentDto.targetPersonId &&
             currentDonation.personId !== updatePaymentDto.targetPersonId) ||
@@ -636,7 +636,7 @@ export class DonationsService {
     }
   }
 
-  async getDonationsByUser(keycloakId: string, email: string) {
+  async getDonationsByUser(keycloakId: string, email?: string) {
     const donations = await this.prisma.donation.findMany({
       where: {
         OR: [{ billingEmail: email }, { person: { keycloakId } }],

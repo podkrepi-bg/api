@@ -272,7 +272,7 @@ export class MarketingNotificationsService {
       return new BadRequestException('Failed to get user')
     }
 
-    if (!userInfo) return new BadRequestException('User not found')
+    if (!userInfo || !userInfo.email) return new BadRequestException('User not found')
 
     // Already unsubscribed
     if (!userInfo.newsletter) return { email: userInfo.email, subscribed: false }
@@ -306,7 +306,7 @@ export class MarketingNotificationsService {
       return new BadRequestException('Failed to get user')
     }
 
-    if (!userInfo) return new BadRequestException('User not found')
+    if (!userInfo || !userInfo.email) return new BadRequestException('User not found')
 
     // Already subscribed
     if (userInfo.newsletter) return { email: userInfo.email, subscribed: true }

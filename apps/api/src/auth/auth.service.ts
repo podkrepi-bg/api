@@ -203,9 +203,9 @@ export class AuthService {
           await this.marketingNotificationsService.provider.addContactsToList({
             contacts: [
               {
-                email: person.email,
-                first_name: person?.firstName || '',
-                last_name: person?.lastName || '',
+                email: registerDto.email,
+                first_name: registerDto.firstName,
+                last_name: registerDto.lastName,
               },
             ],
             list_ids: [mainList],
@@ -327,13 +327,15 @@ export class AuthService {
 
   async sendMailForPasswordChange(forgotPasswordDto: ForgottenPasswordEmailDto) {
     const stage = this.config.get<string>('APP_ENV') === 'development' ? 'APP_URL_LOCAL' : 'APP_URL'
-    const user = await this.prismaService.person.findFirst({
+    const person = await this.prismaService.person.findFirst({
       where: { email: forgotPasswordDto.email },
     })
-    if (!user) {
+
+    if (!person || !person.email) {
       throw new NotFoundException('Invalid email')
     }
-    const payload = { username: user.email, sub: user.keycloakId }
+
+    const payload = { username: person.email, sub: person.keycloakId }
     const jtwSecret = process.env.JWT_SECRET_KEY
     const access_token = this.jwtService.sign(payload, {
       secret: jtwSecret,
@@ -342,12 +344,12 @@ export class AuthService {
     const appUrl = this.config.get<string>(stage)
     const link = `${appUrl}/change-password?token=${access_token}`
     const profile = {
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      email: person.email,
+      firstName: person.firstName,
+      lastName: person.lastName,
       link: link,
     }
-    const userEmail = { to: [user.email] }
+    const userEmail = { to: [person.email] }
     const mail = new ForgottenPasswordMailDto(profile)
     await this.sendEmail.sendFromTemplate(mail, userEmail, {
       //Allow users to receive the mail, regardles of unsubscribes

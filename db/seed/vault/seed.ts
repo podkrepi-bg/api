@@ -7,123 +7,37 @@ const prisma = new PrismaClient()
 export async function vaultSeed() {
   console.log('Vault seed')
 
-  await seedVaultsForRandomCampaign()
-  await seedVaultForCompletedCampaign()
-  await seedVaultForHeavilyFundedCampaign()
-}
+  await seedVaultsForCampaigns()
 
-async function seedVaultsForRandomCampaign() {
-  const campaign = await prisma.campaign
-    .findMany()
-    .then((campaigns) => faker.helpers.arrayElement(campaigns))
+  async function seedVaultsForCampaigns() {
+    const campaigns = await prisma.campaign.findMany()
 
-  if (!campaign) {
-    throw new Error('There are no campaigns created yet!')
+    if (!campaigns) {
+      throw new Error('There are no campaigns created yet!')
+    }
+
+    let vaults: Vault[] = []
+    campaigns.map(async (campaign) => {
+      vaults.push(
+        vaultFactory.build(
+          {
+            currency: Currency.BGN,
+            amount: 0, // Initializing with 0 and fill the correct amount after donations have been seeded
+          },
+          {
+            associations: {
+              campaignId: campaign.id,
+            },
+          },
+        ),
+      )
+    })
+
+    const insertRandomCampaignVaults = await prisma.vault.createMany({
+      data: vaults,
+      skipDuplicates: true,
+    })
+
+    console.log({ insertRandomCampaignVaults })
   }
-
-  const randomCampaignVaultsData: Vault[] = vaultFactory.buildList(
-    20,
-    {
-      currency: Currency.BGN,
-      amount: 0, // Initializing with 0 and fill the correct amount after donations have been seeded
-    },
-    {
-      associations: {
-        campaignId: campaign.id,
-      },
-    },
-  )
-
-  const insertRandomCampaignVaults = await prisma.vault.createMany({
-    data: randomCampaignVaultsData,
-    skipDuplicates: true,
-  })
-
-  console.log({ insertRandomCampaignVaults })
-}
-
-async function seedVaultForCompletedCampaign() {
-  const completedCampaign = await prisma.campaign.findFirst({
-    where: {
-      state: CampaignState.complete,
-    },
-  })
-
-  if (!completedCampaign) {
-    throw new Error('There is no completed campaign created')
-  }
-
-  const completedCampaignVault = await prisma.vault.findFirst({
-    where: {
-      campaignId: completedCampaign.id,
-    },
-  })
-
-  if (completedCampaignVault) {
-    console.log('{ Completed campaign vault already exists }')
-    return
-  }
-
-  const completedCampaignVaultData: Vault = vaultFactory.build(
-    {
-      name: faker.finance.accountName() + ' completed',
-      currency: Currency.BGN,
-      amount: 0, // Initializing with 0 and fill the correct amount after donations have been seeded
-    },
-    {
-      associations: {
-        campaignId: completedCampaign.id,
-      },
-    },
-  )
-
-  const insertCompletedCampaignVault = await prisma.vault.create({
-    data: completedCampaignVaultData,
-  })
-
-  console.log(`{ insertCompletedCampaignVault: ${!!insertCompletedCampaignVault} }`)
-}
-
-async function seedVaultForHeavilyFundedCampaign() {
-  const heavilyFundedCampaign = await prisma.campaign.findFirst({
-    where: {
-      title: {
-        contains: 'heavily-funded',
-      },
-    },
-  })
-
-  if (!heavilyFundedCampaign) {
-    throw new Error('There is no heavily funded campaign created')
-  }
-
-  const heavilyFundedCampaignVault = await prisma.vault.findFirst({
-    where: {
-      campaignId: heavilyFundedCampaign.id,
-    },
-  })
-
-  if (heavilyFundedCampaignVault) {
-    console.log('{ Heavily-funded campaign vault already exists }')
-    return
-  }
-
-  const heavilyFundedCampaignVaultData: Vault = vaultFactory.build(
-    {
-      name: faker.finance.accountName() + ' heavily-funded',
-      currency: Currency.BGN,
-      amount: 0, // Initializing with 0 and fill the correct amount after donations have been seeded
-    },
-    {
-      associations: {
-        campaignId: heavilyFundedCampaign.id,
-      },
-    },
-  )
-
-  const insertHeavilyFundedCampaignVault = await prisma.vault.create({
-    data: heavilyFundedCampaignVaultData,
-  })
-
-  console.log(`{ insertHeavilyFundedCampaignVault: ${!!insertHeavilyFundedCampaignVault} }`)
 }
