@@ -664,9 +664,7 @@ export class CampaignService {
             ...updatedDonation,
             person: updatedDonation.person,
           })
-          Logger.debug('tuk3')
         }
-        Logger.debug('tuk4')
         return updatedDonation
       } catch (error) {
         Logger.error(
