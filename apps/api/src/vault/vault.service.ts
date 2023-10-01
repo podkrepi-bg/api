@@ -117,7 +117,10 @@ export class VaultService {
     amount: number,
     tx: Prisma.TransactionClient,
   ): Promise<Vault> {
-    const vault = this.updateVaultAmount(vaultId, amount, tx, 'increment')
+    const vault = await this.updateVaultAmount(vaultId, amount, tx, 'increment')
+
+    await this.campaignService.updateCampaignStatusIfTargetReached(vault.campaignId, tx)
+
     return vault
   }
 
@@ -129,8 +132,7 @@ export class VaultService {
     amount: number,
     tx: Prisma.TransactionClient,
   ): Promise<Vault> {
-    const vault = this.updateVaultAmount(vaultId, amount, tx, 'decrement')
-    return vault
+    return this.updateVaultAmount(vaultId, amount, tx, 'decrement')
   }
 
   async updateVaultAmount(
