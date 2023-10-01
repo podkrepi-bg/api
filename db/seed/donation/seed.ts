@@ -1,4 +1,11 @@
-import { PrismaClient, PaymentProvider, DonationStatus, DonationType, Person } from '@prisma/client'
+import {
+  PrismaClient,
+  PaymentProvider,
+  DonationStatus,
+  DonationType,
+  Person,
+  CampaignState,
+} from '@prisma/client'
 
 import { donationFactory } from './factory'
 
@@ -78,8 +85,8 @@ async function seedRandomDonations({ person }: SeedData) {
 async function seedDonationsForCompletedCampaign({ person }: SeedData) {
   const completedCampaignVault = await prisma.vault.findFirst({
     where: {
-      name: {
-        contains: 'completed',
+      campaign: {
+        state: CampaignState.complete,
       },
     },
   })
@@ -119,8 +126,10 @@ async function seedDonationsForCompletedCampaign({ person }: SeedData) {
 async function seedDonationsForHeavilyFundedCampaign({ person }: SeedData) {
   const heavilyFundedCampaignVault = await prisma.vault.findFirst({
     where: {
-      name: {
-        contains: 'heavily-funded',
+      campaign: {
+        title: {
+          contains: 'heavily-funded',
+        },
       },
     },
   })

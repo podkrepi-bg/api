@@ -15,7 +15,7 @@ const prisma = new PrismaClient()
 const SEED_ACTIVE_CAMPAIGNS = 5
 const SEED_RANDOM_CAMPAIGNS = 5
 const SEED_COMPLETED_CAMPAIGNS = 3
-const SEED_HEAVILY_FUNDED_CAMPAIGNS = 3
+const SEED_HEAVILY_FUNDED_CAMPAIGNS = 1
 
 export async function campaignSeed() {
   console.log('Campaigns seed')

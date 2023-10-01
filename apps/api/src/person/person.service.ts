@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import client from '@sendgrid/client'
+import mailClient from '@sendgrid/client'
 import { Prisma } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreatePersonDto } from './dto/create-person.dto'
@@ -16,7 +16,7 @@ export class PersonService {
     const apiKey = config.get<string>('sendgrid.apiKey')
 
     if (apiKey && this.contactsUrl) {
-      client.setApiKey(apiKey)
+      mailClient.setApiKey(apiKey)
     } else {
       this.enabled = false
       Logger.warn('no apiKey or contactsUrl for sendgrid, will not add user to the contact list')
@@ -138,7 +138,7 @@ export class PersonService {
     }
 
     try {
-      await client.request({
+      await mailClient.request({
         url: this.contactsUrl,
         method: 'PUT',
         body: data,

@@ -12,7 +12,6 @@ import {
   Res,
   Inject,
   forwardRef,
-  NotFoundException,
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
 import { DonationStatus } from '@prisma/client'
@@ -108,9 +107,7 @@ export class DonationsController {
 
   @Get('user-donations')
   async userDonations(@AuthenticatedUser() user: KeycloakTokenParsed) {
-    const person = await this.personService.findOneByKeycloakId(user.sub)
-    if (!person) throw new NotFoundException('User was not found')
-    return await this.donationsService.getDonationsByUser(user.sub, person.email)
+    return await this.donationsService.getDonationsByUser(user.sub, user.email)
   }
 
   @Get('money')
@@ -178,16 +175,7 @@ export class DonationsController {
 
   @Get('user/:id')
   async userDonationById(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
-    const person = await this.personService.findOneByKeycloakId(user.sub)
-    if (!person) throw new NotFoundException('User was not found')
-    const donation = await this.donationsService.getUserDonationById(id, user.sub, person.email)
-    return {
-      ...donation,
-      person: {
-        firstName: person.firstName,
-        lastName: person.lastName,
-      },
-    }
+    return await this.donationsService.getUserDonationById(id, user.sub, user.email)
   }
 
   @Post('payment-intent')
