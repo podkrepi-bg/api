@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Currency, WithdrawStatus } from '@prisma/client'
-import { Expose } from 'class-transformer'
-import { IsEnum, IsNumber, IsString, IsUUID, IsOptional } from 'class-validator'
+import { Expose, Type } from 'class-transformer'
+import { IsEnum, IsNumber, IsString, IsUUID, IsOptional, IsDate } from 'class-validator'
 export class CreateWithdrawalDto {
   @ApiProperty({ enum: WithdrawStatus })
   @Expose()
@@ -49,4 +49,11 @@ export class CreateWithdrawalDto {
   @IsOptional()
   @Expose()
   approvedById?: string
+
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  @IsDate()
+  @Type(() => Date)
+  targetDate?: Date | null
 }
