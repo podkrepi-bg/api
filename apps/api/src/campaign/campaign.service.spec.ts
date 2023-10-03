@@ -17,7 +17,7 @@ import { MarketingNotificationsService } from '../notifications/notifications.se
 
 describe('CampaignService', () => {
   let service: CampaignService
-  let marketing: NotificationsProviderInterface<any>
+  let marketing: NotificationsProviderInterface<unknown>
 
   const mockCreateCampaign = {
     slug: 'test-slug',
@@ -106,7 +106,7 @@ describe('CampaignService', () => {
       .compile()
 
     service = module.get<CampaignService>(CampaignService)
-    marketing = module.get<NotificationsProviderInterface<any>>(NotificationsProviderInterface)
+    marketing = module.get<NotificationsProviderInterface<never>>(NotificationsProviderInterface)
   })
 
   describe('update', () => {

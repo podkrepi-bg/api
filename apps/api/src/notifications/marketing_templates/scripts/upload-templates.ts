@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import { PrismaClient } from '@prisma/client'
 import * as sgClient from '@sendgrid/client'
 import { Logger } from '@nestjs/common'
+import { ClientRequest } from '@sendgrid/client/src/request'
 
 sgClient.setApiKey(process.env['SENDGRID_API_KEY'] || '')
 
@@ -28,7 +29,7 @@ async function createMarketingTemplatesIfNotExisting() {
       url: `/v3/designs`,
       method: 'POST',
       body: data,
-    } as any
+    } as ClientRequest
 
     const [response] = await sgClient.request(request)
 

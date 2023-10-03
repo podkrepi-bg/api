@@ -112,7 +112,7 @@ describe('MarketingNotificationsController', () => {
     jest.spyOn(marketingProvider, 'getContactsInfo').mockImplementation(async () => ({}))
     //   Mock hash
     jest
-      .spyOn(MarketingNotificationsService.prototype as any, 'generateHash')
+      .spyOn(MarketingNotificationsService.prototype, 'generateHash')
       .mockReturnValue('hash-value')
   })
 
@@ -128,7 +128,9 @@ describe('MarketingNotificationsController', () => {
     it('should skip sending if user is registered + subscribed', async () => {
       prismaMock.person.findFirst.mockResolvedValue(RegisteredMock)
 
-      await expect(controller.sendConfirmation({ email: RegisteredMock.email })).resolves.toEqual({
+      await expect(
+        controller.sendConfirmation({ email: RegisteredMock.email as string }),
+      ).resolves.toEqual({
         message: 'Subscribed',
       })
 
