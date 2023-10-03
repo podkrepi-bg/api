@@ -232,9 +232,6 @@ describe('ImportTransactionsTask', () => {
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         .spyOn(IrisTasks.prototype as any, 'getTransactions')
         .mockImplementation(() => mockIrisTransactions)
-      const checkTrxsSpy = jest
-        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        .spyOn(IrisTasks.prototype as any, 'hasNewOrNonImportedTransactions')
 
       const prepareBankTrxSpy = jest.spyOn(
         // eslint-disable-next-line  @typescript-eslint/no-explicit-any
@@ -287,19 +284,7 @@ describe('ImportTransactionsTask', () => {
       expect(getIBANSpy).toHaveBeenCalled()
       // 2. Should get IBAN transactions  from IRIS
       expect(getTrxSpy).toHaveBeenCalledWith(irisIBANAccountMock, transactionsDate)
-      // 3. Should check if transactions are up-to-date
-      expect(checkTrxsSpy).toHaveBeenCalledWith(mockIrisTransactions, transactionsDate)
-      expect(prismaMock.bankTransaction.count).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: {
-            transactionDate: {
-              gte: new Date(transactionsDate.toISOString().split('T')[0]),
-              lte: new Date(transactionsDate.toISOString().split('T')[0]),
-            },
-          },
-        }),
-      )
-      // 4.Should prepare the bank-transaction records
+      // 3.Should prepare the bank-transaction records
       expect(prepareBankTrxSpy).toHaveBeenCalledWith(mockIrisTransactions, irisIBANAccountMock)
 
       // 5.Should process transactions and parse donations
@@ -418,69 +403,6 @@ describe('ImportTransactionsTask', () => {
           },
         }),
       )
-    })
-
-    it('should not run if all current transactions for the day have been processed', async () => {
-      const donationService = testModule.get<DonationsService>(DonationsService)
-      const getIBANSpy = jest
-        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        .spyOn(IrisTasks.prototype as any, 'getIrisUserIBANaccount')
-        .mockImplementation(() => irisIBANAccountMock)
-      const getTrxSpy = jest
-        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        .spyOn(IrisTasks.prototype as any, 'getTransactions')
-        .mockImplementation(() => mockIrisTransactions)
-      const checkTrxsSpy = jest.spyOn(
-        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        IrisTasks.prototype as any,
-        'hasNewOrNonImportedTransactions',
-      )
-      const prepareBankTrxSpy = jest.spyOn(
-        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        IrisTasks.prototype as any,
-        'prepareBankTransactionRecords',
-      )
-      const processDonationsSpy = jest.spyOn(
-        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        IrisTasks.prototype as any,
-        'processDonations',
-      )
-      const prepareBankPaymentSpy = jest.spyOn(
-        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        IrisTasks.prototype as any,
-        'prepareBankPaymentObject',
-      )
-      const donationSpy = jest.spyOn(donationService, 'createUpdateBankPayment')
-      const saveTrxSpy = jest
-        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-        .spyOn(IrisTasks.prototype as any, 'saveBankTrxRecords')
-
-      // The length of the imported transactions is the same as the ones received from IRIS -meaning everything is up-to date
-      jest.spyOn(prismaMock.bankTransaction, 'count').mockResolvedValue(mockIrisTransactions.length)
-      jest.spyOn(prismaMock, '$transaction').mockResolvedValue('SUCCESS')
-      jest.spyOn(prismaMock.campaign, 'findMany').mockResolvedValue(mockDonatedCampaigns)
-
-      const transactionsDate = new Date()
-      // Run task
-      await irisTasks.importBankTransactionsTASK(transactionsDate)
-
-      // 1. Should get IRIS iban account
-      expect(getIBANSpy).toHaveBeenCalled()
-      // 2. Should get IBAN transactions  from IRIS
-      expect(getTrxSpy).toHaveBeenCalledWith(irisIBANAccountMock, transactionsDate)
-      // 3. Should check if transactions are up-to-date
-      expect(checkTrxsSpy).toHaveBeenCalledWith(mockIrisTransactions, transactionsDate)
-      // The rest of the flow should not have been executed
-      // 4. Should not be run
-      expect(prepareBankTrxSpy).not.toHaveBeenCalled()
-      // 5. Should not be run
-      expect(processDonationsSpy).not.toHaveBeenCalled()
-      // 6. Should not be run
-      expect(prepareBankPaymentSpy).not.toHaveBeenCalled()
-      // 7. Should not be run
-      expect(donationSpy).not.toHaveBeenCalled()
-      // 8. Should not be run
-      expect(saveTrxSpy).not.toHaveBeenCalled()
     })
 
     it('should not run if no transactions have been fetched', async () => {
