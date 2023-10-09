@@ -20,7 +20,7 @@ import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth
 import { Person } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { LoginDto } from './dto/login.dto'
-import { RegisterDto } from './dto/register.dto'
+import { CompanyRegisterDto, RegisterDto } from './dto/register.dto'
 import { RefreshDto } from './dto/refresh.dto'
 import { KeycloakTokenParsed } from './keycloak'
 import { ProviderDto } from './dto/provider.dto'
@@ -177,14 +177,20 @@ export class AuthService {
     }
   }
 
-  async createUser(registerDto: RegisterDto): Promise<Person | ErrorResponse> {
+  async createUser(
+    registerDto: RegisterDto,
+    isCorporateReg: boolean = false,
+  ): Promise<Person | ErrorResponse> {
     let person: Person
     try {
       await this.authenticateAdmin()
       // Create user in Keycloak
-      const user = await this.createKeycloakUser(registerDto, false)
+      const user = await this.createKeycloakUser(registerDto, false, !isCorporateReg)
       // Insert or connect person in app db
       person = await this.createPerson(registerDto, user.id)
+      if (isCorporateReg) {
+        await this.createCompany(registerDto as CompanyRegisterDto, person.id)
+      }
     } catch (error) {
       const response = {
         error: error.message,
@@ -225,13 +231,17 @@ export class AuthService {
     })
   }
 
-  private async createKeycloakUser(registerDto: RegisterDto, verifyEmail: boolean) {
+  private async createKeycloakUser(
+    registerDto: RegisterDto,
+    verifyEmail: boolean,
+    activeProfile: boolean = true,
+  ) {
     return await this.admin.users.create({
       username: registerDto.email,
       email: registerDto.email,
       firstName: registerDto.firstName,
       lastName: registerDto.lastName,
-      enabled: true,
+      enabled: activeProfile,
       emailVerified: true,
       groups: [],
       requiredActions: verifyEmail ? [RequiredActionAlias.VERIFY_EMAIL] : [],
@@ -274,6 +284,21 @@ export class AuthService {
       // Store keycloakId to the person with same email
       update: { keycloakId },
       where: { email: registerDto.email },
+    })
+  }
+
+  private async createCompany(registerDto: CompanyRegisterDto, personId: string) {
+    return await this.prismaService.company.upsert({
+      // Create a person with the provided keycloakId
+      create: {
+        personId: personId,
+        companyNumber: registerDto.companyNumber,
+        companyName: registerDto.companyName,
+        legalPersonName: registerDto.firstName + registerDto.lastName,
+      },
+      // Store keycloakId to the person with same email
+      update: { personId },
+      where: { personId },
     })
   }
 

@@ -71,6 +71,7 @@ model Person {
   withdrawals        Withdrawal[]
   publishedNews      CampaignNews[]
   newsFiles          CampaignNewsFile[]
+  Company            Company?
 
   @@index([keycloakId], map: "keycloak_id_idx")
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
@@ -86,10 +87,12 @@ model Company {
   legalPersonName String?       @map("legal_person_name")
   countryCode     String?       @map("country_code") @db.Citext
   cityId          String?       @map("city_id") @db.Uuid
+  personId        String?       @unique @db.Uuid
   createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
   beneficiaries   Beneficiary[]
   Campaign        Campaign[]
+  person          Person?        @relation(fields: [personId], references: [id])
 
   @@map("companies")
 }
