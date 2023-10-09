@@ -42,6 +42,10 @@ export class CompanyService {
     return company
   }
 
+  async findOneByEIK(companyNumber: string) {
+    return await this.prisma.company.findUnique({ where: { companyNumber } })
+  }
+
   async update(id: string, updateCompanyDto: UpdateCompanyDto) {
     try {
       const company = await this.prisma.company.update({
