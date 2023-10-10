@@ -1,3 +1,9 @@
+
+
+
+
+
+
 export class UpdateNotificationListDto {
-  name?: string
+  name?: string;
 }

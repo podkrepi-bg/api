@@ -1,1 +1,2 @@
-export * from './notificationList.entity'
+
+export * from './notificationList.entity';

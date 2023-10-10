@@ -1,4 +1,8 @@
+
+
+
+
 export class MarketingTemplates {
-  id: string
-  name: string | null
+  id: string ;
+name: string  | null;
 }

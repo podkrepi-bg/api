@@ -1,3 +1,5 @@
-export class ConnectCampaignNewsFileDto {
-  id: string
-}
+
+  export class ConnectCampaignNewsFileDto {
+    id: string;
+  }
+  

@@ -1,4 +1,10 @@
+
+
+
+
+
+
 export class CreateIrregularityFileDto {
-  filename: string
-  mimetype: string
+  filename: string;
+mimetype: string;
 }

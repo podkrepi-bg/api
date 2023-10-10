@@ -1,3 +1,9 @@
+
+
+
+
+
+
 export class CreateDonationWishDto {
-  message: string
+  message: string;
 }
