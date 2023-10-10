@@ -33,12 +33,6 @@ export class CreatePersonDto {
 
   @ApiProperty()
   @Expose()
-  @IsString()
-  @IsOptional()
-  company?: string
-
-  @ApiProperty()
-  @Expose()
   @IsBoolean()
   @IsOptional()
   newsletter?: boolean

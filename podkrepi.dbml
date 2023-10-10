@@ -13,7 +13,6 @@ Table people {
   lastName String [not null]
   email String [unique]
   phone String
-  company String
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   newsletter Boolean [default: false]
@@ -45,6 +44,7 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   withdrawals withdrawals [not null]
   publishedNews campaign_news [not null]
   newsFiles campaign_news_files [not null]
+  company companies
 
   Note: 'Generic person object'
 }
@@ -57,10 +57,21 @@ https://psc.egov.bg/en/psc-starting-a-business-bulstat']
   legalPersonName String
   countryCode String
   cityId String
+  personId String [unique]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   beneficiaries beneficiaries [not null]
   Campaign campaigns [not null]
+  person people
+  affiliate affiliates
+}
+
+Table affiliates {
+  id String [pk]
+  status AffiliateStatus [not null, default: 'pending']
+  affiliateCode String [unique]
+  companyId String [unique]
+  company companies
 }
 
 Table organizers {
@@ -712,6 +723,13 @@ Enum CampaignTypeCategory {
   others
 }
 
+Enum AffiliateStatus {
+  active
+  pending
+  cancelled
+  rejected
+}
+
 Enum CampaignFileRole {
   background
   coordinator
@@ -763,6 +781,10 @@ Enum EmailType {
   raised90
   raised100
 }
+
+Ref: companies.personId - people.id
+
+Ref: affiliates.companyId - companies.id
 
 Ref: organizers.personId - people.id
 

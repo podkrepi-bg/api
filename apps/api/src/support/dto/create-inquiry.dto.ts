@@ -10,7 +10,6 @@ export class CreateInquiryDto extends PickType(CreatePersonDto, [
   'lastName',
   'email',
   'phone',
-  'company',
   'newsletter',
 ]) {
   @ApiProperty()
@@ -28,7 +27,6 @@ export class CreateInquiryDto extends PickType(CreatePersonDto, [
             lastName: this.lastName,
             email: this.email,
             phone: this.phone,
-            company: this.company,
           },
           where: { email: this.email },
         },

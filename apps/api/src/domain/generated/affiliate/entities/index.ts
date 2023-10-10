@@ -1,0 +1,2 @@
+
+export * from './affiliate.entity';

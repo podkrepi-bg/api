@@ -1,6 +1,6 @@
 generator client {
-  provider        = "prisma-client-js"
-  binaryTargets   = ["native"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
 }
 
 generator dbml {
@@ -36,7 +36,6 @@ model Person {
   lastName           String              @map("last_name") @db.VarChar(100)
   email              String?             @unique @db.Citext
   phone              String?             @db.VarChar(50)
-  company            String?             @db.VarChar(50)
   createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
   // Receive marketing notifications
@@ -71,7 +70,7 @@ model Person {
   withdrawals        Withdrawal[]
   publishedNews      CampaignNews[]
   newsFiles          CampaignNewsFile[]
-  Company            Company?
+  company            Company?
 
   @@index([keycloakId], map: "keycloak_id_idx")
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
@@ -87,14 +86,25 @@ model Company {
   legalPersonName String?       @map("legal_person_name")
   countryCode     String?       @map("country_code") @db.Citext
   cityId          String?       @map("city_id") @db.Uuid
-  personId        String?       @unique @db.Uuid
+  personId        String?       @unique @map("person_id") @db.Uuid
   createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
   beneficiaries   Beneficiary[]
   Campaign        Campaign[]
-  person          Person?        @relation(fields: [personId], references: [id])
+  person          Person?       @relation(fields: [personId], references: [id])
+  affiliate       Affiliate?
 
   @@map("companies")
+}
+
+model Affiliate {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status        AffiliateStatus @default(pending)
+  affiliateCode String?         @unique @map("affiliate_code")
+  companyId     String?         @unique @map("company_id") @db.Uuid
+  company       Company?        @relation(fields: [companyId], references: [id])
+
+  @@map("affiliates")
 }
 
 /// Organizer is the person who manages the campaign on behalf of the Beneficiary
@@ -262,9 +272,9 @@ model MarketingTemplates {
 
 // Stores marketing notifications consents for non-registered emails
 model UnregisteredNotificationConsent {
-  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email    String  @unique @db.Citext
-  consent  Boolean @default(false)
+  id      String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email   String  @unique @db.Citext
+  consent Boolean @default(false)
 
   @@map("unregistered_notification_consent")
 }
@@ -880,6 +890,13 @@ enum CampaignTypeCategory {
   others
 
   @@map("campaign_type_category")
+}
+
+enum AffiliateStatus {
+  active
+  pending
+  cancelled
+  rejected
 }
 
 enum CampaignFileRole {

@@ -29,11 +29,6 @@ export class UpdatePersonDto {
 
   @ApiProperty()
   @Expose()
-  @IsOptional()
-  company?: string
-
-  @ApiProperty()
-  @Expose()
   @IsBoolean()
   @IsOptional()
   newsletter?: boolean
