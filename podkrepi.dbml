@@ -72,6 +72,7 @@ Table affiliates {
   affiliateCode String [unique]
   companyId String [unique]
   company companies
+  donations donations [not null]
 }
 
 Table organizers {
@@ -377,12 +378,14 @@ Table donations {
   updatedAt DateTime
   amount Int [not null, default: 0]
   currency Currency [not null, default: 'BGN']
+  affiliateId String
   personId String
   billingEmail String
   billingName String
   chargedAmount Int [not null, default: 0]
   person people
   targetVault vaults [not null]
+  affiliate affiliates
   DonationWish donation_wishes
 }
 
@@ -851,6 +854,8 @@ Ref: vaults.campaignId > campaigns.id
 Ref: donations.personId > people.id
 
 Ref: donations.targetVaultId > vaults.id
+
+Ref: donations.affiliateId > affiliates.id
 
 Ref: donation_wishes.campaignId > campaigns.id
 

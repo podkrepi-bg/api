@@ -103,6 +103,7 @@ model Affiliate {
   affiliateCode String?         @unique @map("affiliate_code")
   companyId     String?         @unique @map("company_id") @db.Uuid
   company       Company?        @relation(fields: [companyId], references: [id])
+  donations     Donation[]
 
   @@map("affiliates")
 }
@@ -459,12 +460,14 @@ model Donation {
   updatedAt          DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
   amount             Int             @default(0)
   currency           Currency        @default(BGN)
+  affiliateId        String?         @map("affiliate_id") @db.Uuid
   personId           String?         @map("person_id") @db.Uuid
   billingEmail       String?         @map("billing_email") @db.VarChar
   billingName        String?         @map("billing_name") @db.VarChar
   chargedAmount      Int             @default(0)
   person             Person?         @relation(fields: [personId], references: [id])
   targetVault        Vault           @relation(fields: [targetVaultId], references: [id])
+  affiliate          Affiliate?      @relation(fields: [affiliateId], references: [id])
   DonationWish       DonationWish?
 
   @@map("donations")
