@@ -792,6 +792,7 @@ enum DonationStatus {
   declined
   waiting
   cancelled
+  guaranteed
   succeeded
   deleted
   refund
