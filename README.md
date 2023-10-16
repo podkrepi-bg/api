@@ -63,6 +63,7 @@ git clone git@github.com:podkrepi-bg/api.git
 cd api
 
 yarn set version berry
+
 yarn
 ```
 
