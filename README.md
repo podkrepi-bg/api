@@ -68,13 +68,7 @@ yarn
 
 ## Create Docker containers for the Dev Database(postgres) and the Identity Server(Keycloak)
 
-Use below command for `docker-compose` version `>=2.5`
-
-```shell
-docker-compose --profile local-keycloak up -d
-```
-
-or with earlier versions of docker-compose:
+Run the below command in your terminal:
 
 ```shell
 docker compose up -d pg-db keycloak
