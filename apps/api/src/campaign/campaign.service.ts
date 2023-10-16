@@ -524,6 +524,7 @@ export class CampaignService {
         id: true,
         type: true,
         status: true,
+        affiliateId: true,
         provider: true,
         createdAt: true,
         updatedAt: true,
