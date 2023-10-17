@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import {
+  AffiliateStatus,
   Campaign,
   Donation,
   DonationStatus,
@@ -27,6 +28,7 @@ import { donationWithPerson, DonationWithPerson } from './queries/donation.valid
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 import { ImportStatus } from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
+import { CreateAffiliateDonation } from '../affiliate/dto/create-affiliate-donation.dto'
 
 @Injectable()
 export class DonationsService {
@@ -318,6 +320,16 @@ export class DonationsService {
     return result
   }
 
+  async createAffiliateDonation(donation: CreateAffiliateDonation) {
+    const vault = await this.vaultService.findByCampaignId(donation.campaignId)
+
+    if (!vault) throw new NotFoundException('Vault not found')
+
+    return await this.prisma.donation.create({
+      data: donation.toEntity(vault[0].id),
+    })
+  }
+
   /**
    * Lists all donations with all fields only for admin roles
    * @param campaignId (Optional) Filter by campaign id
@@ -414,6 +426,18 @@ export class DonationsService {
     }
   }
 
+  async getAffiliateDonationById(donationId: string, affiliateCode: string) {
+    try {
+      const donation = await this.prisma.donation.findFirstOrThrow({
+        where: { id: donationId, affiliate: { affiliateCode: affiliateCode } },
+      })
+      return donation
+    } catch (err) {
+      const msg = 'No Donation record with ID: ' + donationId
+      Logger.warn(msg)
+      throw new NotFoundException(msg)
+    }
+  }
   /**
    * Get donation by id with person data attached
    * @param id Donation id
@@ -537,6 +561,18 @@ export class DonationsService {
     })
   }
 
+  async updateAffiliateDonations(donationId: string, affiliateId: string, status: DonationStatus) {
+    const donation = await this.prisma.donation.update({
+      where: {
+        id: donationId,
+        affiliateId: affiliateId,
+      },
+      data: {
+        status,
+      },
+    })
+    return donation
+  }
   /**
    * Updates the donation's status or donor. Note: completed donations cannot have status updates.
    * @param id

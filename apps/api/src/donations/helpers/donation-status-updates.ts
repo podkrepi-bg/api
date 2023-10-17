@@ -5,6 +5,7 @@ const changeable: DonationStatus[] = [
   DonationStatus.incomplete,
   DonationStatus.paymentRequested,
   DonationStatus.waiting,
+  DonationStatus.guaranteed,
 ]
 const final: DonationStatus[] = [
   DonationStatus.succeeded,

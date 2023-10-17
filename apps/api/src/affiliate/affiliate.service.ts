@@ -17,6 +17,13 @@ export class AffiliateService {
     return await this.prismaService.affiliate.findUnique({ where: { id } })
   }
 
+  async findOneByCode(affiliateCode: string) {
+    return await this.prismaService.affiliate.findUnique({
+      where: { affiliateCode },
+      include: { donations: true, company: { select: { person: true } } },
+    })
+  }
+
   async updateStatus(
     affiliateId: string,
     status: AffiliateStatus,
