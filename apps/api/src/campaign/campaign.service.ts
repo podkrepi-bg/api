@@ -101,10 +101,11 @@ export class CampaignService {
 
     const result = await this.prisma.$queryRaw<CampaignSummaryDto[]>`SELECT
     SUM(d.reached)::INTEGER as "reachedAmount",
+    SUM(g.guaranteed)::INTEGER as "guaranteedAmount",
     (SUM(v.amount) - SUM(v."blockedAmount"))::INTEGER as "currentAmount",
     SUM(v."blockedAmount")::INTEGER as "blockedAmount",
     SUM(w."withdrawnAmount")::INTEGER as "withdrawnAmount",
-    SUM(d.donors)::INTEGER as donors,
+    SUM(COALESCE(g.donors, 0) + COALESCE(d.donors, 0))::INTEGER as donors,
     v.campaign_id as id
     FROM api.vaults v
     LEFT JOIN (
@@ -114,6 +115,13 @@ export class CampaignService {
         GROUP BY target_vault_id
       ) as d
       ON d.target_vault_id = v.id
+    LEFT JOIN (
+        SELECT target_vault_id, sum(amount) as guaranteed, count(id) as donors
+        FROM api.donations d
+        WHERE status = 'guaranteed'
+        GROUP BY target_vault_id
+      ) as g
+      ON g.target_vault_id = v.id      
     LEFT JOIN (
       SELECT source_vault_id, sum(amount) as "withdrawnAmount"
         FROM api.withdrawals w
@@ -1110,6 +1118,7 @@ export class CampaignService {
       currentAmount: csum?.currentAmount || 0,
       blockedAmount: csum?.blockedAmount || 0,
       withdrawnAmount: csum?.withdrawnAmount || 0,
+      guaranteedAmount: csum?.guaranteedAmount || 0,
       donors: csum?.donors || 0,
     }
   }

@@ -10,6 +10,9 @@ export class CampaignSummaryDto {
   reachedAmount: number
 
   @ApiProperty()
+  guaranteedAmount: number
+
+  @ApiProperty()
   currentAmount: number
 
   @ApiProperty()
