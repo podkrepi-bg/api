@@ -31,8 +31,12 @@ import {
   ExpiringIrisConsentEmailDto,
   UnrecognizedDonationEmailDto,
 } from '../../email/template.interface'
+import { ImportStatus } from '../../bank-transactions-file/dto/bank-transactions-import-status.dto'
 
 type filteredTransaction = Prisma.BankTransactionCreateManyInput
+type AffiliatePayload = Prisma.AffiliateGetPayload<{
+  include: { donations: true }
+}>
 
 @Injectable()
 export class IrisTasks {
@@ -269,7 +273,7 @@ export class IrisTasks {
     ibanAccount: IrisIbanAccountInfo,
   ) {
     const filteredTransactions: filteredTransaction[] = []
-
+    let matchedRef: string | null
     for (const trx of transactions) {
       // We're interested in parsing only incoming trx's
       if (trx.creditDebitIndicator !== 'CREDIT') {
@@ -281,11 +285,16 @@ export class IrisTasks {
         continue
       }
 
+      if (trx.remittanceInformationUnstructured.startsWith('af_')) {
+        matchedRef = trx.remittanceInformationUnstructured
+      } else {
+        matchedRef =
+          trx.remittanceInformationUnstructured
+            ?.trim()
+            .replace(/[ _]+/g, '-')
+            .match(this.regexPaymentRef)![0] ?? null
+      }
       // Try to recognize campaign payment reference
-      let matchedRef = trx.remittanceInformationUnstructured
-        ?.trim()
-        .replace(/[ _]+/g, '-')
-        .match(this.regexPaymentRef)
 
       const transactionAmount = {
         amount: trx.transactionAmount?.amount,
@@ -320,7 +329,7 @@ export class IrisTasks {
         currency: transactionAmount.currency,
         description: trx.remittanceInformationUnstructured?.trim(),
         // Not saved in the DB, it's added only for convinience and efficiency
-        matchedRef: matchedRef ? matchedRef[0] : null,
+        matchedRef: matchedRef ? matchedRef : null,
       })
     }
 
@@ -328,9 +337,33 @@ export class IrisTasks {
   }
 
   private async processDonations(bankTransactions: filteredTransaction[]) {
-    const matchedPaymentRef: string[] = []
+    const campaignPaymentRef: string[] = []
+    const affiliatePaymentRef: string[] = []
     bankTransactions.forEach((trx) => {
-      if (trx.matchedRef) matchedPaymentRef.push(trx.matchedRef)
+      if (trx.matchedRef) {
+        trx.matchedRef.startsWith('af_')
+          ? affiliatePaymentRef.push(trx.matchedRef)
+          : campaignPaymentRef.push(trx.matchedRef)
+      }
+    })
+
+    const affiliates = await this.prisma.affiliate.findMany({
+      where: {
+        affiliateCode: {
+          in: affiliatePaymentRef,
+        },
+      },
+      include: {
+        donations: {
+          where: {
+            status: DonationStatus.guaranteed,
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+          include: { targetVault: true },
+        },
+      },
     })
 
     /*
@@ -338,10 +371,11 @@ export class IrisTasks {
      than execute a separate one for each transaction -
      more performent and reliable approach
     */
+
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         paymentReference: {
-          in: matchedPaymentRef,
+          in: campaignPaymentRef,
         },
       },
       include: {
@@ -359,7 +393,13 @@ export class IrisTasks {
       const campaign = campaigns.find((cmpgn) => cmpgn.paymentReference === trx.matchedRef)
 
       if (!campaign) {
-        trx.bankDonationStatus = BankDonationStatus.unrecognized
+        //Campaign not found by paymentReference. Check if it is affiliate donation
+        const affiliate = affiliates.find((affiliate) => affiliate.affiliateCode === trx.matchedRef)
+        if (!affiliate) {
+          trx.bankDonationStatus = BankDonationStatus.unrecognized
+          continue
+        }
+        await this.processAffiliateDonations(affiliate, trx)
         continue
       }
 
@@ -375,6 +415,25 @@ export class IrisTasks {
     }
 
     return bankTransactions
+  }
+
+  private async processAffiliateDonations(affiliate: AffiliatePayload, trx: filteredTransaction) {
+    let totalDonated = 0
+    let updatedDonations = 0
+    if (!trx.amount) return
+    for (const donation of affiliate.donations) {
+      if (trx.amount - totalDonated < donation.amount) continue
+      await this.donationsService.updateAffiliateBankPayment(donation)
+      totalDonated += donation.amount
+      updatedDonations++
+    }
+    if (trx.amount - totalDonated > 0 || updatedDonations < affiliate.donations.length) {
+      trx.bankDonationStatus = BankDonationStatus.incomplete
+      return ImportStatus.INCOMPLETE
+    }
+
+    trx.bankDonationStatus = BankDonationStatus.imported
+    return ImportStatus.SUCCESS
   }
 
   private prepareBankPaymentObject(

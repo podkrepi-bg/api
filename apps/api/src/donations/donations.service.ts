@@ -561,6 +561,18 @@ export class DonationsService {
     })
   }
 
+  async updateAffiliateBankPayment(donationDto: Donation) {
+    return await this.prisma.$transaction(async (tx) => {
+      await Promise.all([
+        this.vaultService.incrementVaultAmount(donationDto.targetVaultId, donationDto.amount, tx),
+        tx.donation.update({
+          where: { id: donationDto.id },
+          data: { status: DonationStatus.succeeded },
+        }),
+      ])
+    })
+  }
+
   async updateAffiliateDonations(donationId: string, affiliateId: string, status: DonationStatus) {
     const donation = await this.prisma.donation.update({
       where: {

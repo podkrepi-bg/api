@@ -874,6 +874,7 @@ enum BankTransactionType {
 enum BankDonationStatus {
   unrecognized
   imported
+  incomplete
   reImported   @map("re_imported")
   importFailed @map("import_failed")
 
