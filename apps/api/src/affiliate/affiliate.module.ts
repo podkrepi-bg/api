@@ -9,5 +9,6 @@ import { DonationsModule } from '../donations/donations.module'
   controllers: [AffiliateController],
   providers: [AffiliateService, PrismaService],
   imports: [PersonModule, DonationsModule],
+  exports: [AffiliateService],
 })
 export class AffiliateModule {}

@@ -32,6 +32,8 @@ import {
   UnrecognizedDonationEmailDto,
 } from '../../email/template.interface'
 import { ImportStatus } from '../../bank-transactions-file/dto/bank-transactions-import-status.dto'
+import { IrisIbanAccountInfoDto } from '../../bank-transactions/dto/iris-bank-account-info.dto'
+import { IrisTransactionInfoDto } from '../../bank-transactions/dto/iris-bank-transaction-info.dto'
 
 type filteredTransaction = Prisma.BankTransactionCreateManyInput
 type AffiliatePayload = Prisma.AffiliateGetPayload<{
@@ -123,6 +125,44 @@ export class IrisTasks {
         bypassUnsubscribeManagement: { enable: true },
       })
     }
+  }
+
+  async simulateBankTransactionImportTask(
+    ibanAccount: IrisIbanAccountInfoDto,
+    transactions: IrisTransactionInfoDto[],
+  ) {
+    let bankTrxRecords: filteredTransaction[]
+    try {
+      bankTrxRecords = this.prepareBankTransactionRecords(transactions, ibanAccount)
+      Logger.debug(`Transactions for import after filtering: ${bankTrxRecords.length}`)
+    } catch (e) {
+      return Logger.error('Error while preparing BankTransaction records')
+    }
+
+    // 5. Parse transactions and create the donations
+    let processedBankTrxRecords: filteredTransaction[]
+    try {
+      processedBankTrxRecords = await this.processDonations(bankTrxRecords)
+    } catch (e) {
+      return Logger.error('Failed to process transaction donations' + e.message)
+    }
+
+    // 6. Save BankTransactions to DB
+    try {
+      const savedTransactions = await this.saveBankTrxRecords(processedBankTrxRecords)
+      Logger.debug('Saved transactions count: ' + savedTransactions.count)
+    } catch (e) {
+      return Logger.error('Failed to import transactions into DB: ' + e.message)
+    }
+
+    //7. Notify about unrecognized donations
+    try {
+      await this.sendUnrecognizedDonationsMail(processedBankTrxRecords)
+    } catch (e) {
+      return Logger.error('Failed to notify about bad transaction donations ' + e.message)
+    }
+
+    return
   }
 
   async importBankTransactionsTASK(transactionsDate: Date) {
@@ -288,14 +328,13 @@ export class IrisTasks {
       if (trx.remittanceInformationUnstructured.startsWith('af_')) {
         matchedRef = trx.remittanceInformationUnstructured
       } else {
-        matchedRef =
-          trx.remittanceInformationUnstructured
-            ?.trim()
-            .replace(/[ _]+/g, '-')
-            .match(this.regexPaymentRef)![0] ?? null
+        const ref = trx.remittanceInformationUnstructured
+          ?.trim()
+          .replace(/[ _]+/g, '-')
+          .match(this.regexPaymentRef)
+        matchedRef = ref ? ref[0] : null
       }
       // Try to recognize campaign payment reference
-
       const transactionAmount = {
         amount: trx.transactionAmount?.amount,
         currency: trx.transactionAmount?.currency,
@@ -332,7 +371,6 @@ export class IrisTasks {
         matchedRef: matchedRef ? matchedRef : null,
       })
     }
-
     return filteredTransactions
   }
 
@@ -420,7 +458,8 @@ export class IrisTasks {
   private async processAffiliateDonations(affiliate: AffiliatePayload, trx: filteredTransaction) {
     let totalDonated = 0
     let updatedDonations = 0
-    if (!trx.amount) return
+    if (!trx.amount || affiliate.donations.length === 0) return
+
     for (const donation of affiliate.donations) {
       if (trx.amount - totalDonated < donation.amount) continue
       await this.donationsService.updateAffiliateBankPayment(donation)

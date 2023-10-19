@@ -17,6 +17,12 @@ export class AffiliateService {
     return await this.prismaService.affiliate.findUnique({ where: { id } })
   }
 
+  async findAffiliateByKecloakId(keycloakId: string) {
+    return await this.prismaService.affiliate.findFirst({
+      where: { company: { person: { keycloakId } } },
+    })
+  }
+
   async findOneByCode(affiliateCode: string) {
     return await this.prismaService.affiliate.findUnique({
       where: { affiliateCode },

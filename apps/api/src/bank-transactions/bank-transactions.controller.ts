@@ -3,6 +3,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Logger,
   NotFoundException,
@@ -14,7 +15,7 @@ import {
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-import { Roles, RoleMatchingMode, AuthenticatedUser } from 'nest-keycloak-connect'
+import { Roles, RoleMatchingMode, AuthenticatedUser, Public } from 'nest-keycloak-connect'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { BankTransactionsService } from './bank-transactions.service'
 import {
@@ -24,6 +25,9 @@ import {
 import { CampaignService } from '../campaign/campaign.service'
 import { BankDonationStatus } from '@prisma/client'
 import { DateTime, Interval } from 'luxon'
+import { ConfigService } from '@nestjs/config'
+import { IrisBankTransactionSimulationDto } from './dto/bank-transactions-iris-simulate.dto'
+import { AffiliateService } from '../affiliate/affiliate.service'
 
 @ApiTags('bank-transaction')
 @Controller('bank-transaction')
@@ -31,6 +35,8 @@ export class BankTransactionsController {
   constructor(
     private readonly bankTransactionsService: BankTransactionsService,
     private readonly campaignService: CampaignService,
+    private readonly configService: ConfigService,
+    private readonly affiliateService: AffiliateService,
   ) {}
 
   @Get('list')
@@ -144,5 +150,24 @@ export class BankTransactionsController {
       Logger.debug('rerunBankTransactionsForDate date: ', d.start.toISODate())
       await this.bankTransactionsService.rerunBankTransactionsForDate(new Date(d.start.toISODate()))
     })
+  }
+
+  @Post('iris-transaction-test')
+  async testIrisInsertion(
+    @Body() irisDto: IrisBankTransactionSimulationDto,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    const appEnv = this.configService.get<string>('APP_ENV')
+    const isDev = appEnv === 'development' || appEnv === 'staging'
+    if (!isDev) throw new ForbiddenException('Endpoint available only for testing enviroments')
+
+    const affiliate = await this.affiliateService.findAffiliateByKecloakId(user.sub)
+    if (!isAdmin(user) && !affiliate)
+      throw new ForbiddenException('Must be either an admin or active affiliate')
+
+    return await this.bankTransactionsService.simulateIrisTask(
+      irisDto.irisIbanAccountInfo,
+      irisDto.irisTransactionInfo,
+    )
   }
 }
