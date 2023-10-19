@@ -51,16 +51,23 @@ export class AffiliateController {
 
     if (!affiliate) throw new NotFoundException('Affiliate not found')
 
+    let affiliateCode: string | null = affiliate.affiliateCode
+
     if (affiliate.status === newStatus) {
       throw new ConflictException('Status is the same')
     }
 
-    if (affiliate.status === 'pending' && newStatus === 'active') {
-      const affiliateCode = affiliateCodeGenerator(affiliate.id)
-      return await this.affiliateService.updateStatus(affiliateId, newStatus, affiliateCode)
+    if (
+      (affiliate.status === 'pending' || affiliate.status === 'cancelled') &&
+      newStatus === 'active'
+    ) {
+      affiliateCode = affiliateCodeGenerator(affiliate.id)
     }
 
-    return await this.affiliateService.updateStatus(affiliateId, newStatus, affiliate.affiliateCode)
+    if (affiliate.status === 'active' && newStatus !== 'active') {
+      affiliateCode = null
+    }
+    return await this.affiliateService.updateStatus(affiliateId, newStatus, affiliateCode)
   }
 
   @Get(':affiliateCode')
