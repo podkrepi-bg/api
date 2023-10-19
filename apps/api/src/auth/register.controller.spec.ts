@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { AuthService } from './auth.service'
 import { RegisterController } from './register.controller'
 import { RegisterDto } from './dto/register.dto'
+import { CompanyModule } from '../company/company.module'
 
 describe('RegisterController', () => {
   let controller: RegisterController
@@ -21,6 +22,7 @@ describe('RegisterController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RegisterController],
       providers: [AuthService, AuthServiceProvider],
+      imports: [CompanyModule],
     }).compile()
 
     controller = module.get<RegisterController>(RegisterController)
@@ -34,7 +36,7 @@ describe('RegisterController', () => {
   describe('createUser', () => {
     const registerDto = new RegisterDto()
     it('should call createUser', async () => {
-      expect(await controller.register(registerDto))
+      expect(await controller.registerIndividual(registerDto))
       expect(spyService.createUser).toHaveBeenCalled()
       expect(spyService.createUser).toHaveBeenCalledWith(registerDto)
     })
