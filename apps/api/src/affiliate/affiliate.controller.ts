@@ -21,6 +21,7 @@ import { CreateAffiliateDonation } from './dto/create-affiliate-donation.dto'
 import { DonationsService } from '../donations/donations.service'
 import { CancelAffiliateDonation } from './dto/cancel-affiliate-donation.dto'
 import { shouldAllowStatusChange } from '../donations/helpers/donation-status-updates'
+import { affiliateCodeGenerator } from './utils/affiliateCodeGenerator'
 
 @Controller('affiliate')
 @ApiTags('affiliate')
@@ -55,7 +56,7 @@ export class AffiliateController {
     }
 
     if (affiliate.status === 'pending' && newStatus === 'active') {
-      const affiliateCode = getPaymentReference()
+      const affiliateCode = affiliateCodeGenerator(affiliate.id)
       return await this.affiliateService.updateStatus(affiliateId, newStatus, affiliateCode)
     }
 
