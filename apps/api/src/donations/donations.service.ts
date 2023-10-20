@@ -290,7 +290,10 @@ export class DonationsService {
     pageSize?: number,
   ): Promise<ListDonationsDto<DonationBaseDto>> {
     const data = await this.prisma.donation.findMany({
-      where: { status, targetVault: { campaign: { id: campaignId } } },
+      where: {
+        OR: [{ status: status }, { status: DonationStatus.guaranteed }],
+        targetVault: { campaign: { id: campaignId } },
+      },
       orderBy: [{ updatedAt: 'desc' }],
       select: {
         id: true,
@@ -308,13 +311,9 @@ export class DonationsService {
       take: pageSize ? pageSize : undefined,
     })
 
-    const count = await this.prisma.donation.count({
-      where: { status, targetVault: { campaign: { id: campaignId } } },
-    })
-
     const result = {
       items: data,
-      total: count,
+      total: data.length,
     }
 
     return result
