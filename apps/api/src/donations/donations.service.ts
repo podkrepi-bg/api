@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import {
-  AffiliateStatus,
   Campaign,
   Donation,
   DonationStatus,

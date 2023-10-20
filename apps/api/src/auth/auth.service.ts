@@ -179,7 +179,7 @@ export class AuthService {
 
   async createUser(
     registerDto: RegisterDto,
-    isCorporateReg: boolean = false,
+    isCorporateReg = false,
   ): Promise<Person | ErrorResponse> {
     let person: Person
     try {
@@ -234,7 +234,7 @@ export class AuthService {
   private async createKeycloakUser(
     registerDto: RegisterDto,
     verifyEmail: boolean,
-    activeProfile: boolean = true,
+    activeProfile = true,
   ) {
     return await this.admin.users.create({
       username: registerDto.email,

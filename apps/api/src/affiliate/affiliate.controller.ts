@@ -16,7 +16,6 @@ import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { AuthenticatedUser, Public } from 'nest-keycloak-connect'
 import { AffiliateService } from './affiliate.service'
 import { AffiliateStatusUpdateDto } from './dto/affiliate-status-update.dto'
-import { getPaymentReference } from '../campaign/helpers/payment-reference'
 import { CreateAffiliateDonation } from './dto/create-affiliate-donation.dto'
 import { DonationsService } from '../donations/donations.service'
 import { CancelAffiliateDonation } from './dto/cancel-affiliate-donation.dto'
@@ -89,8 +88,8 @@ export class AffiliateController {
     const affiliateDonationDto: CreateAffiliateDonation = {
       ...donation,
       affiliateId: affiliate.id,
-      personId: donation.isAnonymous ? null : affiliate.company.person!.id,
-      billingEmail: affiliate.company.person!.email,
+      personId: donation.isAnonymous ? null : affiliate.company.person.id,
+      billingEmail: affiliate.company.person.email,
       toEntity: donation.toEntity,
     }
 

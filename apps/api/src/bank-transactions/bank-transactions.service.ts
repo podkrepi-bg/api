@@ -17,7 +17,6 @@ import { Response } from 'express'
 import { CreateBankPaymentDto } from '../donations/dto/create-bank-payment.dto'
 import { DonationsService } from '../donations/donations.service'
 import { IrisTasks } from '../tasks/bank-import/import-transactions.task'
-import { IrisIbanAccountInfo, IrisTransactionInfo } from '../tasks/bank-import/dto/response.dto'
 import { IrisIbanAccountInfoDto } from './dto/iris-bank-account-info.dto'
 import { IrisTransactionInfoDto } from './dto/iris-bank-transaction-info.dto'
 
