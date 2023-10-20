@@ -304,7 +304,9 @@ export class DonationsService {
         amount: true,
         chargedAmount: true,
         currency: true,
-        person: { select: { firstName: true, lastName: true } },
+        person: {
+          select: { firstName: true, lastName: true, company: { select: { companyName: true } } },
+        },
       },
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
