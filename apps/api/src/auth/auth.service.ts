@@ -294,7 +294,7 @@ export class AuthService {
         personId: personId,
         companyNumber: registerDto.companyNumber,
         companyName: registerDto.companyName,
-        legalPersonName: registerDto.firstName + registerDto.lastName,
+        legalPersonName: registerDto.firstName + ' ' + registerDto.lastName,
       },
       // Store keycloakId to the person with same email
       update: { personId },
