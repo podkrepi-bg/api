@@ -56,16 +56,14 @@ export class AffiliateController {
       throw new ConflictException('Status is the same')
     }
 
-    if (
-      (affiliate.status === 'pending' || affiliate.status === 'cancelled') &&
-      newStatus === 'active'
-    ) {
+    if (affiliate.status !== 'active' && newStatus === 'active') {
       affiliateCode = affiliateCodeGenerator(affiliate.id)
     }
 
     if (affiliate.status === 'active' && newStatus !== 'active') {
       affiliateCode = null
     }
+
     return await this.affiliateService.updateStatus(affiliateId, newStatus, affiliateCode)
   }
 
