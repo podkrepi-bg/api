@@ -1,9 +1,3 @@
-
-
-
-
-
-
 export class UpdateAffiliateDto {
-  affiliateCode?: string;
+  affiliateCode?: string
 }

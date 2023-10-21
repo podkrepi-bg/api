@@ -1,9 +1,3 @@
-
-
-
-
-
-
 export class CreateAffiliateDto {
-  affiliateCode?: string;
+  affiliateCode?: string
 }

@@ -1,5 +1,3 @@
-
-  export class ConnectMarketingTemplatesDto {
-    id: string;
-  }
-  
+export class ConnectMarketingTemplatesDto {
+  id: string
+}

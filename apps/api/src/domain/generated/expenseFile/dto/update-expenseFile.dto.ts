@@ -1,10 +1,4 @@
-
-
-
-
-
-
 export class UpdateExpenseFileDto {
-  filename?: string;
-mimetype?: string;
+  filename?: string
+  mimetype?: string
 }

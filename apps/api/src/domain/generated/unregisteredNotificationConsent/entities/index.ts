@@ -1,2 +1,1 @@
-
-export * from './unregisteredNotificationConsent.entity';
+export * from './unregisteredNotificationConsent.entity'

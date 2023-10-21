@@ -1,2 +1,1 @@
-
-export * from './bankTransactionsFile.entity';
+export * from './bankTransactionsFile.entity'
