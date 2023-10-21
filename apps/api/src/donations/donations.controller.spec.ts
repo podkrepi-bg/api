@@ -49,6 +49,7 @@ describe('DonationsController', () => {
     type: DonationType.donation,
     status: DonationStatus.succeeded,
     amount: 10,
+    affiliateId: null,
     extCustomerId: 'gosho',
     extPaymentIntentId: 'pm1',
     extPaymentMethodId: 'bank',
