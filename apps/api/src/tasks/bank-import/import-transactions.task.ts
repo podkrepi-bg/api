@@ -459,7 +459,7 @@ export class IrisTasks {
     let totalDonated = 0
     let updatedDonations = 0
     if (!trx.amount || affiliate.donations.length === 0) {
-      trx.bankDonationStatus = BankDonationStatus.unrecognized
+      trx.bankDonationStatus = BankDonationStatus.importFailed
       return ImportStatus.UNPROCESSED
     }
 
