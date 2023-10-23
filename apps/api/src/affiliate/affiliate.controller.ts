@@ -45,7 +45,7 @@ export class AffiliateController {
     @Body() { newStatus }: AffiliateStatusUpdateDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
-    if (!isAdmin(user)) throw new ForbiddenException('Must be an admin ')
+    if (!isAdmin(user)) throw new ForbiddenException('Must be an admin')
     const affiliate = await this.affiliateService.findOneById(affiliateId)
 
     if (!affiliate) throw new NotFoundException('Affiliate not found')
