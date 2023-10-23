@@ -14,7 +14,15 @@ import { CampaignService } from '../../campaign/campaign.service'
 import { VaultService } from '../../vault/vault.service'
 import { NotificationModule } from '../../sockets/notifications/notification.module'
 import { ExportService } from '../../export/export.service'
-import { BankDonationStatus, BankTransaction, Campaign, Vault } from '@prisma/client'
+import {
+  Affiliate,
+  BankDonationStatus,
+  BankTransaction,
+  Campaign,
+  DonationStatus,
+  Prisma,
+  Vault,
+} from '@prisma/client'
 import { toMoney } from '../../common/money'
 import { DateTime } from 'luxon'
 import { EmailService } from '../../email/email.service'
@@ -24,6 +32,9 @@ import { SendGridNotificationsProvider } from '../../notifications/providers/not
 import { MarketingNotificationsService } from '../../notifications/notifications.service'
 
 const IBAN = 'BG77UNCR92900016740920'
+type AffiliateWithPayload = Prisma.AffiliateGetPayload<{
+  include: { donations: true }
+}>
 
 class MockIrisTasks extends IrisTasks {
   protected IBAN = IBAN
@@ -52,6 +63,34 @@ describe('ImportTransactionsTask', () => {
       vaults: [{ id: 'vault-id' }],
     },
   ] as (Campaign & { vaults: Vault[] })[]
+
+  const affiliateMock: AffiliateWithPayload = {
+    id: '1234567',
+    companyId: '1234572',
+    affiliateCode: 'af_12345',
+    status: 'active',
+    donations: [
+      {
+        id: 'donation-id',
+        type: 'donation',
+        status: 'guaranteed',
+        amount: 5000,
+        affiliateId: 'affiliate-id',
+        personId: null,
+        extCustomerId: '',
+        extPaymentIntentId: '123456',
+        extPaymentMethodId: '1234',
+        billingEmail: 'test@podkrepi.bg',
+        billingName: 'John doe',
+        targetVaultId: 'vault-id',
+        chargedAmount: 0,
+        currency: 'BGN',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        provider: 'bank',
+      },
+    ],
+  }
 
   const mockIrisTransactions: IrisTransactionInfo[] = [
     // CORRECT BANK DONATION
@@ -137,6 +176,27 @@ describe('ImportTransactionsTask', () => {
       exchangeRate: null,
       valueDate: '2023-03-01',
       creditDebitIndicator: 'DEBIT',
+    },
+    //Affiliate donation
+    {
+      transactionId: 'Booked_5954782144_70123543493054963FTRO23073A58G01C2023345440_20230914',
+      bookingDate: '2023-03-14',
+      creditorAccount: {
+        iban: 'BG66UNCR70001524349032',
+      },
+      creditorName: 'СДРУЖЕНИЕ ПОДКРЕПИ БГ',
+      debtorAccount: {
+        iban: 'BG77UNCR92900016740920',
+      },
+      debtorName: 'JOHN DOE',
+      remittanceInformationUnstructured: 'af_12345',
+      transactionAmount: {
+        amount: 50,
+        currency: 'BGN',
+      },
+      exchangeRate: null,
+      valueDate: '2023-03-14',
+      creditDebitIndicator: 'CREDIT',
     },
   ]
 
@@ -256,13 +316,17 @@ describe('ImportTransactionsTask', () => {
         IrisTasks.prototype as any,
         'sendUnrecognizedDonationsMail',
       )
-
+      const processAffiliateDonationSpy = jest.spyOn(
+        IrisTasks.prototype as any,
+        'processAffiliateDonations',
+      )
       // Spy email sending
       jest.spyOn(emailService, 'sendFromTemplate').mockImplementation(async () => {})
 
       jest.spyOn(prismaMock.bankTransaction, 'count').mockResolvedValue(0)
       jest.spyOn(prismaMock, '$transaction').mockResolvedValue('SUCCESS')
       jest.spyOn(prismaMock.campaign, 'findMany').mockResolvedValue(mockDonatedCampaigns)
+      jest.spyOn(prismaMock.affiliate, 'findMany').mockResolvedValue([affiliateMock])
       jest.spyOn(prismaMock.bankTransaction, 'createMany').mockResolvedValue({ count: 2 })
       jest.spyOn(prismaMock.bankTransaction, 'updateMany')
       jest
@@ -286,8 +350,8 @@ describe('ImportTransactionsTask', () => {
       expect(getTrxSpy).toHaveBeenCalledWith(irisIBANAccountMock, transactionsDate)
       // 3.Should prepare the bank-transaction records
       expect(prepareBankTrxSpy).toHaveBeenCalledWith(mockIrisTransactions, irisIBANAccountMock)
-
       // 5.Should process transactions and parse donations
+      expect(processAffiliateDonationSpy).toHaveBeenCalledOnce()
       expect(processDonationsSpy).toHaveBeenCalledWith(
         // Outgoing and Stripe payments should have been filtered
         expect.arrayContaining(
@@ -313,6 +377,30 @@ describe('ImportTransactionsTask', () => {
             },
           },
           include: { vaults: true },
+        }),
+      )
+      expect(prismaMock.affiliate.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            affiliateCode: {
+              in: [
+                // VALID Affiliate CODE
+                mockIrisTransactions[mockIrisTransactions.length - 1]
+                  .remittanceInformationUnstructured,
+              ],
+            },
+          },
+          include: {
+            donations: {
+              where: {
+                status: DonationStatus.guaranteed,
+              },
+              orderBy: {
+                createdAt: 'asc',
+              },
+              include: { targetVault: true },
+            },
+          },
         }),
       )
       // Should be called only once - for the recognized campaign payment ref
@@ -354,10 +442,12 @@ describe('ImportTransactionsTask', () => {
       expect(parameters[0].bankDonationStatus).toEqual(BankDonationStatus.imported)
       // Bank donation 2
       expect(parameters[1].bankDonationStatus).toEqual(BankDonationStatus.unrecognized)
+      // Affiliate donation
+      expect(parameters[2].bankDonationStatus).toEqual(BankDonationStatus.imported)
       // STRIPE Payment
-      expect(parameters[2]).not.toBeDefined()
-      // OUTGOING Payment
       expect(parameters[3]).not.toBeDefined()
+      // OUTGOING Payment
+      expect(parameters[4]).not.toBeDefined()
 
       // Only new transactions should be saved
       expect(prismaMock.bankTransaction.createMany).toHaveBeenCalledWith(
