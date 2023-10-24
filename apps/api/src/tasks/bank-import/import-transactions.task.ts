@@ -512,7 +512,11 @@ export class IrisTasks {
       data.map((trx) =>
         this.prisma.bankTransaction.upsert({
           where: { id: trx.id },
-          update: { bankDonationStatus: trx.bankDonationStatus },
+          update: {
+            bankDonationStatus: trx.description.startsWith('af_')
+              ? trx.bankDonationStatus
+              : undefined,
+          },
           create: { ...trx },
         }),
       ),
