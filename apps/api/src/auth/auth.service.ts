@@ -17,7 +17,7 @@ import { RequiredActionAlias } from '@keycloak/keycloak-admin-client/lib/defs/re
 import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
 import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth'
 
-import { Person } from '@prisma/client'
+import { Company, Person } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { LoginDto } from './dto/login.dto'
 import { CompanyRegisterDto, RegisterDto } from './dto/register.dto'
@@ -161,7 +161,7 @@ export class AuthService {
           firstName: userData?.firstName ?? '',
           lastName: userData?.lastName ?? '',
         }
-        await this.createPerson(registerDto, user.sub)
+        await this.createPerson(registerDto, user.sub, undefined)
       }
       return {
         refreshToken: grant.refresh_token?.token,
@@ -182,15 +182,16 @@ export class AuthService {
     isCorporateReg = false,
   ): Promise<Person | ErrorResponse> {
     let person: Person
+    let company: Company | null = null
     try {
       await this.authenticateAdmin()
       // Create user in Keycloak
       const user = await this.createKeycloakUser(registerDto, false, !isCorporateReg)
       // Insert or connect person in app db
-      person = await this.createPerson(registerDto, user.id)
       if (isCorporateReg) {
-        await this.createCompany(registerDto as CompanyRegisterDto, person.id)
+        company = await this.createCompany(registerDto as CompanyRegisterDto)
       }
+      person = await this.createPerson(registerDto, user.id, company?.id)
     } catch (error) {
       const response = {
         error: error.message,
@@ -271,7 +272,11 @@ export class AuthService {
     return `${serverUrl}/realms/${realm}/protocol/openid-connect/token`
   }
 
-  private async createPerson(registerDto: RegisterDto, keycloakId: string) {
+  private async createPerson(
+    registerDto: RegisterDto,
+    keycloakId: string,
+    companyId: string | null | undefined,
+  ) {
     return await this.prismaService.person.upsert({
       // Create a person with the provided keycloakId
       create: {
@@ -280,6 +285,7 @@ export class AuthService {
         firstName: registerDto.firstName,
         lastName: registerDto.lastName,
         newsletter: registerDto.newsletter ? registerDto.newsletter : false,
+        companyId: companyId,
       },
       // Store keycloakId to the person with same email
       update: { keycloakId },
@@ -287,18 +293,15 @@ export class AuthService {
     })
   }
 
-  private async createCompany(registerDto: CompanyRegisterDto, personId: string) {
-    return await this.prismaService.company.upsert({
+  private async createCompany(registerDto: CompanyRegisterDto): Promise<Company> {
+    return await this.prismaService.company.create({
       // Create a person with the provided keycloakId
-      create: {
-        personId: personId,
+      data: {
         companyNumber: registerDto.companyNumber,
         companyName: registerDto.companyName,
         legalPersonName: registerDto.firstName + ' ' + registerDto.lastName,
       },
       // Store keycloakId to the person with same email
-      update: { personId },
-      where: { personId },
     })
   }
 
