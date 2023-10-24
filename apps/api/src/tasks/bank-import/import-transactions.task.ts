@@ -150,7 +150,7 @@ export class IrisTasks {
     // 6. Save BankTransactions to DB
     try {
       const savedTransactions = await this.saveBankTrxRecords(processedBankTrxRecords)
-      Logger.debug('Saved transactions count: ' + savedTransactions.count)
+      Logger.debug('Saved transactions count: ' + savedTransactions.length)
     } catch (e) {
       return Logger.error('Failed to import transactions into DB: ' + e.message)
     }
@@ -219,7 +219,7 @@ export class IrisTasks {
     // 6. Save BankTransactions to DB
     try {
       const savedTransactions = await this.saveBankTrxRecords(processedBankTrxRecords)
-      Logger.debug('Saved transactions count: ' + savedTransactions.count)
+      Logger.debug('Saved transactions count: ' + savedTransactions.length)
     } catch (e) {
       return Logger.error('Failed to import transactions into DB: ' + e.message)
     }
@@ -508,7 +508,15 @@ export class IrisTasks {
 
   private async saveBankTrxRecords(data: filteredTransaction[]) {
     // Insert new transactions
-    const inserted = await this.prisma.bankTransaction.createMany({ data, skipDuplicates: true })
+    const inserted = await this.prisma.$transaction(
+      data.map((trx) =>
+        this.prisma.bankTransaction.upsert({
+          where: { id: trx.id },
+          update: { bankDonationStatus: trx.bankDonationStatus },
+          create: { ...trx },
+        }),
+      ),
+    )
 
     return inserted
   }
