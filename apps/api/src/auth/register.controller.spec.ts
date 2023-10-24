@@ -36,7 +36,7 @@ describe('RegisterController', () => {
   describe('createUser', () => {
     const registerDto = new RegisterDto()
     it('should call createUser', async () => {
-      expect(await controller.registerIndividual(registerDto))
+      expect(await controller.register(registerDto))
       expect(spyService.createUser).toHaveBeenCalled()
       expect(spyService.createUser).toHaveBeenCalledWith(registerDto)
     })

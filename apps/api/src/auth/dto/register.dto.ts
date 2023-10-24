@@ -1,8 +1,27 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose } from 'class-transformer'
-import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator'
+import {
+  IsBoolean,
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  ValidateIf,
+} from 'class-validator'
+
+export enum ProfileType {
+  INDIVIDUAL = 'individual',
+  CORPORATE = 'corporate',
+}
 
 export class RegisterDto {
+  @ApiProperty()
+  @Expose()
+  @IsEnum(ProfileType)
+  public readonly type: ProfileType = ProfileType.INDIVIDUAL
+
   @ApiProperty()
   @Expose()
   @IsNotEmpty()
@@ -32,15 +51,15 @@ export class RegisterDto {
   @IsOptional()
   @IsBoolean()
   public readonly newsletter?: boolean
-}
 
-export class CompanyRegisterDto extends RegisterDto {
+  @ValidateIf((o) => o.type === ProfileType.CORPORATE)
   @Expose()
   @IsString()
   @ApiProperty()
   @MaxLength(100)
   companyName: string
 
+  @ValidateIf((o) => o.type === ProfileType.CORPORATE)
   @Expose()
   @IsString()
   @ApiProperty({

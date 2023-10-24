@@ -20,7 +20,7 @@ import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth
 import { Company, Person } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { LoginDto } from './dto/login.dto'
-import { CompanyRegisterDto, RegisterDto } from './dto/register.dto'
+import { ProfileType, RegisterDto } from './dto/register.dto'
 import { RefreshDto } from './dto/refresh.dto'
 import { KeycloakTokenParsed } from './keycloak'
 import { ProviderDto } from './dto/provider.dto'
@@ -156,10 +156,13 @@ export class AuthService {
         await this.authenticateAdmin()
         const userData = await this.admin.users.findOne({ id: user.sub })
         const registerDto: RegisterDto = {
+          type: ProfileType.INDIVIDUAL,
           email: userData?.email ?? '',
           password: '',
           firstName: userData?.firstName ?? '',
           lastName: userData?.lastName ?? '',
+          companyName: 'typechecking-hack',
+          companyNumber: 'typechecking-hack',
         }
         await this.createPerson(registerDto, user.sub, undefined)
       }
@@ -189,7 +192,7 @@ export class AuthService {
       const user = await this.createKeycloakUser(registerDto, false, !isCorporateReg)
       // Insert or connect person in app db
       if (isCorporateReg) {
-        company = await this.createCompany(registerDto as CompanyRegisterDto)
+        company = await this.createCompany(registerDto)
       }
       person = await this.createPerson(registerDto, user.id, company?.id)
     } catch (error) {
@@ -293,7 +296,7 @@ export class AuthService {
     })
   }
 
-  private async createCompany(registerDto: CompanyRegisterDto): Promise<Company> {
+  private async createCompany(registerDto: RegisterDto): Promise<Company> {
     return await this.prismaService.company.create({
       // Create a person with the provided keycloakId
       data: {
