@@ -11,7 +11,7 @@ import { VaultService } from '../vault/vault.service'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
 import { ExportService } from '../export/export.service'
-import { Affiliate, Donation, Person, Prisma, Vault } from '@prisma/client'
+import { Affiliate, Donation, Prisma, Vault } from '@prisma/client'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common'
 import { AffiliateStatusUpdateDto } from './dto/affiliate-status-update.dto'
@@ -24,11 +24,10 @@ type AffiliateWithPayload = Prisma.AffiliateGetPayload<{
   include: { company: { include: { person: true } }; donations: true }
 }>
 
-describe('AffiliateService', () => {
+describe('AffiliateController', () => {
   let controller: AffiliateController
   let service: AffiliateService
   let donationService: DonationsService
-  let vaultService: VaultService
   const affiliateCodeMock = 'af_12345'
   const stripeMock = {
     checkout: { sessions: { create: jest.fn() } },
@@ -66,7 +65,6 @@ describe('AffiliateService', () => {
     controller = module.get<AffiliateController>(AffiliateController)
     service = module.get<AffiliateService>(AffiliateService)
     donationService = module.get<DonationsService>(DonationsService)
-    vaultService = module.get<VaultService>(VaultService)
   })
 
   const affiliateUpdateDto: AffiliateStatusUpdateDto = {
