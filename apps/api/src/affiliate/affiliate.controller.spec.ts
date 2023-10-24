@@ -158,9 +158,7 @@ describe('AffiliateController', () => {
   describe('Join program request', () => {
     it('should throw error if request is from individual profile', async () => {
       const createAffiliateSpy = jest.spyOn(service, 'create')
-      const findOneSpy = jest
-        .spyOn(prismaMock.person, 'findFirst')
-        .mockResolvedValue(mockIndividualProfile)
+      jest.spyOn(prismaMock.person, 'findFirst').mockResolvedValue(mockIndividualProfile)
       expect(controller.joinAffiliateProgramRequest(userMock)).rejects.toThrow(
         new BadRequestException('Must be corporate profile'),
       )
@@ -183,9 +181,7 @@ describe('AffiliateController', () => {
         },
       }
       const createAffiliateSpy = jest.spyOn(service, 'create').mockResolvedValue(affiliateMock)
-      const findOneSpy = jest
-        .spyOn(prismaMock.person, 'findFirst')
-        .mockResolvedValue(mockCorporateProfile)
+      jest.spyOn(prismaMock.person, 'findFirst').mockResolvedValue(mockCorporateProfile)
 
       expect(await controller.joinAffiliateProgramRequest(userMock)).toEqual(affiliateMock)
       expect(createAffiliateSpy).toHaveBeenCalled()
@@ -208,7 +204,7 @@ describe('AffiliateController', () => {
         ...userMock,
         resource_access: { account: { roles: ['manage-account', 'account-view-supporters'] } },
       }
-      const findAffiliateSpy = jest.spyOn(service, 'findOneById').mockResolvedValue(affiliateMock)
+      jest.spyOn(service, 'findOneById').mockResolvedValue(affiliateMock)
 
       const codeGenerationSpy = jest
         .spyOn(afCodeGenerator, 'affiliateCodeGenerator')
@@ -241,9 +237,7 @@ describe('AffiliateController', () => {
       const mockCancelledStatus: AffiliateStatusUpdateDto = {
         newStatus: 'cancelled',
       }
-      const findAffiliateSpy = jest
-        .spyOn(service, 'findOneById')
-        .mockResolvedValue(activeAffiliateMock)
+      jest.spyOn(service, 'findOneById').mockResolvedValue(activeAffiliateMock)
 
       const codeGenerationSpy = jest
         .spyOn(afCodeGenerator, 'affiliateCodeGenerator')
@@ -265,9 +259,7 @@ describe('AffiliateController', () => {
         resource_access: { account: { roles: ['manage-account', 'account-view-supporters'] } },
       }
 
-      const findAffiliateSpy = jest
-        .spyOn(service, 'findOneById')
-        .mockResolvedValue(activeAffiliateMock)
+      jest.spyOn(service, 'findOneById').mockResolvedValue(activeAffiliateMock)
 
       const updateStatusDto: AffiliateStatusUpdateDto = {
         newStatus: 'active',
@@ -302,11 +294,11 @@ describe('AffiliateController', () => {
         currency: 'BGN',
         toEntity: new CreateAffiliateDonation().toEntity,
       }
-      const prismaSpy = jest.spyOn(service, 'findOneByCode').mockResolvedValue(activeAffiliateMock)
+      jest.spyOn(service, 'findOneByCode').mockResolvedValue(activeAffiliateMock)
       const createAffiliateDonationSpy = jest
         .spyOn(donationService, 'createAffiliateDonation')
         .mockResolvedValue(donationResponseMock)
-      const findVaultSpy = jest.spyOn(prismaMock.vault, 'findMany').mockResolvedValue([vaultMock])
+      jest.spyOn(prismaMock.vault, 'findMany').mockResolvedValue([vaultMock])
       await controller.createAffiliateDonation(affiliateCodeMock, affiliateDonationDto)
       expect(createAffiliateDonationSpy).toHaveBeenCalledWith({
         ...affiliateDonationDto,
@@ -321,12 +313,10 @@ describe('AffiliateController', () => {
         ...donationResponseMock,
         status: 'cancelled',
       }
-      const affiliateDonationSpy = jest
+      jest
         .spyOn(donationService, 'getAffiliateDonationById')
         .mockResolvedValue(donationResponseMock)
-      const updateDonationStatus = jest
-        .spyOn(donationService, 'update')
-        .mockResolvedValue(cancelledDonationResponse)
+      jest.spyOn(donationService, 'update').mockResolvedValue(cancelledDonationResponse)
       expect(
         await controller.cancelAffiliateDonation(affiliateCodeMock, donationResponseMock.id),
       ).toEqual(cancelledDonationResponse)
@@ -337,7 +327,7 @@ describe('AffiliateController', () => {
         status: 'succeeded',
       }
 
-      const affiliateDonationSpy = jest
+      jest
         .spyOn(donationService, 'getAffiliateDonationById')
         .mockResolvedValue(succeededDonationResponse)
       const updateDonationStatus = jest.spyOn(donationService, 'update')
