@@ -38,7 +38,7 @@ describe('RegisterController', () => {
     it('should call createUser', async () => {
       expect(await controller.register(registerDto))
       expect(spyService.createUser).toHaveBeenCalled()
-      expect(spyService.createUser).toHaveBeenCalledWith(registerDto)
+      expect(spyService.createUser).toHaveBeenCalledWith(registerDto, false)
     })
   })
 })

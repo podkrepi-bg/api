@@ -450,11 +450,7 @@ describe('ImportTransactionsTask', () => {
       expect(parameters[4]).not.toBeDefined()
 
       // Only new transactions should be saved
-      expect(prismaMock.bankTransaction.createMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          skipDuplicates: true,
-        }),
-      )
+      expect(prismaMock.bankTransaction.upsert).toHaveBeenCalled()
 
       // 7.Notify for unrecognized bank donations
       expect(notifyUnrecognizedSpy).toHaveBeenCalledWith(
