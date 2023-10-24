@@ -18,7 +18,6 @@ import { AffiliateService } from './affiliate.service'
 import { AffiliateStatusUpdateDto } from './dto/affiliate-status-update.dto'
 import { CreateAffiliateDonation } from './dto/create-affiliate-donation.dto'
 import { DonationsService } from '../donations/donations.service'
-import { CancelAffiliateDonation } from './dto/cancel-affiliate-donation.dto'
 import { shouldAllowStatusChange } from '../donations/helpers/donation-status-updates'
 import { affiliateCodeGenerator } from './utils/affiliateCodeGenerator'
 
@@ -39,7 +38,7 @@ export class AffiliateController {
     return await this.affiliateService.create(person.company.id)
   }
 
-  @Patch(':affiliateId/status-update')
+  @Patch(':affiliateId/status')
   async updateAffiliateStatus(
     @Param('affiliateId') affiliateId: string,
     @Body() { newStatus }: AffiliateStatusUpdateDto,
@@ -73,7 +72,7 @@ export class AffiliateController {
     return await this.affiliateService.findOneByCode(affilliateCode)
   }
 
-  @Post(':affiliateCode/donations/create')
+  @Post(':affiliateCode/donation')
   @Public()
   async createAffiliateDonation(
     @Param('affiliateCode') affiliateCode: string,
@@ -94,16 +93,13 @@ export class AffiliateController {
     return await this.donationService.createAffiliateDonation(affiliateDonationDto)
   }
 
-  @Patch(':affiliateCode/donations/cancel')
+  @Patch(':affiliateCode/donations/:donationId/cancel')
   @Public()
   async cancelAffiliateDonation(
     @Param('affiliateCode') affiliateCode: string,
-    @Body() donationDto: CancelAffiliateDonation,
+    @Param('donationId') donationId: string,
   ) {
-    const donation = await this.donationService.getAffiliateDonationById(
-      donationDto.donationId,
-      affiliateCode,
-    )
+    const donation = await this.donationService.getAffiliateDonationById(donationId, affiliateCode)
     if (!donation) throw new NotFoundException('Donation with this id is not found')
 
     if (!shouldAllowStatusChange(donation.status, 'cancelled'))

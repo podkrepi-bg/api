@@ -28,7 +28,7 @@ export class CreateAffiliateDonation {
 
   @IsString()
   @IsOptional()
-  extPaymentMethodId: string = 'pm_' + randomUUID()
+  extPaymentMethodId: string = 'affiliate'
 
   @ApiProperty()
   @Expose()
