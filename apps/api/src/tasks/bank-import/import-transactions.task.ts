@@ -458,9 +458,15 @@ export class IrisTasks {
   private async processAffiliateDonations(affiliate: AffiliatePayload, trx: filteredTransaction) {
     let totalDonated = 0
     let updatedDonations = 0
-    if (!trx.amount || affiliate.donations.length === 0) {
+    if (!trx.amount) {
       trx.bankDonationStatus = BankDonationStatus.importFailed
       return ImportStatus.UNPROCESSED
+    }
+    //If no guaranteed donations are found for the affiliate
+    //mark the transaction as imported
+    if (affiliate.donations.length === 0) {
+      trx.bankDonationStatus = BankDonationStatus.imported
+      return ImportStatus.SUCCESS
     }
 
     for (const donation of affiliate.donations) {
