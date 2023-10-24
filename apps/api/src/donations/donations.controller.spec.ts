@@ -9,6 +9,7 @@ import {
   DonationStatus,
   DonationType,
   PaymentProvider,
+  Person,
   Vault,
 } from '@prisma/client'
 import { CampaignService } from '../campaign/campaign.service'
@@ -176,13 +177,13 @@ describe('DonationsController', () => {
     }
 
     const existingDonation = { ...mockDonation }
-    const existingTargetPerson = {
+    const existingTargetPerson: Person = {
       id: '2',
       firstName: 'string',
       lastName: 'string',
       email: 'string',
       phone: 'string',
-      company: 'string',
+      companyId: 'string',
       createdAt: new Date('2022-01-01'),
       updatedAt: new Date('2022-01-01'),
       newsletter: false,
@@ -227,13 +228,13 @@ describe('DonationsController', () => {
       billingEmail: mockDonation.billingEmail,
     }
 
-    const existingTargetPerson = {
+    const existingTargetPerson: Person = {
       id: mockDonation.personId,
       firstName: 'string',
       lastName: 'string',
       email: mockDonation.billingEmail,
       phone: 'string',
-      company: 'string',
+      companyId: 'string',
       createdAt: new Date('2022-01-01'),
       updatedAt: new Date('2022-01-01'),
       newsletter: false,

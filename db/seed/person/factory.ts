@@ -5,6 +5,7 @@ import { Person } from '@prisma/client'
 
 export const personFactory = Factory.define<Person>(() => ({
   id: faker.datatype.uuid(),
+  companyId: null,
   keycloakId: null,
   stripeCustomerId: null,
   firstName: faker.name.firstName(),

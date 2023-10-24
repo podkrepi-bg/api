@@ -75,6 +75,7 @@ describe('AffiliateController', () => {
     id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
     firstName: 'Admin',
     lastName: 'Dev',
+    companyId: null,
     keycloakId: '123',
     email: 'test@podkrepi.bg',
     emailConfirmed: false,

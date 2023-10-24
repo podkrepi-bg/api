@@ -58,6 +58,7 @@ describe('CampaignController', () => {
     keycloakId: 'some-id',
     email: 'user@email.com',
     emailConfirmed: false,
+    companyId: null,
     phone: null,
     picture: null,
     createdAt: new Date('2021-10-07T13:38:11.097Z'),

@@ -33,6 +33,7 @@ export class Person {
   birthday: Date | null
   emailConfirmed: boolean | null
   personalNumber: string | null
+  companyId: string | null
   keycloakId: string | null
   stripeCustomerId: string | null
   picture: string | null
