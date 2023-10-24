@@ -17,7 +17,6 @@ import { BadRequestException, ConflictException, ForbiddenException } from '@nes
 import { AffiliateStatusUpdateDto } from './dto/affiliate-status-update.dto'
 import * as afCodeGenerator from './utils/affiliateCodeGenerator'
 import { CreateAffiliateDonation } from './dto/create-affiliate-donation.dto'
-import { CancelAffiliateDonation } from './dto/cancel-affiliate-donation.dto'
 
 type PersonWithPayload = Prisma.PersonGetPayload<{ include: { company: true } }>
 type AffiliateWithPayload = Prisma.AffiliateGetPayload<{
@@ -322,30 +321,29 @@ describe('AffiliateController', () => {
         ...donationResponseMock,
         status: 'cancelled',
       }
-      const donationDto: CancelAffiliateDonation = { donationId: donationResponseMock.id }
       const affiliateDonationSpy = jest
         .spyOn(donationService, 'getAffiliateDonationById')
         .mockResolvedValue(donationResponseMock)
       const updateDonationStatus = jest
         .spyOn(donationService, 'update')
         .mockResolvedValue(cancelledDonationResponse)
-      expect(await controller.cancelAffiliateDonation(affiliateCodeMock, donationDto)).toEqual(
-        cancelledDonationResponse,
-      )
+      expect(
+        await controller.cancelAffiliateDonation(affiliateCodeMock, donationResponseMock.id),
+      ).toEqual(cancelledDonationResponse)
     })
     it('should throw error if donation status is succeeded', async () => {
       const succeededDonationResponse: Donation = {
         ...donationResponseMock,
         status: 'succeeded',
       }
-      const donationDto: CancelAffiliateDonation = { donationId: donationResponseMock.id }
+
       const affiliateDonationSpy = jest
         .spyOn(donationService, 'getAffiliateDonationById')
         .mockResolvedValue(succeededDonationResponse)
       const updateDonationStatus = jest.spyOn(donationService, 'update')
-      expect(controller.cancelAffiliateDonation(affiliateCodeMock, donationDto)).rejects.toThrow(
-        new BadRequestException("Donation status can't be updated"),
-      )
+      expect(
+        controller.cancelAffiliateDonation(affiliateCodeMock, donationResponseMock.id),
+      ).rejects.toThrow(new BadRequestException("Donation status can't be updated"))
       expect(updateDonationStatus).not.toHaveBeenCalled()
     })
   })

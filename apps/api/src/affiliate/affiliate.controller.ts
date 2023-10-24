@@ -3,12 +3,15 @@ import {
   Body,
   ConflictException,
   Controller,
+  DefaultValuePipe,
   ForbiddenException,
   Get,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { PersonService } from '../person/person.service'
@@ -20,6 +23,7 @@ import { CreateAffiliateDonation } from './dto/create-affiliate-donation.dto'
 import { DonationsService } from '../donations/donations.service'
 import { shouldAllowStatusChange } from '../donations/helpers/donation-status-updates'
 import { affiliateCodeGenerator } from './utils/affiliateCodeGenerator'
+import { DonationStatus } from '@prisma/client'
 
 @Controller('affiliate')
 @ApiTags('affiliate')
@@ -69,7 +73,7 @@ export class AffiliateController {
   @Get(':affiliateCode')
   @Public()
   async affiliateSummary(@Param('affiliateCode') affilliateCode: string) {
-    return await this.affiliateService.findOneByCode(affilliateCode)
+    return await this.affiliateService.getAffiliateSummaryByCode(affilliateCode)
   }
 
   @Post(':affiliateCode/donation')
@@ -81,7 +85,6 @@ export class AffiliateController {
     const affiliate = await this.affiliateService.findOneByCode(affiliateCode)
     if (!affiliate || !affiliate.company || !affiliate.company.person)
       throw new NotFoundException('Affiliate not found')
-
     const affiliateDonationDto: CreateAffiliateDonation = {
       ...donation,
       affiliateId: affiliate.id,
@@ -91,6 +94,22 @@ export class AffiliateController {
     }
 
     return await this.donationService.createAffiliateDonation(affiliateDonationDto)
+  }
+
+  @Get(':affiliateCode/donations')
+  @Public()
+  async getAffiliateDonations(
+    @Param('affiliateCode') affiliateCode: string,
+    @Query('status') status: DonationStatus | undefined,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    return await this.affiliateService.findAffiliateDonationsWithPagination(
+      affiliateCode,
+      status,
+      page,
+      limit,
+    )
   }
 
   @Patch(':affiliateCode/donations/:donationId/cancel')
