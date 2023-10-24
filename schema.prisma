@@ -102,8 +102,8 @@ model Affiliate {
   id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   status        AffiliateStatus @default(pending)
   affiliateCode String?         @unique @map("affiliate_code")
-  companyId     String?         @unique @map("company_id") @db.Uuid
-  company       Company?        @relation(fields: [companyId], references: [id])
+  companyId     String          @unique @map("company_id") @db.Uuid
+  company       Company         @relation(fields: [companyId], references: [id])
   donations     Donation[]
 
   @@map("affiliates")

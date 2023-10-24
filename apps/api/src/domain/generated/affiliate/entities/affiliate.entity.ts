@@ -6,7 +6,7 @@ export class Affiliate {
   id: string
   status: AffiliateStatus
   affiliateCode: string | null
-  companyId: string | null
-  company?: Company | null
+  companyId: string
+  company?: Company
   donations?: Donation[]
 }
