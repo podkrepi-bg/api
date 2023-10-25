@@ -13,7 +13,7 @@ export class IrisBankTransactionSimulationDto {
   @Type(() => IrisIbanAccountInfoDto)
   irisIbanAccountInfo: IrisIbanAccountInfoDto
 
-  @ApiProperty()
+  @ApiProperty({ type: () => IrisTransactionInfoDto })
   @Expose()
   @IsArray()
   @ValidateNested({ each: true })

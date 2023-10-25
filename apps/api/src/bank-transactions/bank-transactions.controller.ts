@@ -5,6 +5,7 @@ import {
   Controller,
   ForbiddenException,
   Get,
+  HttpCode,
   Logger,
   NotFoundException,
   Param,
@@ -13,7 +14,7 @@ import {
   Query,
   Res,
 } from '@nestjs/common'
-import { ApiQuery, ApiTags } from '@nestjs/swagger'
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { Roles, RoleMatchingMode, AuthenticatedUser } from 'nest-keycloak-connect'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
@@ -28,6 +29,8 @@ import { DateTime, Interval } from 'luxon'
 import { ConfigService } from '@nestjs/config'
 import { IrisBankTransactionSimulationDto } from './dto/bank-transactions-iris-simulate.dto'
 import { AffiliateService } from '../affiliate/affiliate.service'
+import { IrisIbanAccountInfoDto } from './dto/iris-bank-account-info.dto'
+import { IrisTransactionInfoDto } from './dto/iris-bank-transaction-info.dto'
 
 @ApiTags('bank-transaction')
 @Controller('bank-transaction')
@@ -152,6 +155,13 @@ export class BankTransactionsController {
     })
   }
 
+  @ApiOperation({ summary: 'Simulating bank transaction response from IRIS API' })
+  @ApiResponse({ status: 204 })
+  @ApiBody({
+    type: IrisBankTransactionSimulationDto,
+    description: 'Request body for simulating IRIS response',
+  })
+  @HttpCode(204)
   @Post('iris-transaction-test')
   async testIrisInsertion(
     @Body() irisDto: IrisBankTransactionSimulationDto,

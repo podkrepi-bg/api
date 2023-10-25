@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger'
 import { Currency } from '@prisma/client'
 import { Expose } from 'class-transformer'
 import { IsIBAN, IsString } from 'class-validator'
@@ -12,6 +13,7 @@ export class IrisIbanAccountInfoDto {
 
   name: string
 
+  @ApiProperty()
   @IsString()
   @IsIBAN()
   @Expose()
@@ -23,6 +25,7 @@ export class IrisIbanAccountInfoDto {
 
   bankHash: string
 
+  @ApiProperty()
   @IsString()
   @Expose()
   bankName: string
