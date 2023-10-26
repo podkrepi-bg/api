@@ -36,6 +36,7 @@ export class AffiliateService {
           where: { status },
           take: limit,
           skip: Number((currentPage - 1) * limit),
+          include: { metadata: true },
         },
       },
     })

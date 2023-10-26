@@ -307,6 +307,7 @@ export class DonationsService {
         person: {
           select: { firstName: true, lastName: true, company: { select: { companyName: true } } },
         },
+        metadata: { select: { name: true } },
       },
       skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
       take: pageSize ? pageSize : undefined,
@@ -320,14 +321,23 @@ export class DonationsService {
     return result
   }
 
-  async createAffiliateDonation(donation: CreateAffiliateDonation) {
-    const vault = await this.vaultService.findByCampaignId(donation.campaignId)
+  async createAffiliateDonation(donationDto: CreateAffiliateDonation) {
+    const vault = await this.vaultService.findByCampaignId(donationDto.campaignId)
 
     if (!vault) throw new NotFoundException('Vault not found')
 
-    return await this.prisma.donation.create({
-      data: donation.toEntity(vault[0].id),
+    const donation = await this.prisma.donation.create({
+      data: donationDto.toEntity(vault[0].id),
     })
+    if (donationDto.metadata) {
+      await this.prisma.donationMetadata.create({
+        data: {
+          donationId: donation.id,
+          ...donationDto.metadata,
+        },
+      })
+    }
+    return donation
   }
 
   /**

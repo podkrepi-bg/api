@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Currency, DonationStatus, DonationType, PaymentProvider, Prisma } from '@prisma/client'
-import { Expose } from 'class-transformer'
+import { Expose, Type } from 'class-transformer'
 import { Equals, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator'
 import { randomUUID } from 'crypto'
+import { DonationMetadataDto } from '../../donations/dto/donation-metadata.dto'
 
 export class CreateAffiliateDonation {
   @ApiProperty()
@@ -64,6 +65,12 @@ export class CreateAffiliateDonation {
   @IsString()
   @IsOptional()
   extCustomerId: string
+
+  @ApiProperty()
+  @Expose()
+  @Type(() => DonationMetadataDto)
+  @IsOptional()
+  metadata: DonationMetadataDto | undefined
 
   public toEntity(targetVaultId: string): Prisma.DonationCreateInput {
     return {

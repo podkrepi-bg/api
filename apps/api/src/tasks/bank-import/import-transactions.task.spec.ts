@@ -15,7 +15,6 @@ import { VaultService } from '../../vault/vault.service'
 import { NotificationModule } from '../../sockets/notifications/notification.module'
 import { ExportService } from '../../export/export.service'
 import {
-  Affiliate,
   BankDonationStatus,
   BankTransaction,
   Campaign,

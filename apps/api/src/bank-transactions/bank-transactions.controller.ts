@@ -29,8 +29,6 @@ import { DateTime, Interval } from 'luxon'
 import { ConfigService } from '@nestjs/config'
 import { IrisBankTransactionSimulationDto } from './dto/bank-transactions-iris-simulate.dto'
 import { AffiliateService } from '../affiliate/affiliate.service'
-import { IrisIbanAccountInfoDto } from './dto/iris-bank-account-info.dto'
-import { IrisTransactionInfoDto } from './dto/iris-bank-transaction-info.dto'
 
 @ApiTags('bank-transaction')
 @Controller('bank-transaction')

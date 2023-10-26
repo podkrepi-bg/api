@@ -14,11 +14,12 @@ export const donationWithPerson = Prisma.validator<Prisma.DonationFindManyArgs>(
         name: true,
         campaign: {
           select: {
-            id: true
-          }
-        }
+            id: true,
+          },
+        },
       },
     },
+    metadata: true,
   },
 })
 

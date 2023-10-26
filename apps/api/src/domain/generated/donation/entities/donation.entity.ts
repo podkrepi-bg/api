@@ -3,6 +3,7 @@ import { Person } from '../../person/entities/person.entity'
 import { Vault } from '../../vault/entities/vault.entity'
 import { Affiliate } from '../../affiliate/entities/affiliate.entity'
 import { DonationWish } from '../../donationWish/entities/donationWish.entity'
+import { DonationMetadata } from '../../donationMetadata/entities/donationMetadata.entity'
 
 export class Donation {
   id: string
@@ -26,4 +27,5 @@ export class Donation {
   targetVault?: Vault
   affiliate?: Affiliate | null
   DonationWish?: DonationWish | null
+  metadata?: DonationMetadata | null
 }

@@ -446,32 +446,41 @@ model Vault {
 }
 
 model Donation {
-  id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type               DonationType
-  status             DonationStatus  @default(initial)
-  provider           PaymentProvider @default(none)
+  status             DonationStatus    @default(initial)
+  provider           PaymentProvider   @default(none)
   /// Vault where the funds are going
-  targetVaultId      String          @map("target_vault_id") @db.Uuid
+  targetVaultId      String            @map("target_vault_id") @db.Uuid
   /// Payment provider attributes
-  extCustomerId      String          @map("ext_customer_id") @db.VarChar(50)
-  extPaymentIntentId String          @unique @map("ext_payment_intent_id")
-  extPaymentMethodId String          @map("ext_payment_method_id")
+  extCustomerId      String            @map("ext_customer_id") @db.VarChar(50)
+  extPaymentIntentId String            @unique @map("ext_payment_intent_id")
+  extPaymentMethodId String            @map("ext_payment_method_id")
   ///
-  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
-  amount             Int             @default(0)
-  currency           Currency        @default(BGN)
-  affiliateId        String?         @map("affiliate_id") @db.Uuid
-  personId           String?         @map("person_id") @db.Uuid
-  billingEmail       String?         @map("billing_email") @db.VarChar
-  billingName        String?         @map("billing_name") @db.VarChar
-  chargedAmount      Int             @default(0)
-  person             Person?         @relation(fields: [personId], references: [id])
-  targetVault        Vault           @relation(fields: [targetVaultId], references: [id])
-  affiliate          Affiliate?      @relation(fields: [affiliateId], references: [id])
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  amount             Int               @default(0)
+  currency           Currency          @default(BGN)
+  affiliateId        String?           @map("affiliate_id") @db.Uuid
+  personId           String?           @map("person_id") @db.Uuid
+  billingEmail       String?           @map("billing_email") @db.VarChar
+  billingName        String?           @map("billing_name") @db.VarChar
+  chargedAmount      Int               @default(0)
+  person             Person?           @relation(fields: [personId], references: [id])
+  targetVault        Vault             @relation(fields: [targetVaultId], references: [id])
+  affiliate          Affiliate?        @relation(fields: [affiliateId], references: [id])
   DonationWish       DonationWish?
+  metadata           DonationMetadata?
 
   @@map("donations")
+}
+
+model DonationMetadata {
+  donationId String   @id @unique @map("donation_id") @db.Uuid
+  name       String?  @db.VarChar
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  extraData  Json?    @map("extra_data")
+  donation   Donation @relation(fields: [donationId], references: [id])
 }
 
 model DonationWish {
