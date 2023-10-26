@@ -54,6 +54,7 @@ export class IrisTasks {
   private daysToExpCondition = 5
   // Used to check if the task should be stopped
   private canRun = true
+  private readonly AFFILIATE_CODE_PREFIX = 'af_'
 
   constructor(
     private readonly httpService: HttpService,
@@ -325,7 +326,7 @@ export class IrisTasks {
         continue
       }
 
-      if (trx.remittanceInformationUnstructured.startsWith('af_')) {
+      if (trx.remittanceInformationUnstructured.startsWith(this.AFFILIATE_CODE_PREFIX)) {
         matchedRef = trx.remittanceInformationUnstructured
       } else {
         const ref = trx.remittanceInformationUnstructured
@@ -379,7 +380,7 @@ export class IrisTasks {
     const affiliatePaymentRef: string[] = []
     bankTransactions.forEach((trx) => {
       if (trx.matchedRef) {
-        trx.matchedRef.startsWith('af_')
+        trx.matchedRef.startsWith(this.AFFILIATE_CODE_PREFIX)
           ? affiliatePaymentRef.push(trx.matchedRef)
           : campaignPaymentRef.push(trx.matchedRef)
       }
@@ -513,7 +514,7 @@ export class IrisTasks {
         this.prisma.bankTransaction.upsert({
           where: { id: trx.id },
           update: {
-            bankDonationStatus: trx.description.startsWith('af_')
+            bankDonationStatus: trx.description.startsWith(this.AFFILIATE_CODE_PREFIX)
               ? trx.bankDonationStatus
               : undefined,
           },
