@@ -481,6 +481,8 @@ model DonationMetadata {
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   extraData  Json?    @map("extra_data")
   donation   Donation @relation(fields: [donationId], references: [id])
+
+  @@map("donation_metadata")
 }
 
 model DonationWish {
