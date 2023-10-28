@@ -228,6 +228,15 @@ export class DonationsController {
     return this.donationsService.createStripePayment(stripePaymentDto)
   }
 
+  @Post('/refund-stripe-payment/:id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  refundStripePaymet(@Param('id') paymentIntentId: string) {
+    return this.donationsService.refundStripePayment(paymentIntentId)
+  }
+
   @Post('create-bank-payment')
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],

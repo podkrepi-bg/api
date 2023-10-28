@@ -483,6 +483,28 @@ export class DonationsService {
   }
 
   /**
+   * Refund a stipe payment donation
+   * https://stripe.com/docs/api/refunds/create
+   * @param inputDto Refund-stripe params
+   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
+   */
+  async refundStripePayment(paymentIntentId: string): Promise<Stripe.Response<Stripe.Refund>> {
+    const intent = await this.stripeClient.paymentIntents.retrieve(paymentIntentId)
+    if (!intent) {
+      throw new BadRequestException('Payment Intent is missing from stripe')
+    }
+
+    if (!intent.metadata.campaignId) {
+      throw new BadRequestException('Campaign id is missing from payment intent metadata')
+    }
+
+    return await this.stripeClient.refunds.create({
+      payment_intent: paymentIntentId,
+      reason: 'requested_by_customer',
+    })
+  }
+
+  /**
    * Update a payment intent for a donation
    * https://stripe.com/docs/api/payment_intents/update
    * @param inputDto Payment intent create params
