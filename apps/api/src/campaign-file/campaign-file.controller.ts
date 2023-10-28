@@ -24,7 +24,6 @@ import { CampaignFileService } from './campaign-file.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { ApiTags } from '@nestjs/swagger'
-import { CampaignFileRole } from '@prisma/client'
 
 @ApiTags('campaign-file')
 @Controller('campaign-file')

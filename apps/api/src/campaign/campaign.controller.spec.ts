@@ -28,7 +28,7 @@ describe('CampaignController', () => {
   let controller: CampaignController
   let prismaService: PrismaService
   let campaignService: CampaignService
-  let marketingProvider: NotificationsProviderInterface<any>
+  let marketingProvider: NotificationsProviderInterface<unknown>
   let marketingService: MarketingNotificationsService
   const personServiceMock = {
     findOneByKeycloakId: jest.fn(() => {
@@ -196,7 +196,7 @@ describe('CampaignController', () => {
     prismaService = prismaMock
     campaignService = module.get<CampaignService>(CampaignService)
     marketingService = module.get<MarketingNotificationsService>(MarketingNotificationsService)
-    marketingProvider = module.get<NotificationsProviderInterface<any>>(
+    marketingProvider = module.get<NotificationsProviderInterface<never>>(
       NotificationsProviderInterface,
     )
 

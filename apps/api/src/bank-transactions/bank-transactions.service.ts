@@ -163,6 +163,6 @@ export class BankTransactionsService {
   }
 
   async rerunBankTransactionsForDate(transactionsDate: Date) {
-    this.irisBankImport.importBankTransactionsTASK(transactionsDate)
+    await this.irisBankImport.importBankTransactionsTASK(transactionsDate)
   }
 }

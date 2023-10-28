@@ -31,7 +31,7 @@ describe('AuthService', () => {
   let config: ConfigService
   let admin: KeycloakAdminClient
   let keycloak: KeycloakConnect.Keycloak
-  let marketing: NotificationsProviderInterface<any>
+  let marketing: NotificationsProviderInterface<unknown>
 
   const person: Person = {
     id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
@@ -113,7 +113,7 @@ describe('AuthService', () => {
     service = module.get<AuthService>(AuthService)
     config = module.get<ConfigService>(ConfigService)
     admin = module.get<KeycloakAdminClient>(KeycloakAdminClient)
-    marketing = module.get<NotificationsProviderInterface<any>>(NotificationsProviderInterface)
+    marketing = module.get<NotificationsProviderInterface<never>>(NotificationsProviderInterface)
     keycloak = module.get<KeycloakConnect.Keycloak>(KEYCLOAK_INSTANCE)
   })
 

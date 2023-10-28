@@ -141,37 +141,25 @@ export class IrisTasks {
 
       ibanAccount = account
     } catch (e) {
-      return Logger.error('Failed to get iban data from Iris')
+      return Logger.error('Failed to get iban data from Iris' + e.message)
     }
 
     // 2. Get transactions from IRIS
     let transactions: IrisTransactionInfo[]
     try {
       transactions = await this.getTransactions(ibanAccount, transactionsDate)
+      //Logger.debug(`Received ${transactions.length} for date: ${transactionsDate} ` + JSON.stringify(transactions))
       // No transactions for the day yet
       if (!transactions.length) return
     } catch (e) {
-      return Logger.error('Failed to get transactions data from Iris')
+      return Logger.error('Failed to get transactions data from Iris' + e.message)
     }
 
-    // 3. Check if the cron should actually run
-    try {
-      const isUpToDate = await this.hasNewOrNonImportedTransactions(transactions, transactionsDate)
-
-      /**
-       Should we let it run every time, (giving it a chance to import some previously failed donation for example, because DB was down for 0.5 sec).
-       This would also mean that the whole flow will run for all transactions every time
-      **/
-
-      if (isUpToDate) return
-    } catch (e) {
-      // Failure of this check is not critical
-    }
-
-    // 4. Prepare the BankTransaction Records
+    // 3. Prepare the BankTransaction Records
     let bankTrxRecords: filteredTransaction[]
     try {
       bankTrxRecords = this.prepareBankTransactionRecords(transactions, ibanAccount)
+      Logger.debug(`Transactions for import after filtering: ${bankTrxRecords.length}`)
     } catch (e) {
       return Logger.error('Error while preparing BankTransaction records')
     }
@@ -181,21 +169,22 @@ export class IrisTasks {
     try {
       processedBankTrxRecords = await this.processDonations(bankTrxRecords)
     } catch (e) {
-      return Logger.error('Failed to process transaction donations')
+      return Logger.error('Failed to process transaction donations' + e.message)
     }
 
     // 6. Save BankTransactions to DB
     try {
-      await this.saveBankTrxRecords(processedBankTrxRecords)
+      const savedTransactions = await this.saveBankTrxRecords(processedBankTrxRecords)
+      Logger.debug('Saved transactions count: ' + savedTransactions.count)
     } catch (e) {
-      return Logger.error('Failed to import transactions into DB')
+      return Logger.error('Failed to import transactions into DB: ' + e.message)
     }
 
     //7. Notify about unrecognized donations
     try {
       await this.sendUnrecognizedDonationsMail(processedBankTrxRecords)
     } catch (e) {
-      return Logger.error('Failed to notify about bad transaction donations')
+      return Logger.error('Failed to notify about bad transaction donations ' + e.message)
     }
 
     return
@@ -241,13 +230,18 @@ export class IrisTasks {
   private async getTransactions(ibanAccount: IrisIbanAccountInfo, transactionsDate: Date) {
     const endpoint = this.config.get<string>('iris.transactionsEndPoint', '')
 
-    const dateToCheck = transactionsDate.toISOString().split('T')[0]
+    const dateFrom = DateTime.fromJSDate(transactionsDate)
+    const dateTo = dateFrom.plus({ days: 1 })
 
-    Logger.debug('Getting transactions for date:' + dateToCheck)
+    Logger.debug(
+      `Getting transactions from date: ${dateFrom.toISODate()} to date: ${dateTo.toISODate()}`,
+    )
 
     const response = (
       await this.httpService.axiosRef.get<GetIrisTransactionInfoResponse>(
-        endpoint + `/${ibanAccount.id}` + `?dateFrom=${dateToCheck}&dateTo=${dateToCheck}`,
+        endpoint +
+          `/${ibanAccount.id}` +
+          `?dateFrom=${dateFrom.toISODate()}&dateTo=${dateTo.toISODate()}`,
         {
           headers: {
             'x-user-hash': this.userHash,
@@ -258,25 +252,6 @@ export class IrisTasks {
     ).data
 
     return response.transactions
-  }
-
-  // Checks to see if all transactions have been processed already
-  private async hasNewOrNonImportedTransactions(
-    transactions: IrisTransactionInfo[],
-    transactionsDate: Date,
-  ) {
-    const dateToCheck = new Date(transactionsDate.toISOString().split('T')[0])
-
-    const count = await this.prisma.bankTransaction.count({
-      where: {
-        transactionDate: {
-          gte: dateToCheck,
-          lte: dateToCheck,
-        },
-      },
-    })
-
-    return transactions.length === count
   }
 
   private extractAmountFromTransactionId(transactionId, transactionValueDate): number {
