@@ -92,7 +92,7 @@ export class CampaignNewsDraftEmailDto extends EmailTemplate<{
   name = TemplateType.campaignNewsDraft
 }
 
-export class RefundDonationDto extends EmailTemplate<{
+export class RefundDonationEmailDto extends EmailTemplate<{
   campaignName: string
   netAmount: number
   taxAmount: number
