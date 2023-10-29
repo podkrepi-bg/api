@@ -15,7 +15,7 @@ export async function donationsWishesSeed() {
     throw new Error('There are no donations created yet!')
   }
 
-  donations.forEach(async (donation) => {
+  for (const donation of donations) {
     const person = await prisma.person.findFirst()
     if (!person) {
       throw new Error('There are no people created yet!')
@@ -41,5 +41,5 @@ export async function donationsWishesSeed() {
     await prisma.donationWish.create({
       data: donationWishData,
     })
-  })
+  }
 }
