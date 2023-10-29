@@ -486,7 +486,7 @@ export class DonationsService {
    * Refund a stipe payment donation
    * https://stripe.com/docs/api/refunds/create
    * @param inputDto Refund-stripe params
-   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
+   * @returns {Promise<Stripe.Response<Stripe.Refund>>}
    */
   async refundStripePayment(paymentIntentId: string): Promise<Stripe.Response<Stripe.Refund>> {
     const intent = await this.stripeClient.paymentIntents.retrieve(paymentIntentId)

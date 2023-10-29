@@ -17,7 +17,7 @@ import {
 } from '../helpers/payment-intent-helpers'
 import { DonationStatus, CampaignState } from '@prisma/client'
 import { EmailService } from '../../email/email.service'
-import { RefundDonationDto } from '../../email/template.interface'
+import { RefundDonationEmailDto } from '../../email/template.interface'
 import { PrismaService } from '../../prisma/prisma.service'
 
 /** Testing Stripe on localhost is described here:
@@ -181,7 +181,7 @@ export class StripePaymentService {
 
     if (billingData.billingEmail !== undefined) {
       const recepient = { to: [billingData.billingEmail] }
-      const mail = new RefundDonationDto({
+      const mail = new RefundDonationEmailDto({
         campaignName: campaign.title,
         currency: billingData.currency.toUpperCase(),
         netAmount: billingData.netAmount / 100,
