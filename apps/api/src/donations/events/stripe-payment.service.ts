@@ -16,6 +16,9 @@ import {
   PaymentData,
 } from '../helpers/payment-intent-helpers'
 import { DonationStatus, CampaignState } from '@prisma/client'
+import { EmailService } from '../../email/email.service'
+import { RefundDonationEmailDto } from '../../email/template.interface'
+import { PrismaService } from '../../prisma/prisma.service'
 
 /** Testing Stripe on localhost is described here:
  * https://github.com/podkrepi-bg/api/blob/master/TESTING.md#testing-stripe
@@ -25,6 +28,8 @@ export class StripePaymentService {
   constructor(
     private campaignService: CampaignService,
     private recurringDonationService: RecurringDonationService,
+    private sendEmail: EmailService,
+    private prismaService: PrismaService,
   ) {}
 
   @StripeWebhookHandler('payment_intent.created')
@@ -144,6 +149,50 @@ export class StripePaymentService {
     //and finally save the donation wish
     if (donationId && metadata?.wish) {
       await this.campaignService.createDonationWish(metadata.wish, donationId, campaign.id)
+    }
+  }
+
+  @StripeWebhookHandler('charge.refunded')
+  async handleRefundCreated(event: Stripe.Event) {
+    const chargePaymentIntent: Stripe.Charge = event.data.object as Stripe.Charge
+    Logger.log(
+      '[ handleRefundCreated ]',
+      chargePaymentIntent,
+      chargePaymentIntent.metadata as DonationMetadata,
+    )
+
+    const metadata: DonationMetadata = chargePaymentIntent.metadata as DonationMetadata
+
+    if (!metadata.campaignId) {
+      Logger.debug('[ handleRefundCreated ] No campaignId in metadata ' + chargePaymentIntent.id)
+      return
+    }
+
+    const billingData = getPaymentDataFromCharge(chargePaymentIntent)
+
+    const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
+
+    await this.campaignService.updateDonationPayment(
+      campaign,
+      billingData,
+      DonationStatus.refund,
+      metadata,
+    )
+
+    if (billingData.billingEmail !== undefined) {
+      const recepient = { to: [billingData.billingEmail] }
+      const mail = new RefundDonationEmailDto({
+        campaignName: campaign.title,
+        currency: billingData.currency.toUpperCase(),
+        netAmount: billingData.netAmount / 100,
+        taxAmount: (billingData.chargedAmount - billingData.netAmount) / 100,
+      })
+      // Send Notification
+
+      await this.sendEmail.sendFromTemplate(mail, recepient, {
+        //Allow users to receive the mail, regardles of unsubscribes
+        bypassUnsubscribeManagement: { enable: true },
+      })
     }
   }
 
