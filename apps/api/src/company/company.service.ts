@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 
 import { PrismaService } from '../prisma/prisma.service'
@@ -42,7 +42,8 @@ export class CompanyService {
     return company
   }
 
-  async findOneByEIK(companyNumber: string) {
+  async findOneByEIK(companyNumber: string | undefined) {
+    if (!companyNumber) throw new BadRequestException('Company number not provided')
     return await this.prisma.company.findUnique({ where: { companyNumber } })
   }
 

@@ -57,7 +57,7 @@ export class RegisterDto {
   @IsString()
   @ApiProperty()
   @MaxLength(100)
-  companyName: string
+  companyName: string | undefined
 
   @ValidateIf((o) => o.type === ProfileType.CORPORATE)
   @Expose()
@@ -66,5 +66,5 @@ export class RegisterDto {
     description:
       'BULSTAT Unified Identification Code (UIC) https://psc.egov.bg/en/psc-starting-a-business-bulstat',
   })
-  companyNumber: string
+  companyNumber: string | undefined
 }

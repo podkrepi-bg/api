@@ -161,8 +161,8 @@ export class AuthService {
           password: '',
           firstName: userData?.firstName ?? '',
           lastName: userData?.lastName ?? '',
-          companyName: 'typechecking-hack',
-          companyNumber: 'typechecking-hack',
+          companyName: undefined,
+          companyNumber: undefined,
         }
         await this.createPerson(registerDto, user.sub, undefined)
       }
@@ -297,6 +297,9 @@ export class AuthService {
   }
 
   private async createCompany(registerDto: RegisterDto): Promise<Company> {
+    if (!registerDto.companyName || !registerDto.companyNumber) {
+      throw new BadRequestException('Company name and companyNumber are missing')
+    }
     return await this.prismaService.company.create({
       // Create a person with the provided keycloakId
       data: {
