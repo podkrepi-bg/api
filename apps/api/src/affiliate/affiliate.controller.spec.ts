@@ -16,7 +16,7 @@ import { KeycloakTokenParsed } from '../auth/keycloak'
 import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common'
 import { AffiliateStatusUpdateDto } from './dto/affiliate-status-update.dto'
 import * as afCodeGenerator from './utils/affiliateCodeGenerator'
-import { CreateAffiliateDonation } from './dto/create-affiliate-donation.dto'
+import { CreateAffiliateDonationDto } from './dto/create-affiliate-donation.dto'
 
 type PersonWithPayload = Prisma.PersonGetPayload<{ include: { company: true } }>
 type AffiliateWithPayload = Prisma.AffiliateGetPayload<{
@@ -280,7 +280,7 @@ describe('AffiliateController', () => {
 
   describe('Affiliate donations', () => {
     it('should create donation', async () => {
-      const affiliateDonationDto: CreateAffiliateDonation = {
+      const affiliateDonationDto: CreateAffiliateDonationDto = {
         campaignId: '12345',
         amount: 5000,
         billingName: 'John doe',
@@ -292,7 +292,7 @@ describe('AffiliateController', () => {
         extPaymentMethodId: '1234',
         billingEmail: 'test@podkrepi.bg',
         currency: 'BGN',
-        toEntity: new CreateAffiliateDonation().toEntity,
+        toEntity: new CreateAffiliateDonationDto().toEntity,
         metadata: {
           name: '',
           extraData: {},

@@ -27,7 +27,7 @@ import { donationWithPerson, DonationWithPerson } from './queries/donation.valid
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 import { ImportStatus } from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
-import { CreateAffiliateDonation } from '../affiliate/dto/create-affiliate-donation.dto'
+import { CreateAffiliateDonationDto } from '../affiliate/dto/create-affiliate-donation.dto'
 
 @Injectable()
 export class DonationsService {
@@ -321,7 +321,7 @@ export class DonationsService {
     return result
   }
 
-  async createAffiliateDonation(donationDto: CreateAffiliateDonation) {
+  async createAffiliateDonation(donationDto: CreateAffiliateDonationDto) {
     const vault = await this.vaultService.findByCampaignId(donationDto.campaignId)
 
     if (!vault) throw new NotFoundException('Vault not found')

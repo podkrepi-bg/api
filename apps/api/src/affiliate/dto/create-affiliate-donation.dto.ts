@@ -5,24 +5,16 @@ import { Equals, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUUID } fro
 import { randomUUID } from 'crypto'
 import { DonationMetadataDto } from '../../donations/dto/donation-metadata.dto'
 
-export class CreateAffiliateDonation {
+export class CreateAffiliateDonationDto {
   @ApiProperty()
   @Expose()
   @IsUUID()
   @IsString()
   campaignId: string
 
-  @ApiProperty()
-  @Expose()
-  @IsUUID()
-  @IsString()
-  @IsOptional()
-  affiliateId: string | null = null
+  affiliateId: string
 
-  @IsUUID()
-  @IsString()
-  @IsOptional()
-  personId: string | null = null
+  personId: string | null
 
   @IsString()
   extPaymentIntentId: string = 'pi_' + randomUUID()
@@ -45,13 +37,8 @@ export class CreateAffiliateDonation {
   @IsNumber()
   amount: number
 
-  @ApiProperty()
-  @Expose()
-  @IsString()
-  billingName: string
+  billingName: string | null
 
-  @IsString()
-  @IsOptional()
   billingEmail: string | null
 
   @ApiProperty()

@@ -19,7 +19,7 @@ import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { AuthenticatedUser, Public } from 'nest-keycloak-connect'
 import { AffiliateService } from './affiliate.service'
 import { AffiliateStatusUpdateDto } from './dto/affiliate-status-update.dto'
-import { CreateAffiliateDonation } from './dto/create-affiliate-donation.dto'
+import { CreateAffiliateDonationDto } from './dto/create-affiliate-donation.dto'
 import { DonationsService } from '../donations/donations.service'
 import { shouldAllowStatusChange } from '../donations/helpers/donation-status-updates'
 import { affiliateCodeGenerator } from './utils/affiliateCodeGenerator'
@@ -80,15 +80,15 @@ export class AffiliateController {
   @Public()
   async createAffiliateDonation(
     @Param('affiliateCode') affiliateCode: string,
-    @Body() donation: CreateAffiliateDonation,
+    @Body() donation: CreateAffiliateDonationDto,
   ) {
     const affiliate = await this.affiliateService.findOneByCode(affiliateCode)
-    if (!affiliate || !affiliate.company || !affiliate.company.person)
-      throw new NotFoundException('Affiliate not found')
-    const affiliateDonationDto: CreateAffiliateDonation = {
+    if (!affiliate?.company?.person) throw new NotFoundException('Affiliate not found')
+    const affiliateDonationDto: CreateAffiliateDonationDto = {
       ...donation,
       affiliateId: affiliate.id,
       personId: donation.isAnonymous ? null : affiliate.company.person.id,
+      billingName: affiliate.company.person.firstName + ' ' + affiliate.company.person.lastName,
       billingEmail: affiliate.company.person.email,
       toEntity: donation.toEntity,
     }
