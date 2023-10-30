@@ -324,7 +324,7 @@ export class DonationsService {
   async createAffiliateDonation(donationDto: CreateAffiliateDonationDto) {
     const vault = await this.vaultService.findByCampaignId(donationDto.campaignId)
 
-    if (!vault) throw new NotFoundException('Vault not found')
+    if (!vault || vault.length === 0) throw new NotFoundException('Campaign or vault not found')
 
     const donation = await this.prisma.donation.create({
       data: donationDto.toEntity(vault[0].id),
