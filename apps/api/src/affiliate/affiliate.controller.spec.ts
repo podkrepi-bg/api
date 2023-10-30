@@ -72,8 +72,8 @@ describe('AffiliateController', () => {
 
   const mockIndividualProfile: PersonWithPayload = {
     id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
-    firstName: 'Admin',
-    lastName: 'Dev',
+    firstName: 'John',
+    lastName: 'Doe',
     companyId: null,
     keycloakId: '123',
     email: 'test@podkrepi.bg',
@@ -137,7 +137,7 @@ describe('AffiliateController', () => {
     extPaymentIntentId: '123456',
     extPaymentMethodId: '1234',
     billingEmail: 'test@podkrepi.bg',
-    billingName: 'John doe',
+    billingName: 'John Doe',
     targetVaultId: vaultMock.id,
     chargedAmount: 0,
     currency: 'BGN',
@@ -283,7 +283,7 @@ describe('AffiliateController', () => {
       const affiliateDonationDto: CreateAffiliateDonationDto = {
         campaignId: '12345',
         amount: 5000,
-        billingName: 'John doe',
+        billingName: 'John Doe',
         isAnonymous: true,
         affiliateId: '123',
         personId: null,
