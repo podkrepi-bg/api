@@ -285,7 +285,7 @@ describe('AffiliateController', () => {
         amount: 5000,
         billingName: 'John doe',
         isAnonymous: true,
-        affiliateId: null,
+        affiliateId: '123',
         personId: null,
         extCustomerId: '',
         extPaymentIntentId: '123456',
@@ -293,6 +293,10 @@ describe('AffiliateController', () => {
         billingEmail: 'test@podkrepi.bg',
         currency: 'BGN',
         toEntity: new CreateAffiliateDonation().toEntity,
+        metadata: {
+          name: '',
+          extraData: {},
+        },
       }
       jest.spyOn(service, 'findOneByCode').mockResolvedValue(activeAffiliateMock)
       const createAffiliateDonationSpy = jest
