@@ -34,6 +34,12 @@ export class AffiliateController {
     private readonly donationService: DonationsService,
   ) {}
 
+  @Get(':affiliateCode')
+  @Public()
+  async affiliateSummary(@Param('affiliateCode') affilliateCode: string) {
+    return await this.affiliateService.getAffiliateSummaryByCode(affilliateCode)
+  }
+
   @Post('join')
   async joinAffiliateProgramRequest(@AuthenticatedUser() user: KeycloakTokenParsed) {
     const person = await this.personService.findOneByKeycloakId(user.sub)
@@ -70,10 +76,14 @@ export class AffiliateController {
     return await this.affiliateService.updateStatus(affiliateId, newStatus, affiliateCode)
   }
 
-  @Get(':affiliateCode')
-  @Public()
-  async affiliateSummary(@Param('affiliateCode') affilliateCode: string) {
-    return await this.affiliateService.getAffiliateSummaryByCode(affilliateCode)
+  @Patch(':affiliateId/code-refresh')
+  async refreshAffiliateCode(
+    @Param('affiliateId') affiliateId: string,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    if (!isAdmin(user)) throw new ForbiddenException('Must be an admin')
+    const affiliateCode = affiliateCodeGenerator(affiliateId)
+    return await this.affiliateService.updateCode(affiliateId, affiliateCode)
   }
 
   @Post(':affiliateCode/donation')

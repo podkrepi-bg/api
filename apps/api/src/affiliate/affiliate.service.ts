@@ -62,6 +62,13 @@ export class AffiliateService {
     })
   }
 
+  async updateCode(affiliateId: string, affiliateCode: string) {
+    return await this.prismaService.affiliate.update({
+      where: { id: affiliateId },
+      data: { affiliateCode },
+    })
+  }
+
   async updateStatus(
     affiliateId: string,
     status: AffiliateStatus,
