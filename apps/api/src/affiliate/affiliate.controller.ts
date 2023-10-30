@@ -24,6 +24,7 @@ import { DonationsService } from '../donations/donations.service'
 import { shouldAllowStatusChange } from '../donations/helpers/donation-status-updates'
 import { affiliateCodeGenerator } from './utils/affiliateCodeGenerator'
 import { DonationStatus } from '@prisma/client'
+import { CampaignService } from '../campaign/campaign.service'
 
 @Controller('affiliate')
 @ApiTags('affiliate')
@@ -32,6 +33,7 @@ export class AffiliateController {
     private readonly personService: PersonService,
     private readonly affiliateService: AffiliateService,
     private readonly donationService: DonationsService,
+    private readonly campaignService: CampaignService,
   ) {}
 
   @Get(':affiliateCode')
@@ -94,6 +96,11 @@ export class AffiliateController {
   ) {
     const affiliate = await this.affiliateService.findOneByCode(affiliateCode)
     if (!affiliate?.company?.person) throw new NotFoundException('Affiliate not found')
+    const campaign = await this.campaignService.getCampaignById(donation.campaignId)
+    const canAcceptDonation = await this.campaignService.canAcceptDonations(campaign)
+    if (!canAcceptDonation) {
+      throw new ConflictException('Campaign has been completed already')
+    }
     const affiliateDonationDto: CreateAffiliateDonationDto = {
       ...donation,
       affiliateId: affiliate.id,

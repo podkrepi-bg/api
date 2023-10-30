@@ -11,7 +11,7 @@ import { VaultService } from '../vault/vault.service'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
 import { ExportService } from '../export/export.service'
-import { Affiliate, Donation, Prisma, Vault } from '@prisma/client'
+import { Affiliate, Campaign, CampaignState, Donation, Prisma, Vault } from '@prisma/client'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common'
 import { AffiliateStatusUpdateDto } from './dto/affiliate-status-update.dto'
@@ -303,6 +303,11 @@ describe('AffiliateController', () => {
         .spyOn(donationService, 'createAffiliateDonation')
         .mockResolvedValue(donationResponseMock)
       jest.spyOn(prismaMock.vault, 'findMany').mockResolvedValue([vaultMock])
+      prismaMock.campaign.findFirst.mockResolvedValue({
+        id: '123',
+        allowDonationOnComplete: false,
+        state: CampaignState.active,
+      } as Campaign)
       await controller.createAffiliateDonation(affiliateCodeMock, affiliateDonationDto)
       expect(createAffiliateDonationSpy).toHaveBeenCalledWith({
         ...affiliateDonationDto,
