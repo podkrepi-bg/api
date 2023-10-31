@@ -288,34 +288,42 @@ export class DonationsService {
     pageIndex?: number,
     pageSize?: number,
   ): Promise<ListDonationsDto<DonationBaseDto>> {
-    const data = await this.prisma.donation.findMany({
-      where: {
-        OR: [{ status: status }, { status: DonationStatus.guaranteed }],
-        targetVault: { campaign: { id: campaignId } },
-      },
-      orderBy: [{ updatedAt: 'desc' }],
-      select: {
-        id: true,
-        type: true,
-        status: true,
-        provider: true,
-        createdAt: true,
-        updatedAt: true,
-        amount: true,
-        chargedAmount: true,
-        currency: true,
-        person: {
-          select: { firstName: true, lastName: true, company: { select: { companyName: true } } },
+    const [data, count] = await this.prisma.$transaction([
+      this.prisma.donation.findMany({
+        where: {
+          OR: [{ status: status }, { status: DonationStatus.guaranteed }],
+          targetVault: { campaign: { id: campaignId } },
         },
-        metadata: { select: { name: true } },
-      },
-      skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
-      take: pageSize ? pageSize : undefined,
-    })
+        orderBy: [{ updatedAt: 'desc' }],
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          provider: true,
+          createdAt: true,
+          updatedAt: true,
+          amount: true,
+          chargedAmount: true,
+          currency: true,
+          person: {
+            select: { firstName: true, lastName: true, company: { select: { companyName: true } } },
+          },
+          metadata: { select: { name: true } },
+        },
+        skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
+        take: pageSize ? pageSize : undefined,
+      }),
+      this.prisma.donation.count({
+        where: {
+          OR: [{ status: status }, { status: DonationStatus.guaranteed }],
+          targetVault: { campaign: { id: campaignId } },
+        },
+      }),
+    ])
 
     const result = {
       items: data,
-      total: data.length,
+      total: count,
     }
 
     return result
