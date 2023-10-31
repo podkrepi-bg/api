@@ -21,6 +21,7 @@ Table people {
   emailConfirmed Boolean [default: false]
   personalNumber String [unique, note: 'Uniform Civil Number (NCN, EGN)
 https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
+  companyId String [unique]
   keycloakId String [unique]
   stripeCustomerId String [unique]
   picture String
@@ -70,8 +71,8 @@ Table affiliates {
   id String [pk]
   status AffiliateStatus [not null, default: 'pending']
   affiliateCode String [unique]
-  companyId String [unique]
-  company companies
+  companyId String [unique, not null]
+  company companies [not null]
   donations donations [not null]
 }
 
@@ -387,6 +388,15 @@ Table donations {
   targetVault vaults [not null]
   affiliate affiliates
   DonationWish donation_wishes
+  metadata donation_metadata
+}
+
+Table donation_metadata {
+  donationId String [pk]
+  name String
+  createdAt DateTime [default: `now()`, not null]
+  extraData Json
+  donation donations [not null]
 }
 
 Table donation_wishes {
@@ -644,6 +654,7 @@ Enum DocumentType {
 
 Enum DonationType {
   donation
+  corporate
 }
 
 Enum DonationStatus {
@@ -653,6 +664,7 @@ Enum DonationStatus {
   declined
   waiting
   cancelled
+  guaranteed
   succeeded
   deleted
   refund
@@ -708,6 +720,7 @@ Enum BankTransactionType {
 Enum BankDonationStatus {
   unrecognized
   imported
+  incomplete
   reImported
   importFailed
 }
@@ -785,7 +798,7 @@ Enum EmailType {
   raised100
 }
 
-Ref: companies.personId - people.id
+Ref: people.companyId - companies.id
 
 Ref: affiliates.companyId - companies.id
 
@@ -856,6 +869,8 @@ Ref: donations.personId > people.id
 Ref: donations.targetVaultId > vaults.id
 
 Ref: donations.affiliateId > affiliates.id
+
+Ref: donation_metadata.donationId - donations.id
 
 Ref: donation_wishes.campaignId > campaigns.id
 

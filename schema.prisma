@@ -793,6 +793,7 @@ enum DocumentType {
 
 enum DonationType {
   donation
+  corporate
 
   @@map("donation_type")
 }

@@ -180,11 +180,13 @@ export class DonationsService {
     const campaign = await this.campaignService.validateCampaignId(sessionDto.campaignId)
     const { mode } = sessionDto
     const appUrl = this.config.get<string>('APP_URL')
+
     const metadata: DonationMetadata = {
       campaignId: sessionDto.campaignId,
       personId: sessionDto.personId,
       isAnonymous: sessionDto.isAnonymous ? 'true' : 'false',
       wish: sessionDto.message ?? null,
+      type: sessionDto.type,
     }
 
     const items = await this.prepareSessionItems(sessionDto, campaign)

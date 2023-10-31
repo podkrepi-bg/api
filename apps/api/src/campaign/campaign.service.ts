@@ -565,7 +565,6 @@ export class CampaignService {
     campaign: Campaign,
     paymentData: PaymentData,
     newDonationStatus: DonationStatus,
-    metadata?: DonationMetadata,
   ): Promise<string | undefined> {
     const campaignId = campaign.id
     Logger.debug('Update donation to status: ' + newDonationStatus, {
@@ -600,22 +599,6 @@ export class CampaignService {
           paymentData,
         )
         donationId = updatedDonation?.id
-      }
-
-      //For successful donations we will also need to link them to user if not marked as anonymous
-      if (donationId && newDonationStatus === DonationStatus.succeeded) {
-        if (metadata?.isAnonymous !== 'true') {
-          await tx.donation.update({
-            where: { id: donationId },
-            data: {
-              person: {
-                connect: {
-                  email: paymentData.billingEmail,
-                },
-              },
-            },
-          })
-        }
       }
 
       return donationId
@@ -710,7 +693,7 @@ export class CampaignService {
           currency: campaign.currency,
           targetVault: targetVaultData,
           provider: paymentData.paymentProvider,
-          type: DonationType.donation,
+          type: paymentData.type as DonationType,
           status: newDonationStatus,
           extCustomerId: paymentData.stripeCustomerId ?? '',
           extPaymentIntentId: paymentData.paymentIntentId,

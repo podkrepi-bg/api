@@ -135,7 +135,6 @@ export class StripePaymentService {
       campaign,
       billingData,
       DonationStatus.succeeded,
-      metadata,
     )
 
     //updateDonationPayment will mark the campaign as completed if amount is reached
@@ -289,6 +288,7 @@ export class StripePaymentService {
     Logger.log('[ handleInvoicePaid ]', invoice)
 
     let metadata: DonationMetadata = {
+      type: null,
       campaignId: null,
       personId: null,
       isAnonymous: null,

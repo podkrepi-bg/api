@@ -1,4 +1,4 @@
-import { PaymentProvider } from '@prisma/client'
+import { DonationType, PaymentProvider } from '@prisma/client'
 import Stripe from 'stripe'
 import { getCountryRegion, stripeFeeCalculator } from './stripe-fee-calculator'
 import { RecurringDonationStatus, Currency } from '@prisma/client'
@@ -28,12 +28,15 @@ export type PaymentData = {
   stripeCustomerId?: string
   paymentProvider: PaymentProvider
   personId?: string
+  type: string
 }
 
 export function getPaymentData(
   paymentIntent: Stripe.PaymentIntent,
   charge?: Stripe.Charge,
 ): PaymentData {
+  const isAnonymous = paymentIntent.metadata.isAnonymous === 'true'
+
   return {
     paymentProvider: PaymentProvider.stripe,
     paymentIntentId: paymentIntent.id,
@@ -53,10 +56,13 @@ export function getPaymentData(
     billingEmail: charge?.billing_details?.email ?? paymentIntent.receipt_email ?? undefined,
     paymentMethodId: getPaymentMethodId(paymentIntent),
     stripeCustomerId: getPaymentCustomerId(paymentIntent),
+    type: paymentIntent.metadata.type,
+    personId: !isAnonymous ? paymentIntent.metadata.personId : undefined,
   }
 }
 
 export function getPaymentDataFromCharge(charge: Stripe.Charge): PaymentData {
+  const isAnonymous = charge.metadata.isAnonymous === 'true'
   return {
     paymentProvider: PaymentProvider.stripe,
     paymentIntentId: charge.payment_intent as string,
@@ -74,6 +80,8 @@ export function getPaymentDataFromCharge(charge: Stripe.Charge): PaymentData {
     billingEmail: charge?.billing_details?.email ?? charge.receipt_email ?? undefined,
     paymentMethodId: 'card',
     stripeCustomerId: charge.billing_details?.email ?? undefined,
+    type: charge.metadata.type,
+    personId: !isAnonymous ? charge.metadata.personId : undefined,
   }
 }
 
@@ -82,9 +90,13 @@ export function getInvoiceData(invoice: Stripe.Invoice): PaymentData {
   const country = invoice.account_country as string
 
   let personId = ''
+  let type = ''
   lines.map((line) => {
     if (line.metadata.personId) {
       personId = line.metadata.personId
+    }
+    if (line.metadata.type) {
+      type = line.metadata.type
     }
   })
 
@@ -106,6 +118,7 @@ export function getInvoiceData(invoice: Stripe.Invoice): PaymentData {
     paymentMethodId: invoice.collection_method,
     stripeCustomerId: invoice.customer as string,
     personId,
+    type,
   }
 }
 

@@ -12,6 +12,9 @@ export class CreateAffiliateDonationDto {
   @IsString()
   campaignId: string
 
+  @IsEnum(DonationType)
+  type: DonationType = DonationType.corporate
+
   affiliateId: string
 
   personId: string | null
@@ -61,7 +64,7 @@ export class CreateAffiliateDonationDto {
 
   public toEntity(targetVaultId: string): Prisma.DonationCreateInput {
     return {
-      type: DonationType.donation,
+      type: DonationType.corporate,
       status: DonationStatus.guaranteed,
       provider: PaymentProvider.bank,
       currency: this.currency,

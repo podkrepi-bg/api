@@ -323,7 +323,7 @@ describe('StripePaymentService', () => {
         expect(prismaMock.donation.findUnique).toHaveBeenCalled()
         expect(prismaMock.donation.create).not.toHaveBeenCalled()
         expect(mockedIncrementVaultAmount).toHaveBeenCalled()
-        expect(prismaMock.donation.update).toHaveBeenCalledTimes(2) //once for the amount and second time for assigning donation to the person
+        expect(prismaMock.donation.update).toHaveBeenCalledTimes(1)
         expect(mockedUpdateCampaignStatusIfTargetReached).toHaveBeenCalled()
         expect(prismaMock.campaign.update).toHaveBeenCalledWith({
           where: {
