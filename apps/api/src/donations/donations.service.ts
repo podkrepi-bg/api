@@ -597,7 +597,7 @@ export class DonationsService {
         this.vaultService.incrementVaultAmount(donationDto.targetVaultId, donationDto.amount, tx),
         tx.donation.update({
           where: { id: donationDto.id },
-          data: { status: DonationStatus.succeeded, updatedAt: undefined },
+          data: { status: DonationStatus.succeeded, updatedAt: donationDto.updatedAt },
         }),
       ])
     })
