@@ -58,6 +58,12 @@ export class CreateAffiliateDonationDto {
 
   @ApiProperty()
   @Expose()
+  @IsString()
+  @IsOptional()
+  message?: string
+
+  @ApiProperty()
+  @Expose()
   @Type(() => DonationMetadataDto)
   @IsOptional()
   metadata: DonationMetadataDto | undefined

@@ -347,6 +347,16 @@ export class DonationsService {
         },
       })
     }
+    if (donationDto.message) {
+      await this.prisma.donationWish.create({
+        data: {
+          campaignId: donationDto.campaignId,
+          message: donationDto.message,
+          donationId: donation.id,
+          personId: donationDto.personId,
+        },
+      })
+    }
     return donation
   }
 
