@@ -491,7 +491,11 @@ export class DonationsService {
             id: true,
             firstName: true,
             lastName: true,
+            company: { select: { companyName: true } },
           },
+        },
+        affiliate: {
+          select: { company: { select: { companyName: true } } },
         },
         targetVault: {
           select: {
