@@ -21,15 +21,17 @@ export function validateFileType(
   file: File,
   cb: (error: Error | null, acceptFile: boolean) => void,
 ) {
-  const allowedExtensions = /jpeg|jpg|png|xml|json|docx|txt/
+  const allowedExtensions = /txt|json|jpeg|jpg|png|xml|xlsx|xls|docx/
   const mimeAllowlist = [
+    'text/plain',
+    'application/json',
     'image/png',
     'image/jpeg',
     'application/xml',
     'text/xml',
-    'text/plain',
-    'application/json',
     'application/msword',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   ]
   const isExtensionSupported = allowedExtensions.test(path.extname(file.originalname).toLowerCase())
   if (!mimeAllowlist.includes(file.mimetype)) {
