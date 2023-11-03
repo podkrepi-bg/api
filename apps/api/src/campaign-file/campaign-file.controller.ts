@@ -24,6 +24,7 @@ import { CampaignFileService } from './campaign-file.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { ApiTags } from '@nestjs/swagger'
+import { validateFileType } from '../common/files'
 
 @ApiTags('campaign-file')
 @Controller('campaign-file')
@@ -35,7 +36,14 @@ export class CampaignFileController {
   ) {}
 
   @Post(':campaign_id')
-  @UseInterceptors(FilesInterceptor('file', 10, { limits: { fileSize: 20485760 } })) //limit uploaded files to 5 at once and 10MB each
+  @UseInterceptors(
+    FilesInterceptor('file', 10, {
+      limits: { fileSize: 1024 * 1024 * 10 }, //limit uploaded files to 10 at once and 10MB each
+      fileFilter: (_req: Request, file, cb) => {
+        validateFileType(file, cb)
+      },
+    }),
+  )
   async create(
     @Param('campaign_id') campaignId: string,
     @Body() body: FilesRoleDto,
