@@ -13,7 +13,7 @@ interface File {
 }
 
 /**
- * The function validate is used the validate the type of a file using the file extension and MIME type
+ * The function is used to validate the type of a file using the file extension and MIME type
  * @param file object that represent file
  * @param cb callback function which indicates whether file is accepted or not
  */
@@ -21,7 +21,6 @@ export function validateFileType(
   file: File,
   cb: (error: Error | null, acceptFile: boolean) => void,
 ) {
-  const allowedExtensions = /txt|json|jpeg|jpg|png|xml|xlsx|xls|docx/
   const mimeAllowlist = [
     'text/plain',
     'application/json',
@@ -33,11 +32,13 @@ export function validateFileType(
     'application/vnd.ms-excel',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   ]
-  const isExtensionSupported = allowedExtensions.test(path.extname(file.originalname).toLowerCase())
   if (!mimeAllowlist.includes(file.mimetype)) {
     return cb(new Error('File mime type is not allowed'), false)
   }
 
+  const allowedExtensions = /txt|json|jpeg|jpg|png|xml|xlsx|xls|docx/
+
+  const isExtensionSupported = allowedExtensions.test(path.extname(file.originalname).toLowerCase())
   if (!isExtensionSupported) {
     return cb(new Error('File extension is not allowed'), false)
   }
