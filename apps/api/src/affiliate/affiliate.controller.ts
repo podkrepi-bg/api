@@ -143,10 +143,8 @@ export class AffiliateController {
     @Param('affiliateCode') affiliateCode: string,
     @Param('donationId') donationId: string,
   ) {
-    console.log(`called`)
     const donation = await this.donationService.getAffiliateDonationById(donationId, affiliateCode)
     if (!donation) {
-      console.log(`this is not found`)
       throw new NotFoundException('Donation with this id is not found')
     }
 
