@@ -36,10 +36,18 @@ export class AffiliateController {
     private readonly campaignService: CampaignService,
   ) {}
 
+  @Get('data')
+  async findAffiliateByUserId(@AuthenticatedUser() user: KeycloakTokenParsed) {
+    const affiliate = await this.affiliateService.getAffiliateDataByKeycloakId(user.sub)
+    return affiliate
+  }
+
   @Get(':affiliateCode')
   @Public()
   async affiliateSummary(@Param('affiliateCode') affilliateCode: string) {
-    return await this.affiliateService.getAffiliateSummaryByCode(affilliateCode)
+    const affiliate = await this.affiliateService.getAffiliateSummaryByCode(affilliateCode)
+    if (!affiliate) throw new NotFoundException('Affiliate not found')
+    return affiliate
   }
 
   @Post('join')
@@ -135,8 +143,12 @@ export class AffiliateController {
     @Param('affiliateCode') affiliateCode: string,
     @Param('donationId') donationId: string,
   ) {
+    console.log(`called`)
     const donation = await this.donationService.getAffiliateDonationById(donationId, affiliateCode)
-    if (!donation) throw new NotFoundException('Donation with this id is not found')
+    if (!donation) {
+      console.log(`this is not found`)
+      throw new NotFoundException('Donation with this id is not found')
+    }
 
     if (!shouldAllowStatusChange(donation.status, 'cancelled'))
       throw new BadRequestException("Donation status can't be updated")

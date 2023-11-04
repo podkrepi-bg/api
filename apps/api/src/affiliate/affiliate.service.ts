@@ -16,9 +16,25 @@ export class AffiliateService {
     return await this.prismaService.affiliate.findUnique({ where: { id } })
   }
 
-  async findAffiliateByKecloakId(keycloakId: string) {
+  async findAffiliateByKeycloakId(keycloakId: string) {
+    return await this.prismaService.affiliate.count({
+      where: { company: { person: { keycloakId } } },
+    })
+  }
+
+  async getAffiliateDataByKeycloakId(keycloakId: string) {
     return await this.prismaService.affiliate.findFirst({
       where: { company: { person: { keycloakId } } },
+      include: {
+        donations: {
+          where: { status: DonationStatus.guaranteed },
+          include: {
+            targetVault: { select: { campaign: { select: { title: true, slug: true } } } },
+            affiliate: { select: { company: { select: { companyName: true } } } },
+            metadata: { select: { name: true } },
+          },
+        },
+      },
     })
   }
 
