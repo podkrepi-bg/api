@@ -25,6 +25,7 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   keycloakId String [unique]
   stripeCustomerId String [unique]
   picture String
+  profileEnabled Boolean [not null, default: true]
   benefactors benefactors [not null]
   beneficiaries beneficiaries [not null]
   campaignFiles campaign_files [not null]

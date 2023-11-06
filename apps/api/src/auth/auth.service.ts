@@ -289,6 +289,7 @@ export class AuthService {
         lastName: registerDto.lastName,
         newsletter: registerDto.newsletter ? registerDto.newsletter : false,
         companyId: companyId,
+        profileEnabled: companyId ? false : true,
       },
       // Store keycloakId to the person with same email
       update: { keycloakId },
