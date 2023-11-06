@@ -51,4 +51,10 @@ export class UpdatePersonDto {
   @IsOptional()
   @IsString()
   personalNumber?: string
+
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  @IsBoolean()
+  profileEnabled?: boolean
 }

@@ -1,5 +1,5 @@
 import CredentialRepresentation from '@keycloak/keycloak-admin-client/lib/defs/credentialRepresentation'
-import { Body, Controller, Get, Put, Logger, Delete } from '@nestjs/common'
+import { Body, Controller, Get, Put, Logger, Delete, Patch, Param, Query } from '@nestjs/common'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 
@@ -113,5 +113,20 @@ export class AccountController {
   })
   adminRole() {
     return { status: 'OK' }
+  }
+
+  @Patch(':keycloakId/status')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async changeProfileStatus(
+    @Param('keycloakId') keycloakId: string,
+    @Body() data: UpdatePersonDto,
+  ) {
+    return await this.accountService.changeProfileActivationStatus(
+      keycloakId,
+      !!data.profileEnabled,
+    )
   }
 }

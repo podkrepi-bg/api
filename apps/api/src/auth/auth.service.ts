@@ -350,14 +350,18 @@ export class AuthService {
     return true
   }
 
-  async disableUser(keycloakId: string) {
+  async changeEnabledStatus(keycloakId: string, enabled: boolean) {
     await this.authenticateAdmin()
-    return await this.admin.users.update(
+    await this.admin.users.update(
       { id: keycloakId },
       {
-        enabled: false,
+        enabled,
       },
     )
+    return await this.prismaService.person.update({
+      where: { keycloakId },
+      data: { profileEnabled: enabled },
+    })
   }
 
   async sendMailForPasswordChange(forgotPasswordDto: ForgottenPasswordEmailDto) {
