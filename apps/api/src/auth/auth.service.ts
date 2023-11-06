@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -63,7 +64,8 @@ export class AuthService {
     @Inject(KEYCLOAK_INSTANCE) private keycloak: KeycloakConnect.Keycloak,
     private readonly marketingNotificationsService: MarketingNotificationsService,
   ) {}
-
+  private readonly ADMIN_GROUP: string =
+    process.env.APP_ENV === 'production' ? 'podkrepi-team' : 'podkrepi-dev-local'
   async issueGrant(email: string, password: string): Promise<KeycloakConnect.Grant> {
     return this.keycloak.grantManager.obtainDirectly(email, password)
   }
@@ -352,6 +354,12 @@ export class AuthService {
 
   async changeEnabledStatus(keycloakId: string, enabled: boolean) {
     await this.authenticateAdmin()
+    // check if user is admin before attempting to activate/deactivate
+    const userGroups = await this.admin.users.listRoleMappings({ id: keycloakId })
+    const isAdmin = userGroups.realmMappings?.some((obj) => obj.name === 'podkrepi-admin')
+    if (isAdmin) {
+      throw new ForbiddenException("Admin profiles can't be deactivated")
+    }
     await this.admin.users.update(
       { id: keycloakId },
       {
