@@ -62,6 +62,9 @@ export class PersonService {
         case 'beneficiaries':
           sort = { beneficiaries: { _count: sortOrder == 'asc' ? 'desc' : 'asc' } }
           break
+        case 'type':
+          sort = { company: { createdAt: sortOrder == 'asc' ? 'desc' : 'asc' } }
+          break
         default:
           sort = { [sortBy]: sortOrder ?? 'desc' }
       }
