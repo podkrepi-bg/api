@@ -27,6 +27,7 @@ export class AffiliateService {
               select: {
                 firstName: true,
                 lastName: true,
+                email: true,
               },
             },
           },
