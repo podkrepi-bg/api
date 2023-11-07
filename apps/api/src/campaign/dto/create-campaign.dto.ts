@@ -85,11 +85,7 @@ export class CreateCampaignDto {
   reachedAmount: number
 
   @ApiProperty()
-  @IsOptional()
   @Expose()
-  @IsString()
-  @MinLength(3)
-  @MaxLength(3)
   @IsEnum(Currency)
   currency: Currency
 
