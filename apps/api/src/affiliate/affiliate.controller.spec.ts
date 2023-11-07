@@ -88,6 +88,7 @@ describe('AffiliateController', () => {
     personalNumber: null,
     stripeCustomerId: null,
     company: null,
+    profileEnabled: true,
   }
 
   const vaultMock: Vault = {
@@ -281,6 +282,7 @@ describe('AffiliateController', () => {
   describe('Affiliate donations', () => {
     it('should create donation', async () => {
       const affiliateDonationDto: CreateAffiliateDonationDto = {
+        type: 'donation',
         campaignId: '12345',
         amount: 5000,
         billingName: 'John Doe',
