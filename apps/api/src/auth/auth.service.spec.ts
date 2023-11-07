@@ -50,6 +50,7 @@ describe('AuthService', () => {
     birthday: null,
     personalNumber: null,
     stripeCustomerId: null,
+    profileEnabled: false,
   }
 
   beforeEach(async () => {
@@ -310,6 +311,9 @@ describe('AuthService', () => {
     const password = 's3cret'
     const firstName = 'John'
     const lastName = 'Doe'
+    //if no company has been created company.id is expected to be undefined
+    const companyId = undefined
+    const profileEnabled = true
     const newsletter = true
 
     it('should call keycloak and prisma', async () => {
@@ -360,7 +364,7 @@ describe('AuthService', () => {
 
       // Check db creation
       expect(prismaSpy).toHaveBeenCalledWith({
-        create: { keycloakId, email, firstName, lastName, newsletter },
+        create: { keycloakId, email, firstName, lastName, newsletter, companyId, profileEnabled },
         update: { keycloakId },
         where: { email },
       })
@@ -419,6 +423,7 @@ describe('AuthService', () => {
         birthday: null,
         personalNumber: null,
         stripeCustomerId: null,
+        profileEnabled: true,
       }
       jest.spyOn(prismaMock.person, 'upsert').mockResolvedValue(person)
       jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
@@ -468,6 +473,7 @@ describe('AuthService', () => {
         birthday: null,
         personalNumber: null,
         stripeCustomerId: null,
+        profileEnabled: true,
       }
       jest.spyOn(prismaMock.person, 'upsert').mockResolvedValue(person)
       jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
