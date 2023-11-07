@@ -16,7 +16,7 @@ import {
 import { ApiTags } from '@nestjs/swagger'
 import { PersonService } from '../person/person.service'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
-import { AuthenticatedUser, Public } from 'nest-keycloak-connect'
+import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { AffiliateService } from './affiliate.service'
 import { AffiliateStatusUpdateDto } from './dto/affiliate-status-update.dto'
 import { CreateAffiliateDonationDto } from './dto/create-affiliate-donation.dto'
@@ -25,6 +25,7 @@ import { shouldAllowStatusChange } from '../donations/helpers/donation-status-up
 import { affiliateCodeGenerator } from './utils/affiliateCodeGenerator'
 import { DonationStatus } from '@prisma/client'
 import { CampaignService } from '../campaign/campaign.service'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 @Controller('affiliate')
 @ApiTags('affiliate')
@@ -36,6 +37,14 @@ export class AffiliateController {
     private readonly campaignService: CampaignService,
   ) {}
 
+  @Get('list-all')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async findAllAffiliates() {
+    return await this.affiliateService.findAll()
+  }
   @Get('data')
   async findAffiliateByUserId(@AuthenticatedUser() user: KeycloakTokenParsed) {
     const affiliate = await this.affiliateService.getAffiliateDataByKeycloakId(user.sub)
