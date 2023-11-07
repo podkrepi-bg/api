@@ -18,6 +18,7 @@ export class AffiliateService {
 
   async findAll() {
     return await this.prismaService.affiliate.findMany({
+      orderBy: { createdAt: 'desc' },
       include: {
         company: {
           select: {

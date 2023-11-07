@@ -73,6 +73,8 @@ Table affiliates {
   status AffiliateStatus [not null, default: 'pending']
   affiliateCode String [unique]
   companyId String [unique, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
   company companies [not null]
   donations donations [not null]
 }

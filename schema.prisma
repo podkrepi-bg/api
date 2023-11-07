@@ -104,6 +104,8 @@ model Affiliate {
   status        AffiliateStatus @default(pending)
   affiliateCode String?         @unique @map("affiliate_code")
   companyId     String          @unique @map("company_id") @db.Uuid
+  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
   company       Company         @relation(fields: [companyId], references: [id])
   donations     Donation[]
 

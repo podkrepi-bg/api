@@ -106,6 +106,8 @@ describe('AffiliateController', () => {
     companyId: '1234572',
     affiliateCode: null,
     status: 'pending',
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }
   const activeAffiliateMock: AffiliateWithPayload = {
     ...affiliateMock,
