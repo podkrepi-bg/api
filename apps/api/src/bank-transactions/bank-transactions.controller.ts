@@ -169,9 +169,7 @@ export class BankTransactionsController {
     const isDev = appEnv === 'development' || appEnv === 'staging'
     if (!isDev) throw new ForbiddenException('Endpoint available only for testing enviroments')
 
-    const affiliate = await this.affiliateService.findAffiliateByKeycloakId(user.sub)
-    if (!isAdmin(user) && !affiliate)
-      throw new ForbiddenException('Must be either an admin or active affiliate')
+    if (!isAdmin(user)) throw new ForbiddenException('Must be either an admin or active affiliate')
 
     return await this.bankTransactionsService.simulateIrisTask(
       irisDto.irisIbanAccountInfo,
