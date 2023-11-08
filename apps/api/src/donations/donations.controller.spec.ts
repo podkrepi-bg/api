@@ -194,6 +194,7 @@ describe('DonationsController', () => {
       keycloakId: '00000000-0000-0000-0000-000000000012',
       stripeCustomerId: 'string',
       picture: 'string',
+      profileEnabled: true,
     }
 
     jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
@@ -245,6 +246,7 @@ describe('DonationsController', () => {
       keycloakId: '00000000-0000-0000-0000-000000000012',
       stripeCustomerId: 'string',
       picture: 'string',
+      profileEnabled: true,
     }
 
     const existingDonation = { ...mockDonation, status: DonationStatus.initial }
