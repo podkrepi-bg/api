@@ -1,6 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Expose } from 'class-transformer'
+import { Expose, Type } from 'class-transformer'
 import { IsObject, IsOptional, IsString } from 'class-validator'
+
+class TExtraData {
+  [key: string]: boolean | string | null
+}
 
 export class DonationMetadataDto {
   @ApiProperty()
@@ -12,7 +16,7 @@ export class DonationMetadataDto {
   @ApiProperty()
   @Expose()
   @IsObject()
+  @Type(() => TExtraData)
   @IsOptional()
-  //eslint-disable-next-line
-  extraData: any
+  extraData: TExtraData | undefined
 }
