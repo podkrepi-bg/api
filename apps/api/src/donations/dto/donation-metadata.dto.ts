@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Expose, Type } from 'class-transformer'
+import { Expose } from 'class-transformer'
 import { IsObject, IsOptional, IsString } from 'class-validator'
 
-class TExtraData {
-  [key: string]: boolean | string | null
+type TExtraData = {
+  [key: string]: string | null | number | boolean
 }
 
 export class DonationMetadataDto {
@@ -16,7 +16,6 @@ export class DonationMetadataDto {
   @ApiProperty()
   @Expose()
   @IsObject()
-  @Type(() => TExtraData)
   @IsOptional()
   extraData: TExtraData | undefined
 }
