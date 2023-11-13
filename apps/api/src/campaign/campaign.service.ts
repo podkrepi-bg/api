@@ -476,8 +476,8 @@ export class CampaignService {
     return this.prisma.campaign.create(createInput)
   }
 
-  async getCampaignVault(campaignId: string): Promise<Vault | null> {
-    return this.prisma.vault.findFirst({ where: { campaignId } })
+  async getCampaignVault(campaignId: string): Promise<Vault> {
+    return this.prisma.vault.findFirstOrThrow({ where: { campaignId } })
   }
 
   async getDonationsForCampaign(
@@ -695,15 +695,8 @@ export class CampaignService {
         newDonationStatus,
     )
 
-    /**
-     * Create or connect campaign vault
-     */
-    const vault = await tx.vault.findFirst({ where: { campaignId: campaign.id } })
-    const targetVaultData = vault
-      ? // Connect the existing vault to this donation
-        { connect: { id: vault.id } }
-      : // Create new vault for the campaign
-        { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
+    const vault = await tx.vault.findFirstOrThrow({ where: { campaignId: campaign.id } })
+    const targetVaultData = { connect: { id: vault.id } }
 
     try {
       const donation = await tx.donation.create({
