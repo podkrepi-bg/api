@@ -451,6 +451,7 @@ describe('StripePaymentService', () => {
       type: DonationType.donation,
       status: DonationStatus.succeeded,
       provider: 'stripe',
+      affiliateId: null,
       extCustomerId: paymentData.stripeCustomerId ?? '',
       extPaymentIntentId: paymentData.paymentIntentId,
       extPaymentMethodId: 'card',
