@@ -20,7 +20,8 @@ import { PersonService } from '../person/person.service'
 import { IrregularityFileService } from './irregularity-file.service'
 import { RealmViewContactRequests, ViewContactRequests } from '@podkrepi-bg/podkrepi-types'
 import { IrregularityService } from '../irregularity/irregularity.service'
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger'
+import { validateFileType } from '../common/files'
 
 @ApiTags('irregularity-file')
 @Controller('irregularity-file')
@@ -33,7 +34,14 @@ export class IrregularityFileController {
 
   @Post(':irregularity_id')
   @Public()
-  @UseInterceptors(FilesInterceptor('file', 5, { limits: { fileSize: 10485760 } })) //limit uploaded files to 5 at once and 10MB each
+  @UseInterceptors(
+    FilesInterceptor('file', 5, {
+      limits: { fileSize: 1024 * 1024 * 10 }, //limit uploaded files to 5 at once and 10MB each
+      fileFilter: (_req: Request, file, cb) => {
+        validateFileType(file, cb)
+      },
+    }),
+  )
   async create(
     @Param('irregularity_id') irregularityId: string,
     @UploadedFiles() files: Express.Multer.File[],

@@ -24,6 +24,7 @@ import { FilesRoleDto } from './dto/files-role.dto'
 import { CampaignNewsFileService } from './campaign-news-file.service'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { ApiTags } from '@nestjs/swagger'
+import { validateFileType } from '../common/files'
 
 @ApiTags('campaign-news-file')
 @Controller('campaign-news-file')
@@ -34,7 +35,14 @@ export class CampaignNewsFileController {
   ) {}
 
   @Post(':article_id')
-  @UseInterceptors(FilesInterceptor('file', 10, { limits: { fileSize: 20485760 } })) //limit uploaded files to 5 at once and 10MB each
+  @UseInterceptors(
+    FilesInterceptor('file', 10, {
+      limits: { fileSize: 1024 * 1024 * 10 }, //limit uploaded files to 10 at once and 10MB each
+      fileFilter: (_req: Request, file, cb) => {
+        validateFileType(file, cb)
+      },
+    }),
+  )
   async create(
     @Param('article_id') articleId: string,
     @Body() body: FilesRoleDto,
