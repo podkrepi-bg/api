@@ -1,5 +1,5 @@
 import CredentialRepresentation from '@keycloak/keycloak-admin-client/lib/defs/credentialRepresentation'
-import { Body, Controller, Get, Put, Logger, Delete, Patch, Param, Query } from '@nestjs/common'
+import { Body, Controller, Get, Put, Logger, Delete, Patch, Param } from '@nestjs/common'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 

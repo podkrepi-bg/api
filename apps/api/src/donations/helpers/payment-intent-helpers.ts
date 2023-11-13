@@ -1,4 +1,4 @@
-import { DonationType, PaymentProvider } from '@prisma/client'
+import { PaymentProvider } from '@prisma/client'
 import Stripe from 'stripe'
 import { getCountryRegion, stripeFeeCalculator } from './stripe-fee-calculator'
 import { RecurringDonationStatus, Currency } from '@prisma/client'
