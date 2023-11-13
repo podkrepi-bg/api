@@ -30,7 +30,7 @@ import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
 import { DonationsApiQuery } from './queries/donations.apiquery'
 import { PersonService } from '../person/person.service'
-import { CacheInterceptor } from '@nestjs/cache-manager'
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager'
 import { UseInterceptors } from '@nestjs/common'
 
 @ApiTags('donation')
@@ -111,6 +111,7 @@ export class DonationsController {
   }
 
   @Get('money')
+  @CacheTTL(5 * 1000)
   @UseInterceptors(CacheInterceptor)
   @Public()
   async totalDonatedMoney() {
@@ -126,6 +127,7 @@ export class DonationsController {
 
   @Get('listPublic')
   @UseInterceptors(CacheInterceptor)
+  @CacheTTL(2 * 1000)
   @Public()
   @ApiQuery({ name: 'campaignId', required: false, type: String })
   @ApiQuery({ name: 'status', required: false, enum: DonationStatus })
@@ -221,6 +223,15 @@ export class DonationsController {
     stripePaymentDto: CreateStripePaymentDto,
   ) {
     return this.donationsService.createStripePayment(stripePaymentDto)
+  }
+
+  @Post('/refund-stripe-payment/:id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  refundStripePaymet(@Param('id') paymentIntentId: string) {
+    return this.donationsService.refundStripePayment(paymentIntentId)
   }
 
   @Post('create-bank-payment')

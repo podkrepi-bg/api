@@ -9,14 +9,14 @@
         <mj-text
           align="left"
           color="#ffffff"
-          font-size="35px"
+          font-size="45px"
           font-weight="bold"
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
           padding-right="25px"
           padding-bottom="30px"
           padding-top="50px">
-          Добре дошъл в Подкрепи.бг
+          Върнати пари от дарение в Подкрепи.бг
         </mj-text>
       </mj-column>
     </mj-section>
@@ -29,7 +29,7 @@
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
           padding-right="25px">
-          <span style="color: #feeb35"> Здравейте {{person.firstName}}, </span>
+          <span style="color: #feeb35"> Здравейте, </span>
           <br /><br />
         </mj-text>
         <mj-text
@@ -39,15 +39,18 @@
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
           padding-right="25px">
-          Благодарим, че проявихте интерес и желание да се включите с помощ в проекта!<br /><br />
-          Предлагаме да продължим комуникацията в
-          <a style="color: #feeb35" href="https://discord.gg/3FBXDPjXEp" target="_blank"
-            >Discord сървъра</a
-          >, където се помещава нашият виртуален офис. Съветът ни е да прочетете внимателно какво
-          пише на началната страница в канал #започни-от-тук. <br /><br />
-          След това може да се включите в дискусиите и Ви чакаме на обща среща всяка сряда от 19:00
-          ч. в гласовия канал #обща-среща-сряда-19ч на сървъра. <br /><br />
-          Още веднъж благодарим за готовността да помогнете за нашата кауза!
+          Това е автоматичен e-mail, който потвърждава, че ще получите обратно парите от вашето
+          дарение към кампанията {{campaignName}}. <br />
+          За съжаление, поради ограничения на Stripe, не можем да ви възстановим таксите, които са
+          удържани от тях. <br /><br />
+
+          Допълнителни подробности:<br />
+          Сумата която ще възстановим е на стойност {{netAmount}} {{currency}}.<br />
+          Таксата удържана от Stripe е на стойност {{taxAmount}} {{currency}}<br />
+          Транзакцията ще отнеме от 5 до 10 дни и парите ще ви бъдат върнати към същата карта, с
+          която сте превели дарението към Страйп. <br /><br />
+
+          Благодарим ви за разбирането!
         </mj-text>
         <mj-text
           align="left"
@@ -57,8 +60,8 @@
           padding-left="25px"
           padding-right="25px">
           Поздрави, <br />
-          Екипът на Подкрепи.бг
-        </mj-text>
+          Екипът на Подкрепи.бг</mj-text
+        >
       </mj-column>
     </mj-section>
   </mj-body>

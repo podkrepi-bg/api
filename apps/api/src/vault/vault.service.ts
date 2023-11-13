@@ -117,6 +117,30 @@ export class VaultService {
     amount: number,
     tx: Prisma.TransactionClient,
   ): Promise<Vault> {
+    const vault = await this.updateVaultAmount(vaultId, amount, tx, 'increment')
+
+    await this.campaignService.updateCampaignStatusIfTargetReached(vault.campaignId, tx)
+
+    return vault
+  }
+
+  /**
+   * Decrement vault amount as part of donation in prisma transaction
+   */
+  public async decrementVaultAmount(
+    vaultId: string,
+    amount: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<Vault> {
+    return this.updateVaultAmount(vaultId, amount, tx, 'decrement')
+  }
+
+  async updateVaultAmount(
+    vaultId: string,
+    amount: number,
+    tx: Prisma.TransactionClient,
+    operationType: string,
+  ) {
     if (amount <= 0) {
       throw new Error('Amount cannot be negative or zero.')
     }
@@ -125,14 +149,12 @@ export class VaultService {
       where: { id: vaultId },
       data: {
         amount: {
-          increment: amount,
+          [operationType]: amount,
         },
       },
     }
 
     const vault = await tx.vault.update(updateStatement)
-    await this.campaignService.updateCampaignStatusIfTargetReached(vault.campaignId, tx)
-
     return vault
   }
 }

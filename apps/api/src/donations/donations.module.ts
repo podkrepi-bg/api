@@ -18,6 +18,7 @@ import { HttpModule } from '@nestjs/axios'
 import { ExportModule } from './../export/export.module'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
+import { EmailService } from '../email/email.service'
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { MarketingNotificationsModule } from '../notifications/notifications.mod
     VaultService,
     PersonService,
     ExportService,
+    EmailService,
   ],
   exports: [DonationsService],
 })

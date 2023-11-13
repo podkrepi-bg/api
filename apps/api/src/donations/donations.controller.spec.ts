@@ -31,8 +31,14 @@ describe('DonationsController', () => {
 
   const stripeMock = {
     checkout: { sessions: { create: jest.fn() } },
+    paymentIntents: { retrieve: jest.fn() },
+    refunds: { create: jest.fn() },
   }
   stripeMock.checkout.sessions.create.mockResolvedValue({ payment_intent: 'unique-intent' })
+  stripeMock.paymentIntents.retrieve.mockResolvedValue({
+    payment_intent: 'unique-intent',
+    metadata: { campaignId: 'unique-campaign' },
+  })
 
   const mockSession = {
     mode: 'payment',
@@ -279,6 +285,16 @@ describe('DonationsController', () => {
           increment: existingDonation.amount,
         },
       },
+    })
+  })
+
+  it('should request refund for donation', async () => {
+    await controller.refundStripePaymet('unique-intent')
+
+    expect(stripeMock.paymentIntents.retrieve).toHaveBeenCalledWith('unique-intent')
+    expect(stripeMock.refunds.create).toHaveBeenCalledWith({
+      payment_intent: 'unique-intent',
+      reason: 'requested_by_customer',
     })
   })
 })

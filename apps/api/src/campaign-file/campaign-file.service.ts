@@ -64,7 +64,7 @@ export class CampaignFileService {
       filename: encodeURIComponent(file.filename),
       mimetype: file.mimetype,
       stream: await this.s3.streamFile(this.bucketName, id),
-      role: file.role
+      role: file.role,
     }
   }
 

@@ -77,16 +77,6 @@ export class DonationsService {
       paymentIntentId,
     })
 
-    // /**
-    //  * Create or connect campaign vault
-    //  */
-    // const vault = await this.prisma.vault.findFirst({ where: { campaignId: campaign.id } })
-    // const targetVaultData = vault
-    //   ? // Connect the existing vault to this donation
-    //     { connect: { id: vault.id } }
-    //   : // Create new vault for the campaign
-    //     { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
-
     /**
      * Here we cannot create initial donation anymore because stripe is not returning paymentIntendId in the CreateSessionDto
      * It will be created in the paymentIntent.created webhook
@@ -108,15 +98,8 @@ export class DonationsService {
       paymentIntentId: paymentIntent.id,
     })
 
-    /**
-     * Create or connect campaign vault
-     */
-    const vault = await this.prisma.vault.findFirst({ where: { campaignId: campaign.id } })
-    const targetVaultData = vault
-      ? // Connect the existing vault to this donation
-        { connect: { id: vault.id } }
-      : // Create new vault for the campaign
-        { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
+    const vault = await this.campaignService.getCampaignVault(campaign.id)
+    const targetVaultData = { connect: { id: vault.id } }
 
     /**
      * Create or update initial donation object
@@ -538,6 +521,28 @@ export class DonationsService {
     const campaignId = intent.metadata.camapaignId
     const campaign = await this.campaignService.validateCampaignId(campaignId)
     return this.createInitialDonationFromIntent(campaign, inputDto, intent)
+  }
+
+  /**
+   * Refund a stipe payment donation
+   * https://stripe.com/docs/api/refunds/create
+   * @param inputDto Refund-stripe params
+   * @returns {Promise<Stripe.Response<Stripe.Refund>>}
+   */
+  async refundStripePayment(paymentIntentId: string): Promise<Stripe.Response<Stripe.Refund>> {
+    const intent = await this.stripeClient.paymentIntents.retrieve(paymentIntentId)
+    if (!intent) {
+      throw new BadRequestException('Payment Intent is missing from stripe')
+    }
+
+    if (!intent.metadata.campaignId) {
+      throw new BadRequestException('Campaign id is missing from payment intent metadata')
+    }
+
+    return await this.stripeClient.refunds.create({
+      payment_intent: paymentIntentId,
+      reason: 'requested_by_customer',
+    })
   }
 
   /**
