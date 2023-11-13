@@ -24,6 +24,7 @@ export function validateFileType(
   const mimeAllowlist = [
     'text/plain',
     'application/json',
+    'application/pdf',
     'image/png',
     'image/jpeg',
     'application/xml',
@@ -36,7 +37,7 @@ export function validateFileType(
     return cb(new Error('File mime type is not allowed'), false)
   }
 
-  const allowedExtensions = /txt|json|jpeg|jpg|png|xml|xlsx|xls|docx/
+  const allowedExtensions = /txt|json|pdf|jpeg|jpg|png|xml|xlsx|xls|docx/
 
   const isExtensionSupported = allowedExtensions.test(path.extname(file.originalname).toLowerCase())
   if (!isExtensionSupported) {
