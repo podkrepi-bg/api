@@ -125,6 +125,20 @@ describe('AuthService', () => {
   describe('issueToken', () => {
     const email = 'someuser@example.com'
     const password = 's3cret'
+
+    it('should call auth', async () => {
+      const tokenSpy = jest.spyOn(service, 'issueToken')
+      const token = mockDeep<Grant>({
+        access_token: { token: 't23456' },
+      })
+      const keycloakSpy = jest
+        .spyOn(keycloak.grantManager, 'obtainDirectly')
+        .mockResolvedValue(token)
+      expect(await service.issueToken(email, password)).toBe('t23456')
+      expect(keycloakSpy).toHaveBeenCalledWith(email, password)
+      expect(tokenSpy).toHaveBeenCalledWith(email, password)
+      expect(admin.auth).not.toHaveBeenCalled()
+    })
   })
 
   describe('token endpoint', () => {
