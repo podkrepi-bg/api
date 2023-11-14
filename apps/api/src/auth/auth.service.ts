@@ -426,4 +426,15 @@ export class AuthService {
           )
     }
   }
+
+  async permanentDeleteUser(keycloakId: string){
+    await this.authenticateAdmin()
+
+    return await Promise.all([
+      this.admin.users.del({ id: keycloakId }),
+      this.prismaService.person.delete({
+        where: {keycloakId}
+      })
+    ])
+  }
 }

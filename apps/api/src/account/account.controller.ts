@@ -71,7 +71,7 @@ export class AccountController {
   @Delete('me')
   async disableUser(@AuthenticatedUser() user: KeycloakTokenParsed) {
     try {
-      return await this.accountService.disableUser(user)
+      return await this.accountService.permanentDeleteUser(user)
     } catch (err) {
       Logger.error(`Failed to disable user with keycloakId ${user.sub}. Error is: ${err}`)
       throw err
