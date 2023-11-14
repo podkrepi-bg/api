@@ -20,4 +20,5 @@ export const personFactory = Factory.define<Person>(() => ({
   newsletter: faker.datatype.boolean(),
   createdAt: faker.date.past(),
   updatedAt: faker.date.recent(),
+  profileEnabled: true,
 }))
