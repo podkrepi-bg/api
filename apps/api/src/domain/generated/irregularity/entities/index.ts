@@ -1,1 +1,2 @@
-export * from './irregularity.entity'
+
+export * from './irregularity.entity';

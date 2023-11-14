@@ -1,1 +1,2 @@
-export * from './donationMetadata.entity'
+
+export * from './donationMetadata.entity';

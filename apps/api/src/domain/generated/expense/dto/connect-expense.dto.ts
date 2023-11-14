@@ -1,3 +1,5 @@
-export class ConnectExpenseDto {
-  id: string
-}
+
+  export class ConnectExpenseDto {
+    id: string;
+  }
+  

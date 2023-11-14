@@ -1,1 +1,2 @@
-export * from './organizer.entity'
+
+export * from './organizer.entity';

@@ -1,6 +1,10 @@
-import { Prisma } from '@prisma/client'
+
+import {Prisma} from '@prisma/client'
+
+
+
 
 export class UpdateDonationMetadataDto {
-  name?: string
-  extraData?: Prisma.InputJsonValue
+  name?: string;
+extraData?: Prisma.InputJsonValue;
 }
