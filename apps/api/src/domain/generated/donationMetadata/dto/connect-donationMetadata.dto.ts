@@ -1,3 +1,5 @@
-export class ConnectDonationMetadataDto {
-  donationId: string
-}
+
+  export class ConnectDonationMetadataDto {
+    donationId: string;
+  }
+  

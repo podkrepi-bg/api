@@ -1,4 +1,10 @@
+
+
+
+
+
+
 export class UpdateCountryDto {
-  name?: string
-  countryCode?: string
+  name?: string;
+countryCode?: string;
 }

@@ -1,3 +1,5 @@
-export class ConnectExpenseFileDto {
-  id: string
-}
+
+  export class ConnectExpenseFileDto {
+    id: string;
+  }
+  

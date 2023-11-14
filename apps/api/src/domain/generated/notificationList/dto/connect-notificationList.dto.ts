@@ -1,3 +1,5 @@
-export class ConnectNotificationListDto {
-  id: string
-}
+
+  export class ConnectNotificationListDto {
+    id: string;
+  }
+  

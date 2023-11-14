@@ -1,1 +1,2 @@
-export * from './campaignNewsFile.entity'
+
+export * from './campaignNewsFile.entity';

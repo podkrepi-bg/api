@@ -1,5 +1,7 @@
-export class ConnectCompanyDto {
-  id?: string
-  companyNumber?: string
-  personId?: string
-}
+
+  export class ConnectCompanyDto {
+    id?: string;
+companyNumber?: string;
+personId?: string;
+  }
+  

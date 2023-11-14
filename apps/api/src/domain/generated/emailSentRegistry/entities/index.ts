@@ -1,1 +1,2 @@
-export * from './emailSentRegistry.entity'
+
+export * from './emailSentRegistry.entity';

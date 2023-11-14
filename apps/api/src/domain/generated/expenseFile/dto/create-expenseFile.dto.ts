@@ -1,4 +1,10 @@
+
+
+
+
+
+
 export class CreateExpenseFileDto {
-  filename: string
-  mimetype: string
+  filename: string;
+mimetype: string;
 }
