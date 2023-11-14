@@ -56,7 +56,9 @@ import { CacheModule } from '@nestjs/cache-manager'
 import { CampaignNewsModule } from '../campaign-news/campaign-news.module'
 import { CampaignNewsFileModule } from '../campaign-news-file/campaign-news-file.module'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
+
 import { StatisticsModule } from '../statistics/statistics.module'
+import { AffiliateModule } from '../affiliate/affiliate.module'
 
 @Module({
   imports: [
@@ -76,6 +78,7 @@ import { StatisticsModule } from '../statistics/statistics.module'
     TasksModule,
     /* Internal modules */
     AuthModule,
+    AffiliateModule,
     AccountModule,
     CampaignModule,
     CampaignFileModule,

@@ -3,6 +3,7 @@ export enum ImportStatus {
   SUCCESS = 'SUCCESS',
   FAILED = 'FAILED',
   UPDATED = 'UPDATED',
+  INCOMPLETE = 'INCOMPLETE',
 }
 
 export type BankImportResult = {

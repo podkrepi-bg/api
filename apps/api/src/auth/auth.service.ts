@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -17,10 +18,10 @@ import { RequiredActionAlias } from '@keycloak/keycloak-admin-client/lib/defs/re
 import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
 import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth'
 
-import { Person } from '@prisma/client'
+import { Company, Person } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { LoginDto } from './dto/login.dto'
-import { RegisterDto } from './dto/register.dto'
+import { ProfileType, RegisterDto } from './dto/register.dto'
 import { RefreshDto } from './dto/refresh.dto'
 import { KeycloakTokenParsed } from './keycloak'
 import { ProviderDto } from './dto/provider.dto'
@@ -156,12 +157,15 @@ export class AuthService {
         await this.authenticateAdmin()
         const userData = await this.admin.users.findOne({ id: user.sub })
         const registerDto: RegisterDto = {
+          type: ProfileType.INDIVIDUAL,
           email: userData?.email ?? '',
           password: '',
           firstName: userData?.firstName ?? '',
           lastName: userData?.lastName ?? '',
+          companyName: undefined,
+          companyNumber: undefined,
         }
-        await this.createPerson(registerDto, user.sub)
+        await this.createPerson(registerDto, user.sub, undefined)
       }
       return {
         refreshToken: grant.refresh_token?.token,
@@ -177,14 +181,21 @@ export class AuthService {
     }
   }
 
-  async createUser(registerDto: RegisterDto): Promise<Person | ErrorResponse> {
+  async createUser(
+    registerDto: RegisterDto,
+    isCorporateReg = false,
+  ): Promise<Person | ErrorResponse> {
     let person: Person
+    let company: Company | null = null
     try {
       await this.authenticateAdmin()
       // Create user in Keycloak
-      const user = await this.createKeycloakUser(registerDto, false)
+      const user = await this.createKeycloakUser(registerDto, false, !isCorporateReg)
       // Insert or connect person in app db
-      person = await this.createPerson(registerDto, user.id)
+      if (isCorporateReg) {
+        company = await this.createCompany(registerDto)
+      }
+      person = await this.createPerson(registerDto, user.id, company?.id)
     } catch (error) {
       const response = {
         error: error.message,
@@ -225,13 +236,17 @@ export class AuthService {
     })
   }
 
-  private async createKeycloakUser(registerDto: RegisterDto, verifyEmail: boolean) {
+  private async createKeycloakUser(
+    registerDto: RegisterDto,
+    verifyEmail: boolean,
+    activeProfile = true,
+  ) {
     return await this.admin.users.create({
       username: registerDto.email,
       email: registerDto.email,
       firstName: registerDto.firstName,
       lastName: registerDto.lastName,
-      enabled: true,
+      enabled: activeProfile,
       emailVerified: true,
       groups: [],
       requiredActions: verifyEmail ? [RequiredActionAlias.VERIFY_EMAIL] : [],
@@ -261,7 +276,11 @@ export class AuthService {
     return `${serverUrl}/realms/${realm}/protocol/openid-connect/token`
   }
 
-  private async createPerson(registerDto: RegisterDto, keycloakId: string) {
+  private async createPerson(
+    registerDto: RegisterDto,
+    keycloakId: string,
+    companyId: string | null | undefined,
+  ) {
     return await this.prismaService.person.upsert({
       // Create a person with the provided keycloakId
       create: {
@@ -270,10 +289,27 @@ export class AuthService {
         firstName: registerDto.firstName,
         lastName: registerDto.lastName,
         newsletter: registerDto.newsletter ? registerDto.newsletter : false,
+        companyId: companyId,
+        profileEnabled: companyId ? false : true,
       },
       // Store keycloakId to the person with same email
       update: { keycloakId },
       where: { email: registerDto.email },
+    })
+  }
+
+  private async createCompany(registerDto: RegisterDto): Promise<Company> {
+    if (!registerDto.companyName || !registerDto.companyNumber) {
+      throw new BadRequestException('Company name and companyNumber are missing')
+    }
+    return await this.prismaService.company.create({
+      // Create a person with the provided keycloakId
+      data: {
+        companyNumber: registerDto.companyNumber,
+        companyName: registerDto.companyName,
+        legalPersonName: registerDto.firstName + ' ' + registerDto.lastName,
+      },
+      // Store keycloakId to the person with same email
     })
   }
 
@@ -315,14 +351,29 @@ export class AuthService {
     return true
   }
 
-  async disableUser(keycloakId: string) {
+  async changeEnabledStatus(keycloakId: string, enabled: boolean) {
     await this.authenticateAdmin()
-    return await this.admin.users.update(
+    // check if user is admin before attempting to activate/deactivate
+    const userGroups = await this.admin.users.listRoleMappings({ id: keycloakId })
+    const isAdmin = userGroups.realmMappings?.some(
+      (obj) =>
+        obj.name === 'team-support' ||
+        obj.name === 'view-supporters' ||
+        obj.name === 'view-contact-requests',
+    )
+    if (isAdmin) {
+      throw new ForbiddenException("Admin profiles can't be deactivated")
+    }
+    await this.admin.users.update(
       { id: keycloakId },
       {
-        enabled: false,
+        enabled,
       },
     )
+    return await this.prismaService.person.update({
+      where: { keycloakId },
+      data: { profileEnabled: enabled },
+    })
   }
 
   async sendMailForPasswordChange(forgotPasswordDto: ForgottenPasswordEmailDto) {

@@ -5,6 +5,7 @@ import { Person } from '@prisma/client'
 
 export const personFactory = Factory.define<Person>(() => ({
   id: faker.datatype.uuid(),
+  companyId: null,
   keycloakId: null,
   stripeCustomerId: null,
   firstName: faker.name.firstName(),
@@ -14,7 +15,6 @@ export const personFactory = Factory.define<Person>(() => ({
   picture: faker.image.imageUrl(),
   phone: faker.phone.number('+359########'),
   personalNumber: faker.random.numeric(10),
-  company: faker.company.name(),
   address: `${faker.address.street()}, ${faker.address.cityName()}`,
   birthday: faker.date.birthdate(),
   newsletter: faker.datatype.boolean(),

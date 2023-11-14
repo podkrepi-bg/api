@@ -37,11 +37,11 @@ describe('AuthService', () => {
     id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
     firstName: 'Admin',
     lastName: 'Dev',
+    companyId: null,
     keycloakId: '123',
     email: 'test@podkrepi.bg',
     emailConfirmed: false,
     phone: null,
-    company: null,
     picture: null,
     createdAt: new Date('2021-10-07T13:38:11.097Z'),
     updatedAt: new Date('2021-10-07T13:38:11.097Z'),
@@ -50,6 +50,7 @@ describe('AuthService', () => {
     birthday: null,
     personalNumber: null,
     stripeCustomerId: null,
+    profileEnabled: false,
   }
 
   beforeEach(async () => {
@@ -324,6 +325,9 @@ describe('AuthService', () => {
     const password = 's3cret'
     const firstName = 'John'
     const lastName = 'Doe'
+    //if no company has been created company.id is expected to be undefined
+    const companyId = undefined
+    const profileEnabled = true
     const newsletter = true
 
     it('should call keycloak and prisma', async () => {
@@ -374,7 +378,7 @@ describe('AuthService', () => {
 
       // Check db creation
       expect(prismaSpy).toHaveBeenCalledWith({
-        create: { keycloakId, email, firstName, lastName, newsletter },
+        create: { keycloakId, email, firstName, lastName, newsletter, companyId, profileEnabled },
         update: { keycloakId },
         where: { email },
       })
@@ -420,11 +424,11 @@ describe('AuthService', () => {
         id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
         firstName,
         lastName,
+        companyId: null,
         keycloakId,
         email,
         emailConfirmed: false,
         phone: null,
-        company: null,
         picture: null,
         createdAt: new Date('2021-10-07T13:38:11.097Z'),
         updatedAt: new Date('2021-10-07T13:38:11.097Z'),
@@ -433,6 +437,7 @@ describe('AuthService', () => {
         birthday: null,
         personalNumber: null,
         stripeCustomerId: null,
+        profileEnabled: true,
       }
       jest.spyOn(prismaMock.person, 'upsert').mockResolvedValue(person)
       jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
@@ -469,11 +474,11 @@ describe('AuthService', () => {
         id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
         firstName,
         lastName,
+        companyId: null,
         keycloakId,
         email,
         emailConfirmed: false,
         phone: null,
-        company: null,
         picture: null,
         createdAt: new Date('2021-10-07T13:38:11.097Z'),
         updatedAt: new Date('2021-10-07T13:38:11.097Z'),
@@ -482,6 +487,7 @@ describe('AuthService', () => {
         birthday: null,
         personalNumber: null,
         stripeCustomerId: null,
+        profileEnabled: true,
       }
       jest.spyOn(prismaMock.person, 'upsert').mockResolvedValue(person)
       jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })

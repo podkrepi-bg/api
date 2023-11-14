@@ -4,6 +4,7 @@ import { ApiProperty } from '@nestjs/swagger'
 import {
   IsBoolean,
   IsEmail,
+  IsEnum,
   IsIn,
   IsNotEmpty,
   IsNumber,
@@ -15,6 +16,7 @@ import {
   Min,
   ValidateIf,
 } from 'class-validator'
+import { DonationType } from '@prisma/client'
 
 export class CreateSessionDto {
   @ApiProperty()
@@ -22,6 +24,11 @@ export class CreateSessionDto {
   @IsNotEmpty()
   @IsIn(['payment', 'setup', 'subscription'])
   public readonly mode: Stripe.Checkout.Session.Mode
+
+  @ApiProperty()
+  @Expose()
+  @IsEnum(DonationType)
+  public readonly type: DonationType
 
   @ApiProperty()
   @Expose()

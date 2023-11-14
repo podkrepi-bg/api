@@ -6,6 +6,7 @@ import { Currency, DonationStatus, DonationType, PaymentProvider } from '@prisma
 
 export const donationFactory = Factory.define<Donation>(({ associations }) => ({
   id: faker.datatype.uuid(),
+  affiliateId: null,
   type: faker.helpers.arrayElement(Object.values(DonationType)),
   status: faker.helpers.arrayElement(Object.values(DonationStatus)),
   provider: faker.helpers.arrayElement(Object.values(PaymentProvider)),

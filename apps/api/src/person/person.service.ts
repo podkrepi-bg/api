@@ -62,6 +62,9 @@ export class PersonService {
         case 'beneficiaries':
           sort = { beneficiaries: { _count: sortOrder == 'asc' ? 'desc' : 'asc' } }
           break
+        case 'type':
+          sort = { company: { createdAt: sortOrder == 'asc' ? 'desc' : 'asc' } }
+          break
         default:
           sort = { [sortBy]: sortOrder ?? 'desc' }
       }
@@ -115,7 +118,7 @@ export class PersonService {
   }
 
   async findOneByKeycloakId(keycloakId: string) {
-    return await this.prisma.person.findFirst({ where: { keycloakId } })
+    return await this.prisma.person.findFirst({ where: { keycloakId }, include: { company: true } })
   }
 
   async update(id: string, updatePersonDto: UpdatePersonDto) {

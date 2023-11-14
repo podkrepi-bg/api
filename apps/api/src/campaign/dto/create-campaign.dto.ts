@@ -1,14 +1,4 @@
-import {
-  IsDate,
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  IsPositive,
-  IsString,
-  IsUUID,
-  MaxLength,
-  MinLength,
-} from 'class-validator'
+import { IsDate, IsEnum, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose, Transform, Type } from 'class-transformer'
 import { CampaignState, Currency, Prisma } from '@prisma/client'

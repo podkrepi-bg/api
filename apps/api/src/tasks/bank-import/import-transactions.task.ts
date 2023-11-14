@@ -31,8 +31,14 @@ import {
   ExpiringIrisConsentEmailDto,
   UnrecognizedDonationEmailDto,
 } from '../../email/template.interface'
+import { ImportStatus } from '../../bank-transactions-file/dto/bank-transactions-import-status.dto'
+import { IrisIbanAccountInfoDto } from '../../bank-transactions/dto/iris-bank-account-info.dto'
+import { IrisTransactionInfoDto } from '../../bank-transactions/dto/iris-bank-transaction-info.dto'
 
 type filteredTransaction = Prisma.BankTransactionCreateManyInput
+type AffiliatePayload = Prisma.AffiliateGetPayload<{
+  include: { donations: true }
+}>
 
 @Injectable()
 export class IrisTasks {
@@ -48,6 +54,7 @@ export class IrisTasks {
   private daysToExpCondition = 5
   // Used to check if the task should be stopped
   private canRun = true
+  private readonly AFFILIATE_CODE_PREFIX = 'af_'
 
   constructor(
     private readonly httpService: HttpService,
@@ -121,6 +128,44 @@ export class IrisTasks {
     }
   }
 
+  async simulateBankTransactionImportTask(
+    ibanAccount: IrisIbanAccountInfoDto,
+    transactions: IrisTransactionInfoDto[],
+  ) {
+    let bankTrxRecords: filteredTransaction[]
+    try {
+      bankTrxRecords = this.prepareBankTransactionRecords(transactions, ibanAccount)
+      Logger.debug(`Transactions for import after filtering: ${bankTrxRecords.length}`)
+    } catch (e) {
+      return Logger.error('Error while preparing BankTransaction records')
+    }
+
+    // 5. Parse transactions and create the donations
+    let processedBankTrxRecords: filteredTransaction[]
+    try {
+      processedBankTrxRecords = await this.processDonations(bankTrxRecords)
+    } catch (e) {
+      return Logger.error('Failed to process transaction donations' + e.message)
+    }
+
+    // 6. Save BankTransactions to DB
+    try {
+      const savedTransactions = await this.saveBankTrxRecords(processedBankTrxRecords)
+      Logger.debug('Saved transactions count: ' + savedTransactions.length)
+    } catch (e) {
+      return Logger.error('Failed to import transactions into DB: ' + e.message)
+    }
+
+    //7. Notify about unrecognized donations
+    try {
+      await this.sendUnrecognizedDonationsMail(processedBankTrxRecords)
+    } catch (e) {
+      return Logger.error('Failed to notify about bad transaction donations ' + e.message)
+    }
+
+    return
+  }
+
   async importBankTransactionsTASK(transactionsDate: Date) {
     // De-register the task, so that it doesn't waste server resources
     if (!this.canRun) {
@@ -175,7 +220,7 @@ export class IrisTasks {
     // 6. Save BankTransactions to DB
     try {
       const savedTransactions = await this.saveBankTrxRecords(processedBankTrxRecords)
-      Logger.debug('Saved transactions count: ' + savedTransactions.count)
+      Logger.debug('Saved transactions count: ' + savedTransactions.length)
     } catch (e) {
       return Logger.error('Failed to import transactions into DB: ' + e.message)
     }
@@ -269,7 +314,7 @@ export class IrisTasks {
     ibanAccount: IrisIbanAccountInfo,
   ) {
     const filteredTransactions: filteredTransaction[] = []
-
+    let matchedRef: string | null
     for (const trx of transactions) {
       // We're interested in parsing only incoming trx's
       if (trx.creditDebitIndicator !== 'CREDIT') {
@@ -281,12 +326,16 @@ export class IrisTasks {
         continue
       }
 
+      if (trx.remittanceInformationUnstructured.startsWith(this.AFFILIATE_CODE_PREFIX)) {
+        matchedRef = trx.remittanceInformationUnstructured
+      } else {
+        const ref = trx.remittanceInformationUnstructured
+          ?.trim()
+          .replace(/[ _]+/g, '-')
+          .match(this.regexPaymentRef)
+        matchedRef = ref ? ref[0] : null
+      }
       // Try to recognize campaign payment reference
-      let matchedRef = trx.remittanceInformationUnstructured
-        ?.trim()
-        .replace(/[ _]+/g, '-')
-        .match(this.regexPaymentRef)
-
       const transactionAmount = {
         amount: trx.transactionAmount?.amount,
         currency: trx.transactionAmount?.currency,
@@ -320,17 +369,40 @@ export class IrisTasks {
         currency: transactionAmount.currency,
         description: trx.remittanceInformationUnstructured?.trim(),
         // Not saved in the DB, it's added only for convinience and efficiency
-        matchedRef: matchedRef ? matchedRef[0] : null,
+        matchedRef: matchedRef ? matchedRef : null,
       })
     }
-
     return filteredTransactions
   }
 
   private async processDonations(bankTransactions: filteredTransaction[]) {
-    const matchedPaymentRef: string[] = []
+    const campaignPaymentRef: string[] = []
+    const affiliatePaymentRef: string[] = []
     bankTransactions.forEach((trx) => {
-      if (trx.matchedRef) matchedPaymentRef.push(trx.matchedRef)
+      if (trx.matchedRef) {
+        trx.matchedRef.startsWith(this.AFFILIATE_CODE_PREFIX)
+          ? affiliatePaymentRef.push(trx.matchedRef)
+          : campaignPaymentRef.push(trx.matchedRef)
+      }
+    })
+
+    const affiliates = await this.prisma.affiliate.findMany({
+      where: {
+        affiliateCode: {
+          in: affiliatePaymentRef,
+        },
+      },
+      include: {
+        donations: {
+          where: {
+            status: DonationStatus.guaranteed,
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+          include: { targetVault: true },
+        },
+      },
     })
 
     /*
@@ -338,10 +410,11 @@ export class IrisTasks {
      than execute a separate one for each transaction -
      more performent and reliable approach
     */
+
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         paymentReference: {
-          in: matchedPaymentRef,
+          in: campaignPaymentRef,
         },
       },
       include: {
@@ -359,7 +432,13 @@ export class IrisTasks {
       const campaign = campaigns.find((cmpgn) => cmpgn.paymentReference === trx.matchedRef)
 
       if (!campaign) {
-        trx.bankDonationStatus = BankDonationStatus.unrecognized
+        //Campaign not found by paymentReference. Check if it is affiliate donation
+        const affiliate = affiliates.find((affiliate) => affiliate.affiliateCode === trx.matchedRef)
+        if (!affiliate) {
+          trx.bankDonationStatus = BankDonationStatus.unrecognized
+          continue
+        }
+        await this.processAffiliateDonations(affiliate, trx)
         continue
       }
 
@@ -375,6 +454,35 @@ export class IrisTasks {
     }
 
     return bankTransactions
+  }
+
+  private async processAffiliateDonations(affiliate: AffiliatePayload, trx: filteredTransaction) {
+    let totalDonated = 0
+    let updatedDonations = 0
+    if (!trx.amount) {
+      trx.bankDonationStatus = BankDonationStatus.importFailed
+      return ImportStatus.UNPROCESSED
+    }
+    //If no guaranteed donations are found for the affiliate
+    //mark the transaction as imported
+    if (affiliate.donations.length === 0) {
+      trx.bankDonationStatus = BankDonationStatus.imported
+      return ImportStatus.SUCCESS
+    }
+
+    for (const donation of affiliate.donations) {
+      if (trx.amount - totalDonated < donation.amount) continue
+      await this.donationsService.updateAffiliateBankPayment(donation)
+      totalDonated += donation.amount
+      updatedDonations++
+    }
+    if (trx.amount - totalDonated > 0 || updatedDonations < affiliate.donations.length) {
+      trx.bankDonationStatus = BankDonationStatus.incomplete
+      return ImportStatus.INCOMPLETE
+    }
+
+    trx.bankDonationStatus = BankDonationStatus.imported
+    return ImportStatus.SUCCESS
   }
 
   private prepareBankPaymentObject(
@@ -401,7 +509,19 @@ export class IrisTasks {
 
   private async saveBankTrxRecords(data: filteredTransaction[]) {
     // Insert new transactions
-    const inserted = await this.prisma.bankTransaction.createMany({ data, skipDuplicates: true })
+    const inserted = await this.prisma.$transaction(
+      data.map((trx) =>
+        this.prisma.bankTransaction.upsert({
+          where: { id: trx.id },
+          update: {
+            bankDonationStatus: trx.description.startsWith(this.AFFILIATE_CODE_PREFIX)
+              ? trx.bankDonationStatus
+              : undefined,
+          },
+          create: { ...trx },
+        }),
+      ),
+    )
 
     return inserted
   }

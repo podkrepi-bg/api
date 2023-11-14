@@ -27,6 +27,7 @@ import { donationWithPerson, DonationWithPerson } from './queries/donation.valid
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 import { ImportStatus } from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
+import { CreateAffiliateDonationDto } from '../affiliate/dto/create-affiliate-donation.dto'
 
 @Injectable()
 export class DonationsService {
@@ -162,11 +163,13 @@ export class DonationsService {
     const campaign = await this.campaignService.validateCampaignId(sessionDto.campaignId)
     const { mode } = sessionDto
     const appUrl = this.config.get<string>('APP_URL')
+
     const metadata: DonationMetadata = {
       campaignId: sessionDto.campaignId,
       personId: sessionDto.personId,
       isAnonymous: sessionDto.isAnonymous ? 'true' : 'false',
       wish: sessionDto.message ?? null,
+      type: sessionDto.type,
     }
 
     const items = await this.prepareSessionItems(sessionDto, campaign)
@@ -270,28 +273,38 @@ export class DonationsService {
     pageIndex?: number,
     pageSize?: number,
   ): Promise<ListDonationsDto<DonationBaseDto>> {
-    const data = await this.prisma.donation.findMany({
-      where: { status, targetVault: { campaign: { id: campaignId } } },
-      orderBy: [{ updatedAt: 'desc' }],
-      select: {
-        id: true,
-        type: true,
-        status: true,
-        provider: true,
-        createdAt: true,
-        updatedAt: true,
-        amount: true,
-        chargedAmount: true,
-        currency: true,
-        person: { select: { firstName: true, lastName: true } },
-      },
-      skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
-      take: pageSize ? pageSize : undefined,
-    })
-
-    const count = await this.prisma.donation.count({
-      where: { status, targetVault: { campaign: { id: campaignId } } },
-    })
+    const [data, count] = await this.prisma.$transaction([
+      this.prisma.donation.findMany({
+        where: {
+          OR: [{ status: status }, { status: DonationStatus.guaranteed }],
+          targetVault: { campaign: { id: campaignId } },
+        },
+        orderBy: [{ updatedAt: 'desc' }],
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          provider: true,
+          createdAt: true,
+          updatedAt: true,
+          amount: true,
+          chargedAmount: true,
+          currency: true,
+          person: {
+            select: { firstName: true, lastName: true, company: { select: { companyName: true } } },
+          },
+          metadata: { select: { name: true } },
+        },
+        skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
+        take: pageSize ? pageSize : undefined,
+      }),
+      this.prisma.donation.count({
+        where: {
+          OR: [{ status: status }, { status: DonationStatus.guaranteed }],
+          targetVault: { campaign: { id: campaignId } },
+        },
+      }),
+    ])
 
     const result = {
       items: data,
@@ -299,6 +312,35 @@ export class DonationsService {
     }
 
     return result
+  }
+
+  async createAffiliateDonation(donationDto: CreateAffiliateDonationDto) {
+    const vault = await this.vaultService.findByCampaignId(donationDto.campaignId)
+
+    if (!vault || vault.length === 0) throw new NotFoundException('Campaign or vault not found')
+
+    const donation = await this.prisma.donation.create({
+      data: donationDto.toEntity(vault[0].id),
+    })
+    if (donationDto.metadata) {
+      await this.prisma.donationMetadata.create({
+        data: {
+          donationId: donation.id,
+          ...donationDto.metadata,
+        },
+      })
+    }
+    if (donationDto.message) {
+      await this.prisma.donationWish.create({
+        data: {
+          campaignId: donationDto.campaignId,
+          message: donationDto.message,
+          donationId: donation.id,
+          personId: donationDto.personId,
+        },
+      })
+    }
+    return donation
   }
 
   /**
@@ -397,6 +439,18 @@ export class DonationsService {
     }
   }
 
+  async getAffiliateDonationById(donationId: string, affiliateCode: string) {
+    try {
+      const donation = await this.prisma.donation.findFirstOrThrow({
+        where: { id: donationId, affiliate: { affiliateCode: affiliateCode } },
+      })
+      return donation
+    } catch (err) {
+      const msg = 'No Donation record with ID: ' + donationId
+      Logger.warn(msg)
+      throw new NotFoundException(msg)
+    }
+  }
   /**
    * Get donation by id with person data attached
    * @param id Donation id
@@ -420,7 +474,11 @@ export class DonationsService {
             id: true,
             firstName: true,
             lastName: true,
+            company: { select: { companyName: true } },
           },
+        },
+        affiliate: {
+          select: { company: { select: { companyName: true } } },
         },
         targetVault: {
           select: {
@@ -542,6 +600,30 @@ export class DonationsService {
     })
   }
 
+  async updateAffiliateBankPayment(donationDto: Donation) {
+    return await this.prisma.$transaction(async (tx) => {
+      await Promise.all([
+        this.vaultService.incrementVaultAmount(donationDto.targetVaultId, donationDto.amount, tx),
+        tx.donation.update({
+          where: { id: donationDto.id },
+          data: { status: DonationStatus.succeeded, updatedAt: donationDto.updatedAt },
+        }),
+      ])
+    })
+  }
+
+  async updateAffiliateDonations(donationId: string, affiliateId: string, status: DonationStatus) {
+    const donation = await this.prisma.donation.update({
+      where: {
+        id: donationId,
+        affiliateId: affiliateId,
+      },
+      data: {
+        status,
+      },
+    })
+    return donation
+  }
   /**
    * Updates the donation's status or donor. Note: completed donations cannot have status updates.
    * @param id

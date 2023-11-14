@@ -29,11 +29,6 @@ export class UpdatePersonDto {
 
   @ApiProperty()
   @Expose()
-  @IsOptional()
-  company?: string
-
-  @ApiProperty()
-  @Expose()
   @IsBoolean()
   @IsOptional()
   newsletter?: boolean
@@ -56,4 +51,10 @@ export class UpdatePersonDto {
   @IsOptional()
   @IsString()
   personalNumber?: string
+
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  @IsBoolean()
+  profileEnabled?: boolean
 }
