@@ -28,7 +28,7 @@ export class AccountService {
     return await this.authService.changeEnabledStatus(user.sub, false)
   }
 
-  async permanentDeleteUser(user: KeycloakTokenParsed){
+  async permanentDeleteUser(user: KeycloakTokenParsed) {
     return await this.authService.permanentDeleteUser(user.sub)
   }
 

@@ -8,30 +8,30 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
-import {HttpService} from '@nestjs/axios'
-import {catchError, firstValueFrom, map, Observable} from 'rxjs'
+import { HttpService } from '@nestjs/axios'
+import { catchError, firstValueFrom, map, Observable } from 'rxjs'
 import KeycloakConnect from 'keycloak-connect'
-import {ConfigService} from '@nestjs/config'
-import {KEYCLOAK_INSTANCE} from 'nest-keycloak-connect'
+import { ConfigService } from '@nestjs/config'
+import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
-import {RequiredActionAlias} from '@keycloak/keycloak-admin-client/lib/defs/requiredActionProviderRepresentation'
-import {AxiosResponse} from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
-import {TokenResponseRaw} from '@keycloak/keycloak-admin-client/lib/utils/auth'
+import { RequiredActionAlias } from '@keycloak/keycloak-admin-client/lib/defs/requiredActionProviderRepresentation'
+import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
+import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth'
 
-import {Company, Person} from '@prisma/client'
-import {PrismaService} from '../prisma/prisma.service'
-import {LoginDto} from './dto/login.dto'
-import {ProfileType, RegisterDto} from './dto/register.dto'
-import {RefreshDto} from './dto/refresh.dto'
-import {KeycloakTokenParsed} from './keycloak'
-import {ProviderDto} from './dto/provider.dto'
-import {UpdatePersonDto} from '../person/dto/update-person.dto'
-import {ForgottenPasswordEmailDto} from './dto/forgot-password.dto'
-import {JwtService} from '@nestjs/jwt'
-import {EmailService} from '../email/email.service'
-import {ForgottenPasswordMailDto} from '../email/template.interface'
-import {NewPasswordDto} from './dto/recovery-password.dto'
-import {MarketingNotificationsService} from '../notifications/notifications.service'
+import { Company, Person } from '@prisma/client'
+import { PrismaService } from '../prisma/prisma.service'
+import { LoginDto } from './dto/login.dto'
+import { ProfileType, RegisterDto } from './dto/register.dto'
+import { RefreshDto } from './dto/refresh.dto'
+import { KeycloakTokenParsed } from './keycloak'
+import { ProviderDto } from './dto/provider.dto'
+import { UpdatePersonDto } from '../person/dto/update-person.dto'
+import { ForgottenPasswordEmailDto } from './dto/forgot-password.dto'
+import { JwtService } from '@nestjs/jwt'
+import { EmailService } from '../email/email.service'
+import { ForgottenPasswordMailDto } from '../email/template.interface'
+import { NewPasswordDto } from './dto/recovery-password.dto'
+import { MarketingNotificationsService } from '../notifications/notifications.service'
 
 type ErrorResponse = { error: string; data: unknown }
 type KeycloakErrorResponse = { error: string; error_description: string }
@@ -63,8 +63,7 @@ export class AuthService {
     private sendEmail: EmailService,
     @Inject(KEYCLOAK_INSTANCE) private keycloak: KeycloakConnect.Keycloak,
     private readonly marketingNotificationsService: MarketingNotificationsService,
-  ) {
-  }
+  ) {}
 
   async issueGrant(email: string, password: string): Promise<KeycloakConnect.Grant> {
     return this.keycloak.grantManager.obtainDirectly(email, password)
@@ -85,7 +84,7 @@ export class AuthService {
           accessToken: res.data.access_token,
           expires: res.data.expires_in,
         })),
-        catchError(({response}: { response: AxiosResponse<KeycloakErrorResponse> }) => {
+        catchError(({ response }: { response: AxiosResponse<KeycloakErrorResponse> }) => {
           const error = response.data
           Logger.error("Couldn't get authentication from keycloak. Error: " + JSON.stringify(error))
 
@@ -122,8 +121,8 @@ export class AuthService {
         keycloakId: userInfo.sub,
       },
       // Store keycloakId to the person with same email
-      update: {keycloakId: userInfo.sub},
-      where: {email: userInfo.email},
+      update: { keycloakId: userInfo.sub },
+      where: { email: userInfo.email },
     })
     return tokenObs$
   }
@@ -152,11 +151,11 @@ export class AuthService {
       const user = await this.keycloak.grantManager.userInfo<string, KeycloakTokenParsed>(
         grant.access_token.token as string,
       )
-      const person = await this.prismaService.person.findUnique({where: {email: user.email}})
+      const person = await this.prismaService.person.findUnique({ where: { email: user.email } })
       if (!person || person.keycloakId !== user.sub) {
         Logger.warn('No person found for the current keycloak user. Creating new one...')
         await this.authenticateAdmin()
-        const userData = await this.admin.users.findOne({id: user.sub})
+        const userData = await this.admin.users.findOne({ id: user.sub })
         const registerDto: RegisterDto = {
           type: ProfileType.INDIVIDUAL,
           email: userData?.email ?? '',
@@ -251,7 +250,7 @@ export class AuthService {
       emailVerified: true,
       groups: [],
       requiredActions: verifyEmail ? [RequiredActionAlias.VERIFY_EMAIL] : [],
-      attributes: {selfReg: true},
+      attributes: { selfReg: true },
       credentials: [
         {
           type: 'password',
@@ -294,8 +293,8 @@ export class AuthService {
         profileEnabled: companyId ? false : true,
       },
       // Store keycloakId to the person with same email
-      update: {keycloakId},
-      where: {email: registerDto.email},
+      update: { keycloakId },
+      where: { email: registerDto.email },
     })
   }
 
@@ -317,7 +316,7 @@ export class AuthService {
   async updateUser(keycloakId: string, updateDto: UpdatePersonDto) {
     await this.authenticateAdmin()
     await this.admin.users.update(
-      {id: keycloakId},
+      { id: keycloakId },
       {
         username: updateDto.email,
         email: updateDto.email,
@@ -329,7 +328,7 @@ export class AuthService {
       },
     )
     return await this.prismaService.person.update({
-      where: {keycloakId},
+      where: { keycloakId },
       data: {
         firstName: updateDto.firstName,
         lastName: updateDto.lastName,
@@ -355,7 +354,7 @@ export class AuthService {
   async changeEnabledStatus(keycloakId: string, enabled: boolean) {
     await this.authenticateAdmin()
     // check if user is admin before attempting to activate/deactivate
-    const userGroups = await this.admin.users.listRoleMappings({id: keycloakId})
+    const userGroups = await this.admin.users.listRoleMappings({ id: keycloakId })
     const isAdmin = userGroups.realmMappings?.some(
       (obj) =>
         obj.name === 'team-support' ||
@@ -366,28 +365,28 @@ export class AuthService {
       throw new ForbiddenException("Admin profiles can't be deactivated")
     }
     await this.admin.users.update(
-      {id: keycloakId},
+      { id: keycloakId },
       {
         enabled,
       },
     )
     return await this.prismaService.person.update({
-      where: {keycloakId},
-      data: {profileEnabled: enabled},
+      where: { keycloakId },
+      data: { profileEnabled: enabled },
     })
   }
 
   async sendMailForPasswordChange(forgotPasswordDto: ForgottenPasswordEmailDto) {
     const stage = this.config.get<string>('APP_ENV') === 'development' ? 'APP_URL_LOCAL' : 'APP_URL'
     const person = await this.prismaService.person.findFirst({
-      where: {email: forgotPasswordDto.email},
+      where: { email: forgotPasswordDto.email },
     })
 
     if (!person || !person.email) {
       throw new NotFoundException('Invalid email')
     }
 
-    const payload = {username: person.email, sub: person.keycloakId}
+    const payload = { username: person.email, sub: person.keycloakId }
     const jtwSecret = process.env.JWT_SECRET_KEY
     const access_token = this.jwtService.sign(payload, {
       secret: jtwSecret,
@@ -401,17 +400,17 @@ export class AuthService {
       lastName: person.lastName,
       link: link,
     }
-    const userEmail = {to: [person.email]}
+    const userEmail = { to: [person.email] }
     const mail = new ForgottenPasswordMailDto(profile)
     await this.sendEmail.sendFromTemplate(mail, userEmail, {
       //Allow users to receive the mail, regardles of unsubscribes
-      bypassUnsubscribeManagement: {enable: true},
+      bypassUnsubscribeManagement: { enable: true },
     })
   }
 
   async updateForgottenPassword(recoveryPasswordDto: NewPasswordDto) {
     try {
-      const {sub: keycloakId} = this.jwtService.verify(recoveryPasswordDto.token, {
+      const { sub: keycloakId } = this.jwtService.verify(recoveryPasswordDto.token, {
         secret: process.env.JWT_SECRET_KEY,
       })
       return await this.updateUserPassword(keycloakId, recoveryPasswordDto)
@@ -423,20 +422,20 @@ export class AuthService {
       throw response.data
         ? new NotFoundException(response.data)
         : new BadRequestException(
-          'The forgotten password link has expired, request a new link and try again!',
-        )
+            'The forgotten password link has expired, request a new link and try again!',
+          )
     }
   }
 
   async permanentDeleteUser(keycloakId: string) {
     await this.authenticateAdmin()
 
-    return this.admin.users.del({id: keycloakId})
+    return this.admin.users.del({ id: keycloakId })
       .then(() => this.prismaService.person.delete({
-          where: {keycloakId}
-        })
-      ).catch(err => {
-        const msg = `Deleting user in fails with reason ${err.message ?? 'server error'}`
+          where: { keycloakId },
+        }).then(() => Logger.log(`User with keycloak id ${keycloakId} was successfully deleted!`)),
+      ).catch((err) => {
+        const msg = `Deleting user in fails with reason ${err.message ?? 'server error!'}`
         Logger.error(msg)
         throw new InternalServerErrorException(msg)
       })
