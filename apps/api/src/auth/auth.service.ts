@@ -428,16 +428,16 @@ export class AuthService {
   }
 
   async permanentDeleteUser(keycloakId: string) {
-    await this.authenticateAdmin()
-
-    return this.admin.users.del({ id: keycloakId })
-      .then(() => this.prismaService.person.delete({
-          where: { keycloakId },
-        }).then(() => Logger.log(`User with keycloak id ${keycloakId} was successfully deleted!`)),
-      ).catch((err) => {
-        const msg = `Deleting user in fails with reason ${err.message ?? 'server error!'}`
-        Logger.error(msg)
-        throw new InternalServerErrorException(msg)
-      })
+    return this.authenticateAdmin()
+        .then(() => this.admin.users.del({ id: keycloakId }))
+        .then(() => this.prismaService.person.delete({ where: { keycloakId } }))
+        .then(() => {
+          Logger.log(`User with keycloak id ${keycloakId} was successfully deleted!`);
+        })
+        .catch((err) => {
+          const errorMessage = `Deleting user fails with reason: ${err.message ?? 'server error!'}`;
+          Logger.error(errorMessage);
+          throw new InternalServerErrorException(errorMessage);
+        });
   }
 }

@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { HttpService } from '@nestjs/axios'
 import { plainToClass } from 'class-transformer'
 import { Test, TestingModule } from '@nestjs/testing'
-import { Logger, UnauthorizedException } from '@nestjs/common'
+import {InternalServerErrorException, Logger, UnauthorizedException} from '@nestjs/common'
 import KeycloakConnect, { Grant } from 'keycloak-connect'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
@@ -501,4 +501,50 @@ describe('AuthService', () => {
       expect(marketingSpy).not.toHaveBeenCalled()
     })
   })
-})
+
+
+    describe('permanentDeleteUser', () => {
+      it('should delete user successfully', async () => {
+        const keycloakId = '123';
+        const authenticateAdminSpy = jest.spyOn(service as any, 'authenticateAdmin').mockResolvedValueOnce("");
+        const adminDeleteSpy = jest.spyOn(admin.users, 'del').mockResolvedValueOnce();
+        const prismaDeleteSpy = jest.spyOn(prismaMock.person, 'delete').mockResolvedValueOnce(person);
+        const loggerLogSpy = jest.spyOn(Logger, 'log');
+
+        await expect(service.permanentDeleteUser(keycloakId)).resolves.not.toThrow();
+
+        expect(authenticateAdminSpy).toHaveBeenCalledTimes(1);
+        expect(adminDeleteSpy).toHaveBeenCalledWith({ id: keycloakId });
+        expect(prismaDeleteSpy).toHaveBeenCalledWith({ where: { keycloakId } });
+        expect(loggerLogSpy).toHaveBeenCalledWith(`User with keycloak id ${keycloakId} was successfully deleted!`);
+      });
+
+      it('should handle admin client rejection', async () => {
+        const keycloakId = '123';
+        const authenticateAdminSpy = jest.spyOn(service as any, 'authenticateAdmin').mockResolvedValueOnce("");
+        const adminDeleteSpy = jest.spyOn(admin.users, 'del').mockRejectedValueOnce(new Error('Admin Client Rejection!'));
+        const loggerLogSpy = jest.spyOn(Logger, 'error');
+
+        await expect(service.permanentDeleteUser(keycloakId)).rejects.toThrow(InternalServerErrorException);
+
+        expect(authenticateAdminSpy).toHaveBeenCalledTimes(1);
+        expect(adminDeleteSpy).toHaveBeenCalledWith({ id: keycloakId });
+        expect(loggerLogSpy).toHaveBeenCalledWith(`Deleting user fails with reason: Admin Client Rejection!`);
+      });
+
+      it('should handle Prisma rejection', async () => {
+        const keycloakId = '123';
+        const authenticateAdminSpy = jest.spyOn(service as any, 'authenticateAdmin').mockResolvedValueOnce("");
+        const adminDeleteSpy = jest.spyOn(admin.users, 'del').mockResolvedValueOnce();
+        const prismaDeleteSpy = jest.spyOn(prismaMock.person, 'delete').mockRejectedValueOnce(new Error('Prisma Rejection!'));
+        const loggerLogSpy = jest.spyOn(Logger, 'error');
+
+        await expect(service.permanentDeleteUser(keycloakId)).rejects.toThrow(InternalServerErrorException);
+
+        expect(authenticateAdminSpy).toHaveBeenCalledTimes(1);
+        expect(adminDeleteSpy).toHaveBeenCalledWith({ id: keycloakId });
+        expect(prismaDeleteSpy).toHaveBeenCalledWith({ where: { keycloakId } });
+        expect(loggerLogSpy).toHaveBeenCalledWith(`Deleting user fails with reason: Prisma Rejection!`);
+      });
+    });
+});
