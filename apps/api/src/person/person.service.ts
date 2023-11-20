@@ -1,10 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import {Injectable, Logger} from '@nestjs/common'
+import {ConfigService} from '@nestjs/config'
 import mailClient from '@sendgrid/client'
-import { Prisma } from '@prisma/client'
-import { PrismaService } from '../prisma/prisma.service'
-import { CreatePersonDto } from './dto/create-person.dto'
-import { UpdatePersonDto } from './dto/update-person.dto'
+import {Prisma} from '@prisma/client'
+import {PrismaService} from '../prisma/prisma.service'
+import {CreatePersonDto} from './dto/create-person.dto'
+import {UpdatePersonDto} from './dto/update-person.dto'
 
 @Injectable()
 export class PersonService {
@@ -24,7 +24,7 @@ export class PersonService {
   }
 
   async create(createPersonDto: CreatePersonDto) {
-    const person = await this.prisma.person.create({ data: createPersonDto })
+    const person = await this.prisma.person.create({data: createPersonDto})
     if (createPersonDto.newsletter && this.enabled) {
       await this.addToContactList(createPersonDto)
     }
@@ -41,32 +41,32 @@ export class PersonService {
     const whereClause: Prisma.PersonWhereInput = {
       ...(search && {
         OR: [
-          { firstName: { contains: search, mode: 'insensitive' } },
-          { lastName: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-          { phone: { contains: search } },
+          {firstName: {contains: search, mode: 'insensitive'}},
+          {lastName: {contains: search, mode: 'insensitive'}},
+          {email: {contains: search, mode: 'insensitive'}},
+          {phone: {contains: search}},
         ],
       }),
     }
 
-    let sort: Prisma.PersonOrderByWithRelationInput = { createdAt: 'desc' }
+    let sort: Prisma.PersonOrderByWithRelationInput = {createdAt: 'desc'}
 
     if (sortBy)
       switch (sortBy) {
         case 'organizer':
-          sort = { organizer: { createdAt: sortOrder == 'asc' ? 'asc' : 'desc' } }
+          sort = {organizer: {createdAt: sortOrder == 'asc' ? 'asc' : 'desc'}}
           break
         case 'coordinators':
-          sort = { coordinators: { createdAt: sortOrder == 'asc' ? 'asc' : 'desc' } }
+          sort = {coordinators: {createdAt: sortOrder == 'asc' ? 'asc' : 'desc'}}
           break
         case 'beneficiaries':
-          sort = { beneficiaries: { _count: sortOrder == 'asc' ? 'desc' : 'asc' } }
+          sort = {beneficiaries: {_count: sortOrder == 'asc' ? 'desc' : 'asc'}}
           break
         case 'type':
-          sort = { company: { createdAt: sortOrder == 'asc' ? 'desc' : 'asc' } }
+          sort = {company: {createdAt: sortOrder == 'asc' ? 'desc' : 'asc'}}
           break
         default:
-          sort = { [sortBy]: sortOrder ?? 'desc' }
+          sort = {[sortBy]: sortOrder ?? 'desc'}
       }
 
     const data = await this.prisma.person.findMany({
@@ -75,9 +75,9 @@ export class PersonService {
       where: whereClause,
       orderBy: [sort],
       include: {
-        organizer: { select: { id: true } },
-        coordinators: { select: { id: true } },
-        beneficiaries: { select: { id: true } },
+        organizer: {select: {id: true}},
+        coordinators: {select: {id: true}},
+        beneficiaries: {select: {id: true}},
       },
     })
 
@@ -95,10 +95,10 @@ export class PersonService {
 
   async findOne(id: string) {
     return await this.prisma.person.findFirst({
-      where: { id },
+      where: {id},
       include: {
-        organizer: { select: { id: true, _count: { select: { campaigns: true } } } },
-        coordinators: { select: { id: true, _count: { select: { campaigns: true } } } },
+        organizer: {select: {id: true, _count: {select: {campaigns: true}}}},
+        coordinators: {select: {id: true, _count: {select: {campaigns: true}}}},
         beneficiaries: {
           select: {
             id: true,
@@ -106,7 +106,7 @@ export class PersonService {
             cityId: true,
             description: true,
             organizerRelation: true,
-            _count: { select: { campaigns: true } },
+            _count: {select: {campaigns: true}},
           },
         },
       },
@@ -114,19 +114,25 @@ export class PersonService {
   }
 
   async findByEmail(email: string) {
-    return await this.prisma.person.findFirst({ where: { email } })
+    return await this.prisma.person.findFirst({where: {email}})
   }
 
   async findOneByKeycloakId(keycloakId: string) {
-    return await this.prisma.person.findFirst({ where: { keycloakId }, include: { company: true } })
+    return await this.prisma.person.findFirst({
+      where: {keycloakId}, include: {
+        company: true,
+        beneficiaries: {select: {id:true}},
+        organizer: {select:{id:true}}
+      }
+    })
   }
 
   async update(id: string, updatePersonDto: UpdatePersonDto) {
-    return await this.prisma.person.update({ where: { id }, data: updatePersonDto })
+    return await this.prisma.person.update({where: {id}, data: updatePersonDto})
   }
 
   async remove(id: string) {
-    return await this.prisma.person.delete({ where: { id } })
+    return await this.prisma.person.delete({where: {id}})
   }
 
   private async addToContactList(createPersonDto: CreatePersonDto) {
@@ -154,7 +160,7 @@ export class PersonService {
   // Create/Update a marketing notifications consent for emails that are not registered
   async updateUnregisteredNotificationConsent(email: string, consent: boolean) {
     await this.prisma.unregisteredNotificationConsent.update({
-      data: { consent },
+      data: {consent},
       where: {
         email,
       },
