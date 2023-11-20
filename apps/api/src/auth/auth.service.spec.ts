@@ -526,7 +526,7 @@ describe('AuthService', () => {
             personalNumber: null,
             stripeCustomerId: null,
             profileEnabled: false,
-            beneficiaries: null,
+            beneficiaries: [],
             organizer: null,
         }
 

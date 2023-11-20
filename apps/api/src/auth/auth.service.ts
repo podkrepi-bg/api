@@ -433,7 +433,8 @@ export class AuthService {
   async permanentDeleteUser(keycloakId: string) {
     const user = await this.personService.findOneByKeycloakId(keycloakId);
 
-    if (user?.beneficiaries || user?.organizer) {
+    //Check and throw if user is a corporate profile
+    if (user?.beneficiaries?.length || user?.organizer) {
       throw new InternalServerErrorException("Cannot delete a corporate profile");
     }
 
