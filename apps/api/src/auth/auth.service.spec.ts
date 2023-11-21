@@ -538,7 +538,7 @@ describe('AuthService', () => {
             const prismaDeleteSpy = jest.spyOn(prismaMock.person, 'delete').mockResolvedValueOnce(person);
             const loggerLogSpy = jest.spyOn(Logger, 'log');
 
-            await expect(service.permanentDeleteUser(keycloakId)).resolves.not.toThrow();
+            await expect(service.deleteUser(keycloakId)).resolves.not.toThrow();
 
             expect(personSpy).toHaveBeenCalledOnce();
             expect(authenticateAdminSpy).toHaveBeenCalledTimes(1);
@@ -554,7 +554,7 @@ describe('AuthService', () => {
             const adminDeleteSpy = jest.spyOn(admin.users, 'del').mockRejectedValueOnce(new Error('Admin Client Rejection!'));
             const loggerLogSpy = jest.spyOn(Logger, 'error');
 
-            await expect(service.permanentDeleteUser(keycloakId)).rejects.toThrow(InternalServerErrorException);
+            await expect(service.deleteUser(keycloakId)).rejects.toThrow(InternalServerErrorException);
 
             expect(personSpy).toHaveBeenCalledOnce();
             expect(authenticateAdminSpy).toHaveBeenCalledTimes(1);
@@ -570,7 +570,7 @@ describe('AuthService', () => {
             const prismaDeleteSpy = jest.spyOn(prismaMock.person, 'delete').mockRejectedValueOnce(new Error('Prisma Rejection!'));
             const loggerLogSpy = jest.spyOn(Logger, 'error');
 
-            await expect(service.permanentDeleteUser(keycloakId)).rejects.toThrow(InternalServerErrorException);
+            await expect(service.deleteUser(keycloakId)).rejects.toThrow(InternalServerErrorException);
 
             expect(personSpy).toHaveBeenCalledOnce();
             expect(authenticateAdminSpy).toHaveBeenCalledTimes(1);
@@ -583,7 +583,7 @@ describe('AuthService', () => {
             corporatePerson.beneficiaries = [{id: '123'} as Beneficiary];
             const personSpy = jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(corporatePerson);
 
-            await expect(service.permanentDeleteUser('123')).rejects.toThrow(InternalServerErrorException);
+            await expect(service.deleteUser('123')).rejects.toThrow(InternalServerErrorException);
             expect(personSpy).toHaveBeenCalledOnce();
         });
 
@@ -591,7 +591,7 @@ describe('AuthService', () => {
             corporatePerson.organizer = [{id: '123'} as Organizer];
             const personSpy = jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(corporatePerson);
 
-            await expect(service.permanentDeleteUser('123')).rejects.toThrow(InternalServerErrorException);
+            await expect(service.deleteUser('123')).rejects.toThrow(InternalServerErrorException);
             expect(personSpy).toHaveBeenCalledOnce();
         });
 
@@ -601,7 +601,7 @@ describe('AuthService', () => {
 
             const personSpy = jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(corporatePerson);
 
-            await expect(service.permanentDeleteUser('123')).rejects.toThrow(InternalServerErrorException);
+            await expect(service.deleteUser('123')).rejects.toThrow(InternalServerErrorException);
             expect(personSpy).toHaveBeenCalledOnce();
         });
     });

@@ -430,7 +430,7 @@ export class AuthService {
     }
   }
 
-  async permanentDeleteUser(keycloakId: string) {
+  async deleteUser(keycloakId: string) {
     const user = await this.personService.findOneByKeycloakId(keycloakId);
 
     //Check and throw if user is a corporate profile

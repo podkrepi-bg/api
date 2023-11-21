@@ -69,9 +69,9 @@ export class AccountController {
   }
 
   @Delete('me')
-  async permanentDeleteUser(@AuthenticatedUser() user: KeycloakTokenParsed) {
+  async deleteUser(@AuthenticatedUser() user: KeycloakTokenParsed) {
     try {
-      return await this.accountService.permanentDeleteUser(user)
+      return await this.accountService.deleteUser(user)
     } catch (err) {
       Logger.error(`Failed to delete user with keycloakId ${user.sub}. Error is: ${err}`)
       throw err
