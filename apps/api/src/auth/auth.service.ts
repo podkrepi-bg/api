@@ -433,8 +433,10 @@ export class AuthService {
     const user = await this.personService.findOneByKeycloakId(keycloakId)
 
     //Check and throw if user is a corporate profile
-    if (user?.beneficiaries?.length || user?.companyId) {
-      throw new InternalServerErrorException('Cannot delete a corporate profile')
+    if (user?.beneficiaries?.length || user?.organizer || user?.companyId) {
+      throw new InternalServerErrorException(
+        'Cannot delete a beneficiary, organizer or corporate profile',
+      )
     }
 
     return this.authenticateAdmin()

@@ -525,16 +525,20 @@ describe('AuthService', () => {
       stripeCustomerId: null,
       profileEnabled: false,
       beneficiaries: [],
+      organizer: null,
     }
 
     it('should delete user successfully', async () => {
       const keycloakId = '123'
+
       const personSpy = jest
         .spyOn(personService, 'findOneByKeycloakId')
         .mockResolvedValue(corporatePerson)
+
       const authenticateAdminSpy = jest
         .spyOn(service as any, 'authenticateAdmin')
         .mockResolvedValueOnce('')
+
       const adminDeleteSpy = jest.spyOn(admin.users, 'del').mockResolvedValueOnce()
       const prismaDeleteSpy = jest.spyOn(prismaMock.person, 'delete').mockResolvedValueOnce(person)
       const loggerLogSpy = jest.spyOn(Logger, 'log')
@@ -552,15 +556,19 @@ describe('AuthService', () => {
 
     it('should handle admin client rejection', async () => {
       const keycloakId = '123'
+
       const personSpy = jest
         .spyOn(personService, 'findOneByKeycloakId')
         .mockResolvedValue(corporatePerson)
+
       const authenticateAdminSpy = jest
         .spyOn(service as any, 'authenticateAdmin')
         .mockResolvedValueOnce('')
+
       const adminDeleteSpy = jest
         .spyOn(admin.users, 'del')
         .mockRejectedValueOnce(new Error('Admin Client Rejection!'))
+
       const loggerLogSpy = jest.spyOn(Logger, 'error')
 
       await expect(service.deleteUser(keycloakId)).rejects.toThrow(InternalServerErrorException)
@@ -578,13 +586,17 @@ describe('AuthService', () => {
       const personSpy = jest
         .spyOn(personService, 'findOneByKeycloakId')
         .mockResolvedValue(corporatePerson)
+
       const authenticateAdminSpy = jest
         .spyOn(service as any, 'authenticateAdmin')
         .mockResolvedValueOnce('')
+
       const adminDeleteSpy = jest.spyOn(admin.users, 'del').mockResolvedValueOnce()
+
       const prismaDeleteSpy = jest
         .spyOn(prismaMock.person, 'delete')
         .mockRejectedValueOnce(new Error('Prisma Rejection!'))
+
       const loggerLogSpy = jest.spyOn(Logger, 'error')
 
       await expect(service.deleteUser(keycloakId)).rejects.toThrow(InternalServerErrorException)
@@ -600,6 +612,7 @@ describe('AuthService', () => {
 
     it('should throw when corporate user has beneficiaries', async () => {
       corporatePerson.beneficiaries = [{ id: '123' } as Beneficiary]
+
       const personSpy = jest
         .spyOn(personService, 'findOneByKeycloakId')
         .mockResolvedValue(corporatePerson)
@@ -610,6 +623,7 @@ describe('AuthService', () => {
 
     it('should throw when user has company id', async () => {
       corporatePerson.companyId = '123'
+
       const personSpy = jest
         .spyOn(personService, 'findOneByKeycloakId')
         .mockResolvedValue(corporatePerson)
@@ -618,9 +632,20 @@ describe('AuthService', () => {
       expect(personSpy).toHaveBeenCalledOnce()
     })
 
-    it('should throw when corporate user has companyId & beneficiaries', async () => {
+    it('should throw when user is organizer', async () => {
+      corporatePerson.organizer = { id: '123' }
+      const personSpy = jest
+        .spyOn(personService, 'findOneByKeycloakId')
+        .mockResolvedValue(corporatePerson)
+
+      await expect(service.deleteUser('123')).rejects.toThrow(InternalServerErrorException)
+      expect(personSpy).toHaveBeenCalledOnce()
+    })
+
+    it('should throw when corporate user has companyId & beneficiaries & is organizer', async () => {
       corporatePerson.companyId = '123'
       corporatePerson.beneficiaries = [{ id: '123' } as Beneficiary]
+      corporatePerson.organizer = { id: '123' }
 
       const personSpy = jest
         .spyOn(personService, 'findOneByKeycloakId')
