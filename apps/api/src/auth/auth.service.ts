@@ -432,7 +432,7 @@ export class AuthService {
   async deleteUser(keycloakId: string) {
     const user = await this.personService.findOneByKeycloakId(keycloakId)
 
-    //Check and throw if user is a corporate profile
+    //Check and throw if user is a beneficiary, organizer or corporate profile
     if (user?.beneficiaries?.length || user?.organizer || user?.companyId) {
       throw new InternalServerErrorException(
         'Cannot delete a beneficiary, organizer or corporate profile',
