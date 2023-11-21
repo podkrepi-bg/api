@@ -123,7 +123,6 @@ export class PersonService {
       include: {
         company: true,
         beneficiaries: { select: { id: true } },
-        organizer: { select: { id: true } },
       },
     })
   }

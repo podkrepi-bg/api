@@ -23,7 +23,6 @@ import { TemplateService } from '../email/template.service'
 import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
 import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
-import { Organizer } from '../domain/generated/organizer/entities'
 import { PersonService } from '../person/person.service'
 
 jest.mock('@keycloak/keycloak-admin-client')
@@ -506,7 +505,7 @@ describe('AuthService', () => {
     })
   })
 
-  describe('permanentDeleteUser', () => {
+  describe('deleteUser', () => {
     const corporatePerson: any = {
       id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
       firstName: 'Admin',
@@ -526,7 +525,6 @@ describe('AuthService', () => {
       stripeCustomerId: null,
       profileEnabled: false,
       beneficiaries: [],
-      organizer: null,
     }
 
     it('should delete user successfully', async () => {
@@ -610,8 +608,8 @@ describe('AuthService', () => {
       expect(personSpy).toHaveBeenCalledOnce()
     })
 
-    it('should throw when corporate user is organizer', async () => {
-      corporatePerson.organizer = [{ id: '123' } as Organizer]
+    it('should throw when user has company id', async () => {
+      corporatePerson.companyId = '123'
       const personSpy = jest
         .spyOn(personService, 'findOneByKeycloakId')
         .mockResolvedValue(corporatePerson)
@@ -620,8 +618,8 @@ describe('AuthService', () => {
       expect(personSpy).toHaveBeenCalledOnce()
     })
 
-    it('should throw when corporate user is organizer & has beneficiaries', async () => {
-      corporatePerson.organizer = [{ id: '123' } as Organizer]
+    it('should throw when corporate user has companyId & beneficiaries', async () => {
+      corporatePerson.companyId = '123'
       corporatePerson.beneficiaries = [{ id: '123' } as Beneficiary]
 
       const personSpy = jest
