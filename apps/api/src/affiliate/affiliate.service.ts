@@ -16,6 +16,28 @@ export class AffiliateService {
     return await this.prismaService.affiliate.findUnique({ where: { id } })
   }
 
+  async findDonationsByCustomerId(
+    affiliateCode: string,
+    extCustomerId: string,
+    status: DonationStatus | undefined,
+    currentPage: number,
+    limit: number | undefined,
+  ) {
+    return await this.prismaService.affiliate.findFirst({
+      where: {
+        affiliateCode,
+        donations: { some: { extCustomerId: { equals: extCustomerId }, status } },
+      },
+      select: {
+        donations: {
+          take: limit ? Number(limit) : undefined,
+          skip: Number((currentPage - 1) * (limit ?? 0)),
+          include: { metadata: true },
+        },
+      },
+    })
+  }
+
   async findAll() {
     return await this.prismaService.affiliate.findMany({
       orderBy: { createdAt: 'desc' },
@@ -62,7 +84,7 @@ export class AffiliateService {
     affiliateCode: string,
     status: DonationStatus | undefined,
     currentPage: number,
-    limit: number,
+    limit: number | undefined,
   ) {
     return await this.prismaService.affiliate.findUnique({
       where: { affiliateCode },
@@ -70,8 +92,8 @@ export class AffiliateService {
         donations: {
           orderBy: { createdAt: 'desc' },
           where: { status },
-          take: limit,
-          skip: Number((currentPage - 1) * limit),
+          take: limit ? Number(limit) : undefined,
+          skip: Number((currentPage - 1) * (limit ?? 0)),
           include: { metadata: true },
         },
       },
