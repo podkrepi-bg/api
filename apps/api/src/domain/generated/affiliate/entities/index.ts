@@ -1,2 +1,1 @@
-
-export * from './affiliate.entity';
+export * from './affiliate.entity'

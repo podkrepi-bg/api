@@ -1,9 +1,3 @@
-
-
-
-
-
-
 export class UpdateDonationWishDto {
-  message?: string;
+  message?: string
 }

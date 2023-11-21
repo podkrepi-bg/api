@@ -1,2 +1,1 @@
-
-export * from './vault.entity';
+export * from './vault.entity'

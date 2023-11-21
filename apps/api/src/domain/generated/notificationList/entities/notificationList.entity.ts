@@ -1,10 +1,8 @@
-
-import {Campaign} from '../../campaign/entities/campaign.entity'
-
+import { Campaign } from '../../campaign/entities/campaign.entity'
 
 export class NotificationList {
-  id: string ;
-campaignId: string ;
-name: string  | null;
-campaign?: Campaign ;
+  id: string
+  campaignId: string
+  name: string | null
+  campaign?: Campaign
 }

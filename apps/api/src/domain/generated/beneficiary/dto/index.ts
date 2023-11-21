@@ -1,4 +1,3 @@
-
-export * from './connect-beneficiary.dto';
-export * from './create-beneficiary.dto';
-export * from './update-beneficiary.dto';
+export * from './connect-beneficiary.dto'
+export * from './create-beneficiary.dto'
+export * from './update-beneficiary.dto'

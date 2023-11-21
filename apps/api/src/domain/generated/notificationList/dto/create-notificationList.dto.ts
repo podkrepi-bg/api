@@ -1,9 +1,3 @@
-
-
-
-
-
-
 export class CreateNotificationListDto {
-  name?: string;
+  name?: string
 }

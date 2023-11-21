@@ -1,5 +1,3 @@
-
-  export class ConnectEmailSentRegistryDto {
-    id: string;
-  }
-  
+export class ConnectEmailSentRegistryDto {
+  id: string
+}

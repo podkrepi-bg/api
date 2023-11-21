@@ -1,2 +1,1 @@
-
-export * from './campaignNews.entity';
+export * from './campaignNews.entity'
