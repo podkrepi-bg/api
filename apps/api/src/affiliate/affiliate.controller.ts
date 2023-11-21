@@ -136,10 +136,28 @@ export class AffiliateController {
     @Param('affiliateCode') affiliateCode: string,
     @Query('status') status: DonationStatus | undefined,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('limit') limit: number | undefined,
   ) {
     return await this.affiliateService.findAffiliateDonationsWithPagination(
       affiliateCode,
+      status,
+      page,
+      limit,
+    )
+  }
+
+  @Get(':affiliateCode/donations/:customerId/list')
+  @Public()
+  async findAffiliateDonationByCustomerId(
+    @Param('affiliateCode') affiliateCode: string,
+    @Param('customerId') customerId: string,
+    @Query('status') status: DonationStatus | undefined,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit') limit: number | undefined,
+  ) {
+    return await this.affiliateService.findDonationsByCustomerId(
+      affiliateCode,
+      customerId,
       status,
       page,
       limit,
