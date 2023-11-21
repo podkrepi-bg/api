@@ -1,6 +1,4 @@
-
-  export class ConnectCountryDto {
-    id?: string;
-countryCode?: string;
-  }
-  
+export class ConnectCountryDto {
+  id?: string
+  countryCode?: string
+}

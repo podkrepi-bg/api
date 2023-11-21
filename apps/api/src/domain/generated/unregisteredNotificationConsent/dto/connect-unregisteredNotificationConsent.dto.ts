@@ -1,6 +1,4 @@
-
-  export class ConnectUnregisteredNotificationConsentDto {
-    id?: string;
-email?: string;
-  }
-  
+export class ConnectUnregisteredNotificationConsentDto {
+  id?: string
+  email?: string
+}

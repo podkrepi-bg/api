@@ -1,11 +1,9 @@
-
-import {EmailType} from '@prisma/client'
-
+import { EmailType } from '@prisma/client'
 
 export class EmailSentRegistry {
-  id: string ;
-email: string ;
-dateSent: Date ;
-campaignId: string  | null;
-type: EmailType ;
+  id: string
+  email: string
+  dateSent: Date
+  campaignId: string | null
+  type: EmailType
 }

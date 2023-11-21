@@ -1,9 +1,3 @@
-
-
-
-
-
-
 export class CreateMarketingTemplatesDto {
-  name?: string;
+  name?: string
 }

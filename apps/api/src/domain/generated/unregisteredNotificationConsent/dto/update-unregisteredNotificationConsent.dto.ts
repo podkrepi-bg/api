@@ -1,9 +1,3 @@
-
-
-
-
-
-
 export class UpdateUnregisteredNotificationConsentDto {
-  email?: string;
+  email?: string
 }

@@ -1,7 +1,5 @@
-
-  export class ConnectAffiliateDto {
-    id?: string;
-affiliateCode?: string;
-companyId?: string;
-  }
-  
+export class ConnectAffiliateDto {
+  id?: string
+  affiliateCode?: string
+  companyId?: string
+}

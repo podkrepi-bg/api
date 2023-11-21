@@ -1,2 +1,1 @@
-
-export * from './marketingTemplates.entity';
+export * from './marketingTemplates.entity'

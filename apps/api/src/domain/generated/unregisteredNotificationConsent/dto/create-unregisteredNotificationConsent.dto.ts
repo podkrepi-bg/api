@@ -1,9 +1,3 @@
-
-
-
-
-
-
 export class CreateUnregisteredNotificationConsentDto {
-  email: string;
+  email: string
 }
