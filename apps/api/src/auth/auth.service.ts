@@ -32,6 +32,7 @@ import { EmailService } from '../email/email.service'
 import { ForgottenPasswordMailDto } from '../email/template.interface'
 import { NewPasswordDto } from './dto/recovery-password.dto'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
+import { PersonService } from '../person/person.service'
 
 type ErrorResponse = { error: string; data: unknown }
 type KeycloakErrorResponse = { error: string; error_description: string }
@@ -63,6 +64,7 @@ export class AuthService {
     private sendEmail: EmailService,
     @Inject(KEYCLOAK_INSTANCE) private keycloak: KeycloakConnect.Keycloak,
     private readonly marketingNotificationsService: MarketingNotificationsService,
+    private readonly personService: PersonService,
   ) {}
 
   async issueGrant(email: string, password: string): Promise<KeycloakConnect.Grant> {
@@ -425,5 +427,26 @@ export class AuthService {
             'The forgotten password link has expired, request a new link and try again!',
           )
     }
+  }
+
+  async deleteUser(keycloakId: string) {
+    const user = await this.personService.findOneByKeycloakId(keycloakId)
+
+    //Check and throw if user is a beneficiary, organizer or corporate profile
+    if (!!user && user.beneficiaries.length > 0 || user?.organizer || user?.companyId) {
+      throw new InternalServerErrorException(
+        'Cannot delete a beneficiary, organizer or corporate profile',
+      )
+    }
+
+    return this.authenticateAdmin()
+      .then(() => this.admin.users.del({ id: keycloakId }))
+      .then(() => this.prismaService.person.delete({ where: { keycloakId } }))
+      .then(() => Logger.log(`User with keycloak id ${keycloakId} was successfully deleted!`))
+      .catch((err) => {
+        const errorMessage = `Deleting user fails with reason: ${err.message ?? 'server error!'}`
+        Logger.error(errorMessage)
+        throw new InternalServerErrorException(errorMessage)
+      })
   }
 }

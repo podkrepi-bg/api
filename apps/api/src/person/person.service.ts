@@ -118,7 +118,14 @@ export class PersonService {
   }
 
   async findOneByKeycloakId(keycloakId: string) {
-    return await this.prisma.person.findFirst({ where: { keycloakId }, include: { company: true } })
+    return await this.prisma.person.findFirst({
+      where: { keycloakId },
+      include: {
+        company: true,
+        beneficiaries: { select: { id: true } },
+        organizer: { select: { id: true } },
+      },
+    })
   }
 
   async update(id: string, updatePersonDto: UpdatePersonDto) {

@@ -1,10 +1,10 @@
-import { Person } from '@prisma/client'
+import { Beneficiary, Person } from '@prisma/client'
 import { mockDeep } from 'jest-mock-extended'
 import { ConfigService } from '@nestjs/config'
 import { HttpService } from '@nestjs/axios'
 import { plainToClass } from 'class-transformer'
 import { Test, TestingModule } from '@nestjs/testing'
-import { Logger, UnauthorizedException } from '@nestjs/common'
+import { InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common'
 import KeycloakConnect, { Grant } from 'keycloak-connect'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
@@ -23,6 +23,7 @@ import { TemplateService } from '../email/template.service'
 import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
 import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
+import { PersonService } from '../person/person.service'
 
 jest.mock('@keycloak/keycloak-admin-client')
 
@@ -32,6 +33,7 @@ describe('AuthService', () => {
   let admin: KeycloakAdminClient
   let keycloak: KeycloakConnect.Keycloak
   let marketing: NotificationsProviderInterface<unknown>
+  let personService: PersonService
 
   const person: Person = {
     id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
@@ -116,6 +118,7 @@ describe('AuthService', () => {
     admin = module.get<KeycloakAdminClient>(KeycloakAdminClient)
     marketing = module.get<NotificationsProviderInterface<never>>(NotificationsProviderInterface)
     keycloak = module.get<KeycloakConnect.Keycloak>(KEYCLOAK_INSTANCE)
+    personService = module.get<PersonService>(PersonService)
   })
 
   it('should be defined', () => {
@@ -499,6 +502,157 @@ describe('AuthService', () => {
 
       // Check was not added to list
       expect(marketingSpy).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('deleteUser', () => {
+    const corporatePerson: any = {
+      id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
+      firstName: 'Admin',
+      lastName: 'Dev',
+      companyId: null,
+      keycloakId: '123',
+      email: 'test@podkrepi.bg',
+      emailConfirmed: false,
+      phone: null,
+      picture: null,
+      createdAt: new Date('2021-10-07T13:38:11.097Z'),
+      updatedAt: new Date('2021-10-07T13:38:11.097Z'),
+      newsletter: false,
+      address: null,
+      birthday: null,
+      personalNumber: null,
+      stripeCustomerId: null,
+      profileEnabled: false,
+      beneficiaries: [],
+      organizer: null,
+    }
+
+    it('should delete user successfully', async () => {
+      const keycloakId = '123'
+
+      const personSpy = jest
+        .spyOn(personService, 'findOneByKeycloakId')
+        .mockResolvedValue(corporatePerson)
+
+      const authenticateAdminSpy = jest
+        .spyOn(service as any, 'authenticateAdmin')
+        .mockResolvedValueOnce('')
+
+      const adminDeleteSpy = jest.spyOn(admin.users, 'del').mockResolvedValueOnce()
+      const prismaDeleteSpy = jest.spyOn(prismaMock.person, 'delete').mockResolvedValueOnce(person)
+      const loggerLogSpy = jest.spyOn(Logger, 'log')
+
+      await expect(service.deleteUser(keycloakId)).resolves.not.toThrow()
+
+      expect(personSpy).toHaveBeenCalledOnce()
+      expect(authenticateAdminSpy).toHaveBeenCalledTimes(1)
+      expect(adminDeleteSpy).toHaveBeenCalledWith({ id: keycloakId })
+      expect(prismaDeleteSpy).toHaveBeenCalledWith({ where: { keycloakId } })
+      expect(loggerLogSpy).toHaveBeenCalledWith(
+        `User with keycloak id ${keycloakId} was successfully deleted!`,
+      )
+    })
+
+    it('should handle admin client rejection', async () => {
+      const keycloakId = '123'
+
+      const personSpy = jest
+        .spyOn(personService, 'findOneByKeycloakId')
+        .mockResolvedValue(corporatePerson)
+
+      const authenticateAdminSpy = jest
+        .spyOn(service as any, 'authenticateAdmin')
+        .mockResolvedValueOnce('')
+
+      const adminDeleteSpy = jest
+        .spyOn(admin.users, 'del')
+        .mockRejectedValueOnce(new Error('Admin Client Rejection!'))
+
+      const loggerLogSpy = jest.spyOn(Logger, 'error')
+
+      await expect(service.deleteUser(keycloakId)).rejects.toThrow(InternalServerErrorException)
+
+      expect(personSpy).toHaveBeenCalledOnce()
+      expect(authenticateAdminSpy).toHaveBeenCalledTimes(1)
+      expect(adminDeleteSpy).toHaveBeenCalledWith({ id: keycloakId })
+      expect(loggerLogSpy).toHaveBeenCalledWith(
+        `Deleting user fails with reason: Admin Client Rejection!`,
+      )
+    })
+
+    it('should handle Prisma rejection', async () => {
+      const keycloakId = '123'
+      const personSpy = jest
+        .spyOn(personService, 'findOneByKeycloakId')
+        .mockResolvedValue(corporatePerson)
+
+      const authenticateAdminSpy = jest
+        .spyOn(service as any, 'authenticateAdmin')
+        .mockResolvedValueOnce('')
+
+      const adminDeleteSpy = jest.spyOn(admin.users, 'del').mockResolvedValueOnce()
+
+      const prismaDeleteSpy = jest
+        .spyOn(prismaMock.person, 'delete')
+        .mockRejectedValueOnce(new Error('Prisma Rejection!'))
+
+      const loggerLogSpy = jest.spyOn(Logger, 'error')
+
+      await expect(service.deleteUser(keycloakId)).rejects.toThrow(InternalServerErrorException)
+
+      expect(personSpy).toHaveBeenCalledOnce()
+      expect(authenticateAdminSpy).toHaveBeenCalledTimes(1)
+      expect(adminDeleteSpy).toHaveBeenCalledWith({ id: keycloakId })
+      expect(prismaDeleteSpy).toHaveBeenCalledWith({ where: { keycloakId } })
+      expect(loggerLogSpy).toHaveBeenCalledWith(
+        `Deleting user fails with reason: Prisma Rejection!`,
+      )
+    })
+
+    it('should throw when corporate user has beneficiaries', async () => {
+      corporatePerson.beneficiaries = [{ id: '123' } as Beneficiary]
+
+      const personSpy = jest
+        .spyOn(personService, 'findOneByKeycloakId')
+        .mockResolvedValue(corporatePerson)
+
+      await expect(service.deleteUser('123')).rejects.toThrow(InternalServerErrorException)
+      expect(personSpy).toHaveBeenCalledOnce()
+    })
+
+    it('should throw when user has company id', async () => {
+      corporatePerson.companyId = '123'
+
+      const personSpy = jest
+        .spyOn(personService, 'findOneByKeycloakId')
+        .mockResolvedValue(corporatePerson)
+
+      await expect(service.deleteUser('123')).rejects.toThrow(InternalServerErrorException)
+      expect(personSpy).toHaveBeenCalledOnce()
+    })
+
+    it('should throw when user is organizer', async () => {
+      corporatePerson.organizer = { id: '123' }
+      const personSpy = jest
+        .spyOn(personService, 'findOneByKeycloakId')
+        .mockResolvedValue(corporatePerson)
+
+      await expect(service.deleteUser('123')).rejects.toThrow(InternalServerErrorException)
+      expect(personSpy).toHaveBeenCalledOnce()
+    })
+
+    it('should throw when corporate user has companyId & beneficiaries & is organizer', async () => {
+      corporatePerson.companyId = '123'
+      corporatePerson.beneficiaries = [{ id: '123' } as Beneficiary]
+      corporatePerson.organizer = { id: '123' }
+
+      const personSpy = jest
+        .spyOn(personService, 'findOneByKeycloakId')
+        .mockResolvedValue(corporatePerson)
+
+      await expect(service.deleteUser('123')).rejects.toThrow(InternalServerErrorException)
+      expect(personSpy).toHaveBeenCalledOnce()
     })
   })
 })
