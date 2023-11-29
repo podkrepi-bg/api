@@ -31,6 +31,10 @@ import { ApiTags } from '@nestjs/swagger'
 import { CampaignNewsService } from '../campaign-news/campaign-news.service'
 import { CampaignSubscribeDto } from './dto/campaign-subscribe.dto'
 
+import { CacheInterceptor, CacheKey } from '@nestjs/cache-manager'
+import { UseInterceptors } from '@nestjs/common'
+import { CAMPAIGN_LIST } from '../common/cacheKeys'
+
 @ApiTags('campaign')
 @Controller('campaign')
 export class CampaignController {
@@ -41,6 +45,8 @@ export class CampaignController {
   ) {}
 
   @Get('list')
+  @UseInterceptors(CacheInterceptor)
+  @CacheKey(CAMPAIGN_LIST)
   @Public()
   async getData() {
     return this.campaignService.listCampaigns()

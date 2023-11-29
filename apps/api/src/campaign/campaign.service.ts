@@ -41,7 +41,7 @@ import {
   NotificationService,
   donationNotificationSelect,
 } from '../sockets/notifications/notification.service'
-import { DonationMetadata } from '../donations/dontation-metadata.interface'
+
 import { Expense } from '@prisma/client'
 import { SendGridParams } from '../notifications/providers/notifications.sendgrid.types'
 import * as NotificationData from '../notifications/notification-data.json'
@@ -49,6 +49,9 @@ import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
 import { CampaignSubscribeDto } from './dto/campaign-subscribe.dto'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Cache } from 'cache-manager'
+import { CAMPAIGN_LIST } from '../common/cacheKeys'
 
 @Injectable()
 export class CampaignService {
@@ -60,6 +63,7 @@ export class CampaignService {
     @Inject(forwardRef(() => MarketingNotificationsService))
     private marketingNotificationsService: MarketingNotificationsService,
     private readonly config: ConfigService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async listCampaigns(): Promise<CampaignListItem[]> {
@@ -643,6 +647,7 @@ export class CampaignService {
             ...updatedDonation,
             person: updatedDonation.person,
           })
+          await this.cacheManager.del(CAMPAIGN_LIST)
         } else if (
           donation.status === DonationStatus.succeeded &&
           newDonationStatus === DonationStatus.refund
@@ -656,6 +661,7 @@ export class CampaignService {
             ...updatedDonation,
             person: updatedDonation.person,
           })
+          await this.cacheManager.del(CAMPAIGN_LIST)
         }
         return updatedDonation
       } catch (error) {
@@ -713,6 +719,7 @@ export class CampaignService {
       if (newDonationStatus === DonationStatus.succeeded) {
         await this.vaultService.incrementVaultAmount(donation.targetVaultId, donation.amount, tx)
         this.notificationService.sendNotification('successfulDonation', donation)
+        await this.cacheManager.del(CAMPAIGN_LIST)
       }
 
       return donation

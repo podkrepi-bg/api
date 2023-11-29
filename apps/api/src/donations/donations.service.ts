@@ -1,7 +1,7 @@
 import Stripe from 'stripe'
 import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import {
   Campaign,
   Donation,
@@ -28,6 +28,9 @@ import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 import { ImportStatus } from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { CreateAffiliateDonationDto } from '../affiliate/dto/create-affiliate-donation.dto'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Cache } from 'cache-manager'
+import { CAMPAIGN_LIST } from '../common/cacheKeys'
 
 @Injectable()
 export class DonationsService {
@@ -38,6 +41,7 @@ export class DonationsService {
     private prisma: PrismaService,
     private vaultService: VaultService,
     private exportService: ExportService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
     const listResponse = await this.stripeClient.prices.list({ active, type, limit: 100 }).then(
@@ -340,6 +344,7 @@ export class DonationsService {
         },
       })
     }
+    await this.cacheManager.del(CAMPAIGN_LIST)
     return donation
   }
 
@@ -588,6 +593,7 @@ export class DonationsService {
           donationDto.amount,
           tx,
         )
+        await this.cacheManager.del(CAMPAIGN_LIST)
         return ImportStatus.SUCCESS
       }
 
@@ -609,6 +615,7 @@ export class DonationsService {
           data: { status: DonationStatus.succeeded, updatedAt: donationDto.updatedAt },
         }),
       ])
+      await this.cacheManager.del(CAMPAIGN_LIST)
     })
   }
 
