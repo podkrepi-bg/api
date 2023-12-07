@@ -21,6 +21,7 @@ import {
 } from '@prisma/client'
 import { SendGridParams } from './providers/notifications.sendgrid.types'
 import { KeycloakTokenParsed } from '../auth/keycloak'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 
 const RegisteredMock = {
   id: 'some-id',
@@ -90,6 +91,7 @@ describe('MarketingNotificationsController', () => {
             }),
           },
         },
+        { provide: CACHE_MANAGER, useFactory: jest.fn() },
       ],
     })
       .overrideProvider(EmailService)
