@@ -124,11 +124,21 @@ export class WithdrawalService {
     return result
   }
 
-  // Functionality will be reworked soon
   async remove(id: string): Promise<Withdrawal | null> {
-    throw new ForbiddenException()
-    const result = await this.prisma.withdrawal.delete({ where: { id: id } })
-    if (!result) throw new NotFoundException('Not found')
+    const result = await this.prisma.withdrawal
+      .delete({
+        where: { id: id, status: { not: WithdrawStatus.succeeded } },
+      })
+      .catch(() => {
+        throw new BadRequestException("Withdrawal record couldn't be deleted")
+      })
+
+    await this.prisma.vault.update({
+      where: { id: result.sourceVaultId },
+      data: {
+        blockedAmount: { decrement: result.amount },
+      },
+    })
     return result
   }
 }
