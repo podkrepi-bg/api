@@ -1,4 +1,4 @@
-import { NotFoundException, ForbiddenException } from '@nestjs/common'
+import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { WithdrawStatus, Currency } from '@prisma/client'
 import { mockReset } from 'jest-mock-extended'
@@ -362,9 +362,32 @@ describe('WithdrawalController', () => {
   })
 
   describe('removeData', () => {
-    it('should not remove withdrawals', async () => {
+    it('initial withdrawal can be deleted', async () => {
       const withdrawal = mockData[0]
-      await expect(controller.remove(withdrawal.id)).rejects.toThrow(new ForbiddenException())
+      prismaMock.withdrawal.delete.mockResolvedValue(withdrawal)
+      await expect(controller.remove(withdrawal.id)).toResolve()
+      expect(prismaMock.withdrawal.delete).toHaveBeenCalledWith({
+        where: { id: withdrawal.id, status: { not: { equals: WithdrawStatus.succeeded } } },
+      })
+      expect(prismaMock.vault.update).toHaveBeenCalledWith({
+        where: { id: withdrawal.sourceVaultId },
+        data: {
+          blockedAmount: { decrement: withdrawal.amount },
+        },
+      })
+    })
+    it('Should throw an error if delete query rejects', async () => {
+      const withdrawal = { ...mockData[1], status: WithdrawStatus.succeeded }
+      prismaMock.withdrawal.delete.mockRejectedValue(withdrawal)
+      await expect(controller.remove(withdrawal.id)).rejects.toThrow(
+        new BadRequestException("Withdrawal record couldn't be deleted"),
+      )
+
+      expect(prismaMock.withdrawal.delete).toHaveBeenCalledWith({
+        where: { id: withdrawal.id, status: { not: { equals: WithdrawStatus.succeeded } } },
+      })
+
+      expect(prismaMock.vault.update).not.toHaveBeenCalled()
     })
   })
 })
