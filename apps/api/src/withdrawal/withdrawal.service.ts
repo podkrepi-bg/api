@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common'
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common'
 import { Withdrawal, WithdrawStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateWithdrawalDto } from './dto/create-withdrawal.dto'

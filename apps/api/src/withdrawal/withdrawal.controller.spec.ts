@@ -1,4 +1,4 @@
-import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common'
+import { NotFoundException, BadRequestException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { WithdrawStatus, Currency } from '@prisma/client'
 import { mockReset } from 'jest-mock-extended'
