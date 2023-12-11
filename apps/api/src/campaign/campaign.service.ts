@@ -11,6 +11,7 @@ import {
   CampaignNewsState,
   NotificationList,
   EmailType,
+  CampaignTypeCategory,
 } from '@prisma/client'
 import {
   BadRequestException,
@@ -902,7 +903,7 @@ export class CampaignService {
         campaignid: campaign.id,
         template_data: {
           'campaign.name': campaign?.title,
-          'campaign.target-amount': campaign?.targetAmount || 0,
+          'campaign.target-amount': (campaign?.targetAmount && campaign?.targetAmount / 100) || 0,
           'campaign.raised-amount': raisedAmount,
           'campaign.start-date': campaign.startDate
             ? DateTime.fromJSDate(campaign.startDate).toFormat('dd-MM-yyyy')
@@ -942,6 +943,7 @@ export class CampaignService {
     const updated = await this.prisma.campaign.update({
       where: { id: id },
       data: updateCampaignDto,
+      include: { campaignType: { select: { name: true, slug: true, category: true } } },
     })
 
     if (!updated) throw new NotFoundException(`Not found campaign with id: ${id}`)
@@ -1020,7 +1022,15 @@ export class CampaignService {
     return listId
   }
 
-  async sendNewCampaignNotification(campaign: Campaign) {
+  async sendNewCampaignNotification(
+    campaign: Campaign & {
+      campaignType: {
+        slug: string
+        name: string
+        category: CampaignTypeCategory
+      }
+    },
+  ) {
     // Send notification for the new activated campaign
     const template = await this.prisma.marketingTemplates.findFirst({
       where: {
@@ -1038,7 +1048,8 @@ export class CampaignService {
         subject: NotificationData['new-campaign'].subject,
         template_data: {
           'campaign.name': campaign?.title,
-          'campaign.target-amount': campaign?.targetAmount || 0,
+          'campaign.type': campaign?.campaignType?.name,
+          'campaign.target-amount': (campaign?.targetAmount && campaign?.targetAmount / 100) || 0,
           'campaign.start-date': campaign.startDate
             ? DateTime.fromJSDate(campaign.startDate).toFormat('dd-MM-yyyy')
             : '',
