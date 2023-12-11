@@ -1,6 +1,6 @@
 import { NotFoundException, BadRequestException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
-import { WithdrawStatus, Currency } from '@prisma/client'
+import { WithdrawStatus, Currency, Withdrawal } from '@prisma/client'
 import { mockReset } from 'jest-mock-extended'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { CreateWithdrawalDto } from './dto/create-withdrawal.dto'
@@ -9,7 +9,7 @@ import { WithdrawalController } from './withdrawal.controller'
 import { WithdrawalService } from './withdrawal.service'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
-const mockData = [
+const mockData: Withdrawal[] = [
   {
     id: '00000000-0000-0000-0000-000000000001',
     status: WithdrawStatus.initial,
@@ -367,12 +367,17 @@ describe('WithdrawalController', () => {
       prismaMock.withdrawal.delete.mockResolvedValue(withdrawal)
       await expect(controller.remove(withdrawal.id)).toResolve()
       expect(prismaMock.withdrawal.delete).toHaveBeenCalledWith({
-        where: { id: withdrawal.id, status: { not: { equals: WithdrawStatus.succeeded } } },
+        where: { id: withdrawal.id },
       })
       expect(prismaMock.vault.update).toHaveBeenCalledWith({
         where: { id: withdrawal.sourceVaultId },
         data: {
-          blockedAmount: { decrement: withdrawal.amount },
+          amount: {
+            increment: withdrawal.status === WithdrawStatus.succeeded ? withdrawal.amount : 0,
+          },
+          blockedAmount: {
+            decrement: withdrawal.status === WithdrawStatus.succeeded ? 0 : withdrawal.amount,
+          },
         },
       })
     })
@@ -384,7 +389,7 @@ describe('WithdrawalController', () => {
       )
 
       expect(prismaMock.withdrawal.delete).toHaveBeenCalledWith({
-        where: { id: withdrawal.id, status: { not: { equals: WithdrawStatus.succeeded } } },
+        where: { id: withdrawal.id },
       })
 
       expect(prismaMock.vault.update).not.toHaveBeenCalled()
