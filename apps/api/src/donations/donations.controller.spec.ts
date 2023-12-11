@@ -9,6 +9,7 @@ import {
   DonationStatus,
   DonationType,
   PaymentProvider,
+  Person,
   Vault,
 } from '@prisma/client'
 import { CampaignService } from '../campaign/campaign.service'
@@ -55,6 +56,7 @@ describe('DonationsController', () => {
     type: DonationType.donation,
     status: DonationStatus.succeeded,
     amount: 10,
+    affiliateId: null,
     extCustomerId: 'gosho',
     extPaymentIntentId: 'pm1',
     extPaymentMethodId: 'bank',
@@ -181,13 +183,13 @@ describe('DonationsController', () => {
     }
 
     const existingDonation = { ...mockDonation }
-    const existingTargetPerson = {
+    const existingTargetPerson: Person = {
       id: '2',
       firstName: 'string',
       lastName: 'string',
       email: 'string',
       phone: 'string',
-      company: 'string',
+      companyId: 'string',
       createdAt: new Date('2022-01-01'),
       updatedAt: new Date('2022-01-01'),
       newsletter: false,
@@ -198,6 +200,7 @@ describe('DonationsController', () => {
       keycloakId: '00000000-0000-0000-0000-000000000012',
       stripeCustomerId: 'string',
       picture: 'string',
+      profileEnabled: true,
     }
 
     jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
@@ -232,13 +235,13 @@ describe('DonationsController', () => {
       billingEmail: mockDonation.billingEmail,
     }
 
-    const existingTargetPerson = {
+    const existingTargetPerson: Person = {
       id: mockDonation.personId,
       firstName: 'string',
       lastName: 'string',
       email: mockDonation.billingEmail,
       phone: 'string',
-      company: 'string',
+      companyId: 'string',
       createdAt: new Date('2022-01-01'),
       updatedAt: new Date('2022-01-01'),
       newsletter: false,
@@ -249,6 +252,7 @@ describe('DonationsController', () => {
       keycloakId: '00000000-0000-0000-0000-000000000012',
       stripeCustomerId: 'string',
       picture: 'string',
+      profileEnabled: true,
     }
 
     const existingDonation = { ...mockDonation, status: DonationStatus.initial }

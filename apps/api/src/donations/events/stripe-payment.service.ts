@@ -140,7 +140,6 @@ export class StripePaymentService {
       campaign,
       billingData,
       DonationStatus.succeeded,
-      metadata,
     )
 
     //updateDonationPayment will mark the campaign as completed if amount is reached
@@ -172,12 +171,7 @@ export class StripePaymentService {
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
 
-    await this.campaignService.updateDonationPayment(
-      campaign,
-      billingData,
-      DonationStatus.refund,
-      metadata,
-    )
+    await this.campaignService.updateDonationPayment(campaign, billingData, DonationStatus.refund)
 
     if (billingData.billingEmail !== undefined) {
       const recepient = { to: [billingData.billingEmail] }
@@ -338,6 +332,7 @@ export class StripePaymentService {
     Logger.log('[ handleInvoicePaid ]', invoice)
 
     let metadata: DonationMetadata = {
+      type: null,
       campaignId: null,
       personId: null,
       isAnonymous: null,

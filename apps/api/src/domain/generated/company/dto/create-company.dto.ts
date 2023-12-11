@@ -4,4 +4,5 @@ export class CreateCompanyDto {
   legalPersonName?: string
   countryCode?: string
   cityId?: string
+  personId?: string
 }

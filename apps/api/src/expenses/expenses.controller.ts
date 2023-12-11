@@ -21,6 +21,7 @@ import { UpdateExpenseDto } from './dto/update-expense.dto'
 import { ApiTags } from '@nestjs/swagger'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
+import { validateFileType } from '../common/files'
 
 @ApiTags('expenses')
 @Controller('expenses')
@@ -37,7 +38,6 @@ export class ExpensesController {
   }
 
   @Post('create-expense')
-  @UseInterceptors(FilesInterceptor('file', 5, { limits: { fileSize: 10485760 } })) //limit uploaded files to 5 at once and 10MB each
   async create(
     @AuthenticatedUser() user: KeycloakTokenParsed,
     @Body() createExpenseDto: CreateExpenseDto,
@@ -69,7 +69,14 @@ export class ExpensesController {
   }
 
   @Post(':expenseId/files')
-  @UseInterceptors(FilesInterceptor('file', 5, { limits: { fileSize: 10485760 } })) //limit uploaded files to 5 at once and 10MB each
+  @UseInterceptors(
+    FilesInterceptor('file', 5, {
+      limits: { fileSize: 1024 * 1024 * 10 }, //limit uploaded files to 5 at once and 10MB each
+      fileFilter: (_req: Request, file, cb) => {
+        validateFileType(file, cb)
+      },
+    }),
+  )
   async uploadFiles(
     @Param('expenseId') expenseId: string,
     @UploadedFiles() files: Express.Multer.File[],

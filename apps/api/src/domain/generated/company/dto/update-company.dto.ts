@@ -4,4 +4,5 @@ export class UpdateCompanyDto {
   legalPersonName?: string
   countryCode?: string
   cityId?: string
+  personId?: string
 }

@@ -32,12 +32,6 @@ export class CreatePersonDto {
   @ApiProperty({ nullable: true, required: false })
   @Expose()
   @IsOptional()
-  @IsString()
-  public readonly company: string | null
-
-  @ApiProperty({ nullable: true, required: false })
-  @Expose()
-  @IsOptional()
   @IsBoolean()
   public readonly newsletter: boolean | null
 
@@ -61,7 +55,6 @@ export class CreatePersonDto {
       email: this.email,
       phone: this.phone,
       newsletter: this.newsletter,
-      company: this.company,
       address: this.address,
       birthday: this.birthday,
     }

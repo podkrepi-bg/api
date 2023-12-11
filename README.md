@@ -38,13 +38,13 @@
 
 # Setup Development Environment (recommended)
 
-To run and develop the module NodeJS 16 is required. In this section 2 ways of configuring a development environment are described.
+To run and develop the module NodeJS 20 is required. In this section 2 ways of configuring a development environment are described.
 
 ## Installing the prerequisites
 
 The following prerequisites are required in order to be able to run the project:
 
-- [Node.js 16 LTS](https://nodejs.org/en/download/)
+- [Node.js v20](https://nodejs.org/en/download/)
 - [Yarn v3.x](https://yarnpkg.com/getting-started/install)
 - [Docker](https://www.docker.com/get-started) with [Docker Compose](https://docs.docker.com/compose/) (to easily run a local database instance)
 

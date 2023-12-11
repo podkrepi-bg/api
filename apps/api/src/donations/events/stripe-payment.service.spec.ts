@@ -276,6 +276,7 @@ describe('StripePaymentService', () => {
       type: DonationType.donation,
       status: DonationStatus.waiting,
       provider: 'stripe',
+      affiliateId: null,
       extCustomerId: paymentData.stripeCustomerId ?? '',
       extPaymentIntentId: paymentData.paymentIntentId,
       extPaymentMethodId: 'card',
@@ -331,7 +332,7 @@ describe('StripePaymentService', () => {
         expect(prismaMock.donation.findUnique).toHaveBeenCalled()
         expect(prismaMock.donation.create).not.toHaveBeenCalled()
         expect(mockedIncrementVaultAmount).toHaveBeenCalled()
-        expect(prismaMock.donation.update).toHaveBeenCalledTimes(2) //once for the amount and second time for assigning donation to the person
+        expect(prismaMock.donation.update).toHaveBeenCalledTimes(1)
         expect(mockedUpdateCampaignStatusIfTargetReached).toHaveBeenCalled()
         expect(prismaMock.campaign.update).toHaveBeenCalledWith({
           where: {
@@ -377,6 +378,7 @@ describe('StripePaymentService', () => {
       type: DonationType.donation,
       status: DonationStatus.waiting,
       provider: 'stripe',
+      affiliateId: '',
       extCustomerId: paymentData.stripeCustomerId ?? '',
       extPaymentIntentId: paymentData.paymentIntentId,
       extPaymentMethodId: 'card',
@@ -449,6 +451,7 @@ describe('StripePaymentService', () => {
       type: DonationType.donation,
       status: DonationStatus.succeeded,
       provider: 'stripe',
+      affiliateId: null,
       extCustomerId: paymentData.stripeCustomerId ?? '',
       extPaymentIntentId: paymentData.paymentIntentId,
       extPaymentMethodId: 'card',

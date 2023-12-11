@@ -57,6 +57,9 @@ import { CampaignNewsModule } from '../campaign-news/campaign-news.module'
 import { CampaignNewsFileModule } from '../campaign-news-file/campaign-news-file.module'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
 
+import { StatisticsModule } from '../statistics/statistics.module'
+import { AffiliateModule } from '../affiliate/affiliate.module'
+
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -75,6 +78,7 @@ import { MarketingNotificationsModule } from '../notifications/notifications.mod
     TasksModule,
     /* Internal modules */
     AuthModule,
+    AffiliateModule,
     AccountModule,
     CampaignModule,
     CampaignFileModule,
@@ -107,6 +111,7 @@ import { MarketingNotificationsModule } from '../notifications/notifications.mod
     JwtModule,
     NotificationModule,
     BankTransactionsModule,
+    StatisticsModule,
     CacheModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({

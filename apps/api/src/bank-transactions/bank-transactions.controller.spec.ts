@@ -25,6 +25,7 @@ import { SchedulerRegistry } from '@nestjs/schedule'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
+import { AffiliateService } from '../affiliate/affiliate.service'
 
 const bankTransactionsMock = [
   {
@@ -145,6 +146,7 @@ describe('BankTransactionsController', () => {
         SchedulerRegistry,
         EmailService,
         TemplateService,
+        AffiliateService,
       ],
     }).compile()
 

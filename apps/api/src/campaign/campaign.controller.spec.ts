@@ -58,8 +58,8 @@ describe('CampaignController', () => {
     keycloakId: 'some-id',
     email: 'user@email.com',
     emailConfirmed: false,
+    companyId: null,
     phone: null,
-    company: null,
     picture: null,
     createdAt: new Date('2021-10-07T13:38:11.097Z'),
     updatedAt: new Date('2021-10-07T13:38:11.097Z'),
@@ -226,6 +226,7 @@ describe('CampaignController', () => {
             blockedAmount: 0,
             withdrawnAmount: 0,
             donors: 2,
+            guaranteedAmount: 0,
           },
         },
       ])
@@ -263,6 +264,7 @@ describe('CampaignController', () => {
             blockedAmount: 0,
             withdrawnAmount: 0,
             donors: 2,
+            guaranteedAmount: 0,
           },
         },
       ])
@@ -287,6 +289,7 @@ describe('CampaignController', () => {
             reachedAmount: 110,
             currentAmount: 0,
             blockedAmount: 0,
+            guaranteedAmount: 0,
             withdrawnAmount: 0,
             donors: 2,
           },
@@ -325,6 +328,7 @@ describe('CampaignController', () => {
             blockedAmount: 0,
             withdrawnAmount: 0,
             donors: 2,
+            guaranteedAmount: 0,
           },
         },
       })

@@ -65,8 +65,22 @@ export class DonationWishService {
           : { createdAt: 'desc' },
       ],
       include: {
-        person: { select: { id: true, firstName: true, lastName: true } },
-        donation: { select: { amount: true, currency: true } },
+        person: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            company: { select: { companyName: true } },
+          },
+        },
+        donation: {
+          select: {
+            amount: true,
+            currency: true,
+            type: true,
+            metadata: { select: { name: true } },
+          },
+        },
       },
     })
 
