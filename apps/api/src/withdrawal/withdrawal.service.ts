@@ -9,8 +9,18 @@ export class WithdrawalService {
   constructor(private prisma: PrismaService) {}
 
   /**
+   * Check whether
+   * @param status status of withdrawn record
+   * @returns
+   */
+  isWithdrawnCancelled(status: WithdrawStatus) {
+    return status === WithdrawStatus.cancelled || status === WithdrawStatus.declined
+  }
+
+  /**
    * Creates a withdrawal, while blocking the corresponding amount in the source vault.
    */
+
   async create(createWithdrawalDto: CreateWithdrawalDto): Promise<Withdrawal> {
     const vault = await this.prisma.vault.findFirstOrThrow({
       where: {
@@ -127,12 +137,16 @@ export class WithdrawalService {
         throw new BadRequestException("Withdrawal record couldn't be deleted")
       })
 
+    const isSucceeded = result.status === WithdrawStatus.succeeded
+    const isCancelled =
+      result.status === WithdrawStatus.cancelled || result.status === WithdrawStatus.declined
+
     await this.prisma.vault.update({
       where: { id: result.sourceVaultId },
       data: {
-        amount: { increment: result.status === WithdrawStatus.succeeded ? result.amount : 0 },
+        amount: { increment: isSucceeded ? result.amount : 0 },
         blockedAmount: {
-          decrement: result.status === WithdrawStatus.succeeded ? 0 : result.amount,
+          decrement: isCancelled || isSucceeded ? 0 : result.amount,
         },
       },
     })
