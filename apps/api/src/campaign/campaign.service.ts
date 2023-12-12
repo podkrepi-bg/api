@@ -42,7 +42,6 @@ import {
   NotificationService,
   donationNotificationSelect,
 } from '../sockets/notifications/notification.service'
-import { DonationMetadata } from '../donations/dontation-metadata.interface'
 import { Expense } from '@prisma/client'
 import { SendGridParams } from '../notifications/providers/notifications.sendgrid.types'
 import * as NotificationData from '../notifications/notification-data.json'

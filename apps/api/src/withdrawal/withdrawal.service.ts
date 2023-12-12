@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common'
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common'
 import { Withdrawal, WithdrawStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateWithdrawalDto } from './dto/create-withdrawal.dto'
@@ -124,11 +118,29 @@ export class WithdrawalService {
     return result
   }
 
-  // Functionality will be reworked soon
   async remove(id: string): Promise<Withdrawal | null> {
-    throw new ForbiddenException()
-    const result = await this.prisma.withdrawal.delete({ where: { id: id } })
-    if (!result) throw new NotFoundException('Not found')
+    const result = await this.prisma.withdrawal
+      .delete({
+        where: { id: id },
+      })
+      .catch(() => {
+        throw new BadRequestException("Withdrawal record couldn't be deleted")
+      })
+
+    const isSucceeded = result.status === WithdrawStatus.succeeded
+    const isCancelled =
+      result.status === WithdrawStatus.cancelled || result.status === WithdrawStatus.declined
+
+    await this.prisma.vault.update({
+      where: { id: result.sourceVaultId },
+      data: {
+        amount: { increment: isSucceeded ? result.amount : 0 },
+        blockedAmount: {
+          decrement: isCancelled || isSucceeded ? 0 : result.amount,
+        },
+      },
+    })
+
     return result
   }
 }
