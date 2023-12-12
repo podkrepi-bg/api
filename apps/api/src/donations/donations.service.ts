@@ -770,22 +770,14 @@ export class DonationsService {
   }
 
   async getDonorsCount() {
-    const donorsCount = await this.prisma.donation.groupBy({
-      by: ['billingName'],
-      where: { status: DonationStatus.succeeded },
-      _count: {
-        _all: true,
-      },
-      orderBy: { billingName: { sort: 'asc', nulls: 'first' } },
-    })
+    const donorsCount = await this.prisma.$queryRaw<{
+      count: number
+    }>`SELECT COUNT (*) FROM (SELECT DISTINCT billing_email FROM donations WHERE status::text=${DonationStatus.succeeded}) AS unique_donors`
 
-    // get count of the donations with billingName == null
-    const anonymousDonations = donorsCount[0]._count._all
+    //Return result is BigInt which can't be serialized. Convert result to string first.
+    const uniqueDonors = donorsCount[0].count.toString()
 
-    const totalCount = donorsCount.length - 1 + anonymousDonations
-
-    // substract one because we don't want to include anonymousDonation again
-    return { count: totalCount }
+    return { count: Number(uniqueDonors) }
   }
 
   /**
