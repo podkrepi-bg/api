@@ -13,7 +13,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { CreateVaultDto } from './dto/create-vault.dto'
 import { UpdateVaultDto } from './dto/update-vault.dto'
 
-type VaultWithWithdrawalSum = Vault & { withdrawnAmount: number }
+type VaultWithWithdrawalSum = Vault & { withdrawnAmount: number; campaignTitle: string }
 
 @Injectable()
 export class VaultService {
@@ -37,6 +37,7 @@ export class VaultService {
     v.currency, v."blockedAmount", 
     v.name,
     v.amount,
+    c.title as "campaignTitle",
     COALESCE(SUM(w."successfullWithdrawn")::INTEGER, 0)  as "withdrawnAmount" 
     FROM vaults v
     LEFT JOIN LATERAL (
@@ -45,7 +46,12 @@ export class VaultService {
       WHERE status::text = 'succeeded' AND source_vault_id::uuid = v.id::uuid
     )as w 
     ON TRUE
-    GROUP bY v.id
+
+    LEFT JOIN LATERAL (
+      SELECT  id, title FROM campaigns WHERE id::uuid = v.campaign_id::uuid
+    ) as c ON TRUE
+
+    GROUP BY v.id, c.title
     `
     return result
   }
