@@ -362,7 +362,7 @@ describe('WithdrawalController', () => {
   })
 
   describe('removeData', () => {
-    it('initial withdrawal can be deleted', async () => {
+    it("should decrement vault's blockedAmount on initial withdrawn deletion", async () => {
       const withdrawal = mockData[0]
       prismaMock.withdrawal.delete.mockResolvedValue(withdrawal)
       await expect(controller.remove(withdrawal.id)).toResolve()
@@ -373,16 +373,77 @@ describe('WithdrawalController', () => {
         where: { id: withdrawal.sourceVaultId },
         data: {
           amount: {
-            increment: withdrawal.status === WithdrawStatus.succeeded ? withdrawal.amount : 0,
+            increment: 0,
           },
           blockedAmount: {
-            decrement: withdrawal.status === WithdrawStatus.succeeded ? 0 : withdrawal.amount,
+            decrement: withdrawal.amount,
           },
         },
       })
     })
+
+    it("should increment vault's amount on succeeded withdrawn deletion ", async () => {
+      const withdrawal = { ...mockData[0], status: WithdrawStatus.succeeded }
+      prismaMock.withdrawal.delete.mockResolvedValue(withdrawal)
+      await expect(controller.remove(withdrawal.id)).toResolve()
+      expect(prismaMock.withdrawal.delete).toHaveBeenCalledWith({
+        where: { id: withdrawal.id },
+      })
+      expect(prismaMock.vault.update).toHaveBeenCalledWith({
+        where: { id: withdrawal.sourceVaultId },
+        data: {
+          amount: {
+            increment: withdrawal.amount,
+          },
+          blockedAmount: {
+            decrement: 0,
+          },
+        },
+      })
+    })
+
+    it("shouldn't update vault's amount and blockedAmount on cancelled withdrawn deletion", async () => {
+      const withdrawal = { ...mockData[0], status: WithdrawStatus.cancelled }
+      prismaMock.withdrawal.delete.mockResolvedValue(withdrawal)
+      await expect(controller.remove(withdrawal.id)).toResolve()
+      expect(prismaMock.withdrawal.delete).toHaveBeenCalledWith({
+        where: { id: withdrawal.id },
+      })
+      expect(prismaMock.vault.update).toHaveBeenCalledWith({
+        where: { id: withdrawal.sourceVaultId },
+        data: {
+          amount: {
+            increment: 0,
+          },
+          blockedAmount: {
+            decrement: 0,
+          },
+        },
+      })
+    })
+
+    it("shouldn't update vault's amount and blockedAmount on declined withdrawn deletion", async () => {
+      const withdrawal = { ...mockData[0], status: WithdrawStatus.declined }
+      prismaMock.withdrawal.delete.mockResolvedValue(withdrawal)
+      await expect(controller.remove(withdrawal.id)).toResolve()
+      expect(prismaMock.withdrawal.delete).toHaveBeenCalledWith({
+        where: { id: withdrawal.id },
+      })
+      expect(prismaMock.vault.update).toHaveBeenCalledWith({
+        where: { id: withdrawal.sourceVaultId },
+        data: {
+          amount: {
+            increment: 0,
+          },
+          blockedAmount: {
+            decrement: 0,
+          },
+        },
+      })
+    })
+
     it('Should throw an error if delete query rejects', async () => {
-      const withdrawal = { ...mockData[1], status: WithdrawStatus.succeeded }
+      const withdrawal = mockData[1]
       prismaMock.withdrawal.delete.mockRejectedValue(withdrawal)
       await expect(controller.remove(withdrawal.id)).rejects.toThrow(
         new BadRequestException("Withdrawal record couldn't be deleted"),
