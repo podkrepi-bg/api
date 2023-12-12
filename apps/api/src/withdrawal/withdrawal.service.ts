@@ -9,18 +9,8 @@ export class WithdrawalService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Check whether
-   * @param status status of withdrawn record
-   * @returns
-   */
-  isWithdrawnCancelled(status: WithdrawStatus) {
-    return status === WithdrawStatus.cancelled || status === WithdrawStatus.declined
-  }
-
-  /**
    * Creates a withdrawal, while blocking the corresponding amount in the source vault.
    */
-
   async create(createWithdrawalDto: CreateWithdrawalDto): Promise<Withdrawal> {
     const vault = await this.prisma.vault.findFirstOrThrow({
       where: {
