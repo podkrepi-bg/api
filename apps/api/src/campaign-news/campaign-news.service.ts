@@ -101,7 +101,7 @@ export class CampaignNewsService {
         campaignid: campaign.id,
         template_data: {
           'campaign.name': campaign?.title,
-          'campaign.target-amount': campaign?.targetAmount || 0,
+          'campaign.target-amount': (campaign?.targetAmount && campaign?.targetAmount / 100) || 0,
           'campaign.raised-amount':
             campaign.vaults?.map((vault) => vault.amount).reduce((a, b) => a + b, 0) || 0,
           'campaign.start-date': campaign.startDate
@@ -112,6 +112,9 @@ export class CampaignNewsService {
             : '',
           'campaign.news-title': news.title,
           'campaign.news-desc': news.slug,
+          'campaign.link': (
+            this.config.get<string>('APP_URL') + `/campaigns/${campaign.slug}`
+          ).replace(/(http:\/\/|https:\/\/)/gi, ''),
           'campaign.news-link': (
             this.config.get<string>('APP_URL') + `/campaigns/${campaign.slug}/news`
           ).replace(/(http:\/\/|https:\/\/)/gi, ''),

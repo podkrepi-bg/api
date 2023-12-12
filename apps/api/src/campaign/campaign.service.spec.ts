@@ -130,6 +130,7 @@ describe('CampaignService', () => {
       expect(prismaMock.campaign.update).toHaveBeenCalledWith({
         where: { id: mockCampaign.id },
         data: updateData,
+        include: { campaignType: { select: { name: true, slug: true, category: true } } },
       })
       expect(service.createCampaignNotificationList).toHaveBeenCalledWith(updatedCampaign)
       expect(marketing.createNewContactList).toHaveBeenCalledWith({
@@ -180,6 +181,7 @@ describe('CampaignService', () => {
       expect(prismaMock.campaign.update).toHaveBeenCalledWith({
         where: { id: campaignWithList.id },
         data: updateData,
+        include: { campaignType: { select: { name: true, slug: true, category: true } } },
       })
       // Since notification list exists  for this campaign
       expect(service.createCampaignNotificationList).not.toHaveBeenCalled()
