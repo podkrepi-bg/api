@@ -13,6 +13,8 @@ import { PrismaService } from '../prisma/prisma.service'
 import { CreateVaultDto } from './dto/create-vault.dto'
 import { UpdateVaultDto } from './dto/update-vault.dto'
 
+type VaultWithWithdrawalSum = Vault & { withdrawnAmount: number }
+
 @Injectable()
 export class VaultService {
   constructor(
@@ -25,8 +27,27 @@ export class VaultService {
     return await this.prisma.vault.create({ data: createVaultDto.toEntity() })
   }
 
-  async findAll(): Promise<Vault[]> {
-    return await this.prisma.vault.findMany()
+  async findAll(): Promise<VaultWithWithdrawalSum[]> {
+    const result = await this.prisma.$queryRaw<VaultWithWithdrawalSum[]>`
+    SELECT 
+    v.id, 
+    v.campaign_id as "campaignId", 
+    v.created_at as "createdAt", 
+    v.updated_at as "updatedAt",
+    v.currency, v."blockedAmount", 
+    v.name,
+    v.amount,
+    COALESCE(SUM(w."successfullWithdrawn")::INTEGER, 0)  as "withdrawnAmount" 
+    FROM vaults v
+    LEFT JOIN LATERAL (
+      SELECT SUM(amount)::INTEGER as "successfullWithdrawn" 
+      FROM withdrawals 
+      WHERE status::text = 'succeeded' AND source_vault_id::uuid = v.id::uuid
+    )as w 
+    ON TRUE
+    GROUP bY v.id
+    `
+    return result
   }
 
   async findByCampaignId(campaignId: string): Promise<Vault[]> {
