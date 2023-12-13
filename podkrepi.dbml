@@ -13,7 +13,6 @@ Table people {
   lastName String [not null]
   email String [unique]
   phone String
-  company String
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   newsletter Boolean [default: false]
@@ -22,9 +21,11 @@ Table people {
   emailConfirmed Boolean [default: false]
   personalNumber String [unique, note: 'Uniform Civil Number (NCN, EGN)
 https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
+  companyId String [unique]
   keycloakId String [unique]
   stripeCustomerId String [unique]
   picture String
+  profileEnabled Boolean [not null, default: true]
   benefactors benefactors [not null]
   beneficiaries beneficiaries [not null]
   campaignFiles campaign_files [not null]
@@ -45,6 +46,7 @@ https://en.wikipedia.org/wiki/National_identification_number#Bulgaria']
   withdrawals withdrawals [not null]
   publishedNews campaign_news [not null]
   newsFiles campaign_news_files [not null]
+  company companies
 
   Note: 'Generic person object'
 }
@@ -57,10 +59,24 @@ https://psc.egov.bg/en/psc-starting-a-business-bulstat']
   legalPersonName String
   countryCode String
   cityId String
+  personId String [unique]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   beneficiaries beneficiaries [not null]
   Campaign campaigns [not null]
+  person people
+  affiliate affiliates
+}
+
+Table affiliates {
+  id String [pk]
+  status AffiliateStatus [not null, default: 'pending']
+  affiliateCode String [unique]
+  companyId String [unique, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  company companies [not null]
+  donations donations [not null]
 }
 
 Table organizers {
@@ -366,13 +382,24 @@ Table donations {
   updatedAt DateTime
   amount Int [not null, default: 0]
   currency Currency [not null, default: 'BGN']
+  affiliateId String
   personId String
   billingEmail String
   billingName String
   chargedAmount Int [not null, default: 0]
   person people
   targetVault vaults [not null]
+  affiliate affiliates
   DonationWish donation_wishes
+  metadata donation_metadata
+}
+
+Table donation_metadata {
+  donationId String [pk]
+  name String
+  createdAt DateTime [default: `now()`, not null]
+  extraData Json
+  donation donations [not null]
 }
 
 Table donation_wishes {
@@ -630,6 +657,7 @@ Enum DocumentType {
 
 Enum DonationType {
   donation
+  corporate
 }
 
 Enum DonationStatus {
@@ -639,6 +667,7 @@ Enum DonationStatus {
   declined
   waiting
   cancelled
+  guaranteed
   succeeded
   deleted
   refund
@@ -694,6 +723,7 @@ Enum BankTransactionType {
 Enum BankDonationStatus {
   unrecognized
   imported
+  incomplete
   reImported
   importFailed
 }
@@ -710,6 +740,13 @@ Enum CampaignTypeCategory {
   nature
   animals
   others
+}
+
+Enum AffiliateStatus {
+  active
+  pending
+  cancelled
+  rejected
 }
 
 Enum CampaignFileRole {
@@ -763,6 +800,10 @@ Enum EmailType {
   raised90
   raised100
 }
+
+Ref: people.companyId - companies.id
+
+Ref: affiliates.companyId - companies.id
 
 Ref: organizers.personId - people.id
 
@@ -829,6 +870,10 @@ Ref: vaults.campaignId > campaigns.id
 Ref: donations.personId > people.id
 
 Ref: donations.targetVaultId > vaults.id
+
+Ref: donations.affiliateId > affiliates.id
+
+Ref: donation_metadata.donationId - donations.id
 
 Ref: donation_wishes.campaignId > campaigns.id
 

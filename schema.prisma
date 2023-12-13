@@ -1,6 +1,6 @@
 generator client {
-  provider        = "prisma-client-js"
-  binaryTargets   = ["native"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
 }
 
 generator dbml {
@@ -36,7 +36,6 @@ model Person {
   lastName           String              @map("last_name") @db.VarChar(100)
   email              String?             @unique @db.Citext
   phone              String?             @db.VarChar(50)
-  company            String?             @db.VarChar(50)
   createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
   // Receive marketing notifications
@@ -47,9 +46,11 @@ model Person {
   /// Uniform Civil Number (NCN, EGN)
   /// https://en.wikipedia.org/wiki/National_identification_number#Bulgaria
   personalNumber     String?             @unique @map("personal_number")
+  companyId          String?             @unique @map("company_id") @db.Uuid
   keycloakId         String?             @unique @map("keycloak_id") @db.Uuid
   stripeCustomerId   String?             @unique @map("stripe_customer_id")
   picture            String?             @db.VarChar(250)
+  profileEnabled     Boolean             @default(true) @map("profile_enabled")
   // Used to verify some emails sent to the user
   benefactors        Benefactor[]
   beneficiaries      Beneficiary[]
@@ -71,6 +72,7 @@ model Person {
   withdrawals        Withdrawal[]
   publishedNews      CampaignNews[]
   newsFiles          CampaignNewsFile[]
+  company            Company?            @relation(fields: [companyId], references: [id])
 
   @@index([keycloakId], map: "keycloak_id_idx")
   @@index([stripeCustomerId], map: "stripe_customer_id_idx")
@@ -86,12 +88,28 @@ model Company {
   legalPersonName String?       @map("legal_person_name")
   countryCode     String?       @map("country_code") @db.Citext
   cityId          String?       @map("city_id") @db.Uuid
+  personId        String?       @unique @map("person_id") @db.Uuid
   createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
   beneficiaries   Beneficiary[]
   Campaign        Campaign[]
+  person          Person?
+  affiliate       Affiliate?
 
   @@map("companies")
+}
+
+model Affiliate {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status        AffiliateStatus @default(pending)
+  affiliateCode String?         @unique @map("affiliate_code")
+  companyId     String          @unique @map("company_id") @db.Uuid
+  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  company       Company         @relation(fields: [companyId], references: [id])
+  donations     Donation[]
+
+  @@map("affiliates")
 }
 
 /// Organizer is the person who manages the campaign on behalf of the Beneficiary
@@ -259,9 +277,9 @@ model MarketingTemplates {
 
 // Stores marketing notifications consents for non-registered emails
 model UnregisteredNotificationConsent {
-  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email    String  @unique @db.Citext
-  consent  Boolean @default(false)
+  id      String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email   String  @unique @db.Citext
+  consent Boolean @default(false)
 
   @@map("unregistered_notification_consent")
 }
@@ -431,30 +449,43 @@ model Vault {
 }
 
 model Donation {
-  id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type               DonationType
-  status             DonationStatus  @default(initial)
-  provider           PaymentProvider @default(none)
+  status             DonationStatus    @default(initial)
+  provider           PaymentProvider   @default(none)
   /// Vault where the funds are going
-  targetVaultId      String          @map("target_vault_id") @db.Uuid
+  targetVaultId      String            @map("target_vault_id") @db.Uuid
   /// Payment provider attributes
-  extCustomerId      String          @map("ext_customer_id") @db.VarChar(50)
-  extPaymentIntentId String          @unique @map("ext_payment_intent_id")
-  extPaymentMethodId String          @map("ext_payment_method_id")
+  extCustomerId      String            @map("ext_customer_id") @db.VarChar(50)
+  extPaymentIntentId String            @unique @map("ext_payment_intent_id")
+  extPaymentMethodId String            @map("ext_payment_method_id")
   ///
-  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
-  amount             Int             @default(0)
-  currency           Currency        @default(BGN)
-  personId           String?         @map("person_id") @db.Uuid
-  billingEmail       String?         @map("billing_email") @db.VarChar
-  billingName        String?         @map("billing_name") @db.VarChar
-  chargedAmount      Int             @default(0)
-  person             Person?         @relation(fields: [personId], references: [id])
-  targetVault        Vault           @relation(fields: [targetVaultId], references: [id])
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  amount             Int               @default(0)
+  currency           Currency          @default(BGN)
+  affiliateId        String?           @map("affiliate_id") @db.Uuid
+  personId           String?           @map("person_id") @db.Uuid
+  billingEmail       String?           @map("billing_email") @db.VarChar
+  billingName        String?           @map("billing_name") @db.VarChar
+  chargedAmount      Int               @default(0)
+  person             Person?           @relation(fields: [personId], references: [id])
+  targetVault        Vault             @relation(fields: [targetVaultId], references: [id])
+  affiliate          Affiliate?        @relation(fields: [affiliateId], references: [id])
   DonationWish       DonationWish?
+  metadata           DonationMetadata?
 
   @@map("donations")
+}
+
+model DonationMetadata {
+  donationId String   @id @unique @map("donation_id") @db.Uuid
+  name       String?  @db.VarChar
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  extraData  Json?    @map("extra_data")
+  donation   Donation @relation(fields: [donationId], references: [id])
+
+  @@map("donation_metadata")
 }
 
 model DonationWish {
@@ -765,6 +796,7 @@ enum DocumentType {
 
 enum DonationType {
   donation
+  corporate
 
   @@map("donation_type")
 }
@@ -776,6 +808,7 @@ enum DonationStatus {
   declined
   waiting
   cancelled
+  guaranteed
   succeeded
   deleted
   refund
@@ -857,6 +890,7 @@ enum BankTransactionType {
 enum BankDonationStatus {
   unrecognized
   imported
+  incomplete
   reImported   @map("re_imported")
   importFailed @map("import_failed")
 
@@ -877,6 +911,13 @@ enum CampaignTypeCategory {
   others
 
   @@map("campaign_type_category")
+}
+
+enum AffiliateStatus {
+  active
+  pending
+  cancelled
+  rejected
 }
 
 enum CampaignFileRole {

@@ -32,6 +32,7 @@ import {
   ImportStatus,
 } from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
 import { CreateBankPaymentDto } from '../donations/dto/create-bank-payment.dto'
+import { validateFileType } from '../common/files'
 
 @ApiTags('bank-transactions-file')
 @Controller('bank-transactions-file')
@@ -45,7 +46,14 @@ export class BankTransactionsFileController {
   ) {}
 
   @Post(':bank_transactions_file_id')
-  @UseInterceptors(FilesInterceptor('file', 5, { limits: { fileSize: 10485760 } }))
+  @UseInterceptors(
+    FilesInterceptor('file', 5, {
+      limits: { fileSize: 1024 * 1024 * 10 }, //limit uploaded files to 5 at once and 10MB each
+      fileFilter: (_req: Request, file, cb) => {
+        validateFileType(file, cb)
+      },
+    }),
+  )
   async create(
     @Param('bank_transactions_file_id') bankTransactionsFileId: string,
     @Body() body: FilesTypesDto,

@@ -1,6 +1,7 @@
 // Available fields for populating a marketing template
 export type MarketingTemplateHTMLFields = {
   'campaign.name'?: string
+  'campaign.type'?: string
   'campaign.target-amount'?: number
   'campaign.raised-amount'?: number
   'campaign.start-date'?: string | Date

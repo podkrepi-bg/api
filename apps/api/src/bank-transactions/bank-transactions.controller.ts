@@ -3,7 +3,9 @@ import {
   BadRequestException,
   Body,
   Controller,
+  ForbiddenException,
   Get,
+  HttpCode,
   Logger,
   NotFoundException,
   Param,
@@ -12,7 +14,7 @@ import {
   Query,
   Res,
 } from '@nestjs/common'
-import { ApiQuery, ApiTags } from '@nestjs/swagger'
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { Roles, RoleMatchingMode, AuthenticatedUser } from 'nest-keycloak-connect'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
@@ -24,6 +26,9 @@ import {
 import { CampaignService } from '../campaign/campaign.service'
 import { BankDonationStatus } from '@prisma/client'
 import { DateTime, Interval } from 'luxon'
+import { ConfigService } from '@nestjs/config'
+import { IrisBankTransactionSimulationDto } from './dto/bank-transactions-iris-simulate.dto'
+import { AffiliateService } from '../affiliate/affiliate.service'
 
 @ApiTags('bank-transaction')
 @Controller('bank-transaction')
@@ -31,6 +36,8 @@ export class BankTransactionsController {
   constructor(
     private readonly bankTransactionsService: BankTransactionsService,
     private readonly campaignService: CampaignService,
+    private readonly configService: ConfigService,
+    private readonly affiliateService: AffiliateService,
   ) {}
 
   @Get('list')
@@ -144,5 +151,29 @@ export class BankTransactionsController {
       Logger.debug('rerunBankTransactionsForDate date: ', d.start.toISODate())
       await this.bankTransactionsService.rerunBankTransactionsForDate(new Date(d.start.toISODate()))
     })
+  }
+
+  @ApiOperation({ summary: 'Simulating bank transaction response from IRIS API' })
+  @ApiResponse({ status: 204 })
+  @ApiBody({
+    type: IrisBankTransactionSimulationDto,
+    description: 'Request body for simulating IRIS response',
+  })
+  @HttpCode(204)
+  @Post('iris-transaction-test')
+  async testIrisInsertion(
+    @Body() irisDto: IrisBankTransactionSimulationDto,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    const appEnv = this.configService.get<string>('APP_ENV')
+    const isDev = appEnv === 'development' || appEnv === 'staging'
+    if (!isDev) throw new ForbiddenException('Endpoint available only for testing enviroments')
+
+    if (!isAdmin(user)) throw new ForbiddenException('Must be either an admin or active affiliate')
+
+    return await this.bankTransactionsService.simulateIrisTask(
+      irisDto.irisIbanAccountInfo,
+      irisDto.irisTransactionInfo,
+    )
   }
 }

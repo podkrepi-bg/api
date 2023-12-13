@@ -25,6 +25,14 @@ export class AccountService {
   }
 
   async disableUser(user: KeycloakTokenParsed) {
-    return await this.authService.disableUser(user.sub)
+    return await this.authService.changeEnabledStatus(user.sub, false)
+  }
+
+  async deleteUser(user: KeycloakTokenParsed) {
+    return await this.authService.deleteUser(user.sub)
+  }
+
+  async changeProfileActivationStatus(keycloakId: string, newStatus: boolean) {
+    return await this.authService.changeEnabledStatus(keycloakId, newStatus)
   }
 }

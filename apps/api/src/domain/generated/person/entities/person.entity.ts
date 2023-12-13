@@ -18,6 +18,7 @@ import { Transfer } from '../../transfer/entities/transfer.entity'
 import { Withdrawal } from '../../withdrawal/entities/withdrawal.entity'
 import { CampaignNews } from '../../campaignNews/entities/campaignNews.entity'
 import { CampaignNewsFile } from '../../campaignNewsFile/entities/campaignNewsFile.entity'
+import { Company } from '../../company/entities/company.entity'
 
 export class Person {
   id: string
@@ -25,7 +26,6 @@ export class Person {
   lastName: string
   email: string | null
   phone: string | null
-  company: string | null
   createdAt: Date
   updatedAt: Date | null
   newsletter: boolean | null
@@ -33,9 +33,11 @@ export class Person {
   birthday: Date | null
   emailConfirmed: boolean | null
   personalNumber: string | null
+  companyId: string | null
   keycloakId: string | null
   stripeCustomerId: string | null
   picture: string | null
+  profileEnabled: boolean
   benefactors?: Benefactor[]
   beneficiaries?: Beneficiary[]
   campaignFiles?: CampaignFile[]
@@ -56,4 +58,5 @@ export class Person {
   withdrawals?: Withdrawal[]
   publishedNews?: CampaignNews[]
   newsFiles?: CampaignNewsFile[]
+  company?: Company | null
 }

@@ -11,6 +11,7 @@ import {
   CampaignNewsState,
   NotificationList,
   EmailType,
+  CampaignTypeCategory,
 } from '@prisma/client'
 import {
   BadRequestException,
@@ -41,7 +42,6 @@ import {
   NotificationService,
   donationNotificationSelect,
 } from '../sockets/notifications/notification.service'
-import { DonationMetadata } from '../donations/dontation-metadata.interface'
 import { Expense } from '@prisma/client'
 import { SendGridParams } from '../notifications/providers/notifications.sendgrid.types'
 import * as NotificationData from '../notifications/notification-data.json'
@@ -101,10 +101,11 @@ export class CampaignService {
 
     const result = await this.prisma.$queryRaw<CampaignSummaryDto[]>`SELECT
     SUM(d.reached)::INTEGER as "reachedAmount",
+    SUM(g.guaranteed)::INTEGER as "guaranteedAmount",
     (SUM(v.amount) - SUM(v."blockedAmount"))::INTEGER as "currentAmount",
     SUM(v."blockedAmount")::INTEGER as "blockedAmount",
     SUM(w."withdrawnAmount")::INTEGER as "withdrawnAmount",
-    SUM(d.donors)::INTEGER as donors,
+    SUM(COALESCE(g.donors, 0) + COALESCE(d.donors, 0))::INTEGER as donors,
     v.campaign_id as id
     FROM api.vaults v
     LEFT JOIN (
@@ -114,6 +115,13 @@ export class CampaignService {
         GROUP BY target_vault_id
       ) as d
       ON d.target_vault_id = v.id
+    LEFT JOIN (
+        SELECT target_vault_id, sum(amount) as guaranteed, count(id) as donors
+        FROM api.donations d
+        WHERE status = 'guaranteed'
+        GROUP BY target_vault_id
+      ) as g
+      ON g.target_vault_id = v.id      
     LEFT JOIN (
       SELECT source_vault_id, sum(amount) as "withdrawnAmount"
         FROM api.withdrawals w
@@ -476,8 +484,8 @@ export class CampaignService {
     return this.prisma.campaign.create(createInput)
   }
 
-  async getCampaignVault(campaignId: string): Promise<Vault | null> {
-    return this.prisma.vault.findFirst({ where: { campaignId } })
+  async getCampaignVault(campaignId: string): Promise<Vault> {
+    return this.prisma.vault.findFirstOrThrow({ where: { campaignId } })
   }
 
   async getDonationsForCampaign(
@@ -524,6 +532,7 @@ export class CampaignService {
         id: true,
         type: true,
         status: true,
+        affiliateId: true,
         provider: true,
         createdAt: true,
         updatedAt: true,
@@ -556,7 +565,6 @@ export class CampaignService {
     campaign: Campaign,
     paymentData: PaymentData,
     newDonationStatus: DonationStatus,
-    metadata?: DonationMetadata,
   ): Promise<string | undefined> {
     const campaignId = campaign.id
     Logger.debug('Update donation to status: ' + newDonationStatus, {
@@ -591,22 +599,6 @@ export class CampaignService {
           paymentData,
         )
         donationId = updatedDonation?.id
-      }
-
-      //For successful donations we will also need to link them to user if not marked as anonymous
-      if (donationId && newDonationStatus === DonationStatus.succeeded) {
-        if (metadata?.isAnonymous !== 'true') {
-          await tx.donation.update({
-            where: { id: donationId },
-            data: {
-              person: {
-                connect: {
-                  email: paymentData.billingEmail,
-                },
-              },
-            },
-          })
-        }
       }
 
       return donationId
@@ -695,15 +687,8 @@ export class CampaignService {
         newDonationStatus,
     )
 
-    /**
-     * Create or connect campaign vault
-     */
-    const vault = await tx.vault.findFirst({ where: { campaignId: campaign.id } })
-    const targetVaultData = vault
-      ? // Connect the existing vault to this donation
-        { connect: { id: vault.id } }
-      : // Create new vault for the campaign
-        { create: { campaignId: campaign.id, currency: campaign.currency, name: campaign.title } }
+    const vault = await tx.vault.findFirstOrThrow({ where: { campaignId: campaign.id } })
+    const targetVaultData = { connect: { id: vault.id } }
 
     try {
       const donation = await tx.donation.create({
@@ -713,7 +698,7 @@ export class CampaignService {
           currency: campaign.currency,
           targetVault: targetVaultData,
           provider: paymentData.paymentProvider,
-          type: DonationType.donation,
+          type: paymentData.type as DonationType,
           status: newDonationStatus,
           extCustomerId: paymentData.stripeCustomerId ?? '',
           extPaymentIntentId: paymentData.paymentIntentId,
@@ -902,7 +887,7 @@ export class CampaignService {
         campaignid: campaign.id,
         template_data: {
           'campaign.name': campaign?.title,
-          'campaign.target-amount': campaign?.targetAmount || 0,
+          'campaign.target-amount': (campaign?.targetAmount && campaign?.targetAmount / 100) || 0,
           'campaign.raised-amount': raisedAmount,
           'campaign.start-date': campaign.startDate
             ? DateTime.fromJSDate(campaign.startDate).toFormat('dd-MM-yyyy')
@@ -942,6 +927,7 @@ export class CampaignService {
     const updated = await this.prisma.campaign.update({
       where: { id: id },
       data: updateCampaignDto,
+      include: { campaignType: { select: { name: true, slug: true, category: true } } },
     })
 
     if (!updated) throw new NotFoundException(`Not found campaign with id: ${id}`)
@@ -1020,7 +1006,15 @@ export class CampaignService {
     return listId
   }
 
-  async sendNewCampaignNotification(campaign: Campaign) {
+  async sendNewCampaignNotification(
+    campaign: Campaign & {
+      campaignType: {
+        slug: string
+        name: string
+        category: CampaignTypeCategory
+      }
+    },
+  ) {
     // Send notification for the new activated campaign
     const template = await this.prisma.marketingTemplates.findFirst({
       where: {
@@ -1038,7 +1032,8 @@ export class CampaignService {
         subject: NotificationData['new-campaign'].subject,
         template_data: {
           'campaign.name': campaign?.title,
-          'campaign.target-amount': campaign?.targetAmount || 0,
+          'campaign.type': campaign?.campaignType?.name,
+          'campaign.target-amount': (campaign?.targetAmount && campaign?.targetAmount / 100) || 0,
           'campaign.start-date': campaign.startDate
             ? DateTime.fromJSDate(campaign.startDate).toFormat('dd-MM-yyyy')
             : '',
@@ -1121,6 +1116,7 @@ export class CampaignService {
       currentAmount: csum?.currentAmount || 0,
       blockedAmount: csum?.blockedAmount || 0,
       withdrawnAmount: csum?.withdrawnAmount || 0,
+      guaranteedAmount: csum?.guaranteedAmount || 0,
       donors: csum?.donors || 0,
     }
   }

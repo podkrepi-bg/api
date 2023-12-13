@@ -9,6 +9,7 @@ const globalValidationPipe = new ValidationPipe({
   transformOptions: {
     strategy: 'exposeAll',
     excludeExtraneousValues: true,
+    exposeDefaultValues: true,
   },
   stopAtFirstError: false,
   forbidUnknownValues: true,

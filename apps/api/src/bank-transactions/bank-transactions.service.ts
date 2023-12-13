@@ -17,6 +17,8 @@ import { Response } from 'express'
 import { CreateBankPaymentDto } from '../donations/dto/create-bank-payment.dto'
 import { DonationsService } from '../donations/donations.service'
 import { IrisTasks } from '../tasks/bank-import/import-transactions.task'
+import { IrisIbanAccountInfoDto } from './dto/iris-bank-account-info.dto'
+import { IrisTransactionInfoDto } from './dto/iris-bank-transaction-info.dto'
 
 @Injectable()
 export class BankTransactionsService {
@@ -164,5 +166,12 @@ export class BankTransactionsService {
 
   async rerunBankTransactionsForDate(transactionsDate: Date) {
     await this.irisBankImport.importBankTransactionsTASK(transactionsDate)
+  }
+
+  async simulateIrisTask(
+    ibanAccount: IrisIbanAccountInfoDto,
+    transactions: IrisTransactionInfoDto[],
+  ) {
+    await this.irisBankImport.simulateBankTransactionImportTask(ibanAccount, transactions)
   }
 }

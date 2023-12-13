@@ -14,6 +14,7 @@ import { JwtModule, JwtService } from '@nestjs/jwt'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
+import { CompanyModule } from '../company/company.module'
 
 @Module({
   controllers: [LoginController, RegisterController, RefreshController, ProviderLoginController],
@@ -27,6 +28,7 @@ import { MarketingNotificationsModule } from '../notifications/notifications.mod
       imports: [AppConfigModule],
     }),
     MarketingNotificationsModule,
+    CompanyModule,
   ],
   exports: [AuthService],
 })

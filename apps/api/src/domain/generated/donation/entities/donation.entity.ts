@@ -1,7 +1,9 @@
 import { DonationType, DonationStatus, PaymentProvider, Currency } from '@prisma/client'
 import { Person } from '../../person/entities/person.entity'
 import { Vault } from '../../vault/entities/vault.entity'
+import { Affiliate } from '../../affiliate/entities/affiliate.entity'
 import { DonationWish } from '../../donationWish/entities/donationWish.entity'
+import { DonationMetadata } from '../../donationMetadata/entities/donationMetadata.entity'
 
 export class Donation {
   id: string
@@ -16,11 +18,14 @@ export class Donation {
   updatedAt: Date | null
   amount: number
   currency: Currency
+  affiliateId: string | null
   personId: string | null
   billingEmail: string | null
   billingName: string | null
   chargedAmount: number
   person?: Person | null
   targetVault?: Vault
+  affiliate?: Affiliate | null
   DonationWish?: DonationWish | null
+  metadata?: DonationMetadata | null
 }
