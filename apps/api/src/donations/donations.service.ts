@@ -772,12 +772,9 @@ export class DonationsService {
   async getDonorsCount() {
     const donorsCount = await this.prisma.$queryRaw<{
       count: number
-    }>`SELECT COUNT (*) FROM (SELECT DISTINCT billing_email FROM donations WHERE status::text=${DonationStatus.succeeded}) AS unique_donors`
+    }>`SELECT COUNT (*)::INTEGER FROM (SELECT DISTINCT billing_name FROM donations WHERE status::text=${DonationStatus.succeeded}) AS unique_donors`
 
-    //Return result is BigInt which can't be serialized. Convert result to string first.
-    const uniqueDonors = donorsCount[0].count.toString()
-
-    return { count: Number(uniqueDonors) }
+    return { count: donorsCount[0].count }
   }
 
   /**
