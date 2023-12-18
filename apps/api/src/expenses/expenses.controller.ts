@@ -10,6 +10,7 @@ import {
   StreamableFile,
   NotFoundException,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common'
 
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
@@ -71,8 +72,15 @@ export class ExpensesController {
   @Post(':expenseId/files')
   @UseInterceptors(
     FilesInterceptor('file', 5, {
-      limits: { fileSize: 1024 * 1024 * 10 }, //limit uploaded files to 5 at once and 10MB each
+      limits: { fileSize: 1024 * 1024 * 30 }, //limit uploaded files to 5 at once and 30MB each
       fileFilter: (_req: Request, file, cb) => {
+        try {
+          // decode the name from base64
+          file.filename = Buffer.from(file.originalname, 'base64').toString('utf-8')
+        } catch {
+          Logger.error('Error decoding filename from base64: ', file.originalname)
+        }
+
         validateFileType(file, cb)
       },
     }),

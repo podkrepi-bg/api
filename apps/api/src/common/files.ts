@@ -39,9 +39,15 @@ export function validateFileType(
 
   const allowedExtensions = /txt|json|pdf|jpeg|jpg|png|xml|xlsx|xls|docx/
 
-  const isExtensionSupported = allowedExtensions.test(path.extname(file.originalname).toLowerCase())
+  const filename = file.originalname
+  let ext = path.extname(filename).toLowerCase()
+  if (ext == '') {
+    // for the expense files, the original filename is encoded in base64
+    ext = path.extname(file.filename).toLowerCase()
+  }
+  const isExtensionSupported = allowedExtensions.test(ext)
   if (!isExtensionSupported) {
-    return cb(new Error('File extension is not allowed'), false)
+    return cb(new Error('File extension is not allowed: ' + file.filename), false)
   }
 
   cb(null, true)
