@@ -461,7 +461,7 @@ export class DonationsService {
     id: string,
     keycloakId: string,
     email?: string,
-  ): Promise<(Donation & { person: Person | null }) | null> {
+  ): Promise<Donation | null> {
     return await this.prisma.donation.findFirst({
       where: {
         id,
@@ -469,17 +469,6 @@ export class DonationsService {
         OR: [{ billingEmail: email }, { person: { keycloakId } }],
       },
       include: {
-        person: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            company: { select: { companyName: true } },
-          },
-        },
-        affiliate: {
-          select: { company: { select: { companyName: true } } },
-        },
         targetVault: {
           select: {
             id: true,
