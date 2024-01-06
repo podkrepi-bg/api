@@ -13,7 +13,7 @@ export default () => ({
     environment: process.env.APP_ENV,
     debug: false,
     enabled: process.env.APP_ENV !== 'development',
-    logLevel: 'debug',
+    logLevels: ['debug'],
     tracesSampleRate: 1.0,
   },
   sendgrid: {
