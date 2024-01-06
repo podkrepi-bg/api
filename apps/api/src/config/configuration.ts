@@ -1,3 +1,5 @@
+import { SeverityLevel } from '@sentry/node'
+
 /**
  * Be sure to add `process.env` vars in validation schema at ./validation.config.ts
  */
@@ -13,7 +15,7 @@ export default () => ({
     environment: process.env.APP_ENV,
     debug: false,
     enabled: process.env.APP_ENV !== 'development',
-    logLevels: ['debug'],
+    logLevels: ['error', 'warn'] as SeverityLevel[],
     tracesSampleRate: 1.0,
   },
   sendgrid: {
