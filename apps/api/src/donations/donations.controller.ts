@@ -227,7 +227,7 @@ export class DonationsController {
 
   @Post('/refund-stripe-payment/:id')
   @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    roles: [EditFinancialsRequests.role],
     mode: RoleMatchingMode.ANY,
   })
   refundStripePaymet(@Param('id') paymentIntentId: string) {
