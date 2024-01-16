@@ -252,7 +252,7 @@ export class AuthService {
       emailVerified: true,
       groups: [],
       requiredActions: verifyEmail ? [RequiredActionAlias.VERIFY_EMAIL] : [],
-      attributes: { selfReg: true },
+      attributes: { selfReg: true, companyName: registerDto.companyName },
       credentials: [
         {
           type: 'password',
@@ -433,7 +433,7 @@ export class AuthService {
     const user = await this.personService.findOneByKeycloakId(keycloakId)
 
     //Check and throw if user is a beneficiary, organizer or corporate profile
-    if (!!user && user.beneficiaries.length > 0 || user?.organizer || user?.companyId) {
+    if ((!!user && user.beneficiaries.length > 0) || user?.organizer || user?.companyId) {
       throw new InternalServerErrorException(
         'Cannot delete a beneficiary, organizer or corporate profile',
       )

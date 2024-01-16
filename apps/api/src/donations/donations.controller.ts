@@ -178,13 +178,7 @@ export class DonationsController {
   @Get('user/:id')
   async userDonationById(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
     const donation = await this.donationsService.getUserDonationById(id, user.sub, user.email)
-    return {
-      ...donation,
-      person: {
-        firstName: user.given_name,
-        lastName: user.family_name,
-      },
-    }
+    return donation
   }
 
   @Post('payment-intent')
