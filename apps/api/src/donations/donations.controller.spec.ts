@@ -297,4 +297,28 @@ describe('DonationsController', () => {
       reason: 'requested_by_customer',
     })
   })
+
+  it('should invalidate a donation and update the vault if needed', async () => {
+    const existingDonation = { ...mockDonation, status: DonationStatus.succeeded }
+    jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
+
+    prismaMock.donation.findFirstOrThrow.mockResolvedValueOnce(existingDonation)
+
+    await controller.invalidate('123')
+
+    expect(prismaMock.donation.update).toHaveBeenCalledWith({
+      where: { id: '123' },
+      data: {
+        status: DonationStatus.invalid,
+      },
+    })
+    expect(prismaMock.vault.update).toHaveBeenCalledWith({
+      where: { id: existingDonation.targetVaultId },
+      data: {
+        amount: {
+          decrement: existingDonation.amount,
+        },
+      },
+    })
+  })
 })

@@ -16,7 +16,7 @@ import {
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
 import { DonationStatus } from '@prisma/client'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
-import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
+import { RealmViewSupporters, ViewSupporters, EditFinancialsRequests } from '@podkrepi-bg/podkrepi-types'
 
 import { isAdmin, KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
@@ -260,9 +260,19 @@ export class DonationsController {
     return this.donationsService.update(id, updatePaymentDto)
   }
 
+  @Post('/invalidate-stripe-payment/:id')
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  invalidate(@Param('id') id: string) {
+    Logger.debug(`Invalidating donation with id ${id}`)
+    return this.donationsService.invalidate(id)
+  }
+
   @Post('delete')
   @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    roles: [EditFinancialsRequests.role],
     mode: RoleMatchingMode.ANY,
   })
   delete(
