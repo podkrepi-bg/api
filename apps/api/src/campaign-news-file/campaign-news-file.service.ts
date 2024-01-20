@@ -5,6 +5,7 @@ import { CampaignFile, CampaignFileRole, Person } from '@prisma/client'
 import { S3Service } from '../s3/s3.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCampaignNewsFileDto } from './dto/create-campaign-news-file.dto'
+import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 
 @Injectable()
 export class CampaignNewsFileService {
@@ -27,9 +28,8 @@ export class CampaignNewsFileService {
       personId: person.id,
     }
     const dbFile = await this.prisma.campaignNewsFile.create({ data: file })
-
     // Use the DB primary key as the S3 key. This will make sure it is always unique.
-    await this.s3.uploadObject(
+    const test = await this.s3.uploadObject(
       this.bucketName,
       dbFile.id,
       encodeURIComponent(filename),
@@ -58,6 +58,13 @@ export class CampaignNewsFileService {
       mimetype: file.mimetype,
       stream: await this.s3.streamFile(this.bucketName, id),
     }
+  }
+
+  async canDeleteNewsFile(id: string, user: KeycloakTokenParsed): Promise<boolean> {
+    const isFileOwner = await this.prisma.campaignNewsFile.count({
+      where: { id, person: { keycloakId: user.sub } },
+    })
+    return !!isFileOwner || isAdmin(user)
   }
 
   async remove(id: string) {

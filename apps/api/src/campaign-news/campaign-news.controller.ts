@@ -94,16 +94,9 @@ export class CampaignNewsController {
       throw new NotFoundException('Article not found')
     }
 
-    const publisher = await this.personService.findOneByKeycloakId(user.sub)
-    if (!publisher) {
-      throw new NotFoundException('Author was not found')
-    }
+    const canEditArticle = await this.campaignNewsService.canEditArticle(articleId, user)
 
-    if (
-      article.state === CampaignNewsState.draft &&
-      publisher.id !== article.publisherId &&
-      !isAdmin(user)
-    ) {
+    if (article.state === CampaignNewsState.draft && !canEditArticle) {
       throw new ForbiddenException('The user has no access to delete this article')
     }
 

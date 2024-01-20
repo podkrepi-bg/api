@@ -10,14 +10,10 @@ import {
   NotFoundException,
   Logger,
   Body,
-  Inject,
-  forwardRef,
   ForbiddenException,
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { UseInterceptors, UploadedFiles } from '@nestjs/common'
-import { RoleMatchingMode, Roles } from 'nest-keycloak-connect'
-import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { Public, AuthenticatedUser } from 'nest-keycloak-connect'
 import { PersonService } from '../person/person.service'
 import { FilesRoleDto } from './dto/files-role.dto'
@@ -25,13 +21,15 @@ import { CampaignNewsFileService } from './campaign-news-file.service'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { ApiTags } from '@nestjs/swagger'
 import { validateFileType } from '../common/files'
+import { CampaignNewsService } from '../campaign-news/campaign-news.service'
 
 @ApiTags('campaign-news-file')
 @Controller('campaign-news-file')
 export class CampaignNewsFileController {
   constructor(
-    private readonly campaignFileService: CampaignNewsFileService,
-    @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
+    private readonly campaignNewsFileService: CampaignNewsFileService,
+    private readonly personService: PersonService,
+    private readonly campaignNewsService: CampaignNewsService,
   ) {}
 
   @Post(':article_id')
@@ -51,19 +49,22 @@ export class CampaignNewsFileController {
   ) {
     const keycloakId = user.sub
     const person = await this.personService.findOneByKeycloakId(keycloakId)
+
     if (!person) {
       Logger.warn('No person record with keycloak ID: ' + keycloakId)
       throw new NotFoundException('No person record with keycloak ID: ' + keycloakId)
     }
 
-    if (!isAdmin(user)) {
+    const canEditArticle = await this.campaignNewsService.canEditArticle(articleId, user)
+
+    if (!canEditArticle) {
       throw new ForbiddenException('User has no access to this operation.')
     }
 
     const filesRole = body.roles
     return await Promise.all(
       files.map((file, key) => {
-        return this.campaignFileService.create(
+        return this.campaignNewsFileService.create(
           Array.isArray(filesRole) ? filesRole[key] : filesRole,
           articleId,
           file.mimetype,
@@ -81,7 +82,7 @@ export class CampaignNewsFileController {
     @Param('id') id: string,
     @Response({ passthrough: true }) res,
   ): Promise<StreamableFile> {
-    const file = await this.campaignFileService.findOne(id)
+    const file = await this.campaignNewsFileService.findOne(id)
     res.set({
       'Content-Type': file.mimetype,
       'Content-Disposition': 'inline; filename="' + file.filename + '"',
@@ -91,12 +92,9 @@ export class CampaignNewsFileController {
   }
 
   @Delete(':id')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
-  remove(@Param('id') id: string) {
-    console.log(` called`)
-    return this.campaignFileService.remove(id)
+  async remove(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
+    const canDelete = await this.campaignNewsFileService.canDeleteNewsFile(id, user)
+    if (!canDelete) throw new ForbiddenException('User has no access for this operation')
+    return this.campaignNewsFileService.remove(id)
   }
 }
