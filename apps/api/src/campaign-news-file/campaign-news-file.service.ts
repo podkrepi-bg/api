@@ -29,7 +29,7 @@ export class CampaignNewsFileService {
     }
     const dbFile = await this.prisma.campaignNewsFile.create({ data: file })
     // Use the DB primary key as the S3 key. This will make sure it is always unique.
-    const test = await this.s3.uploadObject(
+    await this.s3.uploadObject(
       this.bucketName,
       dbFile.id,
       encodeURIComponent(filename),
