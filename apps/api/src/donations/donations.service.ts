@@ -583,7 +583,7 @@ export class DonationsService {
       //Donation exists, so updating with incoming donation without increasing vault amounts
       await this.prisma.donation.update({
         where: { extPaymentIntentId: donationDto.extPaymentIntentId },
-        data: donationDto,
+        data: { ...donationDto, updatedAt: existingDonation.updatedAt },
       })
       return ImportStatus.UPDATED
     })
