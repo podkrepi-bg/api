@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
 import { CampaignNewsDraftEmailDto } from '../email/template.interface'
 import { EmailService } from '../email/email.service'
+import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 
 @Injectable()
 export class CampaignNewsService {
@@ -130,10 +131,20 @@ export class CampaignNewsService {
   }
 
   async canCreateArticle(campaignId: string, keycloakId: string) {
-    const canEdit = await this.prisma.campaign.findFirst({
+    const canCreate = await this.prisma.campaign.findFirst({
       where: { id: campaignId, organizer: { person: { keycloakId } } },
     })
-    return !!canEdit
+    return !!canCreate
+  }
+
+  async canEditArticle(articleId: string, user: KeycloakTokenParsed) {
+    const canEdit = await this.prisma.campaignNews.count({
+      where: {
+        id: articleId,
+        campaign: { organizer: { person: { keycloakId: user.sub } } },
+      },
+    })
+    return !!canEdit || isAdmin(user)
   }
 
   async listPublishedNewsWithPagination(currentPage: number) {
