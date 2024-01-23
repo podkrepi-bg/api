@@ -240,6 +240,16 @@ export class DonationsController {
     return this.donationsService.createUpdateBankPayment(bankPaymentDto)
   }
 
+  @Patch('/:id/invalidate')
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  invalidate(@Param('id') id: string) {
+    Logger.debug(`Invalidating donation with id ${id}`)
+    return this.donationsService.invalidate(id)
+  }
+
   @Patch(':id')
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],
@@ -251,17 +261,9 @@ export class DonationsController {
     @Body()
     updatePaymentDto: UpdatePaymentDto,
   ) {
-    return this.donationsService.update(id, updatePaymentDto)
-  }
+    Logger.debug(`Updating donation with id ${id}`)
 
-  @Post('/invalidate-stripe-payment/:id')
-  @Roles({
-    roles: [EditFinancialsRequests.role],
-    mode: RoleMatchingMode.ANY,
-  })
-  invalidate(@Param('id') id: string) {
-    Logger.debug(`Invalidating donation with id ${id}`)
-    return this.donationsService.invalidate(id)
+    return this.donationsService.update(id, updatePaymentDto)
   }
 
   @Post('delete')
