@@ -712,6 +712,31 @@ export class DonationsService {
     }
   }
 
+  async invalidate(id: string) {
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        const donation = await this.getDonationById(id)
+
+        if (donation.status === DonationStatus.succeeded) {
+          await this.vaultService.decrementVaultAmount(donation.targetVaultId, donation.amount, tx)
+        }
+
+        await this.prisma.donation.update({
+          where: { id },
+          data: {
+            status: DonationStatus.invalid,
+          },
+        })
+      })
+    } catch (err) {
+      Logger.warn(err.message || err)
+      const msg = `Invalidation failed. No Donation found with given ID.`
+
+      Logger.warn(msg)
+      throw new NotFoundException(msg)
+    }
+  }
+
   async getDonationsByUser(keycloakId: string, email?: string) {
     const donations = await this.prisma.donation.findMany({
       where: {

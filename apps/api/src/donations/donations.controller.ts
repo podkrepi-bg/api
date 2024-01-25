@@ -16,7 +16,7 @@ import {
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
 import { DonationStatus } from '@prisma/client'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
-import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
+import { RealmViewSupporters, ViewSupporters, EditFinancialsRequests } from '@podkrepi-bg/podkrepi-types'
 
 import { isAdmin, KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
@@ -221,7 +221,7 @@ export class DonationsController {
 
   @Post('/refund-stripe-payment/:id')
   @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    roles: [EditFinancialsRequests.role],
     mode: RoleMatchingMode.ANY,
   })
   refundStripePaymet(@Param('id') paymentIntentId: string) {
@@ -240,6 +240,16 @@ export class DonationsController {
     return this.donationsService.createUpdateBankPayment(bankPaymentDto)
   }
 
+  @Patch('/:id/invalidate')
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  invalidate(@Param('id') id: string) {
+    Logger.debug(`Invalidating donation with id ${id}`)
+    return this.donationsService.invalidate(id)
+  }
+
   @Patch(':id')
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],
@@ -251,12 +261,14 @@ export class DonationsController {
     @Body()
     updatePaymentDto: UpdatePaymentDto,
   ) {
+    Logger.debug(`Updating donation with id ${id}`)
+
     return this.donationsService.update(id, updatePaymentDto)
   }
 
   @Post('delete')
   @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    roles: [EditFinancialsRequests.role],
     mode: RoleMatchingMode.ANY,
   })
   delete(
