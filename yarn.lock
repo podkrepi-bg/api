@@ -9630,10 +9630,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"helmet@npm:5.0.2":
-  version: 5.0.2
-  resolution: "helmet@npm:5.0.2"
-  checksum: 3fe107f3f73fb6a79173e5599f87a016c69f1c7cc46bcde1c60043ea36e64f893434592890d3c0be68f1d35731f2f2f22094a1cfd70438f9d35740861071dcf3
+"helmet@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "helmet@npm:7.1.0"
+  checksum: 16aaa0df997eaa18821e71389bc9ceffeeaa935df98427ede2bb006065f7e02bb1941caabea16d5a93a791cb3fe7d8a760266bc57b3b9ca5dd7da17ea84244b8
   languageName: node
   linkType: hard
 
@@ -13639,7 +13639,7 @@ __metadata:
     exceljs: 4.3.0
     fishery: 2.2.2
     handlebars: 4.7.7
-    helmet: 5.0.2
+    helmet: ^7.1.0
     husky: 7.0.2
     jest: ^29.3.1
     jest-extended: ^3.2.3
