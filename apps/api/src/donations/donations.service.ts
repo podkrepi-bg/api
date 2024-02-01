@@ -583,7 +583,7 @@ export class DonationsService {
       //Donation exists, so updating with incoming donation without increasing vault amounts
       await this.prisma.donation.update({
         where: { extPaymentIntentId: donationDto.extPaymentIntentId },
-        data: donationDto,
+        data: { ...donationDto, updatedAt: existingDonation.updatedAt },
       })
       return ImportStatus.UPDATED
     })
@@ -706,6 +706,31 @@ export class DonationsService {
       })
     } catch (err) {
       const msg = `Delete failed. No Donation found with given ID`
+
+      Logger.warn(msg)
+      throw new NotFoundException(msg)
+    }
+  }
+
+  async invalidate(id: string) {
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        const donation = await this.getDonationById(id)
+
+        if (donation.status === DonationStatus.succeeded) {
+          await this.vaultService.decrementVaultAmount(donation.targetVaultId, donation.amount, tx)
+        }
+
+        await this.prisma.donation.update({
+          where: { id },
+          data: {
+            status: DonationStatus.invalid,
+          },
+        })
+      })
+    } catch (err) {
+      Logger.warn(err.message || err)
+      const msg = `Invalidation failed. No Donation found with given ID.`
 
       Logger.warn(msg)
       throw new NotFoundException(msg)
