@@ -1,6 +1,6 @@
 import { AffiliateStatus } from '@prisma/client'
 import { Company } from '../../company/entities/company.entity'
-import { Donation } from '../../donation/entities/donation.entity'
+import { Payments } from '../../payments/entities/payments.entity'
 
 export class Affiliate {
   id: string
@@ -10,5 +10,5 @@ export class Affiliate {
   createdAt: Date
   updatedAt: Date | null
   company?: Company
-  donations?: Donation[]
+  payments?: Payments[]
 }
