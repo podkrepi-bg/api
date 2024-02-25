@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Currency, DonationStatus, DonationType, PaymentProvider, Prisma } from '@prisma/client'
+import {
+  Currency,
+  DonationType,
+  PaymentProvider,
+  PaymentStatus,
+  PaymentType,
+  Prisma,
+} from '@prisma/client'
 import { Expose, Type } from 'class-transformer'
 import {
   Equals,
@@ -81,10 +88,10 @@ export class CreateAffiliateDonationDto {
   @ValidateNested({ each: true })
   metadata: DonationMetadataDto | undefined
 
-  public toEntity(targetVaultId: string): Prisma.DonationCreateInput {
+  public toEntity(targetVaultId: string): Prisma.PaymentsCreateInput {
     return {
-      type: DonationType.corporate,
-      status: DonationStatus.guaranteed,
+      type: PaymentType.single,
+      status: PaymentStatus.guaranteed,
       provider: PaymentProvider.bank,
       currency: this.currency,
       amount: this.amount,
@@ -93,16 +100,24 @@ export class CreateAffiliateDonationDto {
       extPaymentMethodId: this.extPaymentMethodId ?? '',
       billingEmail: this.billingEmail,
       billingName: this.billingName,
-      targetVault: {
-        connect: {
-          id: targetVaultId,
+      donations: {
+        create: {
+          type: DonationType.corporate,
+          amount: this.amount,
+
+          person:
+            this.isAnonymous === false && this.billingEmail
+              ? { connect: { email: this.billingEmail } }
+              : {},
+
+          targetVault: {
+            connect: {
+              id: targetVaultId,
+            },
+          },
         },
       },
       affiliate: this.affiliateId ? { connect: { id: this.affiliateId } } : {},
-      person:
-        this.isAnonymous === false && this.billingEmail
-          ? { connect: { email: this.billingEmail } }
-          : {},
     }
   }
 }

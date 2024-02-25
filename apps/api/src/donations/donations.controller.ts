@@ -14,9 +14,13 @@ import {
   forwardRef,
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
-import { DonationStatus } from '@prisma/client'
+import { PaymentStatus } from '@prisma/client'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
-import { RealmViewSupporters, ViewSupporters, EditFinancialsRequests } from '@podkrepi-bg/podkrepi-types'
+import {
+  RealmViewSupporters,
+  ViewSupporters,
+  EditFinancialsRequests,
+} from '@podkrepi-bg/podkrepi-types'
 
 import { isAdmin, KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
@@ -130,17 +134,12 @@ export class DonationsController {
   @CacheTTL(2 * 1000)
   @Public()
   @ApiQuery({ name: 'campaignId', required: false, type: String })
-  @ApiQuery({ name: 'status', required: false, enum: DonationStatus })
   @ApiQuery({ name: 'pageindex', required: false, type: Number })
   @ApiQuery({ name: 'pagesize', required: false, type: Number })
-  findAllPublic(
-    @Query('campaignId') campaignId?: string,
-    @Query('status') status?: DonationStatus,
-    @Query() query?: DonationQueryDto,
-  ) {
+  findAllPublic(@Query('campaignId') campaignId?: string, @Query() query?: DonationQueryDto) {
     return this.donationsService.listDonationsPublic(
       campaignId,
-      status,
+      query?.status,
       query?.pageindex,
       query?.pagesize,
     )
@@ -154,6 +153,7 @@ export class DonationsController {
   @DonationsApiQuery()
   findAll(@Query() query: DonationQueryDto) {
     return this.donationsService.listDonations(
+      query?.paymentId,
       query?.campaignId,
       query?.status,
       query?.provider,
@@ -162,6 +162,30 @@ export class DonationsController {
       query?.from,
       query?.to,
       query?.search,
+      query?.sortBy,
+      query?.sortOrder,
+      query?.pageindex,
+      query?.pagesize,
+    )
+  }
+
+  @Get('payments')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async paymentsList(
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+    @Query() query: DonationQueryDto,
+  ) {
+    return await this.donationsService.listPayments(
+      query?.paymentId,
+      query?.status,
+      query?.provider,
+      query?.minAmount,
+      query?.maxAmount,
+      query?.from,
+      query?.to,
       query?.sortBy,
       query?.sortOrder,
       query?.pageindex,

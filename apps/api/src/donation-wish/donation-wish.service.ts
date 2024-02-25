@@ -76,7 +76,6 @@ export class DonationWishService {
         donation: {
           select: {
             amount: true,
-            currency: true,
             type: true,
             metadata: { select: { name: true } },
           },

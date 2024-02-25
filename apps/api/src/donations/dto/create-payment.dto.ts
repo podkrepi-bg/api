@@ -1,17 +1,24 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Currency, DonationStatus, DonationType, PaymentProvider, Prisma } from '@prisma/client'
+import {
+  Currency,
+  PaymentStatus,
+  DonationType,
+  PaymentProvider,
+  Prisma,
+  PaymentType,
+} from '@prisma/client'
 import { Expose } from 'class-transformer'
 import { IsNumber, IsString, IsUUID } from 'class-validator'
 
 @Expose()
 export class CreatePaymentDto {
   @Expose()
-  @ApiProperty({ enum: DonationType })
-  type: DonationType
+  @ApiProperty({ enum: PaymentType })
+  type: PaymentType
 
   @Expose()
-  @ApiProperty({ enum: DonationStatus })
-  status: DonationStatus
+  @ApiProperty({ enum: PaymentStatus })
+  status: PaymentStatus
 
   @Expose()
   @ApiProperty({ enum: PaymentProvider })
@@ -47,7 +54,7 @@ export class CreatePaymentDto {
   @IsUUID()
   targetVaultId: string
 
-  public toEntity(user): Prisma.DonationCreateInput {
+  public toEntity(user): Prisma.PaymentsCreateInput {
     return {
       type: this.type,
       status: this.status,
@@ -57,20 +64,25 @@ export class CreatePaymentDto {
       extCustomerId: this.extCustomerId,
       extPaymentIntentId: this.extPaymentIntentId,
       extPaymentMethodId: this.extPaymentMethodId,
-      targetVault: {
-        connect: {
-          id: this.targetVaultId,
-        },
-      },
-      person: {
-        connectOrCreate: {
-          where: {
-            email: user.email,
+      donations: {
+        create: {
+          type: DonationType.donation,
+          targetVault: {
+            connect: {
+              id: this.targetVaultId,
+            },
           },
-          create: {
-            firstName: user.given_name,
-            lastName: user.family_name,
-            email: user.email,
+          person: {
+            connectOrCreate: {
+              where: {
+                email: user.email,
+              },
+              create: {
+                firstName: user.given_name,
+                lastName: user.family_name,
+                email: user.email,
+              },
+            },
           },
         },
       },

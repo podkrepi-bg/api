@@ -1,4 +1,4 @@
-import { DonationStatus, PaymentProvider } from '@prisma/client'
+import { PaymentStatus, PaymentProvider } from '@prisma/client'
 import { Expose, Transform } from 'class-transformer'
 import { IsOptional } from 'class-validator'
 
@@ -16,7 +16,12 @@ export class DonationQueryDto {
   @Expose()
   @IsOptional()
   @Transform(({ value }) => falsyToUndefined(value))
-  status?: DonationStatus
+  status?: PaymentStatus
+
+  @Expose()
+  @IsOptional()
+  @Transform(({ value }) => falsyToUndefined(value))
+  paymentId?: string
 
   @Expose()
   @IsOptional()

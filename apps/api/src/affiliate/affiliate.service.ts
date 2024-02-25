@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import { AffiliateStatus, DonationStatus } from '@prisma/client'
+import { AffiliateStatus, PaymentStatus } from '@prisma/client'
 
 @Injectable()
 export class AffiliateService {
@@ -19,20 +19,24 @@ export class AffiliateService {
   async findDonationsByCustomerId(
     affiliateCode: string,
     extCustomerId: string,
-    status: DonationStatus | undefined,
+    status: PaymentStatus | undefined,
     currentPage: number,
     limit: number | undefined,
   ) {
     return await this.prismaService.affiliate.findFirst({
       where: {
         affiliateCode,
-        donations: { some: { extCustomerId: { equals: extCustomerId }, status } },
+        payments: { some: { extCustomerId, status } },
       },
       select: {
-        donations: {
-          take: limit ? Number(limit) : undefined,
-          skip: Number((currentPage - 1) * (limit ?? 0)),
-          include: { metadata: true },
+        payments: {
+          select: {
+            donations: {
+              take: limit ? Number(limit) : undefined,
+              skip: Number((currentPage - 1) * (limit ?? 0)),
+              include: { metadata: true },
+            },
+          },
         },
       },
     })
@@ -67,13 +71,22 @@ export class AffiliateService {
   async getAffiliateDataByKeycloakId(keycloakId: string) {
     return await this.prismaService.affiliate.findFirst({
       where: { company: { person: { keycloakId } } },
-      include: {
-        donations: {
-          where: { status: DonationStatus.guaranteed },
+      select: {
+        status: true,
+        affiliateCode: true,
+        company: { select: { companyName: true } },
+        payments: {
+          where: { status: PaymentStatus.guaranteed },
           include: {
-            targetVault: { select: { campaign: { select: { title: true, slug: true } } } },
-            affiliate: { select: { company: { select: { companyName: true } } } },
-            metadata: { select: { name: true } },
+            donations: {
+              select: {
+                id: true,
+                paymentId: true,
+                targetVault: { select: { campaign: { select: { title: true, slug: true } } } },
+                metadata: { select: { name: true } },
+                amount: true,
+              },
+            },
           },
         },
       },
@@ -82,19 +95,23 @@ export class AffiliateService {
 
   async findAffiliateDonationsWithPagination(
     affiliateCode: string,
-    status: DonationStatus | undefined,
+    status: PaymentStatus | undefined,
     currentPage: number,
     limit: number | undefined,
   ) {
     return await this.prismaService.affiliate.findUnique({
       where: { affiliateCode },
       select: {
-        donations: {
-          orderBy: { createdAt: 'desc' },
-          where: { status },
-          take: limit ? Number(limit) : undefined,
-          skip: Number((currentPage - 1) * (limit ?? 0)),
-          include: { metadata: true },
+        payments: {
+          select: {
+            donations: {
+              orderBy: { createdAt: 'desc' },
+              where: { payment: { status } },
+              take: limit ? Number(limit) : undefined,
+              skip: Number((currentPage - 1) * (limit ?? 0)),
+              include: { metadata: true },
+            },
+          },
         },
       },
     })
@@ -104,9 +121,13 @@ export class AffiliateService {
     return await this.prismaService.affiliate.findUnique({
       where: { affiliateCode },
       include: {
-        donations: {
-          orderBy: { createdAt: 'desc' },
-          take: 10,
+        payments: {
+          include: {
+            donations: {
+              orderBy: { createdAt: 'desc' },
+              take: 10,
+            },
+          },
         },
         company: { select: { companyName: true, companyNumber: true, legalPersonName: true } },
       },

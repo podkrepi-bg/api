@@ -1,17 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Currency, DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
+import { Currency, PaymentStatus, PaymentProvider, PaymentType, Prisma } from '@prisma/client'
 import { Expose } from 'class-transformer'
 import { IsDate, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator'
 
 @Expose()
 export class CreateBankPaymentDto {
   @Expose()
-  @ApiProperty({ enum: DonationType })
-  type: DonationType
+  @ApiProperty({ enum: PaymentType })
+  type: PaymentType
 
   @Expose()
-  @ApiProperty({ enum: DonationStatus })
-  status: DonationStatus
+  @ApiProperty({ enum: PaymentStatus })
+  status: PaymentStatus
 
   @Expose()
   @ApiProperty({ enum: PaymentProvider })
@@ -49,15 +49,7 @@ export class CreateBankPaymentDto {
 
   @Expose()
   @ApiProperty()
-  @IsString()
-  @IsUUID()
-  targetVaultId: string
-
-  @Expose()
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  personId: string | null
+  donations: Prisma.DonationCreateNestedManyWithoutPaymentInput
 
   billingName?: string
   billingEmail?: string

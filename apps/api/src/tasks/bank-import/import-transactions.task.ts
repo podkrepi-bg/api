@@ -5,9 +5,12 @@ import { SchedulerRegistry } from '@nestjs/schedule'
 import {
   BankDonationStatus,
   Currency,
-  DonationStatus,
+  Donation,
   DonationType,
   PaymentProvider,
+  PaymentStatus,
+  PaymentType,
+  Payments,
   Prisma,
   Vault,
 } from '@prisma/client'
@@ -37,8 +40,11 @@ import { IrisTransactionInfoDto } from '../../bank-transactions/dto/iris-bank-tr
 
 type filteredTransaction = Prisma.BankTransactionCreateManyInput
 type AffiliatePayload = Prisma.AffiliateGetPayload<{
-  include: { donations: true }
+  include: { payments: { include: { donations: true } } }
 }>
+type VaultUpdate = {
+  [key: string]: number
+}
 
 @Injectable()
 export class IrisTasks {
@@ -393,14 +399,17 @@ export class IrisTasks {
         },
       },
       include: {
-        donations: {
+        payments: {
           where: {
-            status: DonationStatus.guaranteed,
+            status: PaymentStatus.guaranteed,
           },
+
           orderBy: {
             createdAt: 'asc',
           },
-          include: { targetVault: true },
+          include: {
+            donations: true,
+          },
         },
       },
     })
@@ -434,6 +443,7 @@ export class IrisTasks {
       if (!campaign) {
         //Campaign not found by paymentReference. Check if it is affiliate donation
         const affiliate = affiliates.find((affiliate) => affiliate.affiliateCode === trx.matchedRef)
+        console.log(affiliate)
         if (!affiliate) {
           trx.bankDonationStatus = BankDonationStatus.unrecognized
           continue
@@ -458,25 +468,38 @@ export class IrisTasks {
 
   private async processAffiliateDonations(affiliate: AffiliatePayload, trx: filteredTransaction) {
     let totalDonated = 0
-    let updatedDonations = 0
+    let updatedPayments = 0
     if (!trx.amount) {
       trx.bankDonationStatus = BankDonationStatus.importFailed
       return ImportStatus.UNPROCESSED
     }
+
+    const paymentIdsToUpdate: string[] = []
+    const vaultsToUpdate: VaultUpdate = {}
+
     //If no guaranteed donations are found for the affiliate
     //mark the transaction as imported
-    if (affiliate.donations.length === 0) {
+    if (affiliate.payments.length === 0) {
       trx.bankDonationStatus = BankDonationStatus.imported
       return ImportStatus.SUCCESS
     }
 
-    for (const donation of affiliate.donations) {
-      if (trx.amount - totalDonated < donation.amount) continue
-      await this.donationsService.updateAffiliateBankPayment(donation)
-      totalDonated += donation.amount
-      updatedDonations++
+    for (const payment of affiliate.payments) {
+      if (trx.amount - totalDonated < payment.amount) continue
+      paymentIdsToUpdate.push(payment.id)
+      for (const donation of payment.donations) {
+        if (vaultsToUpdate.hasOwnProperty(donation.targetVaultId)) {
+          vaultsToUpdate[donation.targetVaultId] += donation.amount
+        } else {
+          vaultsToUpdate[donation.targetVaultId] = donation.amount
+        }
+      }
+      totalDonated += payment.amount
+      updatedPayments++
     }
-    if (trx.amount - totalDonated > 0 || updatedDonations < affiliate.donations.length) {
+    await this.donationsService.updateAffiliateBankPayment(paymentIdsToUpdate, vaultsToUpdate)
+
+    if (trx.amount - totalDonated > 0 || updatedPayments < affiliate.payments.length) {
       trx.bankDonationStatus = BankDonationStatus.incomplete
       return ImportStatus.INCOMPLETE
     }
@@ -497,11 +520,16 @@ export class IrisTasks {
       createdAt: new Date(bankTransaction.transactionDate),
       billingName: bankTransaction.senderName || '',
       extPaymentMethodId: this.paymentMethodId,
-      targetVaultId: vault.id,
-      type: DonationType.donation,
-      status: DonationStatus.succeeded,
+      type: PaymentType.single,
+      status: PaymentStatus.succeeded,
       provider: PaymentProvider.bank,
-      personId: null,
+      donations: {
+        create: {
+          personId: null,
+          targetVaultId: vault.id,
+          type: DonationType.donation,
+        },
+      },
     }
 
     return bankPayment

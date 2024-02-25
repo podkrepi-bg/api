@@ -4,10 +4,11 @@ import {
   BankTransaction,
   BankTransactionType,
   Currency,
-  DonationStatus,
+  PaymentStatus,
   DonationType,
   PaymentProvider,
   Vault,
+  PaymentType,
 } from '@prisma/client'
 import { ExportService } from '../export/export.service'
 import { getTemplateByTable } from '../export/helpers/exportableData'
@@ -141,11 +142,17 @@ export class BankTransactionsService {
       createdAt: new Date(bankTransaction?.transactionDate),
       billingName: bankTransaction?.senderName || '',
       extPaymentMethodId: 'Manual Re-import',
-      targetVaultId: vault?.id,
-      type: DonationType.donation,
-      status: DonationStatus.succeeded,
+      type: PaymentType.single,
+      status: PaymentStatus.succeeded,
       provider: PaymentProvider.bank,
-      personId: null,
+      donations: {
+        create: {
+          amount: bankTransaction?.amount || 0,
+          personId: null,
+          targetVaultId: vault.id,
+          type: DonationType.donation,
+        },
+      },
     }
 
     // Execute as atomic transaction - fail/succeed as a whole
@@ -159,6 +166,7 @@ export class BankTransactionsService {
         },
       })
 
+      console.log(`called`)
       // Import Donation
       await this.donationService.createUpdateBankPayment(bankPayment)
     })

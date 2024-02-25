@@ -19,6 +19,10 @@ type VaultWithWithdrawalSum = Prisma.VaultGetPayload<{
   withdrawnAmount: number
 }
 
+type VaultUpdate = {
+  [id: string]: number
+}
+
 @Injectable()
 export class VaultService {
   constructor(
@@ -170,8 +174,9 @@ export class VaultService {
     vaultId: string,
     amount: number,
     tx: Prisma.TransactionClient,
-    operationType: string,
+    operationType: 'increment' | 'decrement',
   ) {
+    console.log(vaultId, amount, operationType)
     if (amount <= 0) {
       throw new Error('Amount cannot be negative or zero.')
     }
@@ -187,5 +192,24 @@ export class VaultService {
 
     const vault = await tx.vault.update(updateStatement)
     return vault
+  }
+
+  public async updateManyVaultsAmount(
+    vaults: VaultUpdate,
+    tx: Prisma.TransactionClient,
+    operationType: 'increment' | 'decrement',
+  ) {
+    const sqlValues = Object.entries(vaults)
+      .map(([vaultId, amount]) => `('${vaultId}'::uuid, ${amount})`)
+      .join(',')
+
+    return await tx.$queryRawUnsafe<Vault[]>(`
+      UPDATE vaults
+      SET amount =  amount + new_amount
+      FROM (
+        VALUES ${sqlValues}
+      ) AS updated_vault(id, new_amount)
+      WHERE vaults.id::text = updated_vault.id::text;
+    `)
   }
 }

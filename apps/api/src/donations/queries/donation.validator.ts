@@ -24,3 +24,12 @@ export const donationWithPerson = Prisma.validator<Prisma.DonationFindManyArgs>(
 })
 
 export type DonationWithPerson = Prisma.DonationGetPayload<typeof donationWithPerson>
+export type PaymentWithDonationCount = Prisma.PaymentsGetPayload<{
+  include: {
+    _count: {
+      select: {
+        donations: true
+      }
+    }
+  }
+}>

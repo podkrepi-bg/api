@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { CampaignService } from '../campaign/campaign.service'
 import { HttpService } from '@nestjs/axios'
-import { DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
+import { PaymentStatus, DonationType, PaymentProvider, PaymentType } from '@prisma/client'
 
 @Injectable()
 export class PaypalService {
@@ -29,7 +29,7 @@ export class PaypalService {
     await this.campaignService.updateDonationPayment(
       campaign,
       billingDetails,
-      DonationStatus.waiting,
+      PaymentStatus.waiting,
     )
 
     Logger.debug('Donation created!')
@@ -52,7 +52,7 @@ export class PaypalService {
     await this.campaignService.updateDonationPayment(
       campaign,
       billingDetails,
-      DonationStatus.succeeded,
+      PaymentStatus.succeeded,
     )
 
     Logger.debug('Donation completed!')
@@ -166,7 +166,7 @@ export class PaypalService {
     //note we store the money in db as cents so we multiply incoming amounts by 100
     return {
       //TODO: Find a way to attach type to metadata
-      type: DonationType.donation,
+      type: PaymentType.single,
       paymentProvider: PaymentProvider.paypal,
       campaignId: paypalOrder.resource.purchase_units[0].custom_id,
       paymentIntentId: paypalOrder.resource.purchase_units[0].payments.captures[0].id,
@@ -197,7 +197,7 @@ export class PaypalService {
       paymentProvider: PaymentProvider.paypal,
       campaignId: paypalCapture.resource.custom_id,
       //TODO: Find a way to attach type to metadata
-      type: DonationType.donation,
+      type: PaymentType.single,
       paymentIntentId: paypalCapture.resource.id,
       netAmount: 100 * Number(paypalCapture.resource.seller_receivable_breakdown.net_amount.value),
       chargedAmount:
@@ -218,5 +218,5 @@ type PaymentData = {
   billingEmail?: string
   paymentMethodId?: string
   stripeCustomerId?: string
-  type: DonationType
+  type: PaymentType
 }

@@ -1,35 +1,35 @@
-import { DonationStatus } from '@prisma/client'
+import { PaymentStatus } from '@prisma/client'
 
-const initial: DonationStatus[] = [DonationStatus.initial]
-const changeable: DonationStatus[] = [
-  DonationStatus.incomplete,
-  DonationStatus.paymentRequested,
-  DonationStatus.waiting,
-  DonationStatus.declined,
-  DonationStatus.guaranteed,
+const initial: PaymentStatus[] = [PaymentStatus.initial]
+const changeable: PaymentStatus[] = [
+  PaymentStatus.incomplete,
+  PaymentStatus.paymentRequested,
+  PaymentStatus.waiting,
+  PaymentStatus.declined,
+  PaymentStatus.guaranteed,
 ]
-const final: DonationStatus[] = [
-  DonationStatus.succeeded,
-  DonationStatus.cancelled,
-  DonationStatus.deleted,
-  DonationStatus.invalid,
-  DonationStatus.refund,
+const final: PaymentStatus[] = [
+  PaymentStatus.succeeded,
+  PaymentStatus.cancelled,
+  PaymentStatus.deleted,
+  PaymentStatus.invalid,
+  PaymentStatus.refund,
 ]
 
-function isInitial(status: DonationStatus) {
+function isInitial(status: PaymentStatus) {
   return initial.includes(status)
 }
 
-function isChangeable(status: DonationStatus) {
+function isChangeable(status: PaymentStatus) {
   return changeable.includes(status)
 }
 
-function isFinal(status: DonationStatus) {
+function isFinal(status: PaymentStatus) {
   return final.includes(status)
 }
 
-function isRefundable(oldStatus: DonationStatus, newStatus: DonationStatus) {
-  return oldStatus === DonationStatus.succeeded && newStatus === DonationStatus.refund
+function isRefundable(oldStatus: PaymentStatus, newStatus: PaymentStatus) {
+  return oldStatus === PaymentStatus.succeeded && newStatus === PaymentStatus.refund
 }
 
 /**
@@ -38,8 +38,8 @@ function isRefundable(oldStatus: DonationStatus, newStatus: DonationStatus) {
  * @returns allowed previous status that can be changed by the event
  */
 export function shouldAllowStatusChange(
-  oldStatus: DonationStatus,
-  newStatus: DonationStatus,
+  oldStatus: PaymentStatus,
+  newStatus: PaymentStatus,
 ): boolean {
   if (oldStatus === newStatus || isRefundable(oldStatus, newStatus)) {
     return true

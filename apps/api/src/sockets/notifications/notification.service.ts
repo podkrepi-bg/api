@@ -1,22 +1,28 @@
 import { Injectable } from '@nestjs/common'
 import { NotificationGateway } from './gateway'
+import { Prisma } from '@prisma/client'
 
-export const donationNotificationSelect = {
+export const donationNotificationSelect = Prisma.validator<Prisma.PaymentsSelect>()({
   id: true,
   status: true,
   currency: true,
   amount: true,
-  createdAt: true,
   extPaymentMethodId: true,
-  targetVaultId: true,
-  person: {
+  createdAt: true,
+
+  donations: {
     select: {
-      firstName: true,
-      lastName: true,
-      picture: true,
+      targetVaultId: true,
+      person: {
+        select: {
+          firstName: true,
+          lastName: true,
+          picture: true,
+        },
+      },
     },
   },
-}
+})
 
 @Injectable()
 export class NotificationService {
