@@ -149,7 +149,7 @@ export class BankTransactionsService {
         create: {
           amount: bankTransaction?.amount || 0,
           personId: null,
-          targetVaultId: vault.id,
+          targetVaultId: vault?.id,
           type: DonationType.donation,
         },
       },
@@ -165,7 +165,6 @@ export class BankTransactionsService {
           matchedRef: newPaymentRef,
         },
       })
-
       console.log(`called`)
       // Import Donation
       await this.donationService.createUpdateBankPayment(bankPayment)

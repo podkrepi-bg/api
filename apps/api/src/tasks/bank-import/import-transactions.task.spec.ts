@@ -18,7 +18,8 @@ import {
   BankDonationStatus,
   BankTransaction,
   Campaign,
-  DonationStatus,
+  DonationType,
+  PaymentStatus,
   Prisma,
   Vault,
 } from '@prisma/client'
@@ -32,7 +33,7 @@ import { MarketingNotificationsService } from '../../notifications/notifications
 
 const IBAN = 'BG77UNCR92900016740920'
 type AffiliateWithPayload = Prisma.AffiliateGetPayload<{
-  include: { donations: true }
+  include: { payments: { include: { donations: true } } }
 }>
 
 class MockIrisTasks extends IrisTasks {
@@ -68,25 +69,37 @@ describe('ImportTransactionsTask', () => {
     companyId: '1234572',
     affiliateCode: 'af_12345',
     status: 'active',
-    donations: [
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    payments: [
       {
-        id: 'donation-id',
-        type: 'donation',
+        id: 'payment-id',
+        type: 'single',
         status: 'guaranteed',
         amount: 5000,
         affiliateId: 'affiliate-id',
-        personId: null,
         extCustomerId: '',
         extPaymentIntentId: '123456',
         extPaymentMethodId: '1234',
         billingEmail: 'test@podkrepi.bg',
         billingName: 'John doe',
-        targetVaultId: 'vault-id',
         chargedAmount: 0,
         currency: 'BGN',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date('2023-03-14T00:00:00.000Z'),
+        updatedAt: new Date('2023-03-14T00:00:00.000Z'),
         provider: 'bank',
+        donations: [
+          {
+            type: DonationType.donation,
+            id: '123',
+            amount: 50,
+            targetVaultId: '1',
+            paymentId: 'payment-id',
+            createdAt: new Date('2023-03-14T00:00:00.000Z'),
+            updatedAt: new Date('2023-03-14T00:00:00.000Z'),
+            personId: null,
+          },
+        ],
       },
     ],
   }
@@ -390,14 +403,14 @@ describe('ImportTransactionsTask', () => {
             },
           },
           include: {
-            donations: {
+            payments: {
               where: {
-                status: DonationStatus.guaranteed,
+                status: PaymentStatus.guaranteed,
               },
               orderBy: {
                 createdAt: 'asc',
               },
-              include: { targetVault: true },
+              include: { donations: true },
             },
           },
         }),
@@ -412,10 +425,21 @@ describe('ImportTransactionsTask', () => {
           id: mockDonatedCampaigns[0].vaults[0].id,
         }),
       )
+
       expect(donationSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          extPaymentIntentId: mockIrisTransactions[0].transactionId,
-          targetVaultId: mockDonatedCampaigns[0].vaults[0].id,
+          amount: 5000,
+          billingName: 'JOHN DOE',
+          createdAt: new Date('2023-03-14T00:00:00.000Z'),
+          currency: 'BGN',
+          donations: { create: { personId: null, targetVaultId: 'vault-id', type: 'donation' } },
+          extCustomerId: 'BG77UNCR92900016740920',
+          extPaymentIntentId:
+            'Booked_5954782144_70123543493054963FTRO23073A58G01C2023345440_20230314',
+          extPaymentMethodId: 'IRIS bank import',
+          provider: 'bank',
+          status: 'succeeded',
+          type: 'single',
         }),
       )
 

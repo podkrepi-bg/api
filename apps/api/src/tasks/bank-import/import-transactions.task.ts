@@ -443,7 +443,6 @@ export class IrisTasks {
       if (!campaign) {
         //Campaign not found by paymentReference. Check if it is affiliate donation
         const affiliate = affiliates.find((affiliate) => affiliate.affiliateCode === trx.matchedRef)
-        console.log(affiliate)
         if (!affiliate) {
           trx.bankDonationStatus = BankDonationStatus.unrecognized
           continue

@@ -696,6 +696,7 @@ export class DonationsService {
   async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Payments> {
     try {
       // execute the below in prisma transaction
+      console.log(updatePaymentDto.targetPersonId)
       return await this.prisma.$transaction(async (tx) => {
         const currentDonation = await tx.payments.findFirst({
           where: { id },
@@ -722,7 +723,7 @@ export class DonationsService {
         let billingEmail: string | null = ''
         if (
           (updatePaymentDto.targetPersonId &&
-            currentDonation.donations[0].personId !== updatePaymentDto[0].targetPersonId) ||
+            currentDonation.donations[0].personId !== updatePaymentDto.targetPersonId) ||
           updatePaymentDto.billingEmail
         ) {
           const targetDonor = await tx.person.findFirst({
