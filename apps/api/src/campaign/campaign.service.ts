@@ -624,15 +624,15 @@ export class CampaignService {
 
   private async updateDonationIfAllowed(
     tx: Prisma.TransactionClient,
-    donation: Prisma.PaymentsGetPayload<{ include: { donations: true } }>,
+    payment: Prisma.PaymentsGetPayload<{ include: { donations: true } }>,
     newDonationStatus: PaymentStatus,
     paymentData: PaymentData,
   ) {
-    if (shouldAllowStatusChange(donation.status, newDonationStatus)) {
+    if (shouldAllowStatusChange(payment.status, newDonationStatus)) {
       try {
         const updatedDonation = await tx.payments.update({
           where: {
-            id: donation.id,
+            id: payment.id,
           },
           data: {
             status: newDonationStatus,
@@ -648,11 +648,11 @@ export class CampaignService {
 
         //if donation is switching to successful, increment the vault amount and send notification
         if (
-          donation.status != PaymentStatus.succeeded &&
+          payment.status != PaymentStatus.succeeded &&
           newDonationStatus === PaymentStatus.succeeded
         ) {
           await this.vaultService.incrementVaultAmount(
-            donation.donations[0].targetVaultId,
+            payment.donations[0].targetVaultId,
             paymentData.netAmount,
             tx,
           )
@@ -661,11 +661,11 @@ export class CampaignService {
             person: updatedDonation.donations[0].person,
           })
         } else if (
-          donation.status === PaymentStatus.succeeded &&
+          payment.status === PaymentStatus.succeeded &&
           newDonationStatus === PaymentStatus.refund
         ) {
           await this.vaultService.decrementVaultAmount(
-            donation.donations[0].targetVaultId,
+            payment.donations[0].targetVaultId,
             paymentData.netAmount,
             tx,
           )
@@ -686,7 +686,7 @@ export class CampaignService {
     else {
       Logger.warn(
         `Skipping update of donation with paymentIntentId: ${paymentData.paymentIntentId}
-        and status: ${newDonationStatus} because the event comes after existing donation with status: ${donation.status}`,
+        and status: ${newDonationStatus} because the event comes after existing donation with status: ${payment.status}`,
       )
     }
   }

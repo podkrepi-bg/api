@@ -165,7 +165,7 @@ export class BankTransactionsService {
           matchedRef: newPaymentRef,
         },
       })
-      console.log(`called`)
+
       // Import Donation
       await this.donationService.createUpdateBankPayment(bankPayment)
     })

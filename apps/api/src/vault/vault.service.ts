@@ -6,22 +6,13 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common'
-import { Prisma, Vault } from '@prisma/client'
+import { Donation, Prisma, Vault } from '@prisma/client'
 import { CampaignService } from '../campaign/campaign.service'
 import { PersonService } from '../person/person.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateVaultDto } from './dto/create-vault.dto'
 import { UpdateVaultDto } from './dto/update-vault.dto'
-
-type VaultWithWithdrawalSum = Prisma.VaultGetPayload<{
-  include: { campaign: { select: { id: true; title: true } } }
-}> & {
-  withdrawnAmount: number
-}
-
-type VaultUpdate = {
-  [id: string]: number
-}
+import { VaultUpdate, VaultWithWithdrawalSum } from './types/vault'
 
 @Injectable()
 export class VaultService {
@@ -176,7 +167,6 @@ export class VaultService {
     tx: Prisma.TransactionClient,
     operationType: 'increment' | 'decrement',
   ) {
-    console.log(vaultId, amount, operationType)
     if (amount <= 0) {
       throw new Error('Amount cannot be negative or zero.')
     }
@@ -194,22 +184,73 @@ export class VaultService {
     return vault
   }
 
-  public async updateManyVaultsAmount(
+  prepareVaultUpdateObjectFromDonation(donations: Donation[]): VaultUpdate {
+    const result = donations.reduce((acc, curr) => {
+      return {
+        ...acc,
+        [curr.targetVaultId]: acc[curr.targetVaultId]
+          ? acc[curr.targetVaultId] + curr.amount
+          : curr.amount,
+      }
+    }, {})
+    return result
+  }
+
+  async decrementManyVaults(listOfVaults: VaultUpdate, tx: Prisma.TransactionClient) {
+    const vaults = await tx.vault.findMany({
+      where: { id: { in: Object.keys(listOfVaults) } },
+    })
+    const failedVaults = vaults.reduce((vaultAcc: string[], vault: Vault) => {
+      if (vault.amount - listOfVaults[vault.id] > 0) return vaultAcc
+      vaultAcc.push(vault.id)
+      return vaultAcc
+    }, [])
+
+    if (failedVaults.length > 0) {
+      console.log(`errro`)
+      throw new Error(
+        `Updating vaults aborted, due to negative amount in some of the vaults.
+        Invalid vaultIds: ${failedVaults.join(',')}`,
+      )
+    }
+    return await this.updateManyVaults(listOfVaults, tx, 'decrement')
+  }
+
+  async IncrementManyVaults(vaults: VaultUpdate, tx: Prisma.TransactionClient) {
+    return await this.updateManyVaults(vaults, tx, 'increment')
+  }
+
+  prepareSQLValuesString(vaults: VaultUpdate): string {
+    return Object.entries(vaults)
+      .map(([vaultId, amount]) => `('${vaultId}'::uuid, ${amount})`)
+      .join(',')
+  }
+
+  /**
+   * Update many vaults within a single query
+   * @param {VaultUpdate} vaults Object containing ids of vaults as key, and total amount to be incremented/decremented as a value
+   * @param tx - Prisma instance within transaction
+   * @param operationType Whether to increment or decrement vault
+   * @returns
+   */
+  async updateManyVaults(
     vaults: VaultUpdate,
     tx: Prisma.TransactionClient,
     operationType: 'increment' | 'decrement',
   ) {
-    const sqlValues = Object.entries(vaults)
-      .map(([vaultId, amount]) => `('${vaultId}'::uuid, ${amount})`)
-      .join(',')
+    const sqlValues = this.prepareSQLValuesString(vaults)
 
-    return await tx.$queryRawUnsafe<Vault[]>(`
+    return await tx.$executeRawUnsafe<Vault[]>(`
       UPDATE vaults
-      SET amount =  amount + new_amount
+      SET amount = CASE
+                    WHEN ${operationType === 'increment'} THEN amount + new_amount
+                    WHEN ${operationType === 'decrement'} THEN amount - new_amount
+                    ELSE amount
+                  END
       FROM (
         VALUES ${sqlValues}
       ) AS updated_vault(id, new_amount)
-      WHERE vaults.id::text = updated_vault.id::text;
+      WHERE vaults.id::text = updated_vault.id::text AND vaults.amount::INTEGER - updated_vault.new_amount::INTEGER > 0 RETURNING *;
     `)
   }
 }

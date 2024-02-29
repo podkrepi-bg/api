@@ -23,18 +23,19 @@ import { MarketingNotificationsService } from '../notifications/notifications.se
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { CampaignNewsService } from '../campaign-news/campaign-news.service'
+import { personMock } from '../person/__mock__/peronMock'
 
 describe('CampaignController', () => {
   let controller: CampaignController
   let prismaService: PrismaService
   let campaignService: CampaignService
-  let marketingProvider: NotificationsProviderInterface<unknown>
+  let marketingProvider: NotificationsProviderInterface
   let marketingService: MarketingNotificationsService
   const personServiceMock = {
     findOneByKeycloakId: jest.fn(() => {
       return { id: personIdMock }
     }),
-    findByEmail: jest.fn(async () => {
+    findByEmail: jest.fn(async (): Promise<Person | null> => {
       return person
     }),
     update: jest.fn(async () => {
@@ -51,24 +52,7 @@ describe('CampaignController', () => {
     }),
   }
 
-  const person: Person | null = {
-    id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
-    firstName: 'John',
-    lastName: 'Doe',
-    keycloakId: 'some-id',
-    email: 'user@email.com',
-    emailConfirmed: false,
-    companyId: null,
-    phone: null,
-    picture: null,
-    createdAt: new Date('2021-10-07T13:38:11.097Z'),
-    updatedAt: new Date('2021-10-07T13:38:11.097Z'),
-    newsletter: true,
-    address: null,
-    birthday: null,
-    personalNumber: null,
-    stripeCustomerId: null,
-  }
+  const person: Person = personMock
 
   const mockCreateCampaign = {
     slug: 'test-slug',
@@ -428,7 +412,7 @@ describe('CampaignController', () => {
   describe('subscribeToCampaignNotifications', () => {
     it('should throw if no consent is provided', async () => {
       const data: CampaignSubscribeDto = {
-        email: person.email,
+        email: person.email!,
         consent: false,
       }
 
@@ -439,7 +423,7 @@ describe('CampaignController', () => {
 
     it('should throw if the campaign is not active', async () => {
       const data: CampaignSubscribeDto = {
-        email: person.email,
+        email: person.email!,
         consent: true,
       }
 
@@ -458,7 +442,7 @@ describe('CampaignController', () => {
       jest.spyOn(marketingService, 'sendConfirmEmail')
 
       const data: CampaignSubscribeDto = {
-        email: person.email,
+        email: person.email!,
         // Valid consent
         consent: true,
       }
@@ -497,7 +481,7 @@ describe('CampaignController', () => {
       jest.spyOn(campaignService, 'createCampaignNotificationList')
 
       const data: CampaignSubscribeDto = {
-        email: person.email,
+        email: person.email!,
         // Valid consent
         consent: true,
       }
@@ -538,7 +522,7 @@ describe('CampaignController', () => {
       jest.spyOn(marketingService, 'sendConfirmEmail')
 
       const data: CampaignSubscribeDto = {
-        email: person.email,
+        email: person.email!,
         // Valid consent
         consent: true,
       }
@@ -566,7 +550,7 @@ describe('CampaignController', () => {
       expect(marketingService.sendConfirmEmail).not.toHaveBeenCalled()
     })
 
-    it('should create a saparate notification consent record for non-registered emails', async () => {
+    it('should create a separate notification consent record for non-registered emails', async () => {
       jest.spyOn(marketingProvider, 'addContactsToList').mockImplementation(async () => '')
       jest.spyOn(campaignService, 'createCampaignNotificationList')
       jest.spyOn(marketingService, 'sendConfirmEmail')
@@ -577,7 +561,7 @@ describe('CampaignController', () => {
       })
 
       const data: CampaignSubscribeDto = {
-        email: person.email,
+        email: person.email!,
         // Valid consent
         consent: true,
       }

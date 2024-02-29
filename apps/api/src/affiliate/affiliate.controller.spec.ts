@@ -11,16 +11,26 @@ import { VaultService } from '../vault/vault.service'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
 import { ExportService } from '../export/export.service'
-import { Affiliate, Campaign, CampaignState, Donation, Prisma, Vault } from '@prisma/client'
+import {
+  Affiliate,
+  AffiliateStatus,
+  Campaign,
+  CampaignState,
+  PaymentStatus,
+  Payments,
+  Prisma,
+  Vault,
+} from '@prisma/client'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common'
 import { AffiliateStatusUpdateDto } from './dto/affiliate-status-update.dto'
 import * as afCodeGenerator from './utils/affiliateCodeGenerator'
 import { CreateAffiliateDonationDto } from './dto/create-affiliate-donation.dto'
+import { mockPayment } from '../donations/__mocks__/paymentMock'
 
 type PersonWithPayload = Prisma.PersonGetPayload<{ include: { company: true } }>
 type AffiliateWithPayload = Prisma.AffiliateGetPayload<{
-  include: { company: { include: { person: true } }; donations: true }
+  include: { company: { include: { person: true } }; payments: true }
 }>
 
 describe('AffiliateController', () => {
@@ -126,28 +136,10 @@ describe('AffiliateController', () => {
       countryCode: null,
       person: { ...mockIndividualProfile },
     },
-    donations: [],
+    payments: [],
   }
 
-  const donationResponseMock: Donation = {
-    id: 'donation-id',
-    type: 'donation',
-    status: 'guaranteed',
-    amount: 5000,
-    affiliateId: activeAffiliateMock.id,
-    personId: null,
-    extCustomerId: '',
-    extPaymentIntentId: '123456',
-    extPaymentMethodId: '1234',
-    billingEmail: 'test@podkrepi.bg',
-    billingName: 'John Doe',
-    targetVaultId: vaultMock.id,
-    chargedAmount: 0,
-    currency: 'BGN',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    provider: 'bank',
-  }
+  const mockGuaranteedPayment = { ...mockPayment, status: PaymentStatus.guaranteed }
 
   const userMock = {
     sub: 'testKeycloackId',
@@ -232,13 +224,13 @@ describe('AffiliateController', () => {
 
       const activeAffiliateMock: Affiliate = {
         ...affiliateMock,
-        status: 'active',
+        status: AffiliateStatus.active,
         id: '12345',
         affiliateCode: affiliateCodeMock,
       }
 
       const mockCancelledStatus: AffiliateStatusUpdateDto = {
-        newStatus: 'cancelled',
+        newStatus: AffiliateStatus.cancelled,
       }
       jest.spyOn(service, 'findOneById').mockResolvedValue(activeAffiliateMock)
 
@@ -265,7 +257,7 @@ describe('AffiliateController', () => {
       jest.spyOn(service, 'findOneById').mockResolvedValue(activeAffiliateMock)
 
       const updateStatusDto: AffiliateStatusUpdateDto = {
-        newStatus: 'active',
+        newStatus: AffiliateStatus.active,
       }
       const codeGenerationSpy = jest
         .spyOn(afCodeGenerator, 'affiliateCodeGenerator')
@@ -305,7 +297,7 @@ describe('AffiliateController', () => {
       jest.spyOn(service, 'findOneByCode').mockResolvedValue(activeAffiliateMock)
       const createAffiliateDonationSpy = jest
         .spyOn(donationService, 'createAffiliateDonation')
-        .mockResolvedValue(donationResponseMock)
+        .mockResolvedValue(mockGuaranteedPayment)
       jest.spyOn(prismaMock.vault, 'findMany').mockResolvedValue([vaultMock])
       prismaMock.campaign.findFirst.mockResolvedValue({
         id: '123',
@@ -318,26 +310,26 @@ describe('AffiliateController', () => {
         affiliateId: activeAffiliateMock.id,
       })
       expect(await donationService.createAffiliateDonation(affiliateDonationDto)).toEqual(
-        donationResponseMock,
+        mockGuaranteedPayment,
       )
     })
     it('should cancel', async () => {
-      const cancelledDonationResponse: Donation = {
-        ...donationResponseMock,
-        status: 'cancelled',
+      const cancelledDonationResponse: Payments = {
+        ...mockGuaranteedPayment,
+        status: PaymentStatus.cancelled,
       }
       jest
         .spyOn(donationService, 'getAffiliateDonationById')
-        .mockResolvedValue(donationResponseMock)
+        .mockResolvedValue(mockGuaranteedPayment)
       jest.spyOn(donationService, 'update').mockResolvedValue(cancelledDonationResponse)
       expect(
-        await controller.cancelAffiliateDonation(affiliateCodeMock, donationResponseMock.id),
+        await controller.cancelAffiliateDonation(affiliateCodeMock, mockGuaranteedPayment.id),
       ).toEqual(cancelledDonationResponse)
     })
     it('should throw error if donation status is succeeded', async () => {
-      const succeededDonationResponse: Donation = {
-        ...donationResponseMock,
-        status: 'succeeded',
+      const succeededDonationResponse: Payments = {
+        ...mockGuaranteedPayment,
+        status: PaymentStatus.succeeded,
       }
 
       jest
@@ -345,7 +337,7 @@ describe('AffiliateController', () => {
         .mockResolvedValue(succeededDonationResponse)
       const updateDonationStatus = jest.spyOn(donationService, 'update')
       expect(
-        controller.cancelAffiliateDonation(affiliateCodeMock, donationResponseMock.id),
+        controller.cancelAffiliateDonation(affiliateCodeMock, mockGuaranteedPayment.id),
       ).rejects.toThrow(new BadRequestException("Donation status can't be updated"))
       expect(updateDonationStatus).not.toHaveBeenCalled()
     })

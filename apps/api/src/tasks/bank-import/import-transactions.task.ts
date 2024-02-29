@@ -5,12 +5,10 @@ import { SchedulerRegistry } from '@nestjs/schedule'
 import {
   BankDonationStatus,
   Currency,
-  Donation,
   DonationType,
   PaymentProvider,
   PaymentStatus,
   PaymentType,
-  Payments,
   Prisma,
   Vault,
 } from '@prisma/client'
@@ -37,14 +35,12 @@ import {
 import { ImportStatus } from '../../bank-transactions-file/dto/bank-transactions-import-status.dto'
 import { IrisIbanAccountInfoDto } from '../../bank-transactions/dto/iris-bank-account-info.dto'
 import { IrisTransactionInfoDto } from '../../bank-transactions/dto/iris-bank-transaction-info.dto'
+import { VaultUpdate } from '../../vault/types/vault'
 
 type filteredTransaction = Prisma.BankTransactionCreateManyInput
 type AffiliatePayload = Prisma.AffiliateGetPayload<{
   include: { payments: { include: { donations: true } } }
 }>
-type VaultUpdate = {
-  [key: string]: number
-}
 
 @Injectable()
 export class IrisTasks {
@@ -487,11 +483,8 @@ export class IrisTasks {
       if (trx.amount - totalDonated < payment.amount) continue
       paymentIdsToUpdate.push(payment.id)
       for (const donation of payment.donations) {
-        if (vaultsToUpdate.hasOwnProperty(donation.targetVaultId)) {
-          vaultsToUpdate[donation.targetVaultId] += donation.amount
-        } else {
-          vaultsToUpdate[donation.targetVaultId] = donation.amount
-        }
+        vaultsToUpdate[donation.targetVaultId] =
+          (vaultsToUpdate[donation.targetVaultId] || 0) + donation.amount
       }
       totalDonated += payment.amount
       updatedPayments++

@@ -21,7 +21,9 @@ type NotificationsInterfaceParams = {
   SendNotificationRes: unknown
 }
 
-export abstract class NotificationsProviderInterface<T extends NotificationsInterfaceParams> {
+export abstract class NotificationsProviderInterface<
+  T extends NotificationsInterfaceParams = NotificationsInterfaceParams,
+> {
   abstract createNewContactList(data: T['CreateListParams']): Promise<T['CreateListRes']>
   abstract updateContactList(data: T['UpdateListParams']): Promise<T['UpdateListRes']>
   abstract deleteContactList(data: T['DeleteListParams']): Promise<T['DeleteListRes']>

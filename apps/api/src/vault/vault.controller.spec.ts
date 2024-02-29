@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { UnauthorizedException } from '@nestjs/common'
 import { CampaignService } from '../campaign/campaign.service'
-import { personServiceMock, PersonServiceMock } from '../person/mock/person.service.mock'
+import { personServiceMock, PersonServiceMock } from '../person/__mock__/person.service.mock'
 import { VaultController } from './vault.controller'
 import { VaultService } from './vault.service'
 import { KeycloakTokenParsed } from '../auth/keycloak'
@@ -14,6 +14,8 @@ import { TemplateService } from '../email/template.service'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
 import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
 import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
+import { mockedVault } from '../donations/events/stripe-payment.testdata'
+import { mockVault } from './__mocks__/vault'
 
 describe('VaultController', () => {
   let controller: VaultController

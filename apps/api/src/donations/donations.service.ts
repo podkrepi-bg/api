@@ -34,28 +34,8 @@ import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 import { ImportStatus } from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { CreateAffiliateDonationDto } from '../affiliate/dto/create-affiliate-donation.dto'
-
-type PaymentWithDonation = Prisma.PaymentsGetPayload<{
-  select: {
-    donations: {
-      select: {
-        metadata: { select: { name: true } }
-        person: {
-          select: {
-            firstName: true
-            lastName: true
-            company: { select: { companyName: true } }
-          }
-        }
-      }
-    }
-  }
-}>
-
-type TPaymentWithDonations = Prisma.PaymentsGetPayload<{ include: { donations: true } }>
-type VaultUpdate = {
-  [key: string]: number
-}
+import { VaultUpdate } from '../vault/types/vault'
+import { PaymentWithDonation } from './types/donation'
 
 @Injectable()
 export class DonationsService {
@@ -496,7 +476,7 @@ export class DonationsService {
    * @returns  {Promise<Donation>} Donation
    * @throws NotFoundException if no donation is found
    */
-  async getDonationById(id: string): Promise<TPaymentWithDonations> {
+  async getDonationById(id: string): Promise<PaymentWithDonation> {
     try {
       const donation = await this.prisma.payments.findFirstOrThrow({
         where: { id },
@@ -663,10 +643,10 @@ export class DonationsService {
     })
   }
 
-  async updateAffiliateBankPayment(paymentsIds: string[], donationDto: VaultUpdate) {
+  async updateAffiliateBankPayment(paymentsIds: string[], listOfVaults: VaultUpdate) {
     return await this.prisma.$transaction(async (tx) => {
       await Promise.all([
-        this.vaultService.updateManyVaultsAmount(donationDto, tx, 'increment'),
+        this.vaultService.IncrementManyVaults(listOfVaults, tx),
         tx.payments.updateMany({
           where: { id: { in: paymentsIds } },
           data: { status: PaymentStatus.succeeded },
