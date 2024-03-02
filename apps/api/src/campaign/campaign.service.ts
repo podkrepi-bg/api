@@ -3,7 +3,6 @@ import {
   Campaign,
   CampaignState,
   CampaignType,
-  Donation,
   PaymentStatus,
   DonationType,
   Vault,
@@ -12,8 +11,8 @@ import {
   NotificationList,
   EmailType,
   CampaignTypeCategory,
-  Payments,
   PaymentType,
+  Payment,
 } from '@prisma/client'
 import {
   BadRequestException,
@@ -51,6 +50,7 @@ import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
 import { CampaignSubscribeDto } from './dto/campaign-subscribe.dto'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
+import type { PaymentWithDonation } from '../donations/types/donation'
 
 @Injectable()
 export class CampaignService {
@@ -566,8 +566,8 @@ export class CampaignService {
     return donations
   }
 
-  async getDonationByIntentId(paymentIntentId: string): Promise<Payments | null> {
-    return this.prisma.payments.findFirst({ where: { extPaymentIntentId: paymentIntentId } })
+  async getPaymentByIntentId(paymentIntentId: string): Promise<Payment | null> {
+    return this.prisma.payment.findFirst({ where: { extPaymentIntentId: paymentIntentId } })
   }
 
   /**
@@ -624,13 +624,13 @@ export class CampaignService {
 
   private async updateDonationIfAllowed(
     tx: Prisma.TransactionClient,
-    payment: Prisma.PaymentsGetPayload<{ include: { donations: true } }>,
+    payment: PaymentWithDonation,
     newDonationStatus: PaymentStatus,
     paymentData: PaymentData,
   ) {
     if (shouldAllowStatusChange(payment.status, newDonationStatus)) {
       try {
-        const updatedDonation = await tx.payments.update({
+        const updatedDonation = await tx.payment.update({
           where: {
             id: payment.id,
           },
@@ -708,7 +708,7 @@ export class CampaignService {
     const targetVaultData = { connect: { id: vault.id } }
 
     try {
-      const donation = await tx.payments.create({
+      const donation = await tx.payment.create({
         data: {
           amount: paymentData.netAmount,
           chargedAmount: paymentData.chargedAmount,
@@ -753,7 +753,7 @@ export class CampaignService {
 
   private async findExistingDonation(tx: Prisma.TransactionClient, paymentData: PaymentData) {
     //first try to find by paymentIntentId
-    let donation = await tx.payments.findUnique({
+    let donation = await tx.payment.findUnique({
       where: { extPaymentIntentId: paymentData.paymentIntentId },
       include: { donations: true },
     })
@@ -764,7 +764,7 @@ export class CampaignService {
     if (!donation && paymentData.personId && paymentData.personId.length === 36) {
       // search for a subscription donation
       // for subscriptions, we don't have a paymentIntentId
-      donation = await tx.payments.findFirst({
+      donation = await tx.payment.findFirst({
         where: {
           status: PaymentStatus.initial,
           chargedAmount: paymentData.chargedAmount,

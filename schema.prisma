@@ -107,7 +107,7 @@ model Affiliate {
   createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
   company       Company         @relation(fields: [companyId], references: [id])
-  payments      Payments[]
+  payments      Payment[]
 
   @@map("affiliates")
 }
@@ -448,7 +448,7 @@ model Vault {
   @@map("vaults")
 }
 
-model Payments {
+model Payment {
   id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   extCustomerId      String          @map("ext_customer_id") @db.VarChar(50)
   extPaymentIntentId String          @unique @map("ext_payment_intent_id")
@@ -485,7 +485,7 @@ model Donation {
   targetVault   Vault             @relation(fields: [targetVaultId], references: [id])
   DonationWish  DonationWish?
   metadata      DonationMetadata?
-  payment       Payments          @relation(fields: [paymentId], references: [id])
+  payment       Payment           @relation(fields: [paymentId], references: [id])
 
   @@map("donations")
 }

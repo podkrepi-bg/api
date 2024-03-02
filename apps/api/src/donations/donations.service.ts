@@ -9,7 +9,7 @@ import {
   PaymentProvider,
   Prisma,
   PaymentType,
-  Payments,
+  Payment,
   Donation,
 } from '@prisma/client'
 import { Response } from 'express'
@@ -25,17 +25,14 @@ import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 
 import { DonationBaseDto, ListDonationsDto } from './dto/list-donations.dto'
-import {
-  donationWithPerson,
-  DonationWithPerson,
-  PaymentWithDonationCount,
-} from './queries/donation.validator'
+import { donationWithPerson } from './queries/donation.validator'
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
 import { ImportStatus } from '../bank-transactions-file/dto/bank-transactions-import-status.dto'
 import { DonationQueryDto } from '../common/dto/donation-query-dto'
 import { CreateAffiliateDonationDto } from '../affiliate/dto/create-affiliate-donation.dto'
 import { VaultUpdate } from '../vault/types/vault'
 import { PaymentWithDonation } from './types/donation'
+import type { DonationWithPersonAndVault, PaymentWithDonationCount } from './types/donation'
 
 @Injectable()
 export class DonationsService {
@@ -99,7 +96,7 @@ export class DonationsService {
     campaign: Campaign,
     stripePaymentDto: CreateStripePaymentDto,
     paymentIntent: Stripe.PaymentIntent,
-  ): Promise<Payments> {
+  ): Promise<Payment> {
     Logger.debug('[ CreateInitialDonationFromIntent]', {
       campaignId: campaign.id,
       amount: paymentIntent.amount,
@@ -112,7 +109,7 @@ export class DonationsService {
     /**
      * Create or update initial donation object
      */
-    const donation = await this.prisma.payments.upsert({
+    const donation = await this.prisma.payment.upsert({
       where: { extPaymentIntentId: paymentIntent.id },
       create: {
         amount: 0,
@@ -327,7 +324,7 @@ export class DonationsService {
 
     if (!vault || vault.length === 0) throw new NotFoundException('Campaign or vault not found')
 
-    const payment = await this.prisma.payments.create({
+    const payment = await this.prisma.payment.create({
       data: donationDto.toEntity(vault[0].id),
       include: { donations: true },
     })
@@ -377,7 +374,7 @@ export class DonationsService {
     sortOrder?: string,
     pageIndex?: number,
     pageSize?: number,
-  ): Promise<ListDonationsDto<DonationWithPerson>> {
+  ): Promise<ListDonationsDto<DonationWithPersonAndVault>> {
     const whereClause = Prisma.validator<Prisma.DonationWhereInput>()({
       amount: {
         gte: minAmount,
@@ -420,19 +417,21 @@ export class DonationsService {
 
   async listPayments(
     paymentId?: string,
+    campaignId?: string,
     paymentStatus?: PaymentStatus,
     paymentProvider?: PaymentProvider,
     minAmount?: number,
     maxAmount?: number,
     from?: Date,
     to?: Date,
+    search?: string,
     sortBy?: string,
     sortOrder?: string,
     pageIndex?: number,
     pageSize?: number,
   ): Promise<ListDonationsDto<PaymentWithDonationCount>> {
-    const whereClause = Prisma.validator<Prisma.PaymentsWhereInput>()({
-      id: paymentId,
+    const whereClause = Prisma.validator<Prisma.PaymentWhereInput>()({
+      // id: paymentId,
       amount: {
         gte: minAmount,
         lte: maxAmount,
@@ -443,10 +442,18 @@ export class DonationsService {
       },
       status: paymentStatus,
       provider: paymentProvider,
+      ...(search && {
+        OR: [
+          {
+            billingEmail: { contains: search },
+          },
+          { billingName: { contains: search } },
+        ],
+      }),
+      donations: { some: { targetVault: { campaignId } } },
     })
-
     const [data, count] = await this.prisma.$transaction([
-      this.prisma.payments.findMany({
+      this.prisma.payment.findMany({
         where: whereClause,
         orderBy: [sortBy ? { [sortBy]: sortOrder ? sortOrder : 'desc' } : { createdAt: 'desc' }],
         skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
@@ -459,7 +466,7 @@ export class DonationsService {
           },
         },
       }),
-      this.prisma.payments.count({ where: whereClause }),
+      this.prisma.payment.count({ where: whereClause }),
     ])
 
     const result = {
@@ -478,7 +485,7 @@ export class DonationsService {
    */
   async getDonationById(id: string): Promise<PaymentWithDonation> {
     try {
-      const donation = await this.prisma.payments.findFirstOrThrow({
+      const donation = await this.prisma.payment.findFirstOrThrow({
         where: { id },
         include: { donations: true },
       })
@@ -492,7 +499,7 @@ export class DonationsService {
 
   async getAffiliateDonationById(donationId: string, affiliateCode: string) {
     try {
-      const donation = await this.prisma.payments.findFirstOrThrow({
+      const donation = await this.prisma.payment.findFirstOrThrow({
         where: { id: donationId, affiliate: { affiliateCode: affiliateCode } },
       })
       return donation
@@ -554,7 +561,7 @@ export class DonationsService {
    * @param inputDto Payment intent create params
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
-  async createStripePayment(inputDto: CreateStripePaymentDto): Promise<Payments> {
+  async createStripePayment(inputDto: CreateStripePaymentDto): Promise<Payment> {
     const intent = await this.stripeClient.paymentIntents.retrieve(inputDto.paymentIntentId)
     if (!intent.metadata.campaignId) {
       throw new BadRequestException('Campaign id is missing from payment intent metadata')
@@ -615,12 +622,12 @@ export class DonationsService {
   async createUpdateBankPayment(donationDto: CreateBankPaymentDto): Promise<ImportStatus> {
     return await this.prisma.$transaction(async (tx) => {
       //to avoid incrementing vault amount twice we first check if there is such donation
-      const existingDonation = await tx.payments.findUnique({
+      const existingDonation = await tx.payment.findUnique({
         where: { extPaymentIntentId: donationDto.extPaymentIntentId },
       })
 
       if (!existingDonation) {
-        const payment = await tx.payments.create({
+        const payment = await tx.payment.create({
           data: donationDto,
           include: {
             donations: true,
@@ -635,7 +642,7 @@ export class DonationsService {
         return ImportStatus.SUCCESS
       }
 
-      await this.prisma.payments.update({
+      await this.prisma.payment.update({
         where: { extPaymentIntentId: donationDto.extPaymentIntentId },
         data: { ...donationDto, updatedAt: existingDonation.updatedAt },
       })
@@ -647,7 +654,7 @@ export class DonationsService {
     return await this.prisma.$transaction(async (tx) => {
       await Promise.all([
         this.vaultService.IncrementManyVaults(listOfVaults, tx),
-        tx.payments.updateMany({
+        tx.payment.updateMany({
           where: { id: { in: paymentsIds } },
           data: { status: PaymentStatus.succeeded },
         }),
@@ -656,7 +663,7 @@ export class DonationsService {
   }
 
   async updateAffiliateDonations(donationId: string, affiliateId: string, status: PaymentStatus) {
-    const donation = await this.prisma.payments.update({
+    const donation = await this.prisma.payment.update({
       where: {
         id: donationId,
         affiliateId: affiliateId,
@@ -673,12 +680,11 @@ export class DonationsService {
    * @param updatePaymentDto
    * @returns
    */
-  async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Payments> {
+  async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Payment> {
     try {
       // execute the below in prisma transaction
-      console.log(updatePaymentDto.targetPersonId)
       return await this.prisma.$transaction(async (tx) => {
-        const currentDonation = await tx.payments.findFirst({
+        const currentDonation = await tx.payment.findFirst({
           where: { id },
           include: {
             donations: {
@@ -723,7 +729,7 @@ export class DonationsService {
           billingEmail = targetDonor.email
         }
 
-        const donation = await tx.payments.update({
+        const donation = await tx.payment.update({
           where: { id },
           data: {
             status: status,
@@ -765,7 +771,7 @@ export class DonationsService {
 
   async softDelete(ids: string[]): Promise<Prisma.BatchPayload> {
     try {
-      return await this.prisma.payments.updateMany({
+      return await this.prisma.payment.updateMany({
         where: { id: { in: ids } },
         data: {
           status: PaymentStatus.deleted,
@@ -792,7 +798,7 @@ export class DonationsService {
           )
         }
 
-        await tx.payments.update({
+        await tx.payment.update({
           where: { id },
           data: {
             status: PaymentStatus.invalid,
@@ -857,7 +863,7 @@ export class DonationsService {
   }
 
   async getTotalDonatedMoney() {
-    const totalMoney = await this.prisma.payments.aggregate({
+    const totalMoney = await this.prisma.payment.aggregate({
       _sum: {
         amount: true,
       },

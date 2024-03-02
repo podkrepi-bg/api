@@ -180,12 +180,14 @@ export class DonationsController {
   ) {
     return await this.donationsService.listPayments(
       query?.paymentId,
+      query?.campaignId,
       query?.status,
       query?.provider,
       query?.minAmount,
       query?.maxAmount,
       query?.from,
       query?.to,
+      query?.search,
       query?.sortBy,
       query?.sortOrder,
       query?.pageindex,

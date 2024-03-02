@@ -11,8 +11,7 @@ import {
   PaymentProvider,
   Person,
   Vault,
-  Payments,
-  Prisma,
+  Payment,
 } from '@prisma/client'
 import { CampaignService } from '../campaign/campaign.service'
 import { ExportService } from '../export/export.service'
@@ -26,8 +25,7 @@ import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
-
-type PaymentWithDonation = Prisma.PaymentsGetPayload<{ include: { donations: true } }>
+import type { PaymentWithDonation } from './types/donation'
 
 describe('DonationsController', () => {
   let controller: DonationsController
@@ -221,14 +219,14 @@ describe('DonationsController', () => {
       .spyOn(vaultService, 'incrementVaultAmount')
       .mockImplementation()
 
-    prismaMock.payments.findFirst.mockResolvedValueOnce(existingPayment)
+    prismaMock.payment.findFirst.mockResolvedValueOnce(existingPayment)
     prismaMock.person.findFirst.mockResolvedValueOnce(existingTargetPerson)
 
     // act
     await controller.update('123', updatePaymentDto)
 
     // assert
-    expect(prismaMock.payments.update).toHaveBeenCalledWith({
+    expect(prismaMock.payment.update).toHaveBeenCalledWith({
       where: { id: '123' },
       data: {
         status: existingPayment.status,
@@ -280,16 +278,16 @@ describe('DonationsController', () => {
 
     jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
 
-    prismaMock.payments.findFirst.mockResolvedValueOnce(existingPayment)
+    prismaMock.payment.findFirst.mockResolvedValueOnce(existingPayment)
     prismaMock.person.findFirst.mockResolvedValueOnce(existingTargetPerson)
-    prismaMock.payments.update.mockResolvedValueOnce(expectedUpdatedPayment)
+    prismaMock.payment.update.mockResolvedValueOnce(expectedUpdatedPayment)
     prismaMock.vault.update.mockResolvedValueOnce({ id: '1000', campaignId: '111' } as Vault)
 
     // act
     await controller.update('123', updatePaymentDto)
 
     // assert
-    expect(prismaMock.payments.update).toHaveBeenCalledWith({
+    expect(prismaMock.payment.update).toHaveBeenCalledWith({
       where: { id: '123' },
       data: {
         status: PaymentStatus.succeeded,
@@ -329,11 +327,11 @@ describe('DonationsController', () => {
     const existingPayment = { ...mockPayment, status: PaymentStatus.succeeded }
     jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
 
-    prismaMock.payments.findFirstOrThrow.mockResolvedValueOnce(existingPayment)
+    prismaMock.payment.findFirstOrThrow.mockResolvedValueOnce(existingPayment)
 
     await controller.invalidate('123')
 
-    expect(prismaMock.payments.update).toHaveBeenCalledWith({
+    expect(prismaMock.payment.update).toHaveBeenCalledWith({
       where: { id: '123' },
       data: {
         status: PaymentStatus.invalid,

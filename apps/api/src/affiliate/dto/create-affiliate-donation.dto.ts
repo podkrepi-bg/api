@@ -88,7 +88,7 @@ export class CreateAffiliateDonationDto {
   @ValidateNested({ each: true })
   metadata: DonationMetadataDto | undefined
 
-  public toEntity(targetVaultId: string): Prisma.PaymentsCreateInput {
+  public toEntity(targetVaultId: string): Prisma.PaymentCreateInput {
     return {
       type: PaymentType.single,
       status: PaymentStatus.guaranteed,

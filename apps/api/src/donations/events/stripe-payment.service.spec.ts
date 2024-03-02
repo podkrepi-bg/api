@@ -14,10 +14,9 @@ import { StripeModule, StripeModuleConfig, StripePayloadService } from '@golevel
 import {
   Campaign,
   CampaignState,
-  Donation,
   DonationType,
   PaymentType,
-  Payments,
+  Payment,
   Prisma,
   RecurringDonationStatus,
   Vault,
@@ -52,6 +51,7 @@ import { SendGridNotificationsProvider } from '../../notifications/providers/not
 import { MarketingNotificationsService } from '../../notifications/notifications.service'
 import { EmailService } from '../../email/email.service'
 import { TemplateService } from '../../email/template.service'
+import type { PaymentWithDonation } from '../types/donation'
 
 const defaultStripeWebhookEndpoint = '/stripe/webhook'
 const stripeSecret = 'wh_123'
@@ -78,7 +78,7 @@ describe('StripePaymentService', () => {
     }),
   }
 
-  const mockPayment: Prisma.PaymentsGetPayload<{ include: { donations: true } }> = {
+  const mockPayment: PaymentWithDonation = {
     id: 'test-donation-id',
     type: PaymentType.single,
     status: PaymentStatus.waiting,
@@ -304,9 +304,9 @@ describe('StripePaymentService', () => {
       .mockName('createDonationWish')
       .mockImplementation(() => Promise.resolve())
 
-    prismaMock.payments.findUnique.mockResolvedValue(mockPayment)
+    prismaMock.payment.findUnique.mockResolvedValue(mockPayment)
 
-    prismaMock.payments.update.mockResolvedValue({
+    prismaMock.payment.update.mockResolvedValue({
       ...mockPayment,
       amount: paymentData.netAmount,
       status: PaymentStatus.succeeded,
@@ -342,10 +342,10 @@ describe('StripePaymentService', () => {
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
-        expect(prismaMock.payments.findUnique).toHaveBeenCalled()
-        expect(prismaMock.payments.create).not.toHaveBeenCalled()
+        expect(prismaMock.payment.findUnique).toHaveBeenCalled()
+        expect(prismaMock.payment.create).not.toHaveBeenCalled()
         expect(mockedIncrementVaultAmount).toHaveBeenCalled()
-        expect(prismaMock.payments.update).toHaveBeenCalledTimes(1)
+        expect(prismaMock.payment.update).toHaveBeenCalledTimes(1)
         expect(mockedUpdateCampaignStatusIfTargetReached).toHaveBeenCalled()
         expect(prismaMock.campaign.update).toHaveBeenCalledWith({
           where: {
@@ -386,9 +386,9 @@ describe('StripePaymentService', () => {
       .mockName('createDonationWish')
       .mockImplementation(() => Promise.resolve())
 
-    prismaMock.payments.findUnique.mockResolvedValue(mockPayment)
+    prismaMock.payment.findUnique.mockResolvedValue(mockPayment)
 
-    prismaMock.payments.update.mockResolvedValue({
+    prismaMock.payment.update.mockResolvedValue({
       ...mockPayment,
       amount: (mockInvoicePaidEvent.data.object as Stripe.Invoice).amount_paid,
       status: 'succeeded',
@@ -412,9 +412,9 @@ describe('StripePaymentService', () => {
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
-        expect(prismaMock.payments.findUnique).toHaveBeenCalled()
-        expect(prismaMock.payments.create).not.toHaveBeenCalled()
-        expect(prismaMock.payments.update).toHaveBeenCalledOnce() //for the donation to succeeded
+        expect(prismaMock.payment.findUnique).toHaveBeenCalled()
+        expect(prismaMock.payment.create).not.toHaveBeenCalled()
+        expect(prismaMock.payment.update).toHaveBeenCalledOnce() //for the donation to succeeded
         expect(mockedIncrementVaultAmount).toHaveBeenCalled()
         expect(mockedcreateDonationWish).toHaveBeenCalled()
       })
@@ -439,10 +439,10 @@ describe('StripePaymentService', () => {
       mockChargeEventSucceeded.data.object as Stripe.Charge,
     )
 
-    const succeededPayment: Payments = { ...mockPayment, status: PaymentStatus.succeeded }
-    prismaMock.payments.findUnique.mockResolvedValue(succeededPayment)
+    const succeededPayment: Payment = { ...mockPayment, status: PaymentStatus.succeeded }
+    prismaMock.payment.findUnique.mockResolvedValue(succeededPayment)
 
-    prismaMock.payments.update.mockResolvedValue({
+    prismaMock.payment.update.mockResolvedValue({
       ...mockPayment,
       status: PaymentStatus.refund,
     })
@@ -472,10 +472,10 @@ describe('StripePaymentService', () => {
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
-        expect(prismaMock.payments.findUnique).toHaveBeenCalled()
-        expect(prismaMock.payments.create).not.toHaveBeenCalled()
+        expect(prismaMock.payment.findUnique).toHaveBeenCalled()
+        expect(prismaMock.payment.create).not.toHaveBeenCalled()
         expect(mockDecremementVaultAmount).toHaveBeenCalled()
-        expect(prismaMock.payments.update).toHaveBeenCalled()
+        expect(prismaMock.payment.update).toHaveBeenCalled()
       })
   })
 
@@ -574,13 +574,13 @@ describe('StripePaymentService', () => {
       .spyOn(campaignService, 'updateDonationPayment')
       .mockName('updateDonationPayment')
 
-    prismaMock.payments.findFirst.mockResolvedValue({
+    prismaMock.payment.findFirst.mockResolvedValue({
       ...mockPayment,
       amount: (mockInvoicePaidEvent.data.object as Stripe.Invoice).amount_paid,
       status: PaymentStatus.initial,
     })
 
-    prismaMock.payments.update.mockResolvedValue({
+    prismaMock.payment.update.mockResolvedValue({
       ...mockPayment,
       amount: (mockInvoicePaidEvent.data.object as Stripe.Invoice).amount_paid,
       status: PaymentStatus.initial,

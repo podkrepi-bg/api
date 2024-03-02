@@ -54,7 +54,7 @@ export class CreatePaymentDto {
   @IsUUID()
   targetVaultId: string
 
-  public toEntity(user): Prisma.PaymentsCreateInput {
+  public toEntity(user): Prisma.PaymentCreateInput {
     return {
       type: this.type,
       status: this.status,
