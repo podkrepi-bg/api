@@ -684,7 +684,7 @@ export class DonationsService {
     try {
       // execute the below in prisma transaction
       return await this.prisma.$transaction(async (tx) => {
-        const currentDonation = await tx.payment.findFirst({
+        const currentPayment = await tx.payment.findFirst({
           where: { id },
           include: {
             donations: {
@@ -692,24 +692,24 @@ export class DonationsService {
             },
           },
         })
-        if (!currentDonation) {
+        if (!currentPayment) {
           throw new NotFoundException(`Update failed. No donation found with ID: ${id}`)
         }
 
         if (
-          currentDonation.status === PaymentStatus.succeeded &&
+          currentPayment.status === PaymentStatus.succeeded &&
           updatePaymentDto.status &&
           updatePaymentDto.status !== PaymentStatus.succeeded
         ) {
           throw new BadRequestException('Succeeded donations cannot be updated.')
         }
 
-        const status = updatePaymentDto.status || currentDonation.status
-        let donorId = currentDonation.donations[0].personId
+        const status = updatePaymentDto.status || currentPayment.status
+        let donorId = currentPayment.donations[0].personId
         let billingEmail: string | null = ''
         if (
           (updatePaymentDto.targetPersonId &&
-            currentDonation.donations[0].personId !== updatePaymentDto.targetPersonId) ||
+            currentPayment.donations[0].personId !== updatePaymentDto.targetPersonId) ||
           updatePaymentDto.billingEmail
         ) {
           const targetDonor = await tx.person.findFirst({
@@ -745,19 +745,19 @@ export class DonationsService {
             //In case of personId or billingEmail change, take the last updatedAt property to prevent any changes to updatedAt property
             updatedAt:
               updatePaymentDto.targetPersonId || updatePaymentDto.billingEmail
-                ? currentDonation.updatedAt
+                ? currentPayment.updatedAt
                 : undefined,
           },
         })
 
         if (
-          currentDonation.status !== PaymentStatus.succeeded &&
+          currentPayment.status !== PaymentStatus.succeeded &&
           updatePaymentDto.status === PaymentStatus.succeeded &&
           donation.status === PaymentStatus.succeeded
         ) {
           await this.vaultService.incrementVaultAmount(
-            currentDonation.donations[0].targetVaultId,
-            currentDonation.amount,
+            currentPayment.donations[0].targetVaultId,
+            currentPayment.amount,
             tx,
           )
         }
