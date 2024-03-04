@@ -412,7 +412,7 @@ describe('CampaignController', () => {
   describe('subscribeToCampaignNotifications', () => {
     it('should throw if no consent is provided', async () => {
       const data: CampaignSubscribeDto = {
-        email: person.email!,
+        email: person.email as string,
         consent: false,
       }
 
@@ -423,7 +423,7 @@ describe('CampaignController', () => {
 
     it('should throw if the campaign is not active', async () => {
       const data: CampaignSubscribeDto = {
-        email: person.email!,
+        email: person.email as string,
         consent: true,
       }
 
@@ -442,7 +442,7 @@ describe('CampaignController', () => {
       jest.spyOn(marketingService, 'sendConfirmEmail')
 
       const data: CampaignSubscribeDto = {
-        email: person.email!,
+        email: person.email as string,
         // Valid consent
         consent: true,
       }
@@ -481,7 +481,7 @@ describe('CampaignController', () => {
       jest.spyOn(campaignService, 'createCampaignNotificationList')
 
       const data: CampaignSubscribeDto = {
-        email: person.email!,
+        email: person.email as string,
         // Valid consent
         consent: true,
       }
@@ -522,7 +522,7 @@ describe('CampaignController', () => {
       jest.spyOn(marketingService, 'sendConfirmEmail')
 
       const data: CampaignSubscribeDto = {
-        email: person.email!,
+        email: person.email as string,
         // Valid consent
         consent: true,
       }
@@ -561,7 +561,7 @@ describe('CampaignController', () => {
       })
 
       const data: CampaignSubscribeDto = {
-        email: person.email!,
+        email: person.email as string,
         // Valid consent
         consent: true,
       }
