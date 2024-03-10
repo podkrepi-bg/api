@@ -454,6 +454,7 @@ export class IrisTasks {
         // Update status
         trx.bankDonationStatus = BankDonationStatus.imported
       } catch (e) {
+        Logger.error(e)
         trx.bankDonationStatus = BankDonationStatus.importFailed
       }
     }
@@ -517,6 +518,7 @@ export class IrisTasks {
       provider: PaymentProvider.bank,
       donations: {
         create: {
+          amount: bankTransaction.amount,
           personId: null,
           targetVaultId: vault.id,
           type: DonationType.donation,
