@@ -1,21 +1,24 @@
 import {
   PrismaClient,
   PaymentProvider,
-  DonationStatus,
-  DonationType,
+  PaymentStatus,
   Person,
   CampaignState,
+  PaymentType,
+  DonationType,
 } from '@prisma/client'
 
-import { donationFactory } from './factory'
+import { paymentFactory } from './factory'
+import { faker } from '@faker-js/faker'
+import { donationFactory } from '../donations/factory'
 
 const prisma = new PrismaClient()
 
 const SEED_COMPLETED_CAMPAIGN_DONATIONS = 5
 const SEED_HEAVILY_FUNDED_CAMPAIGN_DONATIONS = 25
 
-export async function donationsSeed() {
-  console.log('Donations seed')
+export async function paymentsSeed() {
+  console.log('Payments seed')
 
   const person = await prisma.person.findFirst()
   if (!person) {
@@ -36,7 +39,6 @@ async function seedRandomDonations({ person }: SeedData) {
   if (!vault) {
     throw new Error('There are no vaults created yet!')
   }
-
   const donationFactoryOptions = {
     associations: {
       personId: person.id,
@@ -44,38 +46,40 @@ async function seedRandomDonations({ person }: SeedData) {
     },
   }
 
-  const randomDonationsData = [
-    donationFactory.build(
-      {
-        type: DonationType.donation,
-        provider: PaymentProvider.stripe,
-        status: DonationStatus.succeeded,
-      },
-      donationFactoryOptions,
-    ),
-    donationFactory.build(
-      {
-        type: DonationType.donation,
-        provider: PaymentProvider.stripe,
-        status: DonationStatus.declined,
-      },
-      donationFactoryOptions,
-    ),
-    donationFactory.build(
-      {
-        type: DonationType.donation,
-        provider: PaymentProvider.bank,
-        status: DonationStatus.initial,
-      },
-      donationFactoryOptions,
-    ),
+  const randomPaymentsData = [
+    paymentFactory.build({
+      type: PaymentType.single,
+      provider: PaymentProvider.stripe,
+      status: PaymentStatus.succeeded,
+    }),
+    paymentFactory.build({
+      type: PaymentType.single,
+      provider: PaymentProvider.stripe,
+      status: PaymentStatus.declined,
+    }),
+    paymentFactory.build({
+      type: PaymentType.single,
+      provider: PaymentProvider.bank,
+      status: PaymentStatus.initial,
+    }),
   ]
+
+  const randomDonationsData = [
+    donationFactory.build({ paymentId: randomPaymentsData[0].id }, donationFactoryOptions),
+    donationFactory.build({ paymentId: randomPaymentsData[1].id }, donationFactoryOptions),
+    donationFactory.build({ paymentId: randomPaymentsData[2].id }, donationFactoryOptions),
+  ]
+  const insertRandomPayments = await prisma.payment.createMany({
+    data: randomPaymentsData,
+    skipDuplicates: true,
+  })
 
   const insertRandomDonations = await prisma.donation.createMany({
     data: randomDonationsData,
     skipDuplicates: true,
   })
 
+  console.log({ insertRandomPayments })
   console.log({ insertRandomDonations })
 
   console.log('{ Updating first campaign vault: %s }', vault.id)
@@ -102,21 +106,30 @@ async function seedDonationsForCompletedCampaign({ person }: SeedData) {
     },
   }
 
-  const completedCampaignDonationsData = donationFactory.buildList(
+  const completedCampaignPaymentsData = paymentFactory.buildList(
     SEED_COMPLETED_CAMPAIGN_DONATIONS,
     {
-      type: DonationType.donation,
+      type: PaymentType.single,
       provider: PaymentProvider.stripe,
-      status: DonationStatus.succeeded,
+      status: PaymentStatus.succeeded,
     },
-    donationFactoryOptions,
   )
 
-  const insertCompletedCampaignDonations = await prisma.donation.createMany({
-    data: completedCampaignDonationsData,
+  const completedCampaignDonationData = completedCampaignPaymentsData.map((payment) =>
+    donationFactory.build({ paymentId: payment.id }, donationFactoryOptions),
+  )
+
+  const insertCompletedCampaignPayments = await prisma.payment.createMany({
+    data: completedCampaignPaymentsData,
     skipDuplicates: true,
   })
 
+  const insertCompletedCampaignDonations = await prisma.donation.createMany({
+    data: completedCampaignDonationData,
+    skipDuplicates: true,
+  })
+
+  console.log({ insertCompletedCampaignPayments })
   console.log({ insertCompletedCampaignDonations })
 
   console.log('{ Updating completed campaign vault: %s }', completedCampaignVault.id)
@@ -145,21 +158,27 @@ async function seedDonationsForHeavilyFundedCampaign({ person }: SeedData) {
     },
   }
 
-  const heavilyFundedCampaignDonationsData = donationFactory.buildList(
+  const heavilyFundedCampaignPaymentData = paymentFactory.buildList(
     SEED_HEAVILY_FUNDED_CAMPAIGN_DONATIONS,
     {
-      type: DonationType.donation,
+      type: PaymentType.single,
       provider: PaymentProvider.stripe,
-      status: DonationStatus.succeeded,
+      status: PaymentStatus.succeeded,
     },
-    donationFactoryOptions,
+  )
+  const heavilyFundedCampaignDonationData = heavilyFundedCampaignPaymentData.map((payment) =>
+    donationFactory.build({ paymentId: payment.id }, donationFactoryOptions),
   )
 
-  const insertHeavilyFundedCampaignDonations = await prisma.donation.createMany({
-    data: heavilyFundedCampaignDonationsData,
+  const insertHeavilyFundedCampaignPayments = await prisma.payment.createMany({
+    data: heavilyFundedCampaignPaymentData,
     skipDuplicates: true,
   })
-
+  const insertHeavilyFundedCampaignDonations = await prisma.donation.createMany({
+    data: heavilyFundedCampaignDonationData,
+    skipDuplicates: true,
+  })
+  console.log({ insertHeavilyFundedCampaignPayments })
   console.log({ insertHeavilyFundedCampaignDonations })
 
   console.log('{ Updating heavily-funded campaign vault: %s }', heavilyFundedCampaignVault.id)
@@ -172,13 +191,13 @@ async function seedDonationsForHeavilyFundedCampaign({ person }: SeedData) {
  * @param vaultId
  */
 async function updateVault(vaultId: string) {
-  const totalDonationsAmount = await prisma.donation.aggregate({
+  const totalDonationsAmount = await prisma.payment.aggregate({
     _sum: {
       amount: true,
     },
     where: {
-      targetVaultId: vaultId,
-      status: DonationStatus.succeeded,
+      donations: { some: { targetVaultId: vaultId } },
+      status: PaymentStatus.succeeded,
     },
   })
 

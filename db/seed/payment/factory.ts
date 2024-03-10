@@ -1,21 +1,18 @@
 import { Factory } from 'fishery'
 import { faker } from '@faker-js/faker'
 
-import { Donation } from '.prisma/client'
-import { Currency, DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
+import { Currency, PaymentStatus, PaymentProvider, PaymentType, Payment } from '@prisma/client'
 
-export const donationFactory = Factory.define<Donation>(({ associations }) => ({
+export const paymentFactory = Factory.define<Payment>(({ associations }) => ({
   id: faker.datatype.uuid(),
   affiliateId: null,
-  type: faker.helpers.arrayElement(Object.values(DonationType)),
-  status: faker.helpers.arrayElement(Object.values(DonationStatus)),
+  type: faker.helpers.arrayElement(Object.values(PaymentType)),
+  status: faker.helpers.arrayElement(Object.values(PaymentStatus)),
   provider: faker.helpers.arrayElement(Object.values(PaymentProvider)),
-  targetVaultId: associations.targetVaultId || faker.datatype.uuid(),
   extCustomerId: 'cus_' + faker.random.alphaNumeric(8),
   extPaymentIntentId: 'pi_' + faker.random.alphaNumeric(8),
   extPaymentMethodId: 'pm_' + faker.random.alphaNumeric(8),
   currency: Currency.BGN,
-  personId: associations.personId || null,
   billingEmail: faker.internet.email(),
   billingName: faker.name.fullName(),
   amount: parseInt(faker.finance.amount(2000, 20000)),

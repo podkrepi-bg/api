@@ -13,7 +13,7 @@ import { campaignTypesSeed } from './campaignType/seed'
 import { bankAccountSeed } from './bankAccount/seed'
 import { vaultSeed } from './vault/seed'
 import { expenseSeed } from './expense/seed'
-import { donationsSeed } from './donation/seed'
+import { paymentsSeed } from './payment/seed'
 import { companySeed } from './company/seed'
 import { donationsWishesSeed } from './donationWish/seed'
 import { campaignNewsSeed } from './campaignNews/seed'
@@ -53,7 +53,7 @@ async function seedDevData() {
     await bankAccountSeed()
     await vaultSeed()
     await expenseSeed()
-    await donationsSeed()
+    await paymentsSeed()
     await donationsWishesSeed()
     await campaignNewsSeed()
   }
