@@ -432,7 +432,9 @@ describe('ImportTransactionsTask', () => {
           billingName: 'JOHN DOE',
           createdAt: new Date('2023-03-14T00:00:00.000Z'),
           currency: 'BGN',
-          donations: { create: { personId: null, targetVaultId: 'vault-id', type: 'donation' } },
+          donations: {
+            create: { personId: null, amount: 5000, targetVaultId: 'vault-id', type: 'donation' },
+          },
           extCustomerId: 'BG77UNCR92900016740920',
           extPaymentIntentId:
             'Booked_5954782144_70123543493054963FTRO23073A58G01C2023345440_20230314',
