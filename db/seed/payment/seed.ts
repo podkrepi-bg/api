@@ -65,9 +65,30 @@ async function seedRandomDonations({ person }: SeedData) {
   ]
 
   const randomDonationsData = [
-    donationFactory.build({ paymentId: randomPaymentsData[0].id }, donationFactoryOptions),
-    donationFactory.build({ paymentId: randomPaymentsData[1].id }, donationFactoryOptions),
-    donationFactory.build({ paymentId: randomPaymentsData[2].id }, donationFactoryOptions),
+    donationFactory.build(
+      {
+        paymentId: randomPaymentsData[0].id,
+        createdAt: randomPaymentsData[0].createdAt,
+        updatedAt: randomPaymentsData[0].updatedAt,
+      },
+      donationFactoryOptions,
+    ),
+    donationFactory.build(
+      {
+        paymentId: randomPaymentsData[1].id,
+        createdAt: randomPaymentsData[1].createdAt,
+        updatedAt: randomPaymentsData[1].updatedAt,
+      },
+      donationFactoryOptions,
+    ),
+    donationFactory.build(
+      {
+        paymentId: randomPaymentsData[2].id,
+        createdAt: randomPaymentsData[2].createdAt,
+        updatedAt: randomPaymentsData[2].updatedAt,
+      },
+      donationFactoryOptions,
+    ),
   ]
   const insertRandomPayments = await prisma.payment.createMany({
     data: randomPaymentsData,
@@ -116,7 +137,10 @@ async function seedDonationsForCompletedCampaign({ person }: SeedData) {
   )
 
   const completedCampaignDonationData = completedCampaignPaymentsData.map((payment) =>
-    donationFactory.build({ paymentId: payment.id }, donationFactoryOptions),
+    donationFactory.build(
+      { paymentId: payment.id, updatedAt: payment.updatedAt, createdAt: payment.createdAt },
+      donationFactoryOptions,
+    ),
   )
 
   const insertCompletedCampaignPayments = await prisma.payment.createMany({
@@ -167,7 +191,10 @@ async function seedDonationsForHeavilyFundedCampaign({ person }: SeedData) {
     },
   )
   const heavilyFundedCampaignDonationData = heavilyFundedCampaignPaymentData.map((payment) =>
-    donationFactory.build({ paymentId: payment.id }, donationFactoryOptions),
+    donationFactory.build(
+      { paymentId: payment.id, createdAt: payment.createdAt, updatedAt: payment.updatedAt },
+      donationFactoryOptions,
+    ),
   )
 
   const insertHeavilyFundedCampaignPayments = await prisma.payment.createMany({
