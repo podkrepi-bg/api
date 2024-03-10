@@ -25,7 +25,7 @@ import { VaultService } from '../vault/vault.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { DonationsService } from '../donations/donations.service'
 import { parseBankTransactionsFile } from './helpers/parser'
-import { DonationStatus, DonationType, PaymentProvider } from '@prisma/client'
+import { DonationType, PaymentProvider, PaymentStatus, PaymentType } from '@prisma/client'
 import { ApiTags } from '@nestjs/swagger'
 import {
   BankImportResult,
@@ -108,15 +108,32 @@ export class BankTransactionsFileController {
 
       const vault = await this.vaultService.findByCampaignId(campaign.id)
       movement.payment.extPaymentMethodId = 'imported bank payment'
-      movement.payment.targetVaultId = vault[0].id
-      movement.payment.type = DonationType.donation
-      movement.payment.status = DonationStatus.succeeded
+      movement.payment.donations[0].targetVaultId = vault[0].id
+      movement.payment.type = PaymentType.single
+      movement.payment.status = PaymentStatus.succeeded
       movement.payment.provider = PaymentProvider.bank
 
+      const paymentObj: CreateBankPaymentDto = {
+        provider: PaymentProvider.bank,
+        status: PaymentStatus.succeeded,
+        type: PaymentType.single,
+        extPaymentIntentId: movement.payment.extPaymentIntentId,
+        extPaymentMethodId: 'imported bank payment',
+        amount: movement.payment.amount,
+        currency: movement.payment.currency,
+        createdAt: movement.payment.createdAt,
+        extCustomerId: movement.payment.extCustomerId,
+        donations: {
+          create: {
+            type: DonationType.donation,
+            amount: movement.payment.amount,
+            targetVault: { connect: { id: vault[0].id } },
+          },
+        },
+      }
+
       try {
-        bankImportResult.status = await this.donationsService.createUpdateBankPayment(
-          movement.payment,
-        )
+        bankImportResult.status = await this.donationsService.createUpdateBankPayment(paymentObj)
       } catch (e) {
         const errorMsg = `Error during database import ${movement.paymentRef} : ${e}`
         bankImportResult.status = ImportStatus.FAILED

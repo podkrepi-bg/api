@@ -107,7 +107,7 @@ model Affiliate {
   createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
   company       Company         @relation(fields: [companyId], references: [id])
-  donations     Donation[]
+  payments      Payment[]
 
   @@map("affiliates")
 }
@@ -448,32 +448,44 @@ model Vault {
   @@map("vaults")
 }
 
+model Payment {
+  id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  extCustomerId      String          @map("ext_customer_id") @db.VarChar(50)
+  extPaymentIntentId String          @unique @map("ext_payment_intent_id")
+  extPaymentMethodId String          @map("ext_payment_method_id")
+  type               PaymentType
+  currency           Currency        @default(BGN)
+  status             PaymentStatus   @default(initial)
+  provider           PaymentProvider @default(none)
+  affiliateId        String?         @map("affiliate_id") @db.Uuid
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime?       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  chargedAmount      Int             @default(0) @map("charged_amount")
+  amount             Int             @default(0)
+  billingEmail       String?         @map("billing_email") @db.VarChar
+  billingName        String?         @map("billing_name") @db.VarChar
+  affiliate          Affiliate?      @relation(fields: [affiliateId], references: [id])
+  donations          Donation[]
+
+  @@map("payments")
+}
+
 model Donation {
-  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type               DonationType
-  status             DonationStatus    @default(initial)
-  provider           PaymentProvider   @default(none)
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  paymentId     String            @map("payment_id") @db.Uuid
+  type          DonationType
   /// Vault where the funds are going
-  targetVaultId      String            @map("target_vault_id") @db.Uuid
-  /// Payment provider attributes
-  extCustomerId      String            @map("ext_customer_id") @db.VarChar(50)
-  extPaymentIntentId String            @unique @map("ext_payment_intent_id")
-  extPaymentMethodId String            @map("ext_payment_method_id")
-  ///
-  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
-  amount             Int               @default(0)
-  currency           Currency          @default(BGN)
-  affiliateId        String?           @map("affiliate_id") @db.Uuid
-  personId           String?           @map("person_id") @db.Uuid
-  billingEmail       String?           @map("billing_email") @db.VarChar
-  billingName        String?           @map("billing_name") @db.VarChar
-  chargedAmount      Int               @default(0)
-  person             Person?           @relation(fields: [personId], references: [id])
-  targetVault        Vault             @relation(fields: [targetVaultId], references: [id])
-  affiliate          Affiliate?        @relation(fields: [affiliateId], references: [id])
-  DonationWish       DonationWish?
-  metadata           DonationMetadata?
+  targetVaultId String            @map("target_vault_id") @db.Uuid
+  amount        Int               @default(0)
+  personId      String?           @map("person_id") @db.Uuid
+  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  person        Person?           @relation(fields: [personId], references: [id])
+  targetVault   Vault             @relation(fields: [targetVaultId], references: [id])
+  DonationWish  DonationWish?
+  metadata      DonationMetadata?
+  payment       Payment           @relation(fields: [paymentId], references: [id])
 
   @@map("donations")
 }
@@ -801,7 +813,15 @@ enum DonationType {
   @@map("donation_type")
 }
 
-enum DonationStatus {
+enum PaymentType {
+  single
+  category
+  benevity
+
+  @@map("payment_type")
+}
+
+enum PaymentStatus {
   initial
   invalid
   incomplete
@@ -814,7 +834,7 @@ enum DonationStatus {
   refund
   paymentRequested
 
-  @@map("donation_status")
+  @@map("payment_status")
 }
 
 enum RecurringDonationStatus {

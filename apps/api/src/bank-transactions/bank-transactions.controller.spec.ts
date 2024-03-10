@@ -6,10 +6,12 @@ import { BankTransactionsController } from './bank-transactions.controller'
 import { BankTransactionsService } from './bank-transactions.service'
 import {
   BankDonationStatus,
+  BankTransaction,
   BankTransactionType,
   Campaign,
   CampaignState,
   Currency,
+  Prisma,
   Vault,
 } from '@prisma/client'
 import { DonationsService } from '../donations/donations.service'
@@ -27,7 +29,9 @@ import { TemplateService } from '../email/template.service'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
 import { AffiliateService } from '../affiliate/affiliate.service'
 
-const bankTransactionsMock = [
+type CampaignWithVault = Prisma.CampaignGetPayload<{ include: { vaults: true } }>
+
+const bankTransactionsMock: BankTransaction[] = [
   {
     id: '1679851630581',
     ibanNumber: 'BG27STSA93001111111111',
@@ -43,6 +47,8 @@ const bankTransactionsMock = [
     description: 'Campaign_Payment_Ref',
     type: BankTransactionType.credit,
     bankDonationStatus: BankDonationStatus.imported,
+    matchedRef: '123',
+    notified: true,
   },
   {
     id: '1679851630581',
@@ -59,6 +65,8 @@ const bankTransactionsMock = [
     description: 'Campaign_Payment_Ref',
     type: BankTransactionType.credit,
     bankDonationStatus: BankDonationStatus.reImported,
+    matchedRef: '123',
+    notified: true,
   },
   {
     id: '1679851630582',
@@ -75,6 +83,8 @@ const bankTransactionsMock = [
     description: 'WRONG_Campaign_Payment_Ref',
     type: BankTransactionType.credit,
     bankDonationStatus: BankDonationStatus.unrecognized,
+    matchedRef: '123',
+    notified: true,
   },
   {
     id: '1679851630583',
@@ -91,16 +101,32 @@ const bankTransactionsMock = [
     description: 'WRONG_Campaign_Payment_Ref',
     type: BankTransactionType.credit,
     bankDonationStatus: BankDonationStatus.importFailed,
+    matchedRef: '123',
+    notified: true,
   },
 ]
 
-const mockCampaign: Campaign & { vaults: Vault[] } = {
+const mockCampaign: CampaignWithVault = {
   id: 'testId',
+  slug: 'test',
+  beneficiaryId: '123',
+  campaignTypeId: '123',
+  title: 'campaign-mock',
+  essence: 'short-description',
   state: CampaignState.approved,
   createdAt: new Date('2022-04-08T06:36:33.661Z'),
   updatedAt: new Date('2022-04-08T06:36:33.662Z'),
   deletedAt: null,
   approvedById: null,
+  startDate: new Date('2022-04-08T06:36:33.661Z'),
+  endDate: new Date('2022-04-08T06:36:33.661Z'),
+  targetAmount: 5000,
+  allowDonationOnComplete: false,
+  description: 'h',
+  coordinatorId: '1234',
+  companyId: '123',
+  currency: 'BGN',
+  organizerId: '123',
   paymentReference: 'payment-ref',
   vaults: [],
 }

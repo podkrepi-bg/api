@@ -22,5 +22,3 @@ export const donationWithPerson = Prisma.validator<Prisma.DonationFindManyArgs>(
     metadata: true,
   },
 })
-
-export type DonationWithPerson = Prisma.DonationGetPayload<typeof donationWithPerson>

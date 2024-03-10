@@ -15,7 +15,7 @@ import {
   getPaymentDataFromCharge,
   PaymentData,
 } from '../helpers/payment-intent-helpers'
-import { DonationStatus, CampaignState } from '@prisma/client'
+import { PaymentStatus, CampaignState } from '@prisma/client'
 import { EmailService } from '../../email/email.service'
 import { RefundDonationEmailDto } from '../../email/template.interface'
 import { PrismaService } from '../../prisma/prisma.service'
@@ -63,7 +63,7 @@ export class StripePaymentService {
     /*
      * Handle the create event
      */
-    await this.campaignService.updateDonationPayment(campaign, paymentData, DonationStatus.waiting)
+    await this.campaignService.updateDonationPayment(campaign, paymentData, PaymentStatus.waiting)
   }
 
   @StripeWebhookHandler('payment_intent.canceled')
@@ -77,7 +77,7 @@ export class StripePaymentService {
 
     const billingData = getPaymentData(paymentIntent)
 
-    this.updatePaymentDonationStatus(paymentIntent, billingData, DonationStatus.cancelled)
+    this.updatePaymentPaymentStatus(paymentIntent, billingData, PaymentStatus.cancelled)
   }
 
   @StripeWebhookHandler('payment_intent.payment_failed')
@@ -91,13 +91,13 @@ export class StripePaymentService {
 
     const billingData = getPaymentData(paymentIntent)
 
-    await this.updatePaymentDonationStatus(paymentIntent, billingData, DonationStatus.declined)
+    await this.updatePaymentPaymentStatus(paymentIntent, billingData, PaymentStatus.declined)
   }
 
-  async updatePaymentDonationStatus(
+  async updatePaymentPaymentStatus(
     paymentIntent: Stripe.PaymentIntent,
     billingData: PaymentData,
-    donationStatus: DonationStatus,
+    PaymentStatus: PaymentStatus,
   ) {
     const metadata: DonationMetadata = paymentIntent.metadata as DonationMetadata
     if (!metadata.campaignId) {
@@ -109,7 +109,7 @@ export class StripePaymentService {
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
 
-    await this.campaignService.updateDonationPayment(campaign, billingData, donationStatus)
+    await this.campaignService.updateDonationPayment(campaign, billingData, PaymentStatus)
   }
 
   @StripeWebhookHandler('charge.succeeded')
@@ -139,7 +139,7 @@ export class StripePaymentService {
     const donationId = await this.campaignService.updateDonationPayment(
       campaign,
       billingData,
-      DonationStatus.succeeded,
+      PaymentStatus.succeeded,
     )
 
     //updateDonationPayment will mark the campaign as completed if amount is reached
@@ -171,7 +171,7 @@ export class StripePaymentService {
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
 
-    await this.campaignService.updateDonationPayment(campaign, billingData, DonationStatus.refund)
+    await this.campaignService.updateDonationPayment(campaign, billingData, PaymentStatus.refund)
 
     if (billingData.billingEmail !== undefined) {
       const recepient = { to: [billingData.billingEmail] }
@@ -364,11 +364,7 @@ export class StripePaymentService {
 
     const paymentData = getInvoiceData(invoice)
 
-    await this.campaignService.updateDonationPayment(
-      campaign,
-      paymentData,
-      DonationStatus.succeeded,
-    )
+    await this.campaignService.updateDonationPayment(campaign, paymentData, PaymentStatus.succeeded)
 
     //updateDonationPayment will mark the campaign as completed if amount is reached
     await this.cancelSubscriptionsIfCompletedCampaign(metadata.campaignId)

@@ -23,7 +23,7 @@ import { CreateAffiliateDonationDto } from './dto/create-affiliate-donation.dto'
 import { DonationsService } from '../donations/donations.service'
 import { shouldAllowStatusChange } from '../donations/helpers/donation-status-updates'
 import { affiliateCodeGenerator } from './utils/affiliateCodeGenerator'
-import { DonationStatus } from '@prisma/client'
+import { PaymentStatus } from '@prisma/client'
 import { CampaignService } from '../campaign/campaign.service'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
@@ -134,7 +134,7 @@ export class AffiliateController {
   @Public()
   async getAffiliateDonations(
     @Param('affiliateCode') affiliateCode: string,
-    @Query('status') status: DonationStatus | undefined,
+    @Query('status') status: PaymentStatus | undefined,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit') limit: number | undefined,
   ) {
@@ -151,7 +151,7 @@ export class AffiliateController {
   async findAffiliateDonationByCustomerId(
     @Param('affiliateCode') affiliateCode: string,
     @Param('customerId') customerId: string,
-    @Query('status') status: DonationStatus | undefined,
+    @Query('status') status: PaymentStatus | undefined,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit') limit: number | undefined,
   ) {
