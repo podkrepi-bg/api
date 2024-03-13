@@ -9,6 +9,16 @@ export const donationWithPerson = Prisma.validator<Prisma.DonationFindManyArgs>(
         email: true,
       },
     },
+    payment: {
+      select: {
+        id: true,
+        status: true,
+        provider: true,
+        currency: true,
+        billingEmail: true,
+        billingName: true,
+      },
+    },
     targetVault: {
       select: {
         name: true,
