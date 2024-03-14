@@ -642,10 +642,6 @@ export class DonationsService {
         return ImportStatus.SUCCESS
       }
 
-      await this.prisma.payment.update({
-        where: { extPaymentIntentId: donationDto.extPaymentIntentId },
-        data: { ...donationDto, updatedAt: existingDonation.updatedAt },
-      })
       return ImportStatus.UPDATED
     })
   }
