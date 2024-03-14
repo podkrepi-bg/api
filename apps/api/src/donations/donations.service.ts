@@ -903,6 +903,11 @@ export class DonationsService {
         : 'Anonymous Donor',
       email: donation.person ? donation.person.email : '',
       campaignId: donation.targetVault.campaign.id,
+      status: donation.payment.status,
+      provider: donation.payment.provider,
+      currency: donation.payment.currency,
+      billingName: donation.payment.billingName,
+      billingEmail: donation.payment.billingEmail,
     }))
 
     const donationExcelTemplate = getTemplateByTable('donations')
