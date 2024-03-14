@@ -126,34 +126,34 @@ jobs:
             ghcr.io/podkrepi-bg/api/seed:master
             ghcr.io/podkrepi-bg/api/seed:${{ env.VERSION }}
 
-  # scan-manifests:
-  #   name: Scan k8s manifests
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
+  scan-manifests:
+    name: Scan k8s manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Install kustomize
-  #       uses: imranismail/setup-kustomize@v2
+      - name: Install kustomize
+        uses: imranismail/setup-kustomize@v2
 
-  #     - name: Build development manifests
-  #       run: kustomize build manifests/overlays/development > dev-manifests.yaml
+      - name: Build development manifests
+        run: kustomize build manifests/overlays/development > dev-manifests.yaml
 
-  #     - name: Scan development manifests with Mondoo
-  #       uses: mondoohq/actions/k8s-manifest@main
-  #       env:
-  #         MONDOO_CONFIG_BASE64: ${{ secrets.MONDOO_SECRET }}
-  #       with:
-  #         path: dev-manifests.yaml
+      - name: Scan development manifests with Mondoo
+        uses: mondoohq/actions/k8s-manifest@main
+        env:
+          MONDOO_CONFIG_BASE64: ${{ secrets.MONDOO_SECRET }}
+        with:
+          path: dev-manifests.yaml
 
-  #     - name: Build production manifests
-  #       run: kustomize build manifests/overlays/production > prod-manifests.yaml
+      - name: Build production manifests
+        run: kustomize build manifests/overlays/production > prod-manifests.yaml
 
-  #     - name: Scan production manifests with Mondoo
-  #       uses: mondoohq/actions/k8s-manifest@main
-  #       env:
-  #         MONDOO_CONFIG_BASE64: ${{ secrets.MONDOO_SECRET }}
-  #       with:
-  #         path: prod-manifests.yaml
+      - name: Scan production manifests with Mondoo
+        uses: mondoohq/actions/k8s-manifest@main
+        env:
+          MONDOO_CONFIG_BASE64: ${{ secrets.MONDOO_SECRET }}
+        with:
+          path: prod-manifests.yaml
 
   release-dev:
     name: Release to dev
@@ -184,7 +184,7 @@ jobs:
         run: |
           kustomize edit set image ghcr.io/podkrepi-bg/api=ghcr.io/podkrepi-bg/api:$VERSION
           kustomize edit set image ghcr.io/podkrepi-bg/api/migrations=ghcr.io/podkrepi-bg/api/migrations:$VERSION
-          kustomize edit set annotation app.komodor.com/app.ref:$GITHUB_SHA  
+          kustomize edit set annotation app.komodor.com/app.ref:$GITHUB_SHA
 
       - name: Set kubeconfig
         run: echo ${{ secrets.K8S_DEV_CONFIG }} | base64 -d > config.yaml
@@ -237,7 +237,7 @@ jobs:
         run: |
           kustomize edit set image ghcr.io/podkrepi-bg/api=ghcr.io/podkrepi-bg/api:$VERSION
           kustomize edit set image ghcr.io/podkrepi-bg/api/migrations=ghcr.io/podkrepi-bg/api/migrations:$VERSION
-          kustomize edit set annotation app.komodor.com/app.ref:$GITHUB_SHA  
+          kustomize edit set annotation app.komodor.com/app.ref:$GITHUB_SHA
 
       - name: Set kubeconfig
         run: echo ${{ secrets.K8S_CONFIG }} | base64 -d > config.yaml
