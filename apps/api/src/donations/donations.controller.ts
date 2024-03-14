@@ -292,6 +292,14 @@ export class DonationsController {
     return this.donationsService.update(id, updatePaymentDto)
   }
 
+  @Patch(':id/sync-with-payment')
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async syncWithPayment(@Param('id') donationId: string) {
+    return await this.donationsService.syncDonationAmountWithPayment(donationId)
+  }
   @Post('delete')
   @Roles({
     roles: [EditFinancialsRequests.role],
