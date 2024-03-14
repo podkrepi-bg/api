@@ -918,4 +918,19 @@ export class DonationsService {
       donationExcelTemplate,
     )
   }
+
+  async syncDonationAmountWithPayment(donationId: string) {
+    await this.prisma.$transaction(async (tx) => {
+      const payment = await tx.payment.findFirst({
+        where: { donations: { some: { id: donationId } } },
+      })
+      if (!payment) throw new NotFoundException('No payment found for this donation')
+      return await this.prisma.donation.update({
+        where: { id: donationId },
+        data: {
+          amount: payment.amount,
+        },
+      })
+    })
+  }
 }
