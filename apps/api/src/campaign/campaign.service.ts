@@ -642,6 +642,14 @@ export class CampaignService {
             extPaymentIntentId: paymentData.paymentIntentId,
             billingName: paymentData.billingName,
             billingEmail: paymentData.billingEmail,
+            donations: {
+              updateMany: {
+                where: { paymentId: payment.id },
+                data: {
+                  amount: paymentData.netAmount,
+                },
+              },
+            },
           },
           select: donationNotificationSelect,
         })
