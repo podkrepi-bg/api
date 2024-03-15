@@ -385,12 +385,12 @@ export class DonationsService {
         lte: to,
       },
       paymentId: paymentId,
-      OR: [
-        { payment: { status: paymentStatus } },
-        { payment: { provider: paymentProvider } },
-        { payment: { billingEmail: { contains: search } } },
-        { payment: { billingName: { contains: search } } },
-      ],
+      payment: {
+        status: paymentStatus,
+        provider: paymentProvider,
+        billingName: { contains: search },
+        billingEmail: { contains: search },
+      },
       targetVault: { campaign: { id: campaignId } },
     })
 
