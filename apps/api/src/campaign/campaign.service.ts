@@ -647,6 +647,8 @@ export class CampaignService {
                 where: { paymentId: payment.id },
                 data: {
                   amount: paymentData.netAmount,
+                  createdAt: payment.createdAt,
+                  updatedAt: payment.updatedAt,
                 },
               },
             },
