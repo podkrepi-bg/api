@@ -929,6 +929,8 @@ export class DonationsService {
         where: { id: donationId },
         data: {
           amount: payment.amount,
+          createdAt: payment.createdAt,
+          updatedAt: payment.updatedAt,
         },
       })
     })
