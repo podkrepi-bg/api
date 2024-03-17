@@ -52,6 +52,12 @@ export class RegisterDto {
   @IsBoolean()
   public readonly newsletter?: boolean
 
+  @ApiProperty()
+  @Expose()
+  @IsOptional()
+  @IsBoolean()
+  public readonly helpUsImprove?: boolean
+
   @ValidateIf((o) => o.type === ProfileType.CORPORATE)
   @Expose()
   @IsString()
