@@ -17,6 +17,6 @@ export const personMock: Person = {
   birthday: null,
   personalNumber: null,
   stripeCustomerId: null,
-  profileEnabled: false,
+  profileEnabled: true,
   helpUsImprove: false,
 }
