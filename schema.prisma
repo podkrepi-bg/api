@@ -40,7 +40,7 @@ model Person {
   updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
   // Receive marketing notifications
   newsletter         Boolean?            @default(false)
-  helpUsImporve      Boolean?            @default(false)
+  helpUsImprove      Boolean?            @default(false) @map("help_us_improve")
   address            String?             @db.VarChar(100)
   birthday           DateTime?           @db.Timestamptz(6)
   emailConfirmed     Boolean?            @default(false) @map("email_confirmed")
