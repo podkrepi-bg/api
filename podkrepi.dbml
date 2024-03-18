@@ -16,6 +16,7 @@ Table people {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   newsletter Boolean [default: false]
+  helpUsImporve Boolean [default: false]
   address String
   birthday DateTime
   emailConfirmed Boolean [default: false]
