@@ -4,6 +4,7 @@ export class UpdatePersonDto {
   email?: string
   phone?: string
   newsletter?: boolean
+  helpUsImprove?: boolean
   address?: string
   birthday?: Date
   emailConfirmed?: boolean

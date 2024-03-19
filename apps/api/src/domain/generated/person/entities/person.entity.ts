@@ -29,6 +29,7 @@ export class Person {
   createdAt: Date
   updatedAt: Date | null
   newsletter: boolean | null
+  helpUsImprove: boolean | null
   address: string | null
   birthday: Date | null
   emailConfirmed: boolean | null

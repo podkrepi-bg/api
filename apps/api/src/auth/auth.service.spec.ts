@@ -24,6 +24,7 @@ import { SendGridNotificationsProvider } from '../notifications/providers/notifi
 import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
 import { PersonService } from '../person/person.service'
+import { personMock } from '../person/__mock__/personMock'
 
 jest.mock('@keycloak/keycloak-admin-client')
 
@@ -32,28 +33,10 @@ describe('AuthService', () => {
   let config: ConfigService
   let admin: KeycloakAdminClient
   let keycloak: KeycloakConnect.Keycloak
-  let marketing: NotificationsProviderInterface<unknown>
+  let marketing: NotificationsProviderInterface
   let personService: PersonService
 
-  const person: Person = {
-    id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
-    firstName: 'Admin',
-    lastName: 'Dev',
-    companyId: null,
-    keycloakId: '123',
-    email: 'test@podkrepi.bg',
-    emailConfirmed: false,
-    phone: null,
-    picture: null,
-    createdAt: new Date('2021-10-07T13:38:11.097Z'),
-    updatedAt: new Date('2021-10-07T13:38:11.097Z'),
-    newsletter: false,
-    address: null,
-    birthday: null,
-    personalNumber: null,
-    stripeCustomerId: null,
-    profileEnabled: false,
-  }
+  const person: Person = personMock
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -331,7 +314,8 @@ describe('AuthService', () => {
     //if no company has been created company.id is expected to be undefined
     const companyId = undefined
     const profileEnabled = true
-    const newsletter = true
+    const newsletter = personMock.newsletter
+    const helpUsImprove = personMock.helpUsImprove
 
     it('should call keycloak and prisma', async () => {
       const keycloakId = 'u123'
@@ -381,7 +365,16 @@ describe('AuthService', () => {
 
       // Check db creation
       expect(prismaSpy).toHaveBeenCalledWith({
-        create: { keycloakId, email, firstName, lastName, newsletter, companyId, profileEnabled },
+        create: {
+          keycloakId,
+          email,
+          firstName,
+          lastName,
+          newsletter,
+          companyId,
+          profileEnabled,
+          helpUsImprove,
+        },
         update: { keycloakId },
         where: { email },
       })
@@ -423,25 +416,7 @@ describe('AuthService', () => {
         // Add to marketing list
         newsletter: true,
       })
-      const person: Person = {
-        id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
-        firstName,
-        lastName,
-        companyId: null,
-        keycloakId,
-        email,
-        emailConfirmed: false,
-        phone: null,
-        picture: null,
-        createdAt: new Date('2021-10-07T13:38:11.097Z'),
-        updatedAt: new Date('2021-10-07T13:38:11.097Z'),
-        newsletter: true,
-        address: null,
-        birthday: null,
-        personalNumber: null,
-        stripeCustomerId: null,
-        profileEnabled: true,
-      }
+
       jest.spyOn(prismaMock.person, 'upsert').mockResolvedValue(person)
       jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
       const marketingSpy = jest
@@ -473,25 +448,7 @@ describe('AuthService', () => {
         // Don't subscribe to marketing list
         newsletter: false,
       })
-      const person: Person = {
-        id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
-        firstName,
-        lastName,
-        companyId: null,
-        keycloakId,
-        email,
-        emailConfirmed: false,
-        phone: null,
-        picture: null,
-        createdAt: new Date('2021-10-07T13:38:11.097Z'),
-        updatedAt: new Date('2021-10-07T13:38:11.097Z'),
-        newsletter: false,
-        address: null,
-        birthday: null,
-        personalNumber: null,
-        stripeCustomerId: null,
-        profileEnabled: true,
-      }
+      
       jest.spyOn(prismaMock.person, 'upsert').mockResolvedValue(person)
       jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
       const marketingSpy = jest

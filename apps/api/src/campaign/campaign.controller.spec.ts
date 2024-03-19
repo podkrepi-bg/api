@@ -23,7 +23,7 @@ import { MarketingNotificationsService } from '../notifications/notifications.se
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { CampaignNewsService } from '../campaign-news/campaign-news.service'
-import { personMock } from '../person/__mock__/peronMock'
+import { personMock } from '../person/__mock__/personMock'
 
 describe('CampaignController', () => {
   let controller: CampaignController

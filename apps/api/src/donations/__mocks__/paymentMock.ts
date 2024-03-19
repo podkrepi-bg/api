@@ -1,7 +1,7 @@
 import { Currency, DonationType, PaymentProvider, PaymentStatus } from '@prisma/client'
 import { PaymentWithDonation } from '../types/donation'
 import { DonationWithPerson } from '../types/donation'
-import { personMock } from '../../person/__mock__/peronMock'
+import { personMock } from '../../person/__mock__/personMock'
 
 export const mockDonation: DonationWithPerson = {
   id: '1234',
