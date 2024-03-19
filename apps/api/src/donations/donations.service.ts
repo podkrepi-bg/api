@@ -388,9 +388,13 @@ export class DonationsService {
       payment: {
         status: paymentStatus,
         provider: paymentProvider,
-        billingName: { contains: search },
-        billingEmail: { contains: search },
       },
+      OR: [
+        { payment: { billingEmail: { contains: search } } },
+        { payment: { billingName: { contains: search } } },
+        { person: { firstName: { contains: search } } },
+        { person: { lastName: { contains: search } } },
+      ],
       targetVault: { campaign: { id: campaignId } },
     })
 
