@@ -17,9 +17,10 @@ import {
   Campaign,
   CampaignState,
   PaymentStatus,
-  Payments,
+  Payment,
   Prisma,
   Vault,
+  Person,
 } from '@prisma/client'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common'
@@ -27,6 +28,7 @@ import { AffiliateStatusUpdateDto } from './dto/affiliate-status-update.dto'
 import * as afCodeGenerator from './utils/affiliateCodeGenerator'
 import { CreateAffiliateDonationDto } from './dto/create-affiliate-donation.dto'
 import { mockPayment } from '../donations/__mocks__/paymentMock'
+import { personMock } from '../person/__mock__/personMock'
 
 type PersonWithPayload = Prisma.PersonGetPayload<{ include: { company: true } }>
 type AffiliateWithPayload = Prisma.AffiliateGetPayload<{
@@ -80,26 +82,7 @@ describe('AffiliateController', () => {
     newStatus: 'active',
   }
 
-  const mockIndividualProfile: PersonWithPayload = {
-    id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
-    firstName: 'John',
-    lastName: 'Doe',
-    companyId: null,
-    keycloakId: '123',
-    email: 'test@podkrepi.bg',
-    emailConfirmed: false,
-    phone: null,
-    picture: null,
-    createdAt: new Date('2021-10-07T13:38:11.097Z'),
-    updatedAt: new Date('2021-10-07T13:38:11.097Z'),
-    newsletter: false,
-    address: null,
-    birthday: null,
-    personalNumber: null,
-    stripeCustomerId: null,
-    company: null,
-    profileEnabled: true,
-  }
+  const mockIndividualProfile: Person = personMock
 
   const vaultMock: Vault = {
     id: 'vault-id',
@@ -286,7 +269,7 @@ describe('AffiliateController', () => {
         extCustomerId: '',
         extPaymentIntentId: '123456',
         extPaymentMethodId: '1234',
-        billingEmail: 'test@podkrepi.bg',
+        billingEmail: personMock.email,
         currency: 'BGN',
         toEntity: new CreateAffiliateDonationDto().toEntity,
         metadata: {
@@ -314,7 +297,7 @@ describe('AffiliateController', () => {
       )
     })
     it('should cancel', async () => {
-      const cancelledDonationResponse: Payments = {
+      const cancelledDonationResponse: Payment = {
         ...mockGuaranteedPayment,
         status: PaymentStatus.cancelled,
       }
@@ -327,7 +310,7 @@ describe('AffiliateController', () => {
       ).toEqual(cancelledDonationResponse)
     })
     it('should throw error if donation status is succeeded', async () => {
-      const succeededDonationResponse: Payments = {
+      const succeededDonationResponse: Payment = {
         ...mockGuaranteedPayment,
         status: PaymentStatus.succeeded,
       }
