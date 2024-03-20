@@ -288,7 +288,7 @@ export class DonationsService {
           OR: [{ payment: { status: status } }, { payment: { status: PaymentStatus.guaranteed } }],
           targetVault: { campaignId },
         },
-        orderBy: [{ updatedAt: 'desc' }],
+        orderBy: [{ createdAt: 'desc' }],
         select: {
           id: true,
           type: true,
