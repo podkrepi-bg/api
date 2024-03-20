@@ -37,6 +37,8 @@ jobs:
         run: yarn prisma generate
       - name: Migrate database
         run: yarn prisma migrate deploy
+      - name: Seed database
+        run: yarn seed
       - name: NX Build and lint API # https://github.com/marketplace/actions/nrwl-nx
         uses: MansaGroup/nrwl-nx-action@v3
         with:

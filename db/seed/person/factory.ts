@@ -21,5 +21,5 @@ export const personFactory = Factory.define<Person>(() => ({
   createdAt: faker.date.past(),
   updatedAt: faker.date.recent(),
   profileEnabled: true,
-  helpUsImprove: false,
+  // helpUsImprove: false,
 }))
