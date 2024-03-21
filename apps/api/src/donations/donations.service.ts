@@ -435,7 +435,7 @@ export class DonationsService {
     pageSize?: number,
   ): Promise<ListDonationsDto<PaymentWithDonationCount>> {
     const whereClause = Prisma.validator<Prisma.PaymentWhereInput>()({
-      // id: paymentId,
+      id: paymentId,
       amount: {
         gte: minAmount,
         lte: maxAmount,
