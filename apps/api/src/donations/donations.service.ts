@@ -385,11 +385,15 @@ export class DonationsService {
         lte: to,
       },
       paymentId: paymentId,
+      payment: {
+        status: paymentStatus,
+        provider: paymentProvider,
+      },
       OR: [
-        { payment: { status: paymentStatus } },
-        { payment: { provider: paymentProvider } },
         { payment: { billingEmail: { contains: search } } },
         { payment: { billingName: { contains: search } } },
+        { person: { firstName: { contains: search } } },
+        { person: { lastName: { contains: search } } },
       ],
       targetVault: { campaign: { id: campaignId } },
     })
@@ -431,7 +435,7 @@ export class DonationsService {
     pageSize?: number,
   ): Promise<ListDonationsDto<PaymentWithDonationCount>> {
     const whereClause = Prisma.validator<Prisma.PaymentWhereInput>()({
-      // id: paymentId,
+      id: paymentId,
       amount: {
         gte: minAmount,
         lte: maxAmount,
