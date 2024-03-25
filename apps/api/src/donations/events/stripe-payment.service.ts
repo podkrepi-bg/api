@@ -19,6 +19,7 @@ import { PaymentStatus, CampaignState } from '@prisma/client'
 import { EmailService } from '../../email/email.service'
 import { RefundDonationEmailDto } from '../../email/template.interface'
 import { PrismaService } from '../../prisma/prisma.service'
+import { DonationsService } from '../donations.service'
 
 /** Testing Stripe on localhost is described here:
  * https://github.com/podkrepi-bg/api/blob/master/TESTING.md#testing-stripe
@@ -26,10 +27,10 @@ import { PrismaService } from '../../prisma/prisma.service'
 @Injectable()
 export class StripePaymentService {
   constructor(
+    private donationService: DonationsService,
     private campaignService: CampaignService,
     private recurringDonationService: RecurringDonationService,
     private sendEmail: EmailService,
-    private prismaService: PrismaService,
   ) {}
 
   @StripeWebhookHandler('payment_intent.created')
@@ -63,7 +64,7 @@ export class StripePaymentService {
     /*
      * Handle the create event
      */
-    await this.campaignService.updateDonationPayment(campaign, paymentData, PaymentStatus.waiting)
+    await this.donationService.updateDonationPayment(campaign, paymentData, PaymentStatus.waiting)
   }
 
   @StripeWebhookHandler('payment_intent.canceled')
@@ -109,7 +110,7 @@ export class StripePaymentService {
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
 
-    await this.campaignService.updateDonationPayment(campaign, billingData, PaymentStatus)
+    await this.donationService.updateDonationPayment(campaign, billingData, PaymentStatus)
   }
 
   @StripeWebhookHandler('charge.succeeded')
@@ -136,7 +137,7 @@ export class StripePaymentService {
 
     const billingData = getPaymentDataFromCharge(charge)
 
-    const donationId = await this.campaignService.updateDonationPayment(
+    const donationId = await this.donationService.updateDonationPayment(
       campaign,
       billingData,
       PaymentStatus.succeeded,
@@ -171,7 +172,7 @@ export class StripePaymentService {
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
 
-    await this.campaignService.updateDonationPayment(campaign, billingData, PaymentStatus.refund)
+    await this.donationService.updateDonationPayment(campaign, billingData, PaymentStatus.refund)
 
     if (billingData.billingEmail !== undefined) {
       const recepient = { to: [billingData.billingEmail] }
@@ -364,7 +365,7 @@ export class StripePaymentService {
 
     const paymentData = getInvoiceData(invoice)
 
-    await this.campaignService.updateDonationPayment(campaign, paymentData, PaymentStatus.succeeded)
+    await this.donationService.updateDonationPayment(campaign, paymentData, PaymentStatus.succeeded)
 
     //updateDonationPayment will mark the campaign as completed if amount is reached
     await this.cancelSubscriptionsIfCompletedCampaign(metadata.campaignId)
