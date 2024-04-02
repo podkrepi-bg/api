@@ -14,7 +14,7 @@ import {
   forwardRef,
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
-import { PaymentStatus } from '@prisma/client'
+
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import {
   RealmViewSupporters,
@@ -195,10 +195,13 @@ export class DonationsController {
     )
   }
 
-  @Get(':id')
-  @Public()
-  findOne(@Param('id') id: string) {
-    return this.donationsService.getDonationById(id)
+  @Get('payments/:id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  findOne(@Param('id') paymentId: string) {
+    return this.donationsService.getPaymentById(paymentId)
   }
 
   @Get('user/:id')

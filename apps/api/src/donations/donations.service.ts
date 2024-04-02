@@ -482,12 +482,12 @@ export class DonationsService {
   }
 
   /**
-   *  Get donation by id
-   * @param id Donation id
-   * @returns  {Promise<Donation>} Donation
+   *  Get payment by id
+   * @param id payment id
+   * @returns  {Promise<PaymentWithDonation>} Payment
    * @throws NotFoundException if no donation is found
    */
-  async getDonationById(id: string): Promise<PaymentWithDonation> {
+  async getPaymentById(id: string): Promise<PaymentWithDonation> {
     try {
       const donation = await this.prisma.payment.findFirstOrThrow({
         where: { id },
@@ -788,7 +788,7 @@ export class DonationsService {
   async invalidate(id: string) {
     try {
       await this.prisma.$transaction(async (tx) => {
-        const donation = await this.getDonationById(id)
+        const donation = await this.getPaymentById(id)
 
         if (donation.status === PaymentStatus.succeeded) {
           await this.vaultService.decrementVaultAmount(
