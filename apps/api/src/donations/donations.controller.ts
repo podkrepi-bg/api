@@ -12,6 +12,7 @@ import {
   Res,
   Inject,
   forwardRef,
+  Put,
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
 import { PaymentStatus } from '@prisma/client'
@@ -36,6 +37,8 @@ import { DonationsApiQuery } from './queries/donations.apiquery'
 import { PersonService } from '../person/person.service'
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager'
 import { UseInterceptors } from '@nestjs/common'
+
+import { CreateUpdatePaymentFromStripeChargeDto } from './dto/create-update-payment-from-stripe-charge.dto.ts'
 
 @ApiTags('donation')
 @Controller('donation')
@@ -196,7 +199,10 @@ export class DonationsController {
   }
 
   @Get(':id')
-  @Public()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   findOne(@Param('id') id: string) {
     return this.donationsService.getDonationById(id)
   }
@@ -254,6 +260,15 @@ export class DonationsController {
     return this.donationsService.refundStripePayment(paymentIntentId)
   }
 
+  @Get('/payments/:id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  getPaymentByPaymentIntentId(@Param('id') paymentIntentId: string) {
+    return this.donationsService.getDonationById(paymentIntentId)
+  }
+
   @Post('create-bank-payment')
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],
@@ -290,6 +305,22 @@ export class DonationsController {
     Logger.debug(`Updating donation with id ${id}`)
 
     return this.donationsService.update(id, updatePaymentDto)
+  }
+
+  @Get('stripe/:id/')
+  @Public()
+  async findStripePayment(@Param('id') stripeId: string) {
+    return await this.donationsService.findDonationByStripeId(stripeId)
+  }
+
+  @Put('create-update-stripe-payment')
+  // @Roles({
+  //   roles: [EditFinancialsRequests.role],
+  //   mode: RoleMatchingMode.ANY,
+  // })
+  @Public()
+  async syncWithPaymentWithStripe(@Body() stripeChargeDto: CreateUpdatePaymentFromStripeChargeDto) {
+    return await this.donationsService.syncPaymentWithStripe(stripeChargeDto)
   }
 
   @Patch(':id/sync-with-payment')

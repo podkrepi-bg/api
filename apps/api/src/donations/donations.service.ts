@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -39,12 +40,17 @@ import { CreateAffiliateDonationDto } from '../affiliate/dto/create-affiliate-do
 import { VaultUpdate } from '../vault/types/vault'
 import { PaymentWithDonation } from './types/donation'
 import type { DonationWithPersonAndVault, PaymentWithDonationCount } from './types/donation'
-import { PaymentData } from './helpers/payment-intent-helpers'
+import { getCountryRegion, stripeFeeCalculator } from './helpers/stripe-fee-calculator'
+import { PaymentData, getPaymentDataFromCharge } from './helpers/payment-intent-helpers'
 import {
   NotificationService,
   donationNotificationSelect,
 } from '../sockets/notifications/notification.service'
-import { shouldAllowStatusChange } from './helpers/donation-status-updates'
+import {
+  mapStripeStatusToInternal,
+  shouldAllowStatusChange,
+} from './helpers/donation-status-updates'
+import { CreateUpdatePaymentFromStripeChargeDto } from './dto/create-update-payment-from-stripe-charge.dto.ts'
 
 @Injectable()
 export class DonationsService {
@@ -1142,6 +1148,7 @@ export class DonationsService {
 
   private async findExistingDonation(tx: Prisma.TransactionClient, paymentData: PaymentData) {
     //first try to find by paymentIntentId
+    console.log(paymentData)
     let donation = await tx.payment.findUnique({
       where: { extPaymentIntentId: paymentData.paymentIntentId },
       include: { donations: true },
@@ -1169,5 +1176,40 @@ export class DonationsService {
       Logger.debug('Donation found by subscription: ', donation)
     }
     return donation
+  }
+
+  async findDonationByStripeId(id: string) {
+    const charge = await this.stripeClient.charges.list({ payment_intent: id })
+    if (!charge) throw new NotFoundException('Charge not found, by payment_intent')
+    const internalDonation = await this.prisma.payment.findFirst({
+      where: { provider: 'stripe', extPaymentIntentId: id },
+    })
+
+    const stripe = {
+      netAmount: Math.round(
+        charge.data[0].amount -
+          stripeFeeCalculator(
+            charge.data[0].amount,
+            getCountryRegion(charge.data[0].payment_method_details?.card?.country as string),
+          ),
+      ),
+      status: charge.data[0].status,
+    }
+
+    return {
+      stripe: charge.data[0],
+      internal: internalDonation,
+      region: getCountryRegion(charge.data[0].payment_method_details?.card?.country as string),
+    }
+  }
+
+  async syncPaymentWithStripe({ stripe }: CreateUpdatePaymentFromStripeChargeDto) {
+    const paymentData = getPaymentDataFromCharge(stripe)
+
+    const campaignId = stripe.metadata?.campaignId
+    const campaign = await this.campaignService.getCampaignById(campaignId)
+    const newStatus = mapStripeStatusToInternal(stripe)
+
+    this.updateDonationPayment(campaign, paymentData, newStatus)
   }
 }

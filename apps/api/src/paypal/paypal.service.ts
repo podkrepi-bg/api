@@ -3,11 +3,13 @@ import { ConfigService } from '@nestjs/config'
 import { CampaignService } from '../campaign/campaign.service'
 import { HttpService } from '@nestjs/axios'
 import { PaymentStatus, DonationType, PaymentProvider, PaymentType } from '@prisma/client'
+import { DonationsService } from '../donations/donations.service'
 
 @Injectable()
 export class PaypalService {
   constructor(
     private campaignService: CampaignService,
+    private donationService: DonationsService,
     private config: ConfigService,
     private httpService: HttpService,
   ) {}
@@ -26,7 +28,7 @@ export class PaypalService {
     // get campaign by id
     const campaign = await this.campaignService.getCampaignById(billingDetails.campaignId)
 
-    await this.campaignService.updateDonationPayment(
+    await this.donationService.updateDonationPayment(
       campaign,
       billingDetails,
       PaymentStatus.waiting,
@@ -49,7 +51,7 @@ export class PaypalService {
     // get campaign by id
     const campaign = await this.campaignService.getCampaignById(billingDetails.campaignId)
 
-    await this.campaignService.updateDonationPayment(
+    await this.donationService.updateDonationPayment(
       campaign,
       billingDetails,
       PaymentStatus.succeeded,
