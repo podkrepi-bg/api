@@ -13,7 +13,7 @@ export class OrganizerService {
   findAll() {
     return this.prisma.organizer.findMany({
       include: {
-        person: true,
+        person: { include: { company: { select: { id: true, companyName: true } } } },
         campaigns: { select: { id: true, slug: true } },
       },
     })
