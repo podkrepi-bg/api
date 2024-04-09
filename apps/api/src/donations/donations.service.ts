@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -51,6 +52,8 @@ import {
   shouldAllowStatusChange,
 } from './helpers/donation-status-updates'
 import { CreateUpdatePaymentFromStripeChargeDto } from './dto/create-update-payment-from-stripe-charge.dto.ts'
+import { CreateBenevityPaymentDto } from './dto/create-benevity-payment'
+import { stringToUUID } from '../common/stringToUUID'
 
 @Injectable()
 export class DonationsService {
@@ -1211,5 +1214,76 @@ export class DonationsService {
     const newStatus = mapStripeStatusToInternal(stripe)
 
     this.updateDonationPayment(campaign, paymentData, newStatus)
+  }
+
+  async createFromBenevity(benevityDto: CreateBenevityPaymentDto) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { extPaymentIntentId: benevityDto.extPaymentIntentId },
+    })
+    if (payment)
+      throw new ConflictException(`Payment with id ${payment.extPaymentIntentId} already exists`)
+
+    const campaignSlug = benevityDto.benevityData.donations[0].projectRemoteId
+    const campaign = await this.campaignService.getCampaignBySlug(campaignSlug)
+    const personObj: Prisma.PersonCreateInput[] = []
+    for (const donation of benevityDto.benevityData.donations) {
+      const donorString = `${donation.donorFirstName}-${donation.donorLastName}-${donation.email}`
+      const personId = stringToUUID(donorString)
+      personObj.push({
+        id: personId,
+        firstName: donation.donorFirstName,
+        lastName: donation.donorLastName,
+        email: donation.email,
+      })
+    }
+    if (!campaign) throw new NotFoundException(`Campaign with ${campaignSlug} not found`)
+
+    const paymentData = Prisma.validator<Prisma.PaymentCreateInput>()({
+      type: 'benevity',
+      extPaymentIntentId: benevityDto.extPaymentIntentId,
+      extPaymentMethodId: 'benevity',
+      billingName: 'UK ONLINE GIVING FOUNDATION',
+      extCustomerId: '',
+      amount: benevityDto.amount * 100,
+      status: PaymentStatus.succeeded,
+      donations: {
+        createMany: {
+          data: benevityDto.benevityData.donations.map((donation, index) => {
+            return {
+              type: DonationType.donation,
+              amount: donation.totalAmount * benevityDto.exchangeRate * 100,
+              targetVaultId: campaign.vaults[0].id,
+              personId: personObj[index].id,
+            }
+          }),
+        },
+      },
+    })
+
+    await this.prisma.$transaction(
+      personObj.map((person) =>
+        this.prisma.person.upsert({
+          where: { id: person.id },
+          create: {
+            id: person.id,
+            firstName: person.firstName,
+            lastName: person.lastName,
+            email: person.email,
+            profileEnabled: false,
+          },
+          update: {},
+        }),
+      ),
+    )
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.payment.create({ data: paymentData })
+        await this.vaultService.incrementVaultAmount(campaign.vaults[0].id, benevityDto.amount, tx)
+      })
+    } catch (err) {
+      console.log(err)
+    }
+    // console.log(result)
+    // return result
   }
 }

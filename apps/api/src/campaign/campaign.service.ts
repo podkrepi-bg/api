@@ -375,7 +375,7 @@ export class CampaignService {
     return campaign
   }
 
-  async getCampaignBySlug(slug: string): Promise<Campaign> {
+  async getCampaignBySlug(slug: string) {
     const includeFilter = {
       campaignType: {
         select: { name: true, slug: true, category: true },
@@ -401,6 +401,7 @@ export class CampaignService {
           person: { select: { id: true, firstName: true, lastName: true, email: true } },
         },
       },
+      vaults: true,
       campaignFiles: true,
     }
 
@@ -436,11 +437,6 @@ export class CampaignService {
 
     campaign['summary'] = this.getVaultAndDonationSummaries(campaign.id, campaignSums)
     campaign['campaignNews'] = await this.getCampaignNews(campaign.id)
-
-    const vault = await this.getCampaignVault(campaign.id)
-    if (vault) {
-      campaign['defaultVault'] = vault?.id
-    }
 
     return campaign
   }

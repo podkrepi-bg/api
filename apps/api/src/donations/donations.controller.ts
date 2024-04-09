@@ -39,6 +39,7 @@ import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager'
 import { UseInterceptors } from '@nestjs/common'
 
 import { CreateUpdatePaymentFromStripeChargeDto } from './dto/create-update-payment-from-stripe-charge.dto.ts'
+import { CreateBenevityPaymentDto } from './dto/create-benevity-payment'
 
 @ApiTags('donation')
 @Controller('donation')
@@ -321,6 +322,16 @@ export class DonationsController {
   @Public()
   async syncWithPaymentWithStripe(@Body() stripeChargeDto: CreateUpdatePaymentFromStripeChargeDto) {
     return await this.donationsService.syncPaymentWithStripe(stripeChargeDto)
+  }
+
+  @Post('import/benevity')
+  // @Roles({
+  //   roles: [EditFinancialsRequests.role],
+  //   mode: RoleMatchingMode.ANY,
+  // })
+  @Public()
+  async createDonationFromBenevity(@Body() benevityDto: CreateBenevityPaymentDto) {
+    return await this.donationsService.createFromBenevity(benevityDto)
   }
 
   @Patch(':id/sync-with-payment')

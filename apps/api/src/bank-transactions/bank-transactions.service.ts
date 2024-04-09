@@ -109,6 +109,18 @@ export class BankTransactionsService {
   }
 
   /**
+   * Find bank transaction by id, whether it is internal, or external defined in the transaction's description.
+   * @param id Id of transaction
+   * @returns
+   */
+  async findTransactionById(id: string): Promise<BankTransaction | null> {
+    return await this.prisma.bankTransaction.findFirst({
+      where: {
+        OR: [{ id: id }, { description: { contains: id } }],
+      },
+    })
+  }
+  /**
    *  @param res  - Response object to be used for the export to excel file
    */
   async exportToExcel(res: Response) {

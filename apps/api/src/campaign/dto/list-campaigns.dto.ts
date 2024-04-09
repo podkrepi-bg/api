@@ -15,6 +15,7 @@ export const AdminCampaignListItemSelect = Prisma.validator<Prisma.CampaignArgs>
     endDate: true,
     createdAt: true,
     updatedAt: true,
+    vaults: true,
     deletedAt: true,
     campaignType: {
       select: {

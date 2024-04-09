@@ -143,6 +143,7 @@ export class VaultService {
     amount: number,
     tx: Prisma.TransactionClient,
   ): Promise<Vault> {
+    console.log(vaultId, amount)
     const vault = await this.updateVaultAmount(vaultId, amount, tx, 'increment')
 
     await this.campaignService.updateCampaignStatusIfTargetReached(vault.campaignId, tx)
@@ -170,7 +171,7 @@ export class VaultService {
     if (amount <= 0) {
       throw new Error('Amount cannot be negative or zero.')
     }
-
+    console.log(vaultId, amount, operationType)
     const updateStatement = {
       where: { id: vaultId },
       data: {
