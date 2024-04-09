@@ -71,12 +71,6 @@ export class CampaignNewsController {
     return await this.campaignNewsService.listAllArticles()
   }
 
-  @Get(':slug')
-  @Public()
-  async findOne(@Param('slug') slug: string) {
-    return await this.campaignNewsService.findArticleBySlug(slug)
-  }
-
   @Get('byId/:id')
   @Public()
   async findById(@Param('id') id: string) {
