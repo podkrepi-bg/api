@@ -59,6 +59,7 @@ import { MarketingNotificationsModule } from '../notifications/notifications.mod
 
 import { StatisticsModule } from '../statistics/statistics.module'
 import { AffiliateModule } from '../affiliate/affiliate.module'
+import { StripeModule } from '../stripe/stripe.module'
 
 @Module({
   imports: [
@@ -123,6 +124,7 @@ import { AffiliateModule } from '../affiliate/affiliate.module'
     CampaignNewsModule,
     CampaignNewsFileModule,
     MarketingNotificationsModule,
+    StripeModule
   ],
   controllers: [AppController],
   providers: [
