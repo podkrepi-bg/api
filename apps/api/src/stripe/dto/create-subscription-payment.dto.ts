@@ -1,7 +1,7 @@
 import { Expose } from 'class-transformer'
 import { ApiProperty } from '@nestjs/swagger'
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator'
-import { Currency } from '@prisma/client'
+import { Currency, DonationType } from '@prisma/client'
 
 export class CreateSubscriptionPaymentDto {
   @Expose()
@@ -9,6 +9,11 @@ export class CreateSubscriptionPaymentDto {
   @IsString()
   @IsOptional()
   campaignId: string
+
+  @ApiProperty()
+  @Expose()
+  @IsEnum(DonationType)
+  type: DonationType
 
   @Expose()
   @ApiProperty()

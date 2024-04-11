@@ -1,11 +1,19 @@
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import Stripe from 'stripe'
 import { UpdateSetupIntentDto } from './dto/update-setup-intent.dto'
+import { KeycloakTokenParsed } from '../auth/keycloak'
+import { CreateSubscriptionPaymentDto } from './dto/create-subscription-payment.dto'
+import { CampaignService } from '../campaign/campaign.service'
+import { PersonService } from '../person/person.service'
 
 @Injectable()
 export class StripeService {
-  constructor(@InjectStripeClient() private stripeClient: Stripe) {}
+  constructor(
+    @InjectStripeClient() private stripeClient: Stripe,
+    private personService: PersonService,
+    private campaignService: CampaignService,
+  ) {}
 
   /**
    * Update a setup intent for a donation
@@ -134,5 +142,72 @@ export class StripeService {
     if (listResponse) {
       return listResponse.list.data.filter((price) => price.active)
     } else return new Array<Stripe.Price>()
+  }
+
+  async createCustomer(
+    user: KeycloakTokenParsed,
+    subscriptionPaymentDto: CreateSubscriptionPaymentDto,
+  ) {
+    const person = await this.personService.findOneByKeycloakId(user.sub)
+    if (!person || !person.email)
+      throw new NotFoundException(`No person found with keycloakid: ${user.sub}`)
+    const customer = await this.stripeClient.customers.create({
+      email: person.email,
+      name: 'JOHN DOE',
+      metadata: {
+        keycloakId: user.sub,
+        person: person.id,
+      },
+    })
+    return customer
+  }
+
+  async createProduct(subscriptionPaymentDto: CreateSubscriptionPaymentDto) {
+    const campaign = await this.campaignService.validateCampaignId(
+      subscriptionPaymentDto.campaignId,
+    )
+    if (!campaign)
+      throw new Error(`Campaign with id ${subscriptionPaymentDto.campaignId} not found`)
+
+    const product = await this.stripeClient.products.create({
+      name: campaign.title,
+      description: `Recurring donation for ${campaign.title} by person ${subscriptionPaymentDto.email}`,
+    })
+    return product
+  }
+  async createSubscription(
+    user: KeycloakTokenParsed,
+    subscriptionPaymentDto: CreateSubscriptionPaymentDto,
+  ): Promise<Stripe.PaymentIntent> {
+    const customer = await this.createCustomer(user, subscriptionPaymentDto)
+    const product = await this.createProduct(subscriptionPaymentDto)
+    const subscription = await this.stripeClient.subscriptions.create({
+      customer: customer.id,
+      items: [
+        {
+          price_data: {
+            unit_amount: Math.round(subscriptionPaymentDto.amount),
+            currency: subscriptionPaymentDto.currency,
+            product: product.id,
+            recurring: { interval: 'month' },
+          },
+        },
+      ],
+      payment_behavior: 'default_incomplete',
+      payment_settings: {
+        save_default_payment_method: 'on_subscription',
+        payment_method_types: ['card'],
+      },
+      metadata: {
+        type: subscriptionPaymentDto.type,
+        campaignId: subscriptionPaymentDto.campaignId,
+        personId: customer.metadata.person,
+        amount: Math.round(subscriptionPaymentDto.amount),
+      },
+
+      expand: ['latest_invoice.payment_intent'],
+    })
+    const invoice = subscription.latest_invoice as Stripe.Invoice
+    return invoice.payment_intent as Stripe.PaymentIntent
   }
 }

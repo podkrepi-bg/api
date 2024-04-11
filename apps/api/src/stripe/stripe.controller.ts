@@ -1,11 +1,13 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
-import { Public } from 'nest-keycloak-connect'
+import { AuthenticatedUser, Public } from 'nest-keycloak-connect'
 import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
 import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto'
 import { UpdateSetupIntentDto } from './dto/update-setup-intent.dto'
 import { StripeService } from './stripe.service'
+import { KeycloakTokenParsed } from '../auth/keycloak'
+import { CreateSubscriptionPaymentDto } from './dto/create-subscription-payment.dto'
 
 @Controller('stripe')
 @ApiTags('stripe')
@@ -76,6 +78,13 @@ export class StripeController {
     return this.stripeService.listPrices('one_time')
   }
 
+  @Post('create-subscription')
+  createSubscription(
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+    @Body() createSubscriptionDto: CreateSubscriptionPaymentDto,
+  ) {
+    return this.stripeService.createSubscription(user, createSubscriptionDto)
+  }
   @Get('prices/recurring')
   @Public()
   findRecurringPrices() {
