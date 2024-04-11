@@ -13,7 +13,7 @@ import { VaultModule } from '../vault/vault.module'
 import { VaultService } from '../vault/vault.service'
 import { DonationsController } from './donations.controller'
 import { DonationsService } from './donations.service'
-import { StripePaymentService } from './events/stripe-payment.service'
+import { StripePaymentService } from '../stripe/events/stripe-payment.service'
 import { HttpModule } from '@nestjs/axios'
 import { ExportModule } from './../export/export.module'
 import { NotificationModule } from '../sockets/notifications/notification.module'
@@ -22,10 +22,6 @@ import { EmailService } from '../email/email.service'
 
 @Module({
   imports: [
-    StripeModule.forRootAsync(StripeModule, {
-      inject: [ConfigService],
-      useFactory: StripeConfigFactory.useFactory,
-    }),
     VaultModule,
     CampaignModule,
     PersonModule,
@@ -37,7 +33,6 @@ import { EmailService } from '../email/email.service'
   controllers: [DonationsController],
   providers: [
     DonationsService,
-    StripePaymentService,
     CampaignService,
     RecurringDonationService,
     PrismaService,

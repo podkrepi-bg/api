@@ -2,7 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { CampaignService } from '../../campaign/campaign.service'
 import { StripePaymentService } from './stripe-payment.service'
-import { getPaymentData, getPaymentDataFromCharge } from '../helpers/payment-intent-helpers'
+import {
+  getPaymentData,
+  getPaymentDataFromCharge,
+} from '../../donations/helpers/payment-intent-helpers'
 import Stripe from 'stripe'
 import { VaultService } from '../../vault/vault.service'
 import { PersonService } from '../../person/person.service'
@@ -51,7 +54,7 @@ import { SendGridNotificationsProvider } from '../../notifications/providers/not
 import { MarketingNotificationsService } from '../../notifications/notifications.service'
 import { EmailService } from '../../email/email.service'
 import { TemplateService } from '../../email/template.service'
-import type { PaymentWithDonation } from '../types/donation'
+import type { PaymentWithDonation } from '../../donations/types/donation'
 
 const defaultStripeWebhookEndpoint = '/stripe/webhook'
 const stripeSecret = 'wh_123'

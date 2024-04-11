@@ -2,7 +2,7 @@ import Stripe from 'stripe'
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { StripeWebhookHandler } from '@golevelup/nestjs-stripe'
 
-import { DonationMetadata } from '../dontation-metadata.interface'
+import { StripeMetadata } from '../stripe-metadata.interface'
 import { CampaignService } from '../../campaign/campaign.service'
 import { RecurringDonationService } from '../../recurring-donation/recurring-donation.service'
 import { CreateRecurringDonationDto } from '../../recurring-donation/dto/create-recurring-donation.dto'
@@ -14,11 +14,12 @@ import {
   getInvoiceData,
   getPaymentDataFromCharge,
   PaymentData,
-} from '../helpers/payment-intent-helpers'
+} from '../../donations/helpers/payment-intent-helpers'
 import { PaymentStatus, CampaignState } from '@prisma/client'
 import { EmailService } from '../../email/email.service'
 import { RefundDonationEmailDto } from '../../email/template.interface'
 import { PrismaService } from '../../prisma/prisma.service'
+import { StripeService } from '../stripe.service'
 
 /** Testing Stripe on localhost is described here:
  * https://github.com/podkrepi-bg/api/blob/master/TESTING.md#testing-stripe
@@ -29,7 +30,7 @@ export class StripePaymentService {
     private campaignService: CampaignService,
     private recurringDonationService: RecurringDonationService,
     private sendEmail: EmailService,
-    private prismaService: PrismaService,
+    private stripeService: StripeService,
   ) {}
 
   @StripeWebhookHandler('payment_intent.created')
@@ -39,10 +40,10 @@ export class StripePaymentService {
     Logger.debug(
       '[ handlePaymentIntentCreated ]',
       paymentIntent,
-      paymentIntent.metadata as DonationMetadata,
+      paymentIntent.metadata as StripeMetadata,
     )
 
-    const metadata: DonationMetadata = paymentIntent.metadata as DonationMetadata
+    const metadata: StripeMetadata = paymentIntent.metadata as StripeMetadata
 
     if (!metadata.campaignId) {
       Logger.debug('[ handlePaymentIntentCreated ] No campaignId in metadata ' + paymentIntent.id)
@@ -72,7 +73,7 @@ export class StripePaymentService {
     Logger.log(
       '[ handlePaymentIntentCancelled ]',
       paymentIntent,
-      paymentIntent.metadata as DonationMetadata,
+      paymentIntent.metadata as StripeMetadata,
     )
 
     const billingData = getPaymentData(paymentIntent)
@@ -86,7 +87,7 @@ export class StripePaymentService {
     Logger.log(
       '[ handlePaymentIntentFailed ]',
       paymentIntent,
-      paymentIntent.metadata as DonationMetadata,
+      paymentIntent.metadata as StripeMetadata,
     )
 
     const billingData = getPaymentData(paymentIntent)
@@ -99,7 +100,7 @@ export class StripePaymentService {
     billingData: PaymentData,
     PaymentStatus: PaymentStatus,
   ) {
-    const metadata: DonationMetadata = paymentIntent.metadata as DonationMetadata
+    const metadata: StripeMetadata = paymentIntent.metadata as StripeMetadata
     if (!metadata.campaignId) {
       throw new BadRequestException(
         'Payment intent metadata does not contain target campaignId. Probably wrong session initiation. Payment intent is:  ' +
@@ -115,9 +116,9 @@ export class StripePaymentService {
   @StripeWebhookHandler('charge.succeeded')
   async handleChargeSucceeded(event: Stripe.Event) {
     const charge: Stripe.Charge = event.data.object as Stripe.Charge
-    Logger.log('[ handleChargeSucceeded ]', charge, charge.metadata as DonationMetadata)
+    Logger.log('[ handleChargeSucceeded ]', charge, charge.metadata as StripeMetadata)
 
-    const metadata: DonationMetadata = charge.metadata as DonationMetadata
+    const metadata: StripeMetadata = charge.metadata as StripeMetadata
 
     if (!metadata.campaignId) {
       Logger.debug('[ handleChargeSucceeded ] No campaignId in metadata ' + charge.id)
@@ -157,10 +158,10 @@ export class StripePaymentService {
     Logger.log(
       '[ handleRefundCreated ]',
       chargePaymentIntent,
-      chargePaymentIntent.metadata as DonationMetadata,
+      chargePaymentIntent.metadata as StripeMetadata,
     )
 
-    const metadata: DonationMetadata = chargePaymentIntent.metadata as DonationMetadata
+    const metadata: StripeMetadata = chargePaymentIntent.metadata as StripeMetadata
 
     if (!metadata.campaignId) {
       Logger.debug('[ handleRefundCreated ] No campaignId in metadata ' + chargePaymentIntent.id)
@@ -209,7 +210,7 @@ export class StripePaymentService {
 
     Logger.log('[ handleSubscriptionCreated ]', subscription)
 
-    const metadata: DonationMetadata = subscription.metadata as DonationMetadata
+    const metadata: StripeMetadata = subscription.metadata as StripeMetadata
     if (!metadata.campaignId) {
       throw new BadRequestException(
         'Subscription metadata does not contain target campaignId. Subscription id: ' +
@@ -267,7 +268,7 @@ export class StripePaymentService {
     const subscription: Stripe.Subscription = event.data.object as Stripe.Subscription
     Logger.log('[ handleSubscriptionUpdated ]', subscription)
 
-    const metadata: DonationMetadata = subscription.metadata as DonationMetadata
+    const metadata: StripeMetadata = subscription.metadata as StripeMetadata
     if (!metadata.campaignId) {
       throw new BadRequestException(
         'Subscription metadata does not contain target campaignId. Subscription id: ' +
@@ -302,7 +303,7 @@ export class StripePaymentService {
     const subscription: Stripe.Subscription = event.data.object as Stripe.Subscription
     Logger.log('[ handleSubscriptionDeleted ]', subscription)
 
-    const metadata: DonationMetadata = subscription.metadata as DonationMetadata
+    const metadata: StripeMetadata = subscription.metadata as StripeMetadata
     if (!metadata.campaignId) {
       throw new BadRequestException(
         'Subscription metadata does not contain target campaignId. Subscription is: ' +
@@ -331,7 +332,7 @@ export class StripePaymentService {
     const invoice: Stripe.Invoice = event.data.object as Stripe.Invoice
     Logger.log('[ handleInvoicePaid ]', invoice)
 
-    let metadata: DonationMetadata = {
+    let metadata: StripeMetadata = {
       type: null,
       campaignId: null,
       personId: null,
@@ -341,7 +342,7 @@ export class StripePaymentService {
 
     invoice.lines.data.forEach((line: Stripe.InvoiceLineItem) => {
       if (line.type === 'subscription') {
-        metadata = line.metadata as DonationMetadata
+        metadata = line.metadata as StripeMetadata
       }
     })
 
@@ -377,7 +378,7 @@ export class StripePaymentService {
       const recurring =
         await this.recurringDonationService.findAllActiveRecurringDonationsByCampaignId(campaignId)
       for (const r of recurring) {
-        await this.recurringDonationService.cancelSubscription(r.extSubscriptionId)
+        await this.stripeService.cancelSubscription(r.extSubscriptionId)
       }
     }
   }

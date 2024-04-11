@@ -14,7 +14,7 @@ import { TemplateService } from '../email/template.service'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
 import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
 import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
-import { mockedVault } from '../donations/events/stripe-payment.testdata'
+import { mockedVault } from '../stripe/events/stripe-payment.testdata'
 import { mockVault } from './__mocks__/vault'
 
 describe('VaultController', () => {

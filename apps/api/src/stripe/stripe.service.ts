@@ -6,6 +6,13 @@ import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CreateSubscriptionPaymentDto } from './dto/create-subscription-payment.dto'
 import { CampaignService } from '../campaign/campaign.service'
 import { PersonService } from '../person/person.service'
+import { DonationsService } from '../donations/donations.service'
+import { CreateSessionDto } from '../donations/dto/create-session.dto'
+import { Campaign, DonationMetadata, Payment } from '@prisma/client'
+import { ConfigService } from '@nestjs/config'
+import { StripeMetadata } from './stripe-metadata.interface'
+import { CreateStripePaymentDto } from '../donations/dto/create-stripe-payment.dto'
+import { RecurringDonationService } from '../recurring-donation/recurring-donation.service'
 
 @Injectable()
 export class StripeService {
@@ -13,6 +20,9 @@ export class StripeService {
     @InjectStripeClient() private stripeClient: Stripe,
     private personService: PersonService,
     private campaignService: CampaignService,
+    private donationService: DonationsService,
+    private configService: ConfigService,
+    private reacurringDonationService: RecurringDonationService,
   ) {}
 
   /**
@@ -81,17 +91,6 @@ export class StripeService {
    */
   async createSetupIntent(): Promise<Stripe.Response<Stripe.SetupIntent>> {
     return await this.stripeClient.setupIntents.create()
-  }
-
-  /**
-   * Create a payment intent for a donation
-   * @param inputDto Payment intent create params
-   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
-   */
-  async createPaymentIntent(
-    inputDto: Stripe.PaymentIntentCreateParams,
-  ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
-    return await this.stripeClient.paymentIntents.create(inputDto)
   }
 
   /**
@@ -209,5 +208,171 @@ export class StripeService {
     })
     const invoice = subscription.latest_invoice as Stripe.Invoice
     return invoice.payment_intent as Stripe.PaymentIntent
+  }
+
+  async createCheckoutSession(
+    sessionDto: CreateSessionDto,
+  ): Promise<void | { session: Stripe.Checkout.Session }> {
+    const campaign = await this.campaignService.validateCampaignId(sessionDto.campaignId)
+    const { mode } = sessionDto
+    const appUrl = this.configService.get<string>('APP_URL')
+
+    const metadata: StripeMetadata = {
+      campaignId: sessionDto.campaignId,
+      personId: sessionDto.personId,
+      isAnonymous: sessionDto.isAnonymous ? 'true' : 'false',
+      wish: sessionDto.message ?? null,
+      type: sessionDto.type,
+    }
+
+    const items = await this.prepareSessionItems(sessionDto, campaign)
+    const createSessionRequest: Stripe.Checkout.SessionCreateParams = {
+      mode,
+      customer_email: sessionDto.personEmail,
+      line_items: items,
+      payment_method_types: ['card'],
+      payment_intent_data: mode == 'payment' ? { metadata } : undefined,
+      subscription_data: mode == 'subscription' ? { metadata } : undefined,
+      success_url: sessionDto.successUrl ?? `${appUrl}/success`,
+      cancel_url: sessionDto.cancelUrl ?? `${appUrl}/canceled`,
+      tax_id_collection: { enabled: true },
+    }
+
+    const sessionResponse = await this.stripeClient.checkout.sessions
+      .create(createSessionRequest)
+      .then(
+        function (session) {
+          Logger.debug('[Stripe] Checkout session created.')
+          return { session }
+        },
+        function (error) {
+          if (error instanceof Stripe.errors.StripeError)
+            Logger.error(
+              '[Stripe] Error while creating checkout session. Error type: ' +
+                error.type +
+                ' message: ' +
+                error.message +
+                ' full error: ' +
+                JSON.stringify(error),
+            )
+        },
+      )
+
+    if (sessionResponse) {
+      this.donationService.createInitialDonationFromSession(
+        campaign,
+        sessionDto,
+        (sessionResponse.session.payment_intent as string) ?? sessionResponse.session.id,
+      )
+    }
+
+    return sessionResponse
+  }
+
+  private async prepareSessionItems(
+    sessionDto: CreateSessionDto,
+    campaign: Campaign,
+  ): Promise<Stripe.Checkout.SessionCreateParams.LineItem[]> {
+    if (sessionDto.mode == 'subscription') {
+      // the membership campaign is internal only
+      // we need to make the subscriptions once a year
+      const isMembership = await this.campaignService.isMembershipCampaign(campaign.campaignTypeId)
+      const interval = isMembership ? 'year' : 'month'
+
+      //use an inline price for subscriptions
+      const stripeItem = {
+        price_data: {
+          currency: campaign.currency,
+          unit_amount: sessionDto.amount,
+          recurring: {
+            interval: interval as Stripe.Price.Recurring.Interval,
+            interval_count: 1,
+          },
+          product_data: {
+            name: campaign.title,
+          },
+        },
+        quantity: 1,
+      }
+      return [stripeItem]
+    }
+    // Create donation with custom amount
+    return [
+      {
+        price_data: {
+          currency: campaign.currency,
+          unit_amount: sessionDto.amount,
+          product_data: {
+            name: campaign.title,
+          },
+        },
+        quantity: 1,
+      },
+    ]
+  }
+
+  /**
+   * Create a payment intent for a donation
+   * @param inputDto Payment intent create params
+   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
+   */
+  async createPaymentIntent(
+    inputDto: Stripe.PaymentIntentCreateParams,
+  ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
+    return await this.stripeClient.paymentIntents.create(inputDto)
+  }
+
+  /**
+   * Create a payment intent for a donation
+   * https://stripe.com/docs/api/payment_intents/create
+   * @param inputDto Payment intent create params
+   * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
+   */
+  async createStripePayment(inputDto: CreateStripePaymentDto): Promise<Payment> {
+    const intent = await this.stripeClient.paymentIntents.retrieve(inputDto.paymentIntentId)
+    if (!intent.metadata.campaignId) {
+      throw new BadRequestException('Campaign id is missing from payment intent metadata')
+    }
+    const campaignId = intent.metadata.camapaignId
+    const campaign = await this.campaignService.validateCampaignId(campaignId)
+    return this.donationService.createInitialDonationFromIntent(campaign, inputDto, intent)
+  }
+
+  /**
+   * Refund a stipe payment donation
+   * https://stripe.com/docs/api/refunds/create
+   * @param inputDto Refund-stripe params
+   * @returns {Promise<Stripe.Response<Stripe.Refund>>}
+   */
+  async refundStripePayment(paymentIntentId: string): Promise<Stripe.Response<Stripe.Refund>> {
+    const intent = await this.stripeClient.paymentIntents.retrieve(paymentIntentId)
+    if (!intent) {
+      throw new BadRequestException('Payment Intent is missing from stripe')
+    }
+
+    if (!intent.metadata.campaignId) {
+      throw new BadRequestException('Campaign id is missing from payment intent metadata')
+    }
+
+    return await this.stripeClient.refunds.create({
+      payment_intent: paymentIntentId,
+      reason: 'requested_by_customer',
+    })
+  }
+
+  async cancelSubscription(subscriptionId: string) {
+    Logger.log(`Canceling subscription with api request to cancel: ${subscriptionId}`)
+    const result = await this.stripeClient.subscriptions.cancel(subscriptionId)
+    if (result.status !== 'canceled') {
+      Logger.log(`Subscription cancel attempt failed with status of ${result.id}: ${result.status}`)
+      return
+    }
+
+    // the webhook will handle this as well.
+    // but we cancel it here, in case the webhook is slow.
+    const rd = await this.reacurringDonationService.findSubscriptionByExtId(result.id)
+    if (rd) {
+      return this.reacurringDonationService.cancel(rd.id)
+    }
   }
 }
