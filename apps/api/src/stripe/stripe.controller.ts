@@ -81,7 +81,6 @@ export class StripeController {
     @Body()
     updateSetupIntentDto: UpdateSetupIntentDto,
   ) {
-    console.log(updateSetupIntentDto)
     return this.stripeService.updateSetupIntent(id, updateSetupIntentDto)
   }
 

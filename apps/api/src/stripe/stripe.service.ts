@@ -34,6 +34,11 @@ export class StripeService {
     id: string,
     inputDto: UpdateSetupIntentDto,
   ): Promise<Stripe.Response<Stripe.SetupIntent>> {
+    if (!inputDto.metadata.campaignId)
+      throw new BadRequestException('campaignId is missing from metadata')
+    const campaign = await this.campaignService.validateCampaignId(
+      inputDto.metadata.campaignId as string,
+    )
     return await this.stripeClient.setupIntents.update(id, inputDto)
   }
   /**
@@ -178,6 +183,9 @@ export class StripeService {
     user: KeycloakTokenParsed,
     subscriptionPaymentDto: CreateSubscriptionPaymentDto,
   ): Promise<Stripe.PaymentIntent> {
+    const campaign = await this.campaignService.validateCampaignId(
+      subscriptionPaymentDto.campaignId,
+    )
     const customer = await this.createCustomer(user, subscriptionPaymentDto)
     const product = await this.createProduct(subscriptionPaymentDto)
     const subscription = await this.stripeClient.subscriptions.create({

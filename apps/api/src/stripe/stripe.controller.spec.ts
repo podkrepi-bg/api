@@ -30,7 +30,10 @@ import { VaultService } from '../vault/vault.service'
 import { ExportService } from '../export/export.service'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
-
+import { CreateSubscriptionPaymentDto } from './dto/create-subscription-payment.dto'
+import { mockDeep } from 'jest-mock-extended'
+import { Grant } from 'keycloak-connect'
+import { KeycloakTokenParsed } from '../auth/keycloak'
 describe('StripeController', () => {
   let controller: StripeController
 
@@ -181,5 +184,46 @@ describe('StripeController', () => {
       payment_intent: 'unique-intent',
       reason: 'requested_by_customer',
     })
+  })
+  it(`should not call setupintents.update if campaign can't accept donations`, async () => {
+    prismaMock.campaign.findFirst.mockResolvedValue({
+      id: 'complete-campaign',
+      allowDonationOnComplete: false,
+      state: CampaignState.complete,
+    } as Campaign)
+
+    const payload = {
+      metadata: {
+        campaignId: 'complete-campaign',
+      },
+    }
+
+    await expect(controller.updateSetupIntent('123', payload)).rejects.toThrow(
+      new NotAcceptableException('Campaign cannot accept donations in state: complete'),
+    )
+  })
+  it(`should not call subscription.create if campaign can't accept donations`, async () => {
+    prismaMock.campaign.findFirst.mockResolvedValue({
+      id: 'complete-campaign',
+      allowDonationOnComplete: false,
+      state: CampaignState.complete,
+    } as Campaign)
+
+    const user: KeycloakTokenParsed = {
+      sub: '00000000-0000-0000-0000-000000000013',
+      'allowed-origins': [],
+      email: 'test@podkrepi.bg',
+    }
+    const subscribtionObj: CreateSubscriptionPaymentDto = {
+      type: 'donation',
+      email: 'test@podkrepi.bg',
+      campaignId: 'complete-campaign',
+      amount: 200,
+      currency: 'BGN',
+    }
+
+    await expect(controller.createSubscription(user, subscribtionObj)).rejects.toThrow(
+      new NotAcceptableException('Campaign cannot accept donations in state: complete'),
+    )
   })
 })
