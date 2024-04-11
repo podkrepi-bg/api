@@ -23,7 +23,6 @@ describe('PaypalService', () => {
         CampaignModule,
         NotificationModule,
         MarketingNotificationsModule,
-        CacheModule.register(),
       ],
       providers: [PaypalService, { provide: CACHE_MANAGER, useValue: {} }],
     }).compile()
