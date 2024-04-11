@@ -7,6 +7,7 @@ import { PaypalModule } from './paypal.module'
 import { PaypalService } from './paypal.service'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
 import { DonationsModule } from '../donations/donations.module'
+import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager'
 
 describe('PaypalService', () => {
   let service: PaypalService
@@ -14,15 +15,17 @@ describe('PaypalService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
+        CacheModule.register({ isGlobal: true }),
         PaypalModule,
-        CampaignModule,
-        DonationsModule,
         ConfigModule,
         HttpModule,
+        DonationsModule,
+        CampaignModule,
         NotificationModule,
         MarketingNotificationsModule,
+        CacheModule.register(),
       ],
-      providers: [PaypalService],
+      providers: [PaypalService, { provide: CACHE_MANAGER, useValue: {} }],
     }).compile()
 
     service = module.get<PaypalService>(PaypalService)

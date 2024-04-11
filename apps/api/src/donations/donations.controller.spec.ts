@@ -21,35 +21,16 @@ import { NotificationModule } from '../sockets/notifications/notification.module
 import { VaultService } from '../vault/vault.service'
 import { DonationsController } from './donations.controller'
 import { DonationsService } from './donations.service'
-import { CreateSessionDto } from './dto/create-session.dto'
+
 import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
 import type { PaymentWithDonation } from './types/donation'
+import { personMock } from '../person/__mock__/personMock'
 
 describe('DonationsController', () => {
   let controller: DonationsController
   let vaultService: VaultService
-
-  const stripeMock = {
-    checkout: { sessions: { create: jest.fn() } },
-    paymentIntents: { retrieve: jest.fn() },
-    refunds: { create: jest.fn() },
-  }
-  stripeMock.checkout.sessions.create.mockResolvedValue({ payment_intent: 'unique-intent' })
-  stripeMock.paymentIntents.retrieve.mockResolvedValue({
-    payment_intent: 'unique-intent',
-    metadata: { campaignId: 'unique-campaign' },
-  })
-
-  const mockSession = {
-    mode: 'payment',
-    amount: 100,
-    campaignId: 'testCampaignId',
-    successUrl: 'http://test.com',
-    cancelUrl: 'http://test.com',
-    isAnonymous: true,
-  } as CreateSessionDto
 
   const mockDonation = {
     id: '1234',
@@ -100,10 +81,6 @@ describe('DonationsController', () => {
         DonationsService,
         VaultService,
         MockPrismaService,
-        {
-          provide: STRIPE_CLIENT_TOKEN,
-          useValue: stripeMock,
-        },
         PersonService,
         ExportService,
         { provide: CACHE_MANAGER, useValue: {} },
@@ -122,71 +99,6 @@ describe('DonationsController', () => {
     expect(controller).toBeDefined()
   })
 
-  it('createCheckoutSession should create stripe session for active campaign', async () => {
-    prismaMock.campaign.findFirst.mockResolvedValue({
-      allowDonationOnComplete: false,
-      state: CampaignState.active,
-    } as Campaign)
-
-    await expect(controller.createCheckoutSession(mockSession)).resolves.toBeObject()
-    expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
-    expect(stripeMock.checkout.sessions.create).toHaveBeenCalledWith({
-      mode: mockSession.mode,
-      line_items: [
-        {
-          price_data: {
-            currency: undefined,
-            product_data: {
-              name: undefined,
-            },
-            unit_amount: 100,
-          },
-          quantity: 1,
-        },
-      ],
-      payment_method_types: ['card'],
-      payment_intent_data: {
-        metadata: {
-          campaignId: mockSession.campaignId,
-          isAnonymous: 'true',
-          personId: undefined,
-          wish: null,
-        },
-      },
-      subscription_data: undefined,
-      success_url: mockSession.successUrl,
-      cancel_url: mockSession.cancelUrl,
-      customer_email: undefined,
-      tax_id_collection: {
-        enabled: true,
-      },
-    })
-  })
-
-  it('createCheckoutSession should not create stripe session for completed campaign', async () => {
-    prismaMock.campaign.findFirst.mockResolvedValue({
-      allowDonationOnComplete: false,
-      state: CampaignState.complete,
-    } as Campaign)
-
-    await expect(controller.createCheckoutSession(mockSession)).rejects.toThrow(
-      new NotAcceptableException('Campaign cannot accept donations in state: complete'),
-    )
-    expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
-    expect(stripeMock.checkout.sessions.create).not.toHaveBeenCalled()
-  })
-
-  it('createCheckoutSession should create stripe session for completed campaign if allowed', async () => {
-    prismaMock.campaign.findFirst.mockResolvedValue({
-      allowDonationOnComplete: true,
-      state: CampaignState.complete,
-    } as Campaign)
-
-    await expect(controller.createCheckoutSession(mockSession)).resolves.toBeObject()
-    expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
-    expect(stripeMock.checkout.sessions.create).toHaveBeenCalled()
-  })
-
   it('should update a donations donor, when it is changed', async () => {
     const updatePaymentDto = {
       amount: 10,
@@ -194,25 +106,7 @@ describe('DonationsController', () => {
     }
 
     const existingPayment = { ...mockPayment }
-    const existingTargetPerson: Person = {
-      id: '2',
-      firstName: 'string',
-      lastName: 'string',
-      email: 'string',
-      phone: 'string',
-      companyId: 'string',
-      createdAt: new Date('2022-01-01'),
-      updatedAt: new Date('2022-01-01'),
-      newsletter: false,
-      address: 'string',
-      birthday: new Date('2002-07-07'),
-      emailConfirmed: true,
-      personalNumber: 'string',
-      keycloakId: '00000000-0000-0000-0000-000000000012',
-      stripeCustomerId: 'string',
-      picture: 'string',
-      profileEnabled: true,
-    }
+    const existingTargetPerson: Person = personMock
 
     jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
     const mockedIncrementVaultAmount = jest
@@ -235,7 +129,7 @@ describe('DonationsController', () => {
           updateMany: {
             where: { paymentId: existingPayment.id },
             data: {
-              personId: '2',
+              personId: existingTargetPerson.id,
             },
           },
         },
@@ -271,6 +165,7 @@ describe('DonationsController', () => {
       stripeCustomerId: 'string',
       picture: 'string',
       profileEnabled: true,
+      helpUsImprove: false,
     }
 
     const existingPayment = { ...mockPayment, status: PaymentStatus.initial }
@@ -310,16 +205,6 @@ describe('DonationsController', () => {
           increment: existingPayment.donations[0].amount,
         },
       },
-    })
-  })
-
-  it('should request refund for donation', async () => {
-    await controller.refundStripePaymet('unique-intent')
-
-    expect(stripeMock.paymentIntents.retrieve).toHaveBeenCalledWith('unique-intent')
-    expect(stripeMock.refunds.create).toHaveBeenCalledWith({
-      payment_intent: 'unique-intent',
-      reason: 'requested_by_customer',
     })
   })
 

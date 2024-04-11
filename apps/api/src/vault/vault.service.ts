@@ -207,7 +207,6 @@ export class VaultService {
     }, [])
 
     if (failedVaults.length > 0) {
-      console.log(`errro`)
       throw new Error(
         `Updating vaults aborted, due to negative amount in some of the vaults.
         Invalid vaultIds: ${failedVaults.join(',')}`,

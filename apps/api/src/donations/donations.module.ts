@@ -1,6 +1,6 @@
 import { StripeModule } from '@golevelup/nestjs-stripe'
 import { Module } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { StripeConfigFactory } from './helpers/stripe-config-factory'
 import { CampaignModule } from '../campaign/campaign.module'
 import { CampaignService } from '../campaign/campaign.service'
@@ -29,11 +29,11 @@ import { EmailService } from '../email/email.service'
     ExportModule,
     NotificationModule,
     MarketingNotificationsModule,
+    ConfigModule,
   ],
   controllers: [DonationsController],
   providers: [
     DonationsService,
-    CampaignService,
     RecurringDonationService,
     PrismaService,
     VaultService,

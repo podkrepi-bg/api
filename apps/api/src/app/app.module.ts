@@ -63,7 +63,11 @@ import { StripeModule } from '../stripe/stripe.module'
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
+    ConfigModule.forRoot({
+      validationSchema,
+      isGlobal: true,
+      load: [configuration],
+    }),
     /* External modules */
     SentryModule.forRootAsync({
       imports: [ConfigModule],
@@ -114,7 +118,7 @@ import { StripeModule } from '../stripe/stripe.module'
     BankTransactionsModule,
     StatisticsModule,
     CacheModule.registerAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule, AppModule],
       useFactory: async (config: ConfigService) => ({
         ttl: Number(config.get<number>('CACHE_TTL', 30 * 1000 /* ms */)),
       }),
@@ -124,7 +128,7 @@ import { StripeModule } from '../stripe/stripe.module'
     CampaignNewsModule,
     CampaignNewsFileModule,
     MarketingNotificationsModule,
-    StripeModule
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [
