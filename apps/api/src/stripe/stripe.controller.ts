@@ -8,7 +8,7 @@ import {
   Post,
   UnauthorizedException,
 } from '@nestjs/common'
-import { ApiTags } from '@nestjs/swagger'
+import { ApiBody, ApiTags } from '@nestjs/swagger'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
@@ -84,10 +84,24 @@ export class StripeController {
     return this.stripeService.updateSetupIntent(id, updateSetupIntentDto)
   }
 
-  @Post('setup-intent/:id/finalize')
+  @Post('setup-intent/:id/payment-intent')
+  @ApiBody({
+    description: 'Create payment intent from setup intent',
+  })
   @Public()
-  finalizeSetupIntent(@Param('id') id: string) {
-    return this.stripeService.finalizeSetupIntent(id)
+  setupIntentToPaymentIntent(@Param('id') id: string) {
+    return this.stripeService.setupIntentToPaymentIntent(id)
+  }
+
+  @Post('setup-intent/:id/subscription')
+  @ApiBody({
+    description: 'Create payment intent from setup intent',
+  })
+  setupIntentToSubscription(
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+    @Param('id') id: string,
+  ) {
+    return this.stripeService.setupIntentToSubscription(id)
   }
 
   @Post('payment-intent')
@@ -131,13 +145,6 @@ export class StripeController {
     return this.stripeService.listPrices('one_time')
   }
 
-  @Post('create-subscription')
-  createSubscription(
-    @AuthenticatedUser() user: KeycloakTokenParsed,
-    @Body() createSubscriptionDto: CreateSubscriptionPaymentDto,
-  ) {
-    return this.stripeService.createSubscription(user, createSubscriptionDto)
-  }
   @Get('prices/recurring')
   @Public()
   findRecurringPrices() {

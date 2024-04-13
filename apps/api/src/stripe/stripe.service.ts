@@ -47,41 +47,52 @@ export class StripeService {
    * @param inputDto Payment intent create params
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
-  async finalizeSetupIntent(setupIntentId: string): Promise<Stripe.PaymentIntent> {
+
+  async findSetupIntentById(setupIntentId: string): Promise<Stripe.SetupIntent | Error> {
     const setupIntent = await this.stripeClient.setupIntents.retrieve(setupIntentId, {
       expand: ['payment_method'],
     })
+
     if (!setupIntent.payment_method || typeof setupIntent.payment_method === 'string') {
       throw new BadRequestException('Payment method is missing from setup intent')
     }
     const paymentMethod = setupIntent.payment_method
+
     if (!paymentMethod?.billing_details?.email) {
       throw new BadRequestException('Email is required from the payment method')
     }
     if (!setupIntent.metadata || !setupIntent.metadata.amount || !setupIntent.metadata.currency) {
       throw new BadRequestException('Amount and currency are required from the setup intent')
     }
-    const email = paymentMethod.billing_details.email
+    return setupIntent
+  }
 
-    let customer = await this.stripeClient.customers
-      .list({
-        email,
-      })
-      .then((res) => res.data.at(0))
-    if (!customer) {
-      customer = await this.stripeClient.customers.create({
-        email,
-        payment_method: paymentMethod.id,
-      })
-    }
-    this.stripeClient.paymentMethods.attach(paymentMethod.id, {
+  async attachPaymentMethodToCustomer(
+    paymentMethod: Stripe.PaymentMethod,
+    customer: Stripe.Customer,
+  ) {
+    return await this.stripeClient.paymentMethods.attach(paymentMethod.id, {
       customer: customer.id,
     })
+  }
+  async setupIntentToPaymentIntent(setupIntentId: string): Promise<Stripe.PaymentIntent> {
+    const setupIntent = await this.findSetupIntentById(setupIntentId)
+
+    if (setupIntent instanceof Error) throw new BadRequestException(setupIntent.message)
+    const paymentMethod = setupIntent.payment_method as Stripe.PaymentMethod
+    const email = paymentMethod.billing_details.email as string
+    const name = paymentMethod.billing_details.name as string
+    const metadata = setupIntent.metadata as Stripe.Metadata
+
+    const customer = await this.createCustomer(email, name, paymentMethod)
+
+    await this.attachPaymentMethodToCustomer(paymentMethod, customer)
+
     const paymentIntent = await this.stripeClient.paymentIntents.create({
-      amount: Math.round(Number(setupIntent.metadata.amount)),
-      currency: setupIntent.metadata.currency,
+      amount: Math.round(Number(metadata.amount)),
+      currency: metadata.currency,
       customer: customer.id,
-      payment_method: setupIntent.payment_method.id,
+      payment_method: paymentMethod.id,
       confirm: true,
       metadata: {
         ...setupIntent.metadata,
@@ -96,6 +107,22 @@ export class StripeService {
    */
   async createSetupIntent(): Promise<Stripe.Response<Stripe.SetupIntent>> {
     return await this.stripeClient.setupIntents.create()
+  }
+
+  async setupIntentToSubscription(setupIntentId: string): Promise<Stripe.PaymentIntent | Error> {
+    const setupIntent = await this.findSetupIntentById(setupIntentId)
+    if (setupIntent instanceof Error) throw new BadRequestException(setupIntent.message)
+    const paymentMethod = setupIntent.payment_method as Stripe.PaymentMethod
+    const email = paymentMethod.billing_details.email as string
+    const name = paymentMethod.billing_details.name as string
+    const metadata = setupIntent.metadata as Stripe.Metadata
+
+    const customer = await this.createCustomer(email, name, paymentMethod)
+
+    await this.attachPaymentMethodToCustomer(paymentMethod, customer)
+
+    const product = await this.createProduct(metadata.campaignId)
+    return await this.createSubscription(metadata, customer, product, paymentMethod)
   }
 
   /**
@@ -148,70 +175,64 @@ export class StripeService {
     } else return new Array<Stripe.Price>()
   }
 
-  async createCustomer(
-    user: KeycloakTokenParsed,
-    subscriptionPaymentDto: CreateSubscriptionPaymentDto,
-  ) {
-    const person = await this.personService.findOneByKeycloakId(user.sub)
-    if (!person || !person.email)
-      throw new NotFoundException(`No person found with keycloakid: ${user.sub}`)
-    const customer = await this.stripeClient.customers.create({
-      email: person.email,
-      name: 'JOHN DOE',
-      metadata: {
-        keycloakId: user.sub,
-        person: person.id,
-      },
+  async createCustomer(email: string, name: string, paymentMethod: Stripe.PaymentMethod) {
+    const customerLookup = await this.stripeClient.customers.list({
+      email,
     })
+    const customer = customerLookup.data[0]
+    //Customer not found. Create new onw
+    if (!customer)
+      return await this.stripeClient.customers.create({
+        email,
+        name,
+        payment_method: paymentMethod.id,
+      })
+
     return customer
   }
 
-  async createProduct(subscriptionPaymentDto: CreateSubscriptionPaymentDto) {
-    const campaign = await this.campaignService.validateCampaignId(
-      subscriptionPaymentDto.campaignId,
-    )
-    if (!campaign)
-      throw new Error(`Campaign with id ${subscriptionPaymentDto.campaignId} not found`)
+  async createProduct(campaignId: string): Promise<Stripe.Product> {
+    const campaign = await this.campaignService.getCampaignById(campaignId)
+    if (!campaign) throw new Error(`Campaign with id ${campaignId} not found`)
 
-    const product = await this.stripeClient.products.create({
-      name: campaign.title,
-      description: `Recurring donation for ${campaign.title} by person ${subscriptionPaymentDto.email}`,
+    const productLookup = await this.stripeClient.products.search({
+      query: `-name:'${campaign.title}'`,
     })
-    return product
+
+    if (productLookup) return productLookup.data[0]
+    return await this.stripeClient.products.create({
+      name: campaign.title,
+      description: `Donate to ${campaign.title}`,
+    })
   }
   async createSubscription(
-    user: KeycloakTokenParsed,
-    subscriptionPaymentDto: CreateSubscriptionPaymentDto,
-  ): Promise<Stripe.PaymentIntent> {
-    const campaign = await this.campaignService.validateCampaignId(
-      subscriptionPaymentDto.campaignId,
-    )
-    const customer = await this.createCustomer(user, subscriptionPaymentDto)
-    const product = await this.createProduct(subscriptionPaymentDto)
+    metadata: Stripe.Metadata,
+    customer: Stripe.Customer,
+    product: Stripe.Product,
+    paymentMethod: Stripe.PaymentMethod,
+  ) {
     const subscription = await this.stripeClient.subscriptions.create({
       customer: customer.id,
       items: [
         {
           price_data: {
-            unit_amount: Math.round(subscriptionPaymentDto.amount),
-            currency: subscriptionPaymentDto.currency,
+            unit_amount: Math.round(Number(metadata.amount)),
+            currency: metadata.currency,
             product: product.id,
             recurring: { interval: 'month' },
           },
         },
       ],
-      payment_behavior: 'default_incomplete',
+      default_payment_method: paymentMethod.id,
       payment_settings: {
         save_default_payment_method: 'on_subscription',
         payment_method_types: ['card'],
       },
       metadata: {
-        type: subscriptionPaymentDto.type,
-        campaignId: subscriptionPaymentDto.campaignId,
-        personId: customer.metadata.person,
-        amount: Math.round(subscriptionPaymentDto.amount),
+        type: metadata.type,
+        campaignId: metadata.campaignId,
+        personId: metadata.personId,
       },
-
       expand: ['latest_invoice.payment_intent'],
     })
     const invoice = subscription.latest_invoice as Stripe.Invoice
