@@ -404,4 +404,8 @@ export class StripeService {
       return this.reacurringDonationService.cancel(rd.id)
     }
   }
+
+  async findChargeById(chargeId: string): Promise<Stripe.Charge> {
+    return await this.stripeClient.charges.retrieve(chargeId)
+  }
 }

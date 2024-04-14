@@ -36,7 +36,7 @@ export function getPaymentData(
   charge?: Stripe.Charge,
 ): PaymentData {
   const isAnonymous = paymentIntent.metadata.isAnonymous === 'true'
-
+  console.log(charge?.payment_method_details?.card?.country)
   return {
     paymentProvider: PaymentProvider.stripe,
     paymentIntentId: paymentIntent.id,
@@ -63,6 +63,7 @@ export function getPaymentData(
 
 export function getPaymentDataFromCharge(charge: Stripe.Charge): PaymentData {
   const isAnonymous = charge.metadata.isAnonymous === 'true'
+  console.log(charge?.payment_method_details?.card?.country)
   return {
     paymentProvider: PaymentProvider.stripe,
     paymentIntentId: charge.payment_intent as string,
@@ -85,9 +86,8 @@ export function getPaymentDataFromCharge(charge: Stripe.Charge): PaymentData {
   }
 }
 
-export function getInvoiceData(invoice: Stripe.Invoice): PaymentData {
+export function getInvoiceData(invoice: Stripe.Invoice, charge: Stripe.Charge): PaymentData {
   const lines: Stripe.InvoiceLineItem[] = invoice.lines.data as Stripe.InvoiceLineItem[]
-  const country = invoice.account_country as string
 
   let personId = ''
   let type = ''
@@ -108,8 +108,11 @@ export function getInvoiceData(invoice: Stripe.Invoice): PaymentData {
       lines.length === 0
         ? 0
         : Math.round(
-            invoice.amount_paid -
-              stripeFeeCalculator(invoice.amount_paid, getCountryRegion(country)),
+            charge.amount -
+              stripeFeeCalculator(
+                charge.amount,
+                getCountryRegion(charge?.payment_method_details?.card?.country as string),
+              ),
           ),
     chargedAmount: invoice.amount_paid,
     currency: invoice.currency.toUpperCase(),
