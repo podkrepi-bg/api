@@ -6,6 +6,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Query,
   UnauthorizedException,
 } from '@nestjs/common'
 import { ApiBody, ApiTags } from '@nestjs/swagger'
@@ -31,8 +32,8 @@ export class StripeController {
 
   @Post('setup-intent')
   @Public()
-  createSetupIntent() {
-    return this.stripeService.createSetupIntent()
+  createSetupIntent(@Body() body: { idempotencyKey: string }) {
+    return this.stripeService.createSetupIntent(body)
   }
 
   @Post('create-checkout-session')
@@ -78,10 +79,10 @@ export class StripeController {
   @Public()
   updateSetupIntent(
     @Param('id') id: string,
-    @Body()
-    updateSetupIntentDto: UpdateSetupIntentDto,
+    @Query('idempotency-key') idempotencyKey: string,
+    @Body() updateSetupIntentDto: UpdateSetupIntentDto,
   ) {
-    return this.stripeService.updateSetupIntent(id, updateSetupIntentDto)
+    return this.stripeService.updateSetupIntent(id, idempotencyKey, updateSetupIntentDto)
   }
 
   @Post('setup-intent/:id/payment-intent')
@@ -89,8 +90,11 @@ export class StripeController {
     description: 'Create payment intent from setup intent',
   })
   @Public()
-  setupIntentToPaymentIntent(@Param('id') id: string) {
-    return this.stripeService.setupIntentToPaymentIntent(id)
+  setupIntentToPaymentIntent(
+    @Param('id') id: string,
+    @Query('idempotency-key') idempotencyKey: string,
+  ) {
+    return this.stripeService.setupIntentToPaymentIntent(id, idempotencyKey)
   }
 
   @Post('setup-intent/:id/subscription')
@@ -100,8 +104,9 @@ export class StripeController {
   setupIntentToSubscription(
     @AuthenticatedUser() user: KeycloakTokenParsed,
     @Param('id') id: string,
+    @Query('idempotency-key') idempotencyKey: string,
   ) {
-    return this.stripeService.setupIntentToSubscription(id)
+    return this.stripeService.setupIntentToSubscription(id, idempotencyKey)
   }
 
   @Post('payment-intent')
