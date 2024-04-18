@@ -43,6 +43,7 @@ import {
   mockChargeEventSucceeded,
   mockPaymentEventFailed,
   mockChargeRefundEventSucceeded,
+  mockCharge,
 } from './stripe-payment.testdata'
 import { PaymentStatus } from '@prisma/client'
 import { RecurringDonationService } from '../../recurring-donation/recurring-donation.service'
@@ -579,6 +580,10 @@ describe('StripePaymentService', () => {
       .spyOn(campaignService, 'getCampaignById')
       .mockImplementation(() => Promise.resolve(mockedCampaign))
 
+    const stripeChargeRetrieveMock = jest
+      .spyOn(stripeService, 'findChargeById')
+      .mockResolvedValue(mockCharge)
+
     jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
 
     const mockedUpdateDonationPayment = jest
@@ -612,6 +617,7 @@ describe('StripePaymentService', () => {
           (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata
             .campaignId,
         ) //campaignId from the Stripe Event
+        expect(stripeChargeRetrieveMock).toHaveBeenCalled()
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
         expect(mockedIncrementVaultAmount).toHaveBeenCalled()
       })
@@ -627,6 +633,10 @@ describe('StripePaymentService', () => {
 
     const campaignService = app.get<CampaignService>(CampaignService)
     const recurring = app.get<RecurringDonationService>(RecurringDonationService)
+
+    const stripeChargeRetrieveMock = jest
+      .spyOn(stripeService, 'findChargeById')
+      .mockResolvedValue(mockCharge)
 
     const mockCancelSubscription = jest
       .spyOn(stripeService, 'cancelSubscription')
@@ -656,6 +666,7 @@ describe('StripePaymentService', () => {
           (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata
             .campaignId,
         ) //campaignId from the Stripe Event
+        expect(stripeChargeRetrieveMock).toHaveBeenCalled()
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
         expect(mockCancelSubscription).toHaveBeenCalledWith(
           mockedRecurringDonation.extSubscriptionId,

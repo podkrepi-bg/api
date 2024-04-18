@@ -102,7 +102,6 @@ export class StripeController {
     description: 'Create payment intent from setup intent',
   })
   setupIntentToSubscription(
-    @AuthenticatedUser() user: KeycloakTokenParsed,
     @Param('id') id: string,
     @Query('idempotency-key') idempotencyKey: string,
   ) {

@@ -36,17 +36,38 @@ import { Grant } from 'keycloak-connect'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 describe('StripeController', () => {
   let controller: StripeController
-
+  const idempotencyKey = 'test_123'
   const stripeMock = {
     checkout: { sessions: { create: jest.fn() } },
     paymentIntents: { retrieve: jest.fn() },
     refunds: { create: jest.fn() },
+    setupIntents: { retrieve: jest.fn() },
+    customers: { create: jest.fn(), list: jest.fn() },
+    paymentMethods: { attach: jest.fn() },
+    products: { search: jest.fn(), create: jest.fn() },
+    subscriptions: { create: jest.fn() },
   }
   stripeMock.checkout.sessions.create.mockResolvedValue({ payment_intent: 'unique-intent' })
   stripeMock.paymentIntents.retrieve.mockResolvedValue({
     payment_intent: 'unique-intent',
     metadata: { campaignId: 'unique-campaign' },
   })
+  stripeMock.products.search.mockResolvedValue({ data: [{ id: 1 }] })
+  stripeMock.subscriptions.create.mockResolvedValue({
+    latest_invoice: { payment_intent: 'unique_intent' },
+  })
+
+  stripeMock.setupIntents.retrieve.mockResolvedValue({
+    payment_intent: 'unique-intent',
+    metadata: { campaignId: 'unique-campaign', amount: 100, currency: 'BGN' },
+    payment_method: {
+      billing_details: {
+        email: 'test@podkrepi.bg',
+      },
+    },
+  })
+
+  stripeMock.customers.list.mockResolvedValue({ data: [{ id: 1 }] })
 
   const mockSession = {
     mode: 'payment',
@@ -198,32 +219,27 @@ describe('StripeController', () => {
       },
     }
 
-    await expect(controller.updateSetupIntent('123', payload)).rejects.toThrow(
+    await expect(controller.updateSetupIntent('123', idempotencyKey, payload)).rejects.toThrow(
       new NotAcceptableException('Campaign cannot accept donations in state: complete'),
     )
   })
-  it(`should not call subscription.create if campaign can't accept donations`, async () => {
-    prismaMock.campaign.findFirst.mockResolvedValue({
-      id: 'complete-campaign',
-      allowDonationOnComplete: false,
-      state: CampaignState.complete,
-    } as Campaign)
-
+  it(`should  subscription without creating new customer,products`, async () => {
     const user: KeycloakTokenParsed = {
       sub: '00000000-0000-0000-0000-000000000013',
       'allowed-origins': [],
       email: 'test@podkrepi.bg',
     }
-    const subscribtionObj: CreateSubscriptionPaymentDto = {
-      type: 'donation',
-      email: 'test@podkrepi.bg',
-      campaignId: 'complete-campaign',
-      amount: 200,
-      currency: 'BGN',
-    }
-
-    await expect(controller.createSubscription(user, subscribtionObj)).rejects.toThrow(
-      new NotAcceptableException('Campaign cannot accept donations in state: complete'),
-    )
+    prismaMock.campaign.findFirst.mockResolvedValue({
+      id: 'complete-campaign',
+      allowDonationOnComplete: false,
+      state: CampaignState.complete,
+      title: 'active-campaign',
+    } as Campaign)
+    await expect(controller.setupIntentToSubscription('123', idempotencyKey)).toResolve()
+    expect(stripeMock.setupIntents.retrieve).toHaveBeenCalledWith('123', {
+      expand: ['payment_method'],
+    })
+    expect(stripeMock.customers.create).not.toHaveBeenCalled()
+    expect(stripeMock.products.create).not.toHaveBeenCalled()
   })
 })

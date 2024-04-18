@@ -332,6 +332,7 @@ export class StripePaymentService {
   @StripeWebhookHandler('invoice.paid')
   async handleInvoicePaid(event: Stripe.Event) {
     const invoice: Stripe.Invoice = event.data.object as Stripe.Invoice
+
     Logger.log('[ handleInvoicePaid ]', invoice)
     const charge = await this.stripeService.findChargeById(invoice.charge as string)
     let metadata: StripeMetadata = {
