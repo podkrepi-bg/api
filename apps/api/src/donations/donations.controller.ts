@@ -156,6 +156,12 @@ export class DonationsController {
     return this.donationsService.getPaymentById(paymentId)
   }
 
+  @Get('payment-intent')
+  @Public()
+  async findDonationByPaymentIntent(@Query('id') paymentIntentId: string) {
+    return await this.donationsService.getDonationByPaymentIntent(paymentIntentId)
+  }
+
   @Get('user/:id')
   async userDonationById(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
     const donation = await this.donationsService.getUserDonationById(id, user.sub, user.email)
