@@ -14,5 +14,10 @@ export class UpdatePaymentDto extends PartialType(CreatePaymentDto) {
   @Expose()
   @ApiProperty()
   @IsOptional()
-  billingEmail?: string  
+  billingEmail?: string
+
+  @Expose()
+  @ApiProperty()
+  @IsOptional()
+  donationId?: string
 }

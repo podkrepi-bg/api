@@ -26,6 +26,7 @@ import { UpdatePaymentDto } from './dto/update-payment.dto'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
 import type { PaymentWithDonation } from './types/donation'
+import { personMock } from '../person/__mock__/personMock'
 
 describe('DonationsController', () => {
   let controller: DonationsController
@@ -59,26 +60,26 @@ describe('DonationsController', () => {
     targetVaultId: '1000',
     createdAt: new Date('2022-01-01'),
     updatedAt: new Date('2022-01-02'),
-    personId: '1',
+    personId: personMock.id,
     person: {
-      id: '1',
+      id: personMock.id,
       keycloakId: '00000000-0000-0000-0000-000000000015',
     },
   }
 
   const mockPayment: PaymentWithDonation = {
-    id: '123',
+    id: personMock.id,
     provider: PaymentProvider.bank,
     currency: Currency.BGN,
     type: 'single',
     status: PaymentStatus.succeeded,
     amount: 10,
     affiliateId: null,
-    extCustomerId: 'gosho',
+    extCustomerId: '',
     extPaymentIntentId: 'pm1',
     extPaymentMethodId: 'bank',
-    billingEmail: 'gosho1@abv.bg',
-    billingName: 'gosho1',
+    billingEmail: personMock.email,
+    billingName: 'Admin Dev',
     chargedAmount: 10.5,
     createdAt: new Date('2022-01-01'),
     updatedAt: new Date('2022-01-02'),
@@ -191,28 +192,11 @@ describe('DonationsController', () => {
     const updatePaymentDto = {
       amount: 10,
       targetPersonId: '2',
+      donationId: '123',
     }
 
     const existingPayment = { ...mockPayment }
-    const existingTargetPerson: Person = {
-      id: '2',
-      firstName: 'string',
-      lastName: 'string',
-      email: 'string',
-      phone: 'string',
-      companyId: 'string',
-      createdAt: new Date('2022-01-01'),
-      updatedAt: new Date('2022-01-01'),
-      newsletter: false,
-      address: 'string',
-      birthday: new Date('2002-07-07'),
-      emailConfirmed: true,
-      personalNumber: 'string',
-      keycloakId: '00000000-0000-0000-0000-000000000012',
-      stripeCustomerId: 'string',
-      picture: 'string',
-      profileEnabled: true,
-    }
+    const existingTargetPerson: Person = personMock
 
     jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
     const mockedIncrementVaultAmount = jest
@@ -229,13 +213,13 @@ describe('DonationsController', () => {
     expect(prismaMock.payment.update).toHaveBeenCalledWith({
       where: { id: '123' },
       data: {
-        status: existingPayment.status,
-        updatedAt: existingPayment.updatedAt,
+        status: PaymentStatus.succeeded,
+        billingEmail: undefined,
         donations: {
-          updateMany: {
-            where: { paymentId: existingPayment.id },
+          update: {
+            where: { id: updatePaymentDto.donationId },
             data: {
-              personId: '2',
+              personId: existingPayment.donations[0].personId,
             },
           },
         },
@@ -251,27 +235,10 @@ describe('DonationsController', () => {
       status: PaymentStatus.succeeded,
       targetPersonId: mockDonation.personId,
       billingEmail: mockPayment.billingEmail as string,
+      donationId: '123',
     }
 
-    const existingTargetPerson: Person = {
-      id: mockDonation.personId,
-      firstName: 'string',
-      lastName: 'string',
-      email: mockPayment.billingEmail,
-      phone: 'string',
-      companyId: 'string',
-      createdAt: new Date('2022-01-01'),
-      updatedAt: new Date('2022-01-01'),
-      newsletter: false,
-      address: 'string',
-      birthday: new Date('2002-07-07'),
-      emailConfirmed: true,
-      personalNumber: 'string',
-      keycloakId: '00000000-0000-0000-0000-000000000012',
-      stripeCustomerId: 'string',
-      picture: 'string',
-      profileEnabled: true,
-    }
+    const existingTargetPerson: Person = personMock
 
     const existingPayment = { ...mockPayment, status: PaymentStatus.initial }
     const expectedUpdatedPayment = { ...existingPayment, status: PaymentStatus.succeeded }
@@ -292,10 +259,9 @@ describe('DonationsController', () => {
       data: {
         status: PaymentStatus.succeeded,
         billingEmail: updatePaymentDto.billingEmail,
-        updatedAt: expectedUpdatedPayment.updatedAt,
         donations: {
-          updateMany: {
-            where: { paymentId: existingPayment.id },
+          update: {
+            where: { id: updatePaymentDto.donationId },
             data: {
               personId: existingPayment.donations[0].personId,
             },
