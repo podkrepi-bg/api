@@ -498,12 +498,12 @@ export class DonationsService {
    * @param updatePaymentDto
    * @returns
    */
-  async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Payment> {
+  async update(paymentId: string, updatePaymentDto: UpdatePaymentDto): Promise<Payment> {
     try {
       // execute the below in prisma transaction
       return await this.prisma.$transaction(async (tx) => {
         const currentPayment = await tx.payment.findFirst({
-          where: { id },
+          where: { id: paymentId },
           include: {
             donations: {
               select: { personId: true, targetVaultId: true },
@@ -511,7 +511,7 @@ export class DonationsService {
           },
         })
         if (!currentPayment) {
-          throw new NotFoundException(`Update failed. No donation found with ID: ${id}`)
+          throw new NotFoundException(`Update failed. No payment found with ID: ${paymentId}`)
         }
 
         if (
@@ -548,23 +548,18 @@ export class DonationsService {
         }
 
         const donation = await tx.payment.update({
-          where: { id },
+          where: { id: paymentId },
           data: {
             status: status,
             donations: {
-              updateMany: {
-                where: { paymentId: id },
+              update: {
+                where: { id: updatePaymentDto.donationId ?? '' },
                 data: {
                   personId: updatePaymentDto.targetPersonId ? donorId : undefined,
                 },
               },
             },
             billingEmail: updatePaymentDto.billingEmail ? billingEmail : undefined,
-            //In case of personId or billingEmail change, take the last updatedAt property to prevent any changes to updatedAt property
-            updatedAt:
-              updatePaymentDto.targetPersonId || updatePaymentDto.billingEmail
-                ? currentPayment.updatedAt
-                : undefined,
           },
         })
 
