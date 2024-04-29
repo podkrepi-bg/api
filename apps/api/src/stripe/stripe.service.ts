@@ -49,6 +49,9 @@ export class StripeService {
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
 
+  async cancelSetupIntent(id: string) {
+    return await this.stripeClient.setupIntents.cancel(id)
+  }
   async findSetupIntentById(setupIntentId: string): Promise<Stripe.SetupIntent | Error> {
     const setupIntent = await this.stripeClient.setupIntents.retrieve(setupIntentId, {
       expand: ['payment_method'],

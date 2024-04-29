@@ -5,6 +5,7 @@ import {
   Logger,
   NotFoundException,
   Param,
+  Patch,
   Post,
   Query,
   UnauthorizedException,
@@ -83,6 +84,12 @@ export class StripeController {
     @Body() updateSetupIntentDto: UpdateSetupIntentDto,
   ) {
     return this.stripeService.updateSetupIntent(id, idempotencyKey, updateSetupIntentDto)
+  }
+
+  @Patch('setup-intent/:id/cancel')
+  @Public()
+  cancelSetupIntent(@Param('id') id: string) {
+    return this.stripeService.cancelSetupIntent(id)
   }
 
   @Post('setup-intent/:id/payment-intent')
