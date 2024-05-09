@@ -278,7 +278,7 @@ export class IrisTasks {
     const endpoint = this.config.get<string>('iris.transactionsEndPoint', '')
 
     const dateFrom = DateTime.fromJSDate(transactionsDate)
-    const dateTo = dateFrom.plus({ days: 1 })
+    const dateTo = dateFrom
 
     Logger.debug(
       `Getting transactions from date: ${dateFrom.toISODate()} to date: ${dateTo.toISODate()}`,
