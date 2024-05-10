@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios'
-import { Logger, Injectable } from '@nestjs/common'
+import { Logger, Injectable, BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { SchedulerRegistry } from '@nestjs/schedule'
 import {
@@ -199,7 +199,8 @@ export class IrisTasks {
       // No transactions for the day yet
       if (!transactions.length) return
     } catch (e) {
-      return Logger.error('Failed to get transactions data from Iris' + e.message)
+      Logger.error(e.message)
+      throw new BadRequestException('Failed to get transactions data from Iris' + e.message)
     }
 
     // 3. Prepare the BankTransaction Records
@@ -278,7 +279,7 @@ export class IrisTasks {
     const endpoint = this.config.get<string>('iris.transactionsEndPoint', '')
 
     const dateFrom = DateTime.fromJSDate(transactionsDate)
-    const dateTo = dateFrom.plus({ days: 1 })
+    const dateTo = dateFrom
 
     Logger.debug(
       `Getting transactions from date: ${dateFrom.toISODate()} to date: ${dateTo.toISODate()}`,
