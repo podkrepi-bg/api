@@ -1037,7 +1037,7 @@ export class CampaignService {
 
   async createCampaignNotificationList(updated: { title: string; id: string }) {
     // Generate list in the marketing platform
-    let listId: string = ''
+    let listId: string
     const lists = await this.marketingNotificationsService.provider.getContactLists()
     const campaginEmailLists = lists.body.result
     const exists = campaginEmailLists.find((campaign) => campaign.name === updated.title)
