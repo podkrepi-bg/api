@@ -199,8 +199,7 @@ export class IrisTasks {
       // No transactions for the day yet
       if (!transactions.length) return
     } catch (e) {
-      Logger.error(e.message)
-      throw new BadRequestException('Failed to get transactions data from Iris' + e.message)
+      return Logger.error('Failed to get transactions data from Iris' + e.message)
     }
 
     // 3. Prepare the BankTransaction Records
