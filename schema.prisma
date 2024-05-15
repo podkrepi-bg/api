@@ -625,7 +625,7 @@ model BankTransaction {
   recipientIban      String?             @map("recipient_iban") @db.VarChar(34)
   amount             Float               @default(0)
   currency           Currency            @default(BGN)
-  description        String              @db.VarChar(200)
+  description        String              @db.Text
   //Matched campaign payment code
   matchedRef         String?             @map("matched_ref") @db.VarChar(100)
   type               BankTransactionType
