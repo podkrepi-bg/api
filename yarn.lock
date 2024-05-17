@@ -2429,58 +2429,64 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@golevelup/nestjs-common@npm:^1.4.4":
-  version: 1.4.4
-  resolution: "@golevelup/nestjs-common@npm:1.4.4"
+"@golevelup/nestjs-common@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@golevelup/nestjs-common@npm:2.0.0"
   dependencies:
-    nanoid: ^3.2.0
-  checksum: d7024160ffbddd7bdd79bb5357b736cab6251d69ac8cd3652a6260e64e75009cb5ae4a6d00dc719f714979c7b520d861d546d982af6e4672805e57fd17d93440
+    lodash: ^4.17.21
+    nanoid: ^3.3.6
+  peerDependencies:
+    "@nestjs/common": ^10.x
+  checksum: 3e114dcd981749c12411ae525b734a95ea6a6ab2a556841996cf3d5a1e3e5be437eb13d894d6e08f784a5e024fa44398baaadb49c909cbd58ff96b893ec3ab2c
   languageName: node
   linkType: hard
 
-"@golevelup/nestjs-discovery@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@golevelup/nestjs-discovery@npm:3.0.0"
-  dependencies:
-    lodash: ^4.17.15
-  checksum: 62d60b3da8604dc131f38fcf965fcbbb0fdce37af7d71c71710fa14b8ac1df80d22b45d3ecbe5da9bc55a233079ae031778f34b07fc5d19bda082a0345cab87f
-  languageName: node
-  linkType: hard
-
-"@golevelup/nestjs-modules@npm:^0.6.1":
-  version: 0.6.1
-  resolution: "@golevelup/nestjs-modules@npm:0.6.1"
+"@golevelup/nestjs-discovery@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "@golevelup/nestjs-discovery@npm:4.0.1"
   dependencies:
     lodash: ^4.17.21
   peerDependencies:
-    "@nestjs/common": ^9.x
-    rxjs: ^7.x
-  checksum: 7e07317795856250e06c5eba2f1f113057bce32db5646b02fe8bbd6953c1a0c9334f094fafbaaadfbd1338c5e96a2cf3aed8449f39a4e64580d29bae9ecae78f
+    "@nestjs/common": ^10.x
+    "@nestjs/core": ^10.x
+  checksum: 778bd1418869c0e85d7c41ff166c9bc62f99dc6d2303c15195de1be9e80fdac25a4b5913bda040fad1a2980d0825b8d3fd945b714a6ad1794df939e4052a0d95
   languageName: node
   linkType: hard
 
-"@golevelup/nestjs-stripe@npm:0.6.0":
-  version: 0.6.0
-  resolution: "@golevelup/nestjs-stripe@npm:0.6.0"
+"@golevelup/nestjs-modules@npm:^0.7.1":
+  version: 0.7.1
+  resolution: "@golevelup/nestjs-modules@npm:0.7.1"
   dependencies:
-    "@golevelup/nestjs-common": ^1.4.4
-    "@golevelup/nestjs-discovery": ^3.0.0
-    "@golevelup/nestjs-modules": ^0.6.1
+    lodash: ^4.17.21
   peerDependencies:
-    stripe: ^10.8.0
-  checksum: 7965adb0f4b3f2c8307747b9f1e293a8facc7894ec9bb9d93646e1462dcc8bf92eee6d2880931ccccdf5a30504c95c3f23763351205bff9815312820e8848df2
+    "@nestjs/common": ^10.x
+    rxjs: ^7.x
+  checksum: 170707d7daa495656f9604a69720882d1f87188f14a1ef48a217dfd393bff3258f8fc49bfc3ff359435271c27d01bc8b81f067e0f0f962c00d7515a52aefdafe
   languageName: node
   linkType: hard
 
-"@golevelup/nestjs-webhooks@npm:0.2.14":
-  version: 0.2.14
-  resolution: "@golevelup/nestjs-webhooks@npm:0.2.14"
+"@golevelup/nestjs-stripe@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@golevelup/nestjs-stripe@npm:0.8.0"
   dependencies:
-    "@golevelup/nestjs-common": ^1.4.4
-    "@golevelup/nestjs-modules": ^0.6.1
+    "@golevelup/nestjs-common": ^2.0.0
+    "@golevelup/nestjs-discovery": ^4.0.1
+    "@golevelup/nestjs-modules": ^0.7.1
+  peerDependencies:
+    stripe: ^14.19.0
+  checksum: 4ef55da06f91bd6348f8ad71aed78bc6a6d91b23955f0b4bef3cd0ff88efffe36f95661576f859911dd5f30e390d9f078667c0a0292182354bf7e962d006338e
+  languageName: node
+  linkType: hard
+
+"@golevelup/nestjs-webhooks@npm:^0.2.18":
+  version: 0.2.18
+  resolution: "@golevelup/nestjs-webhooks@npm:0.2.18"
+  dependencies:
+    "@golevelup/nestjs-common": ^2.0.0
+    "@golevelup/nestjs-modules": ^0.7.1
   peerDependencies:
     body-parser: ^1.19.0
-  checksum: 949971be449c4f1ea6b6788d5d5422f84b481c17d8d929e5fc63644213b600b681b812f69725742212efedc65d29f458bda41018d4bdeec8952ac2b1e956d3e8
+  checksum: 6d797b8cab32cf75e41de92295febd78618f2e41d6408be178ccee4b33d837fd3525aa4cf664e20a9ab032af63adcfe09b9d5d54368689481d9fdbd6a8d4b542
   languageName: node
   linkType: hard
 
@@ -12819,7 +12825,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:3.3.4, nanoid@npm:^3.2.0":
+"nanoid@npm:3.3.4":
   version: 3.3.4
   resolution: "nanoid@npm:3.3.4"
   bin:
@@ -13587,8 +13593,8 @@ __metadata:
   dependencies:
     "@aws-sdk/client-s3": ^3.369.0
     "@faker-js/faker": 7.6.0
-    "@golevelup/nestjs-stripe": 0.6.0
-    "@golevelup/nestjs-webhooks": 0.2.14
+    "@golevelup/nestjs-stripe": ^0.8.0
+    "@golevelup/nestjs-webhooks": ^0.2.18
     "@keycloak/keycloak-admin-client": 18.0.0
     "@nestjs/axios": ^2.0.0
     "@nestjs/cache-manager": ^2.0.1
