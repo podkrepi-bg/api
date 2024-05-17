@@ -393,7 +393,7 @@ Table payments {
 Table donations {
   id String [pk]
   paymentId String [not null]
-  type DonationType [not null]
+  type DonationType [not null, default: 'donation']
   targetVaultId String [not null, note: 'Vault where the funds are going']
   amount Int [not null, default: 0]
   personId String
