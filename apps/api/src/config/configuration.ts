@@ -29,6 +29,7 @@ export default () => ({
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY,
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+    webhookSecretTest: process.env.STRIPE_WEBHOOK_SECRET_TEST,
   },
   paypal: {
     apiUrl: process.env.PAYPAL_URL,

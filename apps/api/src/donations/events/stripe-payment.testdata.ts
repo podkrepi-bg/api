@@ -77,6 +77,7 @@ export const mockPaymentEventCreated: Stripe.Event = {
       amount_details: {
         tip: {},
       },
+      payment_method_configuration_details: null,
       amount_received: 0,
       application: null,
       application_fee_amount: null,
@@ -146,6 +147,8 @@ export const mockPaymentEventCancelled: Stripe.Event = {
       amount_details: {
         tip: {},
       },
+      payment_method_configuration_details: null,
+      latest_charge: '123',
       amount_received: 0,
       application: null,
       application_fee_amount: null,
@@ -153,13 +156,6 @@ export const mockPaymentEventCancelled: Stripe.Event = {
       canceled_at: 1660163846,
       cancellation_reason: 'automatic',
       capture_method: 'automatic',
-      charges: {
-        object: 'list',
-        data: [],
-        has_more: false,
-        total_count: 0,
-        url: '/v1/charges?payment_intent=pi_3LUzB4KApGjVGa9t0NGvE94K',
-      },
       client_secret: 'pi',
       confirmation_method: 'automatic',
       created: 1660077446,
@@ -227,13 +223,6 @@ export const mockPaymentEventFailed: Stripe.Event = {
       canceled_at: null,
       cancellation_reason: null,
       capture_method: 'automatic',
-      charges: {
-        object: 'list',
-        data: [],
-        has_more: false,
-        total_count: 0,
-        url: '/v1/charges?payment_intent=pi_3LUzB4KApGjVGa9t0NGvE94K',
-      },
       client_secret: 'pi',
       confirmation_method: 'automatic',
       created: 1660077446,
@@ -266,7 +255,9 @@ export const mockPaymentEventFailed: Stripe.Event = {
       source: null,
       statement_descriptor: null,
       statement_descriptor_suffix: null,
-      status: 'payment_failed',
+      latest_charge: 'ch_123',
+      payment_method_configuration_details: null,
+      status: 'requires_payment_method',
       transfer_data: null,
       transfer_group: null,
     },
@@ -315,8 +306,6 @@ export const mockChargeEventSucceeded: Stripe.Event = {
       currency: 'bgn',
       customer: null,
       description: null,
-      destination: null,
-      dispute: null,
       disputed: false,
       failure_balance_transaction: null,
       failure_code: null,
@@ -330,7 +319,6 @@ export const mockChargeEventSucceeded: Stripe.Event = {
         isAnonymous: 'false',
       },
       on_behalf_of: null,
-      order: null,
       outcome: {
         network_status: 'approved_by_network',
         reason: null,
@@ -344,6 +332,7 @@ export const mockChargeEventSucceeded: Stripe.Event = {
       payment_method: 'pm_1MmYVsKApGjVGa9t0VgSblb6',
       payment_method_details: {
         card: {
+          amount_authorized: null,
           brand: 'visa',
           checks: {
             address_line1_check: null,
@@ -423,8 +412,6 @@ export const mockChargeRefundEventSucceeded: Stripe.Event = {
       currency: 'bgn',
       customer: null,
       description: null,
-      destination: null,
-      dispute: null,
       disputed: false,
       failure_balance_transaction: null,
       failure_code: null,
@@ -437,7 +424,6 @@ export const mockChargeRefundEventSucceeded: Stripe.Event = {
         isAnonymous: 'false',
       },
       on_behalf_of: null,
-      order: null,
       outcome: {
         network_status: 'approved_by_network',
         reason: null,
@@ -451,6 +437,7 @@ export const mockChargeRefundEventSucceeded: Stripe.Event = {
       payment_method: 'pm_1MmYVsKApGjVGa9t0VgSblb6',
       payment_method_details: {
         card: {
+          amount_authorized: null,
           brand: 'visa',
           checks: {
             address_line1_check: null,
@@ -503,6 +490,8 @@ export const mockPaymentIntentCreated: Stripe.PaymentIntent = {
   amount_details: {
     tip: {},
   },
+  payment_method_configuration_details: null,
+  latest_charge: null,
   amount_received: 0,
   application: null,
   application_fee_amount: null,
@@ -555,6 +544,7 @@ export const mockPaymentIntentBGIncluded: Stripe.PaymentIntent = {
   amount_details: {
     tip: {},
   },
+  payment_method_configuration_details: null,
   amount_received: 1063,
   application: null,
   application_fee_amount: null,
@@ -591,8 +581,6 @@ export const mockPaymentIntentBGIncluded: Stripe.PaymentIntent = {
     currency: 'bgn',
     customer: 'cus_M691kVNYuUp4po',
     description: null,
-    destination: null,
-    dispute: null,
     disputed: false,
     failure_balance_transaction: null,
     failure_code: null,
@@ -617,6 +605,7 @@ export const mockPaymentIntentBGIncluded: Stripe.PaymentIntent = {
     payment_method: 'pm_1LNwjtKApGjVGa9thtth9iu7',
     payment_method_details: {
       card: {
+        amount_authorized: 100,
         brand: 'visa',
         checks: {
           address_line1_check: null,
@@ -697,6 +686,7 @@ export const mockPaymentIntentBGIncluded: Stripe.PaymentIntent = {
 export const mockPaymentIntentBGIncludedNot: Stripe.PaymentIntent = {
   id: 'pi_3LNwkHKApGjVGa9t1TLyVofD',
   object: 'payment_intent',
+  payment_method_configuration_details: null,
   amount: 1000,
   amount_capturable: 0,
   amount_details: {
@@ -738,8 +728,6 @@ export const mockPaymentIntentBGIncludedNot: Stripe.PaymentIntent = {
     currency: 'bgn',
     customer: 'cus_M692d4eal3rlWR',
     description: null,
-    destination: null,
-    dispute: null,
     disputed: false,
     failure_balance_transaction: null,
     failure_code: null,
@@ -764,6 +752,7 @@ export const mockPaymentIntentBGIncludedNot: Stripe.PaymentIntent = {
     payment_method: 'pm_1LNwkbKApGjVGa9tmWVdg46e',
     payment_method_details: {
       card: {
+        amount_authorized: null,
         brand: 'visa',
         checks: {
           address_line1_check: null,
@@ -849,6 +838,7 @@ export const mockPaymentIntentUSIncluded: Stripe.PaymentIntent = {
   amount_details: {
     tip: {},
   },
+  payment_method_configuration_details: null,
   amount_received: 10350,
   application: null,
   application_fee_amount: null,
@@ -885,8 +875,6 @@ export const mockPaymentIntentUSIncluded: Stripe.PaymentIntent = {
     currency: 'bgn',
     customer: 'cus_M6C76vpsFglyGh',
     description: null,
-    destination: null,
-    dispute: null,
     disputed: false,
     failure_balance_transaction: null,
     failure_code: null,
@@ -911,6 +899,7 @@ export const mockPaymentIntentUSIncluded: Stripe.PaymentIntent = {
     payment_method: 'pm_1LNziyKApGjVGa9tOR1sWkMV',
     payment_method_details: {
       card: {
+        amount_authorized: null,
         brand: 'visa',
         checks: {
           address_line1_check: null,
@@ -996,6 +985,7 @@ export const mockPaymentIntentUKIncluded: Stripe.PaymentIntent = {
   amount_details: {
     tip: {},
   },
+  payment_method_configuration_details: null,
   amount_received: 51333,
   application: null,
   application_fee_amount: null,
@@ -1032,8 +1022,6 @@ export const mockPaymentIntentUKIncluded: Stripe.PaymentIntent = {
     currency: 'bgn',
     customer: 'cus_M6ClvMHGb5Y4LI',
     description: null,
-    destination: null,
-    dispute: null,
     disputed: false,
     failure_balance_transaction: null,
     failure_code: null,
@@ -1058,6 +1046,7 @@ export const mockPaymentIntentUKIncluded: Stripe.PaymentIntent = {
     payment_method: 'pm_1LO0MLKApGjVGa9tT5zcUHVU',
     payment_method_details: {
       card: {
+        amount_authorized: null,
         brand: 'visa',
         checks: {
           address_line1_check: null,
@@ -1147,8 +1136,13 @@ export const mockCustomerSubscriptionCreated: Stripe.Event = {
       application: null,
       application_fee_percent: null,
       automatic_tax: {
+        liability: null,
         enabled: false,
       },
+      trial_settings: null,
+      discounts: [''],
+      billing_cycle_anchor_config: null,
+      cancellation_details: null,
       billing_cycle_anchor: 1670536410,
       billing_thresholds: null,
       cancel_at: null,
@@ -1227,10 +1221,10 @@ export const mockCustomerSubscriptionCreated: Stripe.Event = {
             quantity: 1,
             subscription: 'sub_1MCs22FIrMXL5nkaztW6rLaD',
             tax_rates: [],
+            discounts: [''],
           },
         ],
         has_more: false,
-        total_count: 1,
         url: '/v1/subscription_items?subscription=sub_1MCs22FIrMXL5nkaztW6rLaD',
       },
       latest_invoice: 'in_1MCs22FIrMXL5nkaXZpWAd4Y',
@@ -1250,28 +1244,6 @@ export const mockCustomerSubscriptionCreated: Stripe.Event = {
       pending_invoice_item_interval: null,
       pending_setup_intent: null,
       pending_update: null,
-      plan: {
-        id: 'price_1MCs1HFIrMXL5nkaoJsUSJKG',
-        object: 'plan',
-        active: false,
-        aggregate_usage: null,
-        amount: 1872,
-        amount_decimal: '1872',
-        billing_scheme: 'per_unit',
-        created: 1670536363,
-        currency: 'bgn',
-        interval: 'month',
-        interval_count: 1,
-        livemode: false,
-        metadata: {},
-        nickname: null,
-        product: 'prod_MwYEGRSdsnet4h',
-        tiers_mode: null,
-        transform_usage: null,
-        trial_period_days: null,
-        usage_type: 'licensed',
-      },
-      quantity: 1,
       schedule: null,
       start_date: 1670536410,
       status: 'incomplete',
@@ -1318,12 +1290,23 @@ export const mockInvoicePaidEvent: Stripe.Event = {
       amount_due: 3600,
       amount_paid: 3600,
       amount_remaining: 0,
+      amount_shipping: 0,
+      shipping_cost: null,
       application: null,
+      effective_at: null,
+      shipping_details: null,
+      rendering: null,
+      subscription_details: null,
+      issuer: {
+        account: 'Podkrepi.bg',
+        type: 'account',
+      },
       application_fee_amount: null,
       attempt_count: 1,
       attempted: true,
       auto_advance: false,
       automatic_tax: {
+        liability: null,
         enabled: false,
         status: null,
       },
@@ -1368,6 +1351,7 @@ export const mockInvoicePaidEvent: Stripe.Event = {
         object: 'list',
         data: [
           {
+            invoice: '',
             id: 'il_1MCtcTFIrMXL5nka1tYt2eLx',
             object: 'line_item',
             amount: 3600,
@@ -1448,7 +1432,6 @@ export const mockInvoicePaidEvent: Stripe.Event = {
           },
         ],
         has_more: false,
-        total_count: 1,
         url: '/v1/invoices/in_1MCtcTFIrMXL5nkawpHsj9HJ/lines',
       },
       livemode: false,
@@ -1470,7 +1453,6 @@ export const mockInvoicePaidEvent: Stripe.Event = {
       pre_payment_credit_notes_amount: 0,
       quote: null,
       receipt_number: null,
-      rendering_options: null,
       starting_balance: 0,
       statement_descriptor: null,
       status: 'paid',

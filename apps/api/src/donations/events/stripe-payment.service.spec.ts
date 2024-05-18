@@ -59,7 +59,7 @@ const stripeSecret = 'wh_123'
 describe('StripePaymentService', () => {
   let stripePaymentService: StripePaymentService
   let app: INestApplication
-  const stripe = new Stripe(stripeSecret, { apiVersion: '2022-11-15' })
+  const stripe = new Stripe(stripeSecret, { apiVersion: '2024-04-10' })
 
   const moduleConfig: StripeModuleConfig = {
     apiKey: stripeSecret,
@@ -539,11 +539,10 @@ describe('StripePaymentService', () => {
       .expect(201)
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(
-          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata
-            .campaignId,
+          (mockCustomerSubscriptionCreated.data.object as Stripe.Subscription).metadata.campaignId,
         ) //campaignId from the Stripe Event
         expect(mockedfindSubscriptionByExtId).toHaveBeenCalledWith(
-          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).id,
+          (mockCustomerSubscriptionCreated.data.object as Stripe.Subscription).id,
         )
         expect(mockedUpdateRecurringService).toHaveBeenCalledWith(
           mockedRecurringDonation.id,
@@ -598,8 +597,7 @@ describe('StripePaymentService', () => {
       .expect(201)
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(
-          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata
-            .campaignId,
+          (mockCustomerSubscriptionCreated.data.object as Stripe.Subscription).metadata.campaignId,
         ) //campaignId from the Stripe Event
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
         expect(mockedIncrementVaultAmount).toHaveBeenCalled()
@@ -642,16 +640,14 @@ describe('StripePaymentService', () => {
       .expect(201)
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(
-          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata
-            .campaignId,
+          (mockCustomerSubscriptionCreated.data.object as Stripe.Subscription).metadata.campaignId,
         ) //campaignId from the Stripe Event
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
         expect(mockCancelSubscription).toHaveBeenCalledWith(
           mockedRecurringDonation.extSubscriptionId,
         )
         expect(mockFindAllRecurringDonations).toHaveBeenCalledWith(
-          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata
-            .campaignId,
+          (mockCustomerSubscriptionCreated.data.object as Stripe.Subscription).metadata.campaignId,
         )
       })
   })

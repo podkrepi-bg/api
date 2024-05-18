@@ -13664,7 +13664,7 @@ __metadata:
     prisma-dbml-generator: ^0.10.0
     reflect-metadata: 0.1.13
     rxjs: 7.5.5
-    stripe: 11.14.0
+    stripe: ^15.7.0
     supertest: ^6.3.3
     swagger-ui-express: 4.5.0
     ts-jest: ^29.0.5
@@ -15469,13 +15469,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stripe@npm:11.14.0":
-  version: 11.14.0
-  resolution: "stripe@npm:11.14.0"
+"stripe@npm:^15.7.0":
+  version: 15.7.0
+  resolution: "stripe@npm:15.7.0"
   dependencies:
     "@types/node": ">=8.1.0"
     qs: ^6.11.0
-  checksum: daaee9f33e84d04d81d90ce86fd810d0b77b0700265b30e92fe86e4cf643d4281b3322be608896570a26d7231fe78d71c5e25c4122daf5c3f5eebe87dfd33952
+  checksum: 978879fdb1f075fee603658ea9949cb16f5e5c714799aa71dc640a141b386322b15f2058fcde1b2e070fa80df7132afd9313539ab707bfecb0fb9e32e962484f
   languageName: node
   linkType: hard
 

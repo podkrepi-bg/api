@@ -63,7 +63,7 @@
     "nest-keycloak-connect": "^1.9.1",
     "reflect-metadata": "0.1.13",
     "rxjs": "7.5.5",
-    "stripe": "11.14.0",
+    "stripe": "^15.7.0",
     "swagger-ui-express": "4.5.0",
     "tslib": "2.4.0",
     "xml2js": "^0.5.0"
