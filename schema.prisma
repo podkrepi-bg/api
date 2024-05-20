@@ -475,7 +475,7 @@ model Donation {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   paymentId     String            @map("payment_id") @db.Uuid
-  type          DonationType
+  type          DonationType      @default(donation)
   /// Vault where the funds are going
   targetVaultId String            @map("target_vault_id") @db.Uuid
   amount        Int               @default(0)
