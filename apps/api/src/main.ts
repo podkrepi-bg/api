@@ -8,6 +8,8 @@ import { setupSwagger } from './config/swagger.config'
 import { setupExceptions } from './config/exceptions.config'
 import { setupValidation } from './config/validation.config'
 import { setupShutdownHooks } from './config/shutdown.config'
+import { MyLogger } from './logger/logger'
+import { LoggerModule } from './logger/logger.module'
 
 const globalPrefix = process.env.GLOBAL_PREFIX ?? 'api/v1'
 const logLevels: LogLevel[] = ['error', 'warn']
@@ -26,6 +28,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix(globalPrefix)
   app.enableVersioning({ type: VersioningType.URI })
+  app.useLogger(app.get(MyLogger))
 
   const appVersion = process.env.APP_VERSION || 'unknown'
   setupHelmet(app)

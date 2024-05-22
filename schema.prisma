@@ -475,7 +475,7 @@ model Donation {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   paymentId     String            @map("payment_id") @db.Uuid
-  type          DonationType
+  type          DonationType      @default(donation)
   /// Vault where the funds are going
   targetVaultId String            @map("target_vault_id") @db.Uuid
   amount        Int               @default(0)
@@ -625,7 +625,7 @@ model BankTransaction {
   recipientIban      String?             @map("recipient_iban") @db.VarChar(34)
   amount             Float               @default(0)
   currency           Currency            @default(BGN)
-  description        String              @db.VarChar(200)
+  description        String              @db.Text
   //Matched campaign payment code
   matchedRef         String?             @map("matched_ref") @db.VarChar(100)
   type               BankTransactionType

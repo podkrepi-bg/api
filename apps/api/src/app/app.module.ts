@@ -61,6 +61,8 @@ import { StatisticsModule } from '../statistics/statistics.module'
 import { AffiliateModule } from '../affiliate/affiliate.module'
 import { StripeModule } from '../stripe/stripe.module'
 
+import { LoggerModule } from '../logger/logger.module'
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -128,6 +130,7 @@ import { StripeModule } from '../stripe/stripe.module'
     CampaignNewsModule,
     CampaignNewsFileModule,
     MarketingNotificationsModule,
+    LoggerModule,
     StripeModule,
   ],
   controllers: [AppController],
