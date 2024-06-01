@@ -11,6 +11,7 @@ import {
 
 import { MarketingNotificationsService } from './notifications.service'
 import { KeycloakTokenParsed } from '../auth/keycloak'
+import { MassMailDto } from './dto/massmail.dto'
 
 @ApiTags('notifications')
 @Controller('notifications')
@@ -62,5 +63,11 @@ export class MarketingNotificationsController {
     return await this.marketingNotificationsService.getCampaignNotificationSubscriptions(
       user.email || '',
     )
+  }
+
+  @Post('/send-newsletter-consent')
+  @Public()
+  async sendMassMail(@Body() data: MassMailDto) {
+    return await this.marketingNotificationsService.sendConsentMail(data)
   }
 }

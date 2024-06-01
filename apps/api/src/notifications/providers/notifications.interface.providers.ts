@@ -1,3 +1,7 @@
+import { MassMailDto } from '../dto/massmail.dto'
+import { ContactsMap } from '../notifications.service'
+import { PersonalizationData } from '@sendgrid/helpers/classes/personalization'
+
 type NotificationsInterfaceParams = {
   CreateListParams: unknown
   UpdateListParams: unknown
@@ -8,6 +12,7 @@ type NotificationsInterfaceParams = {
   RemoveFromUnsubscribedParams: unknown
   AddToUnsubscribedParams: unknown
   SendNotificationParams: unknown
+  GetContactsFromListParam: unknown
 
   // Responses
   CreateListRes: unknown
@@ -19,6 +24,7 @@ type NotificationsInterfaceParams = {
   RemoveFromUnsubscribedRes: unknown
   AddToUnsubscribedRes: unknown
   SendNotificationRes: unknown
+  GetContactsFromListRes: unknown
 }
 
 export abstract class NotificationsProviderInterface<
@@ -35,4 +41,19 @@ export abstract class NotificationsProviderInterface<
     data: T['RemoveFromUnsubscribedParams'],
   ): Promise<T['RemoveFromUnsubscribedRes']>
   abstract sendNotification(data: T['SendNotificationParams']): Promise<T['SendNotificationRes']>
+  abstract getContactsFromList(
+    data: T['GetContactsFromListParam'],
+  ): Promise<T['GetContactsFromListRes']>
+  abstract prepareTemplatePersonalizations(
+    data: MassMailDto,
+    contacts: ContactsMap,
+    batchNumber: number,
+    date?: Date,
+  ): PersonalizationData[]
+
+  abstract sendBulkEmail(
+    data: MassMailDto,
+    contactsMap: ContactsMap[],
+    timeout?: number,
+  ): Promise<void>
 }
