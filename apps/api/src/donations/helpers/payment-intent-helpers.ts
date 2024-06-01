@@ -96,7 +96,7 @@ export function getInvoiceData(invoice: Stripe.Invoice): PaymentData {
       personId = line.metadata.personId
     }
     if (line.metadata.type) {
-      type = line.metadata.type ?? DonationType.donation
+      type = line.metadata.type
     }
   })
 
@@ -118,7 +118,7 @@ export function getInvoiceData(invoice: Stripe.Invoice): PaymentData {
     paymentMethodId: invoice.collection_method,
     stripeCustomerId: invoice.customer as string,
     personId,
-    type,
+    type: type || DonationType.donation,
   }
 }
 
