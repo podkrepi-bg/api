@@ -141,12 +141,14 @@ export class StripePaymentService {
       billingData,
       PaymentStatus.succeeded,
     )
-
     //updateDonationPayment will mark the campaign as completed if amount is reached
     await this.cancelSubscriptionsIfCompletedCampaign(metadata.campaignId)
 
     //and finally save the donation wish
     if (donationId && metadata?.wish) {
+      Logger.debug(`donationId: ${donationId}`)
+      Logger.debug(`wisth: ${metadata.wish}`)
+      Logger.debug(`campaignId: ${campaign.id}`)
       await this.campaignService.createDonationWish(metadata.wish, donationId, campaign.id)
     }
   }

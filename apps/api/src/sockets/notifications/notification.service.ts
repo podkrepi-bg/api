@@ -12,6 +12,7 @@ export const donationNotificationSelect = Prisma.validator<Prisma.PaymentSelect>
 
   donations: {
     select: {
+      id: true,
       targetVaultId: true,
       person: {
         select: {

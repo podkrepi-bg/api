@@ -603,29 +603,28 @@ export class CampaignService {
     return await this.prisma.$transaction(async (tx) => {
       let donationId
       // Find donation by extPaymentIntentId
-      const existingDonation = await this.findExistingDonation(tx, paymentData)
+      const existingPayment = await this.findExistingDonation(tx, paymentData)
 
       //if missing create the donation with the incoming status
-      if (!existingDonation) {
+      if (!existingPayment) {
         const newDonation = await this.createIncomingDonation(
           tx,
           paymentData,
           newDonationStatus,
           campaign,
         )
-        donationId = newDonation.id
+        donationId = newDonation.donations[0].id
       }
       //donation exists, so check if it is safe to update it
       else {
         const updatedDonation = await this.updateDonationIfAllowed(
           tx,
-          existingDonation,
+          existingPayment,
           newDonationStatus,
           paymentData,
         )
-        donationId = updatedDonation?.id
+        donationId = updatedDonation?.donations[0].id
       }
-
       return donationId
     }) //end of the transaction scope
   }
@@ -800,6 +799,7 @@ export class CampaignService {
 
   async createDonationWish(wish: string, donationId: string, campaignId: string) {
     const person = await this.prisma.donation.findUnique({ where: { id: donationId } }).person()
+    console.log(person)
     await this.prisma.donationWish.upsert({
       where: { donationId },
       create: {
