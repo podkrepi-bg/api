@@ -10,19 +10,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
-import {
-  catchError,
-  delay,
-  delayWhen,
-  firstValueFrom,
-  map,
-  Observable,
-  retry,
-  retryWhen,
-  take,
-  tap,
-  timer,
-} from 'rxjs'
+import { catchError, firstValueFrom, map, Observable, retry, timer } from 'rxjs'
 import KeycloakConnect from 'keycloak-connect'
 import { ConfigService } from '@nestjs/config'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
