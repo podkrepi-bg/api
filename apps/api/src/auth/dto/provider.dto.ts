@@ -14,10 +14,29 @@ export class ProviderDto {
   @IsNotEmpty()
   @IsString()
   public readonly provider: string
+
+  @ApiProperty()
+  @Expose()
+  @IsNotEmpty()
+  @IsString()
+  public readonly userId: string
+
+  @ApiProperty()
+  @Expose()
+  @IsNotEmpty()
+  @IsString()
+  public readonly email: string
+
   @ApiProperty()
   @Expose()
   @IsNotEmpty()
   @IsString()
   @IsUrl()
   public readonly picture: string
+
+  @ApiProperty()
+  @Expose()
+  @IsNotEmpty()
+  @IsString()
+  public readonly name: string
 }
