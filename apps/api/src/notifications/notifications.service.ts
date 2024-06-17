@@ -527,7 +527,7 @@ export class MarketingNotificationsService {
   private updateMailListMap(
     regUser: Person[],
     contacts: ContactsMap,
-    date: Date,
+    skipAfterDate: Date,
     unregisteredConsent: UnregisteredNotificationConsent[],
   ) {
     for (const registeredUser of regUser) {
@@ -535,8 +535,9 @@ export class MarketingNotificationsService {
 
       // Remove email if it belongs to user created after the change has been deployed, as they had already decided
       // whether to give consent or not.
-      if (contacts.get(registeredUser.email as string) && createdAt > date) {
-        Logger.debug(`Removing email ${registeredUser.email}`)
+      Logger.debug(skipAfterDate)
+      if (contacts.get(registeredUser.email as string) && createdAt > skipAfterDate) {
+        Logger.debug(`Removing email ${registeredUser.email} from list`)
         contacts.delete(registeredUser.email as string)
         continue
       }
@@ -581,8 +582,8 @@ export class MarketingNotificationsService {
 
     const unregisteredUsers = await this.prisma.unregisteredNotificationConsent.findMany()
 
-    const dateOfDeploy = new Date('2023-08-23')
-    this.updateMailListMap(registeredMails, sendList, dateOfDeploy, unregisteredUsers)
+    const skipUsersAfterDate = new Date(data.dateThreshold)
+    this.updateMailListMap(registeredMails, sendList, skipUsersAfterDate, unregisteredUsers)
 
     await this.createUnregisteredConsent(sendList)
 
