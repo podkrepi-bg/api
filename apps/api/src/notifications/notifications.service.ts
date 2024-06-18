@@ -535,7 +535,6 @@ export class MarketingNotificationsService {
 
       // Remove email if it belongs to user created after the change has been deployed, as they had already decided
       // whether to give consent or not.
-      Logger.debug(skipAfterDate)
       if (contacts.get(registeredUser.email as string) && createdAt > skipAfterDate) {
         Logger.debug(`Removing email ${registeredUser.email} from list`)
         contacts.delete(registeredUser.email as string)
@@ -559,7 +558,7 @@ export class MarketingNotificationsService {
     }
   }
 
-  private async createUnregisteredConsent(contacts: ContactsMap) {
+  private async insertUnregisteredConsentFromContacts(contacts: ContactsMap) {
     const emailsToAdd: UnregisteredInsert[] = []
     for (const [key, value] of contacts) {
       if (value.registered) continue
@@ -585,10 +584,11 @@ export class MarketingNotificationsService {
     const skipUsersAfterDate = new Date(data.dateThreshold)
     this.updateMailListMap(registeredMails, sendList, skipUsersAfterDate, unregisteredUsers)
 
-    await this.createUnregisteredConsent(sendList)
+    await this.insertUnregisteredConsentFromContacts(sendList)
 
     const contactsChunked = mapChunk<ContactsMap>(sendList, data.chunkSize)
     Logger.debug(`Splitted email list into ${contactsChunked.length} chunk`)
     await this.marketingNotificationsProvider.sendBulkEmail(data, contactsChunked)
+    return sendList.size
   }
 }

@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  RequestTimeoutException,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import sgClient from '@sendgrid/client'
 import sgMail from '@sendgrid/mail'
@@ -77,6 +83,8 @@ export class SendGridNotificationsProvider
 
   async getContactsFromList(listId: string) {
     const SENDGRID_EXPORT_TIMEOUT = 10000
+    const RETRY_LIMIT = 5
+    let numOfRetries = 0
     Logger.debug('Creating contacts exports')
     const createContactExport = await this.createContactExport(listId)
     const jobId = createContactExport.id
@@ -95,7 +103,13 @@ export class SendGridNotificationsProvider
           break
         default:
       }
-    } while (exportStatusResponse.status === 'pending')
+      numOfRetries++
+    } while (exportStatusResponse.status === 'pending' && numOfRetries < RETRY_LIMIT)
+    if (numOfRetries >= RETRY_LIMIT) {
+      throw new InternalServerErrorException(
+        `Couldn't export contacts within the limit. Try again later.`,
+      )
+    }
     const exportUrl = exportStatusResponse.urls[0]
     const response = await fetch(exportUrl, {
       headers: { 'Content-Type': 'application/json', 'Accept-Encoding': 'zlib' },
