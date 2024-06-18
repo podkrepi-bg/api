@@ -1,6 +1,6 @@
 import { BadRequestException, Body, Controller, Get, Post } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
-import { AuthenticatedUser, Public } from 'nest-keycloak-connect'
+import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import {
   SendConfirmationDto,
   SubscribeDto,
@@ -12,6 +12,7 @@ import {
 import { MarketingNotificationsService } from './notifications.service'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { MassMailDto } from './dto/massmail.dto'
+import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 @ApiTags('notifications')
 @Controller('notifications')
@@ -66,7 +67,10 @@ export class MarketingNotificationsController {
   }
 
   @Post('/send-newsletter-consent')
-  @Public()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async sendMassMail(@Body() data: MassMailDto) {
     return await this.marketingNotificationsService.sendConsentMail(data)
   }
