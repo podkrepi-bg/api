@@ -1,4 +1,4 @@
-import { PaymentProvider } from '@prisma/client'
+import { DonationType, PaymentProvider } from '@prisma/client'
 import Stripe from 'stripe'
 import { getCountryRegion, stripeFeeCalculator } from './stripe-fee-calculator'
 import { RecurringDonationStatus, Currency } from '@prisma/client'
@@ -56,7 +56,7 @@ export function getPaymentData(
     billingEmail: charge?.billing_details?.email ?? paymentIntent.receipt_email ?? undefined,
     paymentMethodId: getPaymentMethodId(paymentIntent),
     stripeCustomerId: getPaymentCustomerId(paymentIntent),
-    type: paymentIntent.metadata.type,
+    type: paymentIntent.metadata.type ?? DonationType.donation,
     personId: !isAnonymous ? paymentIntent.metadata.personId : undefined,
   }
 }
@@ -81,7 +81,7 @@ export function getPaymentDataFromCharge(charge: Stripe.Charge): PaymentData {
     billingEmail: charge?.billing_details?.email ?? charge.receipt_email ?? undefined,
     paymentMethodId: 'card',
     stripeCustomerId: charge.billing_details?.email ?? undefined,
-    type: charge.metadata.type,
+    type: charge.metadata.type ?? DonationType.donation,
     personId: !isAnonymous ? charge.metadata.personId : undefined,
   }
 }
@@ -121,7 +121,7 @@ export function getInvoiceData(invoice: Stripe.Invoice, charge: Stripe.Charge): 
     paymentMethodId: invoice.collection_method,
     stripeCustomerId: invoice.customer as string,
     personId,
-    type,
+    type: type || DonationType.donation,
   }
 }
 
