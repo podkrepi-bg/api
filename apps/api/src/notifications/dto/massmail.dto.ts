@@ -24,7 +24,7 @@ export class MassMailDto {
   @Expose()
   @IsNumber()
   @IsOptional()
-  chunkSize: number = 1000
+  chunkSize = 1000
 
   //Remove users registered after the dateThreshold from mail list
   @ApiProperty()
