@@ -269,21 +269,26 @@ export class SendGridNotificationsProvider
     return response
   }
 
-  async sendBulkEmail(data: MassMailDto, contactsMap: ContactsMap[]): Promise<void> {
+  async sendBulkEmail(data: MassMailDto, contactsMap: ContactsMap[], value: string): Promise<void> {
     const currentDate = new Date()
     contactsMap.forEach((contacts, index) => {
       //Schedule  batches in a minute difference
       currentDate.setMinutes(currentDate.getMinutes() + index)
-      this.sendEmail(data, contacts, currentDate)
+      this.sendEmail(data, contacts, currentDate, value)
     })
   }
 
-  async sendEmail(data: MassMailDto, contacts: ContactsMap, date: Date): Promise<void> {
+  async sendEmail(
+    data: MassMailDto,
+    contacts: ContactsMap,
+    date: Date,
+    value: string,
+  ): Promise<void> {
     const personalizations = this.prepareTemplatePersonalizations(data, contacts, date)
     const message: MailDataRequired = {
       personalizations,
       from: this.config.get('SENDGRID_SENDER_EMAIL', ''),
-      content: [{ type: 'text/html', value: 'Subscription Notification' }],
+      content: [{ type: 'text/html', value: value }],
       templateId: data.templateId,
     }
     sgMail

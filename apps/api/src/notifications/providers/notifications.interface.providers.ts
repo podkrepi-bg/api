@@ -53,6 +53,7 @@ export abstract class NotificationsProviderInterface<
   abstract sendBulkEmail(
     data: MassMailDto,
     contactsMap: ContactsMap[],
+    value: string,
     timeout?: number,
   ): Promise<void>
 }
