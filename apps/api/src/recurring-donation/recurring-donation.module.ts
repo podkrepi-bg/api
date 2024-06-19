@@ -18,5 +18,6 @@ import { StripeConfigFactory } from '../donations/helpers/stripe-config-factory'
 
   controllers: [RecurringDonationController],
   providers: [PrismaService, RecurringDonationService],
+  exports: [RecurringDonationService],
 })
 export class RecurringDonationModule {}

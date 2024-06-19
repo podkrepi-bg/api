@@ -54,26 +54,6 @@ export class RecurringDonationController {
     return this.recurringDonationService.update(id, updateRecurringDonationDto)
   }
 
-  @Get('cancel/:id')
-  async cancel(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
-    Logger.log(`Cancelling recurring donation with id ${id}`)
-    const rd = await this.recurringDonationService.findOne(id)
-    if (!rd) {
-      throw new Error(`Recurring donation with id ${id} not found`)
-    }
-
-    const isAdmin = user.realm_access?.roles.includes(RealmViewSupporters.role)
-
-    if (!isAdmin && !this.recurringDonationService.donationBelongsTo(rd.id, user.sub)) {
-      throw new Error(
-        `User ${user.sub} is not allowed to cancel recurring donation with id ${id} of person: ${rd.personId}`,
-      )
-    }
-
-    Logger.log(`Cancelling recurring donation to stripe with id ${id}`)
-    return this.recurringDonationService.cancelSubscription(rd.extSubscriptionId)
-  }
-
   @Delete(':id')
   @Roles({
     roles: [RealmViewSupporters.role],
