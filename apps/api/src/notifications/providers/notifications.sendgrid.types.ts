@@ -11,7 +11,7 @@ export type SendGridParams = {
   RemoveFromUnsubscribedParams: RemoveFromUnsubscribedParams
   AddToUnsubscribedParams: AddToUnsubscribedParams
   SendNotificationParams: SendNotificationParams
-  GetContactsFromListParam: any
+  GetContactsFromListParam: ContactsFromListParams
 
   // Responses
   CreateListRes: string
@@ -23,12 +23,15 @@ export type SendGridParams = {
   RemoveFromUnsubscribedRes: unknown
   AddToUnsubscribedRes: unknown
   SendNotificationRes: unknown
-  GetContactsFromListRes: any
+  GetContactsFromListRes: ContactsResponse[]
 
   // Implementation specific
   ContactData: ContactData
 }
 
+export type ContactsFromListParams = {
+  listId: string
+}
 type ContactData = {
   email: string
   first_name?: string

@@ -10,6 +10,7 @@ import sgClient from '@sendgrid/client'
 import sgMail from '@sendgrid/mail'
 import { NotificationsProviderInterface } from './notifications.interface.providers'
 import {
+  ContactsFromListParams,
   ContactsResponse,
   SendGridExportStatusResponse,
   SendGridParams,
@@ -81,7 +82,7 @@ export class SendGridNotificationsProvider
     return response.body as SendGridExportStatusResponse
   }
 
-  async getContactsFromList(listId: string) {
+  async getContactsFromList({ listId }: ContactsFromListParams) {
     const SENDGRID_EXPORT_TIMEOUT = 10000
     const RETRY_LIMIT = 5
     let numOfRetries = 0

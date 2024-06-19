@@ -34,8 +34,6 @@ import { CampaignService } from '../campaign/campaign.service'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { MassMailDto } from './dto/massmail.dto'
 import { randomUUID } from 'crypto'
-import { MailDataRequired } from '@sendgrid/mail'
-import { PersonalizationData } from '@sendgrid/helpers/classes/personalization'
 import { mapChunk } from '../common/mapChunk'
 
 type UnregisteredInsert = {
@@ -570,7 +568,7 @@ export class MarketingNotificationsService {
     })
   }
   async sendConsentMail(data: MassMailDto) {
-    const contacts = await this.marketingNotificationsProvider.getContactsFromList(data.listId)
+    const contacts = await this.marketingNotificationsProvider.getContactsFromList(data)
 
     const sendList: ContactsMap = new Map()
     const emailList = contacts.map((contact: ContactsResponse) => contact.email)

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose } from 'class-transformer'
-import { IsDate, IsDateString, IsNumber, IsOptional, IsString } from 'class-validator'
+import { IsDateString, IsNumber, IsOptional, IsString } from 'class-validator'
 
 export class MassMailDto {
   @ApiProperty()
