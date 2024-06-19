@@ -274,17 +274,12 @@ export class SendGridNotificationsProvider
     contactsMap.forEach((contacts, index) => {
       //Schedule  batches in a minute difference
       currentDate.setMinutes(currentDate.getMinutes() + index)
-      this.sendEmail(data, contacts, index, currentDate)
+      this.sendEmail(data, contacts, currentDate)
     })
   }
 
-  async sendEmail(
-    data: MassMailDto,
-    contacts: ContactsMap,
-    batchNumber: number,
-    date: Date,
-  ): Promise<void> {
-    const personalizations = this.prepareTemplatePersonalizations(data, contacts, batchNumber, date)
+  async sendEmail(data: MassMailDto, contacts: ContactsMap, date: Date): Promise<void> {
+    const personalizations = this.prepareTemplatePersonalizations(data, contacts, date)
     const message: MailDataRequired = {
       personalizations,
       from: this.config.get('SENDGRID_SENDER_EMAIL', ''),
@@ -293,14 +288,13 @@ export class SendGridNotificationsProvider
     }
     sgMail
       .send(message)
-      .then(() => console.log(`Email sent`))
-      .catch((err) => console.log(err))
+      .then(() => Logger.debug(`Email sent`))
+      .catch((err) => Logger.error(err))
   }
 
   prepareTemplatePersonalizations(
     data: MassMailDto,
     contacts: ContactsMap,
-    batchNumber: number,
     date: Date,
   ): PersonalizationData[] {
     const personalizations: PersonalizationData[] = []

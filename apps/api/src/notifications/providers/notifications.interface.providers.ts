@@ -47,7 +47,6 @@ export abstract class NotificationsProviderInterface<
   abstract prepareTemplatePersonalizations(
     data: MassMailDto,
     contacts: ContactsMap,
-    batchNumber: number,
     date?: Date,
   ): PersonalizationData[]
 

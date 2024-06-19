@@ -589,6 +589,6 @@ export class MarketingNotificationsService {
     const contactsChunked = mapChunk<ContactsMap>(sendList, data.chunkSize)
     Logger.debug(`Splitted email list into ${contactsChunked.length} chunk`)
     await this.marketingNotificationsProvider.sendBulkEmail(data, contactsChunked)
-    return sendList.size
+    return { contactCount: sendList.size }
   }
 }
