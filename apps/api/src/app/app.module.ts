@@ -61,6 +61,7 @@ import { StatisticsModule } from '../statistics/statistics.module'
 import { AffiliateModule } from '../affiliate/affiliate.module'
 
 import { LoggerModule } from '../logger/logger.module'
+import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
   imports: [
@@ -130,7 +131,7 @@ import { LoggerModule } from '../logger/logger.module'
   controllers: [AppController],
   providers: [
     AppService,
-    PrismaService,
+    PrismaModule,
     EmailService,
     TemplateService,
     {
