@@ -78,6 +78,7 @@ export class PersonService {
         organizer: { select: { id: true } },
         coordinators: { select: { id: true } },
         beneficiaries: { select: { id: true } },
+        company: { select: { id: true, companyName: true } },
       },
     })
 

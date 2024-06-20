@@ -88,6 +88,7 @@ Table organizers {
   person people [not null]
   beneficiaries beneficiaries [not null]
   campaigns campaigns [not null]
+  campaignApplication campaign_applications [not null]
 
   Note: 'Organizer is the person who manages the campaign on behalf of the Beneficiary'
 }
@@ -393,7 +394,7 @@ Table payments {
 Table donations {
   id String [pk]
   paymentId String [not null]
-  type DonationType [not null]
+  type DonationType [not null, default: 'donation']
   targetVaultId String [not null, note: 'Vault where the funds are going']
   amount Int [not null, default: 0]
   personId String
@@ -573,6 +574,42 @@ Table bank_transactions_files {
   bankTransactionsFileId String [not null]
   type BankTransactionsFileType [not null, default: 'xml']
   personId String [not null]
+}
+
+Table campaign_applications {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  organizerId String [not null]
+  organizer organizers
+  organizerName String [not null]
+  organizerEmail String [unique]
+  organizerPhone String
+  beneficiary String [not null]
+  organizerBeneficiaryRel String [not null]
+  campaignName String [not null]
+  goal String [not null]
+  history String
+  amount String [not null]
+  description String
+  documents campaign_application_files [not null]
+  campaignGuarantee String
+  otherFinanceSources String
+  otherNotes String
+  state CampaignApplicationState [not null, default: 'review']
+  category CampaignTypeCategory [default: 'others']
+  ticketURL String
+  archived Boolean [default: false]
+}
+
+Table campaign_application_files {
+  id String [pk]
+  filename String [not null]
+  campaignApplicationId String [not null]
+  personId String [not null]
+  mimetype String [not null]
+  role CampaignApplicationFileRole [not null]
+  campaignApplication campaign_applications [not null]
 }
 
 Enum BeneficiaryType {
@@ -819,6 +856,20 @@ Enum EmailType {
   raised100
 }
 
+Enum CampaignApplicationState {
+  review
+  requestInfo
+  forCommitteeReview
+  approved
+  denied
+  abandoned
+}
+
+Enum CampaignApplicationFileRole {
+  document
+  image
+}
+
 Ref: people.companyId - companies.id
 
 Ref: affiliates.companyId - companies.id
@@ -934,3 +985,5 @@ Ref: expense_files.expenseId > expenses.id
 Ref: expense_files.uploaderId > people.id
 
 Ref: documents.ownerId > people.id
+
+Ref: campaign_applications.organizerId > organizers.id

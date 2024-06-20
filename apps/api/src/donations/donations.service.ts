@@ -504,12 +504,12 @@ export class DonationsService {
   }
 
   /**
-   *  Get donation by id
-   * @param id Donation id
-   * @returns  {Promise<Donation>} Donation
+   *  Get payment by id
+   * @param id payment id
+   * @returns  {Promise<PaymentWithDonation>} Payment
    * @throws NotFoundException if no donation is found
    */
-  async getDonationById(id: string): Promise<PaymentWithDonation> {
+  async getPaymentById(id: string): Promise<PaymentWithDonation> {
     try {
       const donation = await this.prisma.payment.findFirstOrThrow({
         where: { id },
@@ -702,12 +702,12 @@ export class DonationsService {
    * @param updatePaymentDto
    * @returns
    */
-  async update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<Payment> {
+  async update(paymentId: string, updatePaymentDto: UpdatePaymentDto): Promise<Payment> {
     try {
       // execute the below in prisma transaction
       return await this.prisma.$transaction(async (tx) => {
         const currentPayment = await tx.payment.findFirst({
-          where: { id },
+          where: { id: paymentId },
           include: {
             donations: {
               select: { personId: true, targetVaultId: true },
@@ -715,7 +715,7 @@ export class DonationsService {
           },
         })
         if (!currentPayment) {
-          throw new NotFoundException(`Update failed. No donation found with ID: ${id}`)
+          throw new NotFoundException(`Update failed. No payment found with ID: ${paymentId}`)
         }
 
         if (
@@ -752,23 +752,18 @@ export class DonationsService {
         }
 
         const donation = await tx.payment.update({
-          where: { id },
+          where: { id: paymentId },
           data: {
             status: status,
             donations: {
-              updateMany: {
-                where: { paymentId: id },
+              update: {
+                where: { id: updatePaymentDto.donationId ?? '' },
                 data: {
                   personId: updatePaymentDto.targetPersonId ? donorId : undefined,
                 },
               },
             },
             billingEmail: updatePaymentDto.billingEmail ? billingEmail : undefined,
-            //In case of personId or billingEmail change, take the last updatedAt property to prevent any changes to updatedAt property
-            updatedAt:
-              updatePaymentDto.targetPersonId || updatePaymentDto.billingEmail
-                ? currentPayment.updatedAt
-                : undefined,
           },
         })
 
@@ -810,7 +805,7 @@ export class DonationsService {
   async invalidate(id: string) {
     try {
       await this.prisma.$transaction(async (tx) => {
-        const donation = await this.getDonationById(id)
+        const donation = await this.getPaymentById(id)
 
         if (donation.status === PaymentStatus.succeeded) {
           await this.vaultService.decrementVaultAmount(

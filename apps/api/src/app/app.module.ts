@@ -60,6 +60,9 @@ import { MarketingNotificationsModule } from '../notifications/notifications.mod
 import { StatisticsModule } from '../statistics/statistics.module'
 import { AffiliateModule } from '../affiliate/affiliate.module'
 
+import { LoggerModule } from '../logger/logger.module'
+import { PrismaModule } from '../prisma/prisma.module'
+
 @Module({
   imports: [
     ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
@@ -123,11 +126,12 @@ import { AffiliateModule } from '../affiliate/affiliate.module'
     CampaignNewsModule,
     CampaignNewsFileModule,
     MarketingNotificationsModule,
+    LoggerModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    PrismaService,
+    PrismaModule,
     EmailService,
     TemplateService,
     {

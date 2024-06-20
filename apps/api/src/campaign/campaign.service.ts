@@ -398,7 +398,15 @@ export class CampaignService {
       organizer: {
         select: {
           id: true,
-          person: { select: { id: true, firstName: true, lastName: true, email: true } },
+          person: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              company: { select: { id: true, companyName: true } },
+            },
+          },
         },
       },
       vaults: true,

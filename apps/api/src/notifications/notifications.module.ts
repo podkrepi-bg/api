@@ -12,9 +12,10 @@ import { CampaignService } from '../campaign/campaign.service'
 import { VaultService } from '../vault/vault.service'
 import { NotificationService } from '../sockets/notifications/notification.service'
 import { NotificationGateway } from '../sockets/notifications/gateway'
+import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, PrismaModule],
   providers: [
     {
       // Use the interface as token
@@ -22,7 +23,6 @@ import { NotificationGateway } from '../sockets/notifications/gateway'
       // But actually provide the service that implements the interface
       useClass: SendGridNotificationsProvider,
     },
-    PrismaService,
     PersonService,
     EmailService,
     TemplateService,
@@ -35,7 +35,6 @@ import { NotificationGateway } from '../sockets/notifications/gateway'
   ],
   controllers: [MarketingNotificationsController],
   exports: [
-    PrismaService,
     PersonService,
     EmailService,
     TemplateService,

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common'
 import { CampaignModule } from '../campaign/campaign.module'
 import { DonationsModule } from '../donations/donations.module'
-import { PrismaService } from '../prisma/prisma.service'
 import { BankTransactionsController } from './bank-transactions.controller'
 import { BankTransactionsService } from './bank-transactions.service'
 import { ConfigModule } from '@nestjs/config'
@@ -11,6 +10,7 @@ import { HttpModule } from '@nestjs/axios'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { AffiliateModule } from '../affiliate/affiliate.module'
+import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
   imports: [
@@ -20,9 +20,10 @@ import { AffiliateModule } from '../affiliate/affiliate.module'
     ExportModule,
     HttpModule,
     AffiliateModule,
+    PrismaModule,
   ],
   controllers: [BankTransactionsController],
-  providers: [BankTransactionsService, PrismaService, IrisTasks, EmailService, TemplateService], //TODO: Create Email module to not need to import each service
+  providers: [BankTransactionsService, IrisTasks, EmailService, TemplateService], //TODO: Create Email module to not need to import each service
   exports: [BankTransactionsService],
 })
 export class BankTransactionsModule {}

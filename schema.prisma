@@ -115,13 +115,14 @@ model Affiliate {
 
 /// Organizer is the person who manages the campaign on behalf of the Beneficiary
 model Organizer {
-  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  personId      String        @unique @map("person_id") @db.Uuid
-  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
-  person        Person        @relation(fields: [personId], references: [id])
-  beneficiaries Beneficiary[]
-  campaigns     Campaign[]
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  personId            String                @unique @map("person_id") @db.Uuid
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime?             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  person              Person                @relation(fields: [personId], references: [id])
+  beneficiaries       Beneficiary[]
+  campaigns           Campaign[]
+  campaignApplication CampaignApplication[]
 
   @@map("organizers")
 }
@@ -475,7 +476,7 @@ model Donation {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   paymentId     String            @map("payment_id") @db.Uuid
-  type          DonationType
+  type          DonationType      @default(donation)
   /// Vault where the funds are going
   targetVaultId String            @map("target_vault_id") @db.Uuid
   amount        Int               @default(0)
@@ -625,7 +626,7 @@ model BankTransaction {
   recipientIban      String?             @map("recipient_iban") @db.VarChar(34)
   amount             Float               @default(0)
   currency           Currency            @default(BGN)
-  description        String              @db.VarChar(200)
+  description        String              @db.Text
   //Matched campaign payment code
   matchedRef         String?             @map("matched_ref") @db.VarChar(100)
   type               BankTransactionType
@@ -1003,4 +1004,65 @@ enum EmailType {
   raised100
 
   @@map("email_type")
+}
+
+/// CampaignApplication represents a request for a new campaign - it is not a Campaign yet and has to proove it needs to be
+model CampaignApplication {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // organizer editable fields
+  // need to be logged in to create a campaign application
+  organizerId             String                    @map("organizer_id") @db.Uuid
+  organizer               Organizer?                @relation(fields: [organizerId], references: [id])
+  organizerName           String                    @map("organizer_name") @db.VarChar(200)
+  organizerEmail          String?                   @unique @map("organizer_email") @db.Citext
+  organizerPhone          String?                   @map("organizer_phone") @db.VarChar(50)
+  // will create a beneficiary after approve of campaign application
+  beneficiary             String                    @db.VarChar(1500)
+  organizerBeneficiaryRel String                    @map("organizer_beneficiary_relationship") @db.Text
+  campaignName            String                    @map("campaign_name") @db.VarChar(200)
+  goal                    String                    @db.Text
+  history                 String?                   @db.Text
+  amount                  String                    @db.VarChar(200)
+  description             String?                   @db.Text
+  documents               CampaignApplicationFile[]
+  campaignGuarantee       String?                   @db.VarChar(500)
+  otherFinanceSources     String?                   @db.Text
+  otherNotes              String?                   @db.Text
+
+  // operator editable fields
+  state     CampaignApplicationState @default(review)
+  category  CampaignTypeCategory?    @default(others)
+  ticketURL String?                  @db.VarChar(500)
+  archived  Boolean?                 @default(false)
+
+  @@map("campaign_applications")
+}
+
+enum CampaignApplicationState {
+  review
+  requestInfo
+  forCommitteeReview
+  approved
+  denied
+  abandoned
+}
+
+model CampaignApplicationFile {
+  id                    String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename              String                      @db.VarChar(200)
+  campaignApplicationId String                      @map("campaign_application_id") @db.Uuid
+  personId              String                      @map("person_id") @db.Uuid
+  mimetype              String                      @db.VarChar(100)
+  role                  CampaignApplicationFileRole
+  campaignApplication   CampaignApplication[]
+
+  @@map("campaign_application_files")
+}
+
+enum CampaignApplicationFileRole {
+  document
+  image
 }
