@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common'
 import { BankTransactionsFileService } from './bank-transactions-file.service'
 import { BankTransactionsFileController } from './bank-transactions-file.controller'
-import { PrismaService } from '../prisma/prisma.service'
 import { S3Service } from '../s3/s3.service'
 import { PersonService } from '../person/person.service'
 import { DonationsService } from '../donations/donations.service'
@@ -13,6 +12,7 @@ import { StripeConfigFactory } from '../donations/helpers/stripe-config-factory'
 import { ExportService } from '../export/export.service'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
+import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
   imports: [
@@ -22,11 +22,11 @@ import { MarketingNotificationsModule } from '../notifications/notifications.mod
     }),
     NotificationModule,
     MarketingNotificationsModule,
+    PrismaModule,
   ],
   controllers: [BankTransactionsFileController],
   providers: [
     BankTransactionsFileService,
-    PrismaService,
     S3Service,
     PersonService,
     VaultService,

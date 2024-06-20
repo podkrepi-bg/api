@@ -6,16 +6,11 @@ import { SupportService } from '../support/support.service'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { ConfigService } from '@nestjs/config'
+import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
+  imports: [PrismaModule],
   controllers: [InfoRequestController],
-  providers: [
-    InfoRequestService,
-    PrismaService,
-    SupportService,
-    EmailService,
-    TemplateService,
-    ConfigService,
-  ],
+  providers: [InfoRequestService, SupportService, EmailService, TemplateService, ConfigService],
 })
 export class InfoRequestModule {}

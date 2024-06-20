@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common'
 import { CampaignNewsService } from './campaign-news.service'
 import { CampaignNewsController } from './campaign-news.controller'
-import { PrismaService } from '../prisma/prisma.service'
 import { PersonModule } from '../person/person.module'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
 import { ConfigService } from '@nestjs/config'
 import { EmailService } from '../email/email.service'
+import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
-  imports: [PersonModule, MarketingNotificationsModule],
+  imports: [PersonModule, MarketingNotificationsModule, PrismaModule],
   controllers: [CampaignNewsController],
-  providers: [CampaignNewsService, PrismaService, ConfigService, EmailService],
+  providers: [CampaignNewsService, ConfigService, EmailService],
   exports: [CampaignNewsService],
 })
 export class CampaignNewsModule {}
