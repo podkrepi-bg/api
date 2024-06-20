@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common'
 import { WithdrawalService } from './withdrawal.service'
 import { WithdrawalController } from './withdrawal.controller'
-import { PrismaService } from '../prisma/prisma.service'
+import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
+  imports: [PrismaModule],
   controllers: [WithdrawalController],
-  providers: [WithdrawalService, PrismaService],
+  providers: [WithdrawalService],
 })
 export class WithdrawalModule {}
