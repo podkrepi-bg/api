@@ -1182,27 +1182,20 @@ export class DonationsService {
   }
 
   async findDonationByStripeId(id: string) {
-    const charge = await this.stripeClient.charges.list({ payment_intent: id })
+    const charge = await this.stripeClient.charges.retrieve(id, { expand: ['payment_intent'] })
+    console.log(charge)
     if (!charge) throw new NotFoundException('Charge not found, by payment_intent')
     const internalDonation = await this.prisma.payment.findFirst({
-      where: { provider: 'stripe', extPaymentIntentId: id },
+      where: {
+        provider: 'stripe',
+        extPaymentIntentId: (charge.payment_intent as Stripe.PaymentIntent).id,
+      },
     })
 
-    const stripe = {
-      netAmount: Math.round(
-        charge.data[0].amount -
-          stripeFeeCalculator(
-            charge.data[0].amount,
-            getCountryRegion(charge.data[0].payment_method_details?.card?.country as string),
-          ),
-      ),
-      status: charge.data[0].status,
-    }
-
     return {
-      stripe: charge.data[0],
+      stripe: charge,
       internal: internalDonation,
-      region: getCountryRegion(charge.data[0].payment_method_details?.card?.country as string),
+      region: getCountryRegion(charge.payment_method_details?.card?.country as string),
     }
   }
 
@@ -1269,7 +1262,6 @@ export class DonationsService {
             firstName: person.firstName,
             lastName: person.lastName,
             email: person.email,
-            profileEnabled: false,
           },
           update: {},
         }),
