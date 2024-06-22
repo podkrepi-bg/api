@@ -1213,6 +1213,10 @@ export class DonationsService {
 
     const campaignSlug = benevityDto.benevityData.donations[0].projectRemoteId
     const campaign = await this.campaignService.getCampaignBySlug(campaignSlug)
+
+    if (!campaign) throw new NotFoundException(`Campaign with ${campaignSlug} not found`)
+
+    // Prepare person records for bulk insertion
     const personObj: Prisma.PersonCreateInput[] = []
     for (const donation of benevityDto.benevityData.donations) {
       const donorString = `${donation.donorFirstName}-${donation.donorLastName}-${donation.email}`
@@ -1224,8 +1228,8 @@ export class DonationsService {
         email: donation.email,
       })
     }
-    if (!campaign) throw new NotFoundException(`Campaign with ${campaignSlug} not found`)
 
+    //Prepare payment and donation records
     const paymentData = Prisma.validator<Prisma.PaymentCreateInput>()({
       type: 'benevity',
       extPaymentIntentId: benevityDto.extPaymentIntentId,
@@ -1248,24 +1252,15 @@ export class DonationsService {
       },
     })
 
-    await this.prisma.$transaction(
-      personObj.map((person) =>
-        this.prisma.person.upsert({
-          where: { id: person.id },
-          create: {
-            id: person.id,
-            firstName: person.firstName,
-            lastName: person.lastName,
-            email: person.email,
-          },
-          update: {},
-        }),
-      ),
-    )
     try {
       await this.prisma.$transaction(async (tx) => {
+        await tx.person.createMany({ data: personObj, skipDuplicates: true })
         await tx.payment.create({ data: paymentData })
-        await this.vaultService.incrementVaultAmount(campaign.vaults[0].id, benevityDto.amount, tx)
+        await this.vaultService.incrementVaultAmount(
+          campaign.vaults[0].id,
+          benevityDto.amount * 100,
+          tx,
+        )
       })
     } catch (err) {
       console.log(err)
