@@ -63,7 +63,7 @@ describe('CampaignApplicationController', () => {
   it('when update called it should delegate to the service update', () => {
     // arrange
     // act
-    controller.update('1', {})
+    controller.update('1', {}, { sub: 'test', 'allowed-origins': ['test'] })
 
     // assert
     expect(service.update).toHaveBeenCalledWith('1', {})

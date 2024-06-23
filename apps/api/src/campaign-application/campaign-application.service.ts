@@ -4,6 +4,10 @@ import { UpdateCampaignApplicationDto } from './dto/update-campaign-application.
 
 @Injectable()
 export class CampaignApplicationService {
+  async getCampaignByIdWithPersonIds(id: string): Promise<UpdateCampaignApplicationDto> {
+    throw new Error('Method not implemented.')
+  }
+
   create(createCampaignApplicationDto: CreateCampaignApplicationDto) {
     return 'This action adds a new campaignApplication'
   }
