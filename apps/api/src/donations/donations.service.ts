@@ -1177,13 +1177,12 @@ export class DonationsService {
   }
 
   async findDonationByStripeId(id: string) {
-    const charge = await this.stripeClient.charges.retrieve(id, { expand: ['payment_intent'] })
-    console.log(charge)
+    const charge = await this.stripeClient.charges.retrieve(id)
     if (!charge) throw new NotFoundException('Charge not found, by payment_intent')
     const internalDonation = await this.prisma.payment.findFirst({
       where: {
         provider: 'stripe',
-        extPaymentIntentId: (charge.payment_intent as Stripe.PaymentIntent).id,
+        extPaymentIntentId: charge.payment_intent as string,
       },
     })
 
@@ -1194,13 +1193,12 @@ export class DonationsService {
     }
   }
 
-  async syncPaymentWithStripe({ stripe }: CreateUpdatePaymentFromStripeChargeDto) {
-    const paymentData = getPaymentDataFromCharge(stripe)
+  async syncPaymentWithStripe(stripeChargeDto: Stripe.Charge) {
+    const paymentData = getPaymentDataFromCharge(stripeChargeDto)
 
-    const campaignId = stripe.metadata?.campaignId
+    const campaignId = stripeChargeDto.metadata?.campaignId
     const campaign = await this.campaignService.getCampaignById(campaignId)
-    const newStatus = mapStripeStatusToInternal(stripe)
-
+    const newStatus = mapStripeStatusToInternal(stripeChargeDto)
     this.updateDonationPayment(campaign, paymentData, newStatus)
   }
 
@@ -1229,7 +1227,7 @@ export class DonationsService {
       })
     }
 
-    //Prepare payment and donation records
+    //Prepare payment and donation records for bulk insertion
     const paymentData = Prisma.validator<Prisma.PaymentCreateInput>()({
       type: 'benevity',
       extPaymentIntentId: benevityDto.extPaymentIntentId,
@@ -1241,11 +1239,14 @@ export class DonationsService {
       donations: {
         createMany: {
           data: benevityDto.benevityData.donations.map((donation, index) => {
+            const isAnonymous =
+              personObj[index].firstName === 'Not shared by donor' ||
+              personObj[index].lastName === 'Not shared by donor'
             return {
               type: DonationType.donation,
               amount: donation.totalAmount * benevityDto.exchangeRate * 100,
               targetVaultId: campaign.vaults[0].id,
-              personId: personObj[index].id,
+              personId: !isAnonymous ? personObj[index].id : null,
             }
           }),
         },

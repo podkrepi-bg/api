@@ -40,6 +40,7 @@ import { UseInterceptors } from '@nestjs/common'
 
 import { CreateUpdatePaymentFromStripeChargeDto } from './dto/create-update-payment-from-stripe-charge.dto.ts'
 import { CreateBenevityPaymentDto } from './dto/create-benevity-payment'
+import Stripe from 'stripe'
 
 @ApiTags('donation')
 @Controller('donation')
@@ -311,7 +312,7 @@ export class DonationsController {
   //   mode: RoleMatchingMode.ANY,
   // })
   @Public()
-  async syncWithPaymentWithStripe(@Body() stripeChargeDto: CreateUpdatePaymentFromStripeChargeDto) {
+  async syncWithPaymentWithStripe(@Body() stripeChargeDto: Stripe.Charge) {
     return await this.donationsService.syncPaymentWithStripe(stripeChargeDto)
   }
 
