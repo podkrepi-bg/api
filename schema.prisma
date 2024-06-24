@@ -795,6 +795,7 @@ enum PaymentProvider {
   epay
   bank
   cash
+  benevity
 
   @@map("payment_provider")
 }

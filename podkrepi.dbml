@@ -600,6 +600,8 @@ Table campaign_applications {
   category CampaignTypeCategory [default: 'others']
   ticketURL String
   archived Boolean [default: false]
+
+  Note: 'CampaignApplication represents a request for a new campaign - it is not a Campaign yet and has to proove it needs to be'
 }
 
 Table campaign_application_files {
@@ -695,6 +697,7 @@ Enum PaymentProvider {
   epay
   bank
   cash
+  benevity
 }
 
 Enum DocumentType {

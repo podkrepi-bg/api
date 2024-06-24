@@ -1232,6 +1232,7 @@ export class DonationsService {
       type: 'benevity',
       extPaymentIntentId: benevityDto.extPaymentIntentId,
       extPaymentMethodId: 'benevity',
+      provider: 'benevity',
       billingName: 'UK ONLINE GIVING FOUNDATION',
       extCustomerId: '',
       amount: benevityDto.amount * 100,
