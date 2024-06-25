@@ -52,16 +52,12 @@ import { MarketingNotificationsService } from '../../notifications/notifications
 import { EmailService } from '../../email/email.service'
 import { TemplateService } from '../../email/template.service'
 import type { PaymentWithDonation } from '../types/donation'
-import { DonationsService } from '../donations.service'
-import { ExportService } from '../../export/export.service'
 
 const defaultStripeWebhookEndpoint = '/stripe/webhook'
 const stripeSecret = 'wh_123'
 
 describe('StripePaymentService', () => {
   let stripePaymentService: StripePaymentService
-  let campaignService: CampaignService
-  let donationService: DonationsService
   let app: INestApplication
   const stripe = new Stripe(stripeSecret, { apiVersion: '2022-11-15' })
 
@@ -133,12 +129,10 @@ describe('StripePaymentService', () => {
         ConfigService,
         StripePaymentService,
         CampaignService,
-        DonationsService,
         MockPrismaService,
         VaultService,
         PersonService,
         RecurringDonationService,
-        ExportService,
         {
           provide: HttpService,
           useValue: mockDeep<HttpService>(),
@@ -153,8 +147,6 @@ describe('StripePaymentService', () => {
     await app.init()
 
     stripePaymentService = app.get<StripePaymentService>(StripePaymentService)
-    campaignService = app.get<CampaignService>(CampaignService)
-    donationService = app.get<DonationsService>(DonationsService)
 
     //this intercepts the request raw body and removes the exact signature check
     const stripePayloadService = app.get<StripePayloadService>(StripePayloadService)
@@ -178,6 +170,7 @@ describe('StripePaymentService', () => {
       secret: stripeSecret,
     })
 
+    const campaignService = app.get<CampaignService>(CampaignService)
     const mockedCampaignById = jest
       .spyOn(campaignService, 'getCampaignById')
       .mockImplementation(() => Promise.resolve(mockedCampaign))
@@ -185,7 +178,7 @@ describe('StripePaymentService', () => {
     const paymentData = getPaymentData(mockPaymentEventCreated.data.object as Stripe.PaymentIntent)
 
     const mockedUpdateDonationPayment = jest
-      .spyOn(donationService, 'updateDonationPayment')
+      .spyOn(campaignService, 'updateDonationPayment')
       .mockImplementation(() => Promise.resolve(''))
       .mockName('updateDonationPayment')
 
@@ -218,6 +211,7 @@ describe('StripePaymentService', () => {
       secret: stripeSecret,
     })
 
+    const campaignService = app.get<CampaignService>(CampaignService)
     const mockedCampaignById = jest
       .spyOn(campaignService, 'getCampaignById')
       .mockImplementation(() => Promise.resolve(mockedCampaign))
@@ -227,7 +221,7 @@ describe('StripePaymentService', () => {
     )
 
     const mockedUpdateDonationPayment = jest
-      .spyOn(donationService, 'updateDonationPayment')
+      .spyOn(campaignService, 'updateDonationPayment')
       .mockImplementation(() => Promise.resolve(''))
       .mockName('updateDonationPayment')
 
@@ -255,6 +249,7 @@ describe('StripePaymentService', () => {
       secret: stripeSecret,
     })
 
+    const campaignService = app.get<CampaignService>(CampaignService)
     const mockedCampaignById = jest
       .spyOn(campaignService, 'getCampaignById')
       .mockImplementation(() => Promise.resolve(mockedCampaign))
@@ -262,7 +257,7 @@ describe('StripePaymentService', () => {
     const paymentData = getPaymentData(mockPaymentEventFailed.data.object as Stripe.PaymentIntent)
 
     const mockedUpdateDonationPayment = jest
-      .spyOn(donationService, 'updateDonationPayment')
+      .spyOn(campaignService, 'updateDonationPayment')
       .mockImplementation(() => Promise.resolve(''))
       .mockName('updateDonationPayment')
 
@@ -293,6 +288,7 @@ describe('StripePaymentService', () => {
       secret: stripeSecret,
     })
 
+    const campaignService = app.get<CampaignService>(CampaignService)
     const vaultService = app.get<VaultService>(VaultService)
 
     const mockedCampaignById = jest
@@ -327,7 +323,7 @@ describe('StripePaymentService', () => {
 
     jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
     const mockedUpdateDonationPayment = jest
-      .spyOn(donationService, 'updateDonationPayment')
+      .spyOn(campaignService, 'updateDonationPayment')
       .mockName('updateDonationPayment')
 
     const mockedIncrementVaultAmount = jest.spyOn(vaultService, 'incrementVaultAmount')
@@ -374,6 +370,7 @@ describe('StripePaymentService', () => {
       secret: stripeSecret,
     })
 
+    const campaignService = app.get<CampaignService>(CampaignService)
     const vaultService = app.get<VaultService>(VaultService)
 
     const mockedCampaignById = jest
@@ -401,7 +398,7 @@ describe('StripePaymentService', () => {
 
     jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
     const mockedUpdateDonationPayment = jest
-      .spyOn(donationService, 'updateDonationPayment')
+      .spyOn(campaignService, 'updateDonationPayment')
       .mockName('updateDonationPayment')
 
     const mockedIncrementVaultAmount = jest.spyOn(vaultService, 'incrementVaultAmount')
@@ -431,7 +428,9 @@ describe('StripePaymentService', () => {
       secret: stripeSecret,
     })
 
+    const campaignService = app.get<CampaignService>(CampaignService)
     const vaultService = app.get<VaultService>(VaultService)
+
     const mockedCampaignById = jest
       .spyOn(campaignService, 'getCampaignById')
       .mockImplementation(() => Promise.resolve(mockedCampaign))
@@ -459,7 +458,7 @@ describe('StripePaymentService', () => {
 
     jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
     const mockedUpdateDonationPayment = jest
-      .spyOn(donationService, 'updateDonationPayment')
+      .spyOn(campaignService, 'updateDonationPayment')
       .mockName('updateDonationPayment')
 
     const mockDecremementVaultAmount = jest.spyOn(vaultService, 'decrementVaultAmount')
@@ -503,6 +502,7 @@ describe('StripePaymentService', () => {
       secret: stripeSecret,
     })
 
+    const campaignService = app.get<CampaignService>(CampaignService)
     const recurring = app.get<RecurringDonationService>(RecurringDonationService)
     const mockedCampaignById = jest
       .spyOn(campaignService, 'getCampaignVault')
@@ -561,6 +561,7 @@ describe('StripePaymentService', () => {
       secret: stripeSecret,
     })
 
+    const campaignService = app.get<CampaignService>(CampaignService)
     const vaultService = app.get<VaultService>(VaultService)
 
     const mockedCampaignById = jest
@@ -570,7 +571,7 @@ describe('StripePaymentService', () => {
     jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
 
     const mockedUpdateDonationPayment = jest
-      .spyOn(donationService, 'updateDonationPayment')
+      .spyOn(campaignService, 'updateDonationPayment')
       .mockName('updateDonationPayment')
 
     prismaMock.payment.findFirst.mockResolvedValue({
@@ -613,6 +614,7 @@ describe('StripePaymentService', () => {
       secret: stripeSecret,
     })
 
+    const campaignService = app.get<CampaignService>(CampaignService)
     const recurring = app.get<RecurringDonationService>(RecurringDonationService)
 
     const mockCancelSubscription = jest
@@ -624,7 +626,7 @@ describe('StripePaymentService', () => {
       .mockImplementation(() => Promise.resolve(mockedCampaignCompeleted))
 
     const mockedUpdateDonationPayment = jest
-      .spyOn(donationService, 'updateDonationPayment')
+      .spyOn(campaignService, 'updateDonationPayment')
       .mockImplementation(() => Promise.resolve(''))
       .mockName('updateDonationPayment')
 

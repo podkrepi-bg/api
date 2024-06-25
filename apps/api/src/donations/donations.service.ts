@@ -978,7 +978,7 @@ export class DonationsService {
     const campaignId = stripeChargeDto.metadata?.campaignId
     const campaign = await this.campaignService.getCampaignById(campaignId)
     const newStatus = mapStripeStatusToInternal(stripeChargeDto)
-    this.updateDonationPayment(campaign, paymentData, newStatus)
+    this.campaignService.updateDonationPayment(campaign, paymentData, newStatus)
   }
 
   async createFromBenevity(benevityDto: CreateBenevityPaymentDto) {
