@@ -14,7 +14,7 @@ export class CampaignApplicationService {
       !createCampaignApplicationDto.transparencyTermsAccepted ||
       !createCampaignApplicationDto.personalInformationProcessingAccepted
     ) {
-      throw new HttpException('All agreements must be checked', HttpStatus.METHOD_NOT_ALLOWED)
+      throw new HttpException('All agreements must be checked', HttpStatus.BAD_REQUEST)
     }
     return 'This action adds a new campaignApplication'
   }

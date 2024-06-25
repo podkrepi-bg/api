@@ -39,7 +39,7 @@ describe('CampaignApplicationService', () => {
       }
 
       expect(() => service.create(dto)).toThrow(
-        new HttpException('All agreements must be checked', HttpStatus.METHOD_NOT_ALLOWED),
+        new HttpException('All agreements must be checked', HttpStatus.BAD_REQUEST),
       )
     })
 
@@ -52,7 +52,7 @@ describe('CampaignApplicationService', () => {
       }
 
       expect(() => service.create(dto)).toThrow(
-        new HttpException('All agreements must be checked', HttpStatus.METHOD_NOT_ALLOWED),
+        new HttpException('All agreements must be checked', HttpStatus.BAD_REQUEST),
       )
     })
 
@@ -65,7 +65,7 @@ describe('CampaignApplicationService', () => {
       }
 
       expect(() => service.create(dto)).toThrow(
-        new HttpException('All agreements must be checked', HttpStatus.METHOD_NOT_ALLOWED),
+        new HttpException('All agreements must be checked', HttpStatus.BAD_REQUEST),
       )
     })
 
