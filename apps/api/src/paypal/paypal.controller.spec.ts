@@ -8,6 +8,7 @@ import { HttpModule } from '@nestjs/axios'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
+import { DonationsService } from '../donations/donations.service'
 
 describe('PaypalController', () => {
   let controller: PaypalController

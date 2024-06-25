@@ -53,6 +53,7 @@ import { EmailService } from '../../email/email.service'
 import { TemplateService } from '../../email/template.service'
 import type { PaymentWithDonation } from '../types/donation'
 import { DonationsService } from '../donations.service'
+import { ExportService } from '../../export/export.service'
 
 const defaultStripeWebhookEndpoint = '/stripe/webhook'
 const stripeSecret = 'wh_123'
@@ -137,6 +138,7 @@ describe('StripePaymentService', () => {
         VaultService,
         PersonService,
         RecurringDonationService,
+        ExportService,
         {
           provide: HttpService,
           useValue: mockDeep<HttpService>(),
