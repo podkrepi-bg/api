@@ -69,11 +69,10 @@ export class BankTransactionsController {
   }
 
   @Get(':id')
-  // @Roles({
-  //   roles: [RealmViewSupporters.role, ViewSupporters.role],
-  //   mode: RoleMatchingMode.ANY,
-  // })
-  @Public()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async findTransactionById(@Param('id') id: string) {
     return await this.bankTransactionsService.findTransactionById(id)
   }
