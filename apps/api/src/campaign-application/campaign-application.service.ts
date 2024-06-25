@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
 import { UpdateCampaignApplicationDto } from './dto/update-campaign-application.dto'
 
@@ -9,6 +9,13 @@ export class CampaignApplicationService {
   }
 
   create(createCampaignApplicationDto: CreateCampaignApplicationDto) {
+    if (
+      !createCampaignApplicationDto.acceptTermsAndConditions ||
+      !createCampaignApplicationDto.transparencyTermsAccepted ||
+      !createCampaignApplicationDto.personalInformationProcessingAccepted
+    ) {
+      throw new HttpException('All agreements must be checked', HttpStatus.METHOD_NOT_ALLOWED)
+    }
     return 'This action adds a new campaignApplication'
   }
 
