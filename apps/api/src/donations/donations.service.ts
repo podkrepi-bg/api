@@ -955,37 +955,6 @@ export class DonationsService {
     })
   }
 
-  private async findExistingDonation(tx: Prisma.TransactionClient, paymentData: PaymentData) {
-    //first try to find by paymentIntentId
-    let donation = await tx.payment.findUnique({
-      where: { extPaymentIntentId: paymentData.paymentIntentId },
-      include: { donations: true },
-    })
-
-    // if not found by paymentIntent, check for if this is payment on subscription
-    // check for UUID length of personId
-    // subscriptions always have a personId
-    if (!donation && paymentData.personId && paymentData.personId.length === 36) {
-      // search for a subscription donation
-      // for subscriptions, we don't have a paymentIntentId
-      donation = await tx.payment.findFirst({
-        where: {
-          status: PaymentStatus.initial,
-          chargedAmount: paymentData.chargedAmount,
-          extPaymentMethodId: 'subscription',
-          donations: {
-            some: {
-              personId: paymentData.personId,
-            },
-          },
-        },
-        include: { donations: true },
-      })
-      Logger.debug('Donation found by subscription: ', donation)
-    }
-    return donation
-  }
-
   async findDonationByStripeId(id: string) {
     const charge = await this.stripeClient.charges.retrieve(id)
     if (!charge) throw new NotFoundException('Charge not found, by payment_intent')
