@@ -301,27 +301,28 @@ export class DonationsController {
   }
 
   @Get('stripe/:id/')
-  @Public()
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async findStripePayment(@Param('id') stripeId: string) {
     return await this.donationsService.findDonationByStripeId(stripeId)
   }
 
   @Put('create-update-stripe-payment')
-  // @Roles({
-  //   roles: [EditFinancialsRequests.role],
-  //   mode: RoleMatchingMode.ANY,
-  // })
-  @Public()
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async syncWithPaymentWithStripe(@Body() stripeChargeDto: Stripe.Charge) {
     return await this.donationsService.syncPaymentWithStripe(stripeChargeDto)
   }
 
   @Post('import/benevity')
-  // @Roles({
-  //   roles: [EditFinancialsRequests.role],
-  //   mode: RoleMatchingMode.ANY,
-  // })
-  @Public()
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async createDonationFromBenevity(@Body() benevityDto: CreateBenevityPaymentDto) {
     return await this.donationsService.createFromBenevity(benevityDto)
   }
