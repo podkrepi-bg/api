@@ -16,7 +16,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@podkrepi-bg/podkrepi-types": ["libs/podkrepi-types/src/index.ts"]
+      "@podkrepi-bg/podkrepi-types": ["libs/podkrepi-types/src/index.ts"],
+      "@podkrepi-bg/testing": ["libs/testing/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
