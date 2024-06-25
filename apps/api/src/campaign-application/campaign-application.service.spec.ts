@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignApplicationService } from './campaign-application.service'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
-import { HttpException, HttpStatus } from '@nestjs/common'
+import { BadRequestException, HttpStatus } from '@nestjs/common'
 
 describe('CampaignApplicationService', () => {
   let service: CampaignApplicationService
@@ -39,7 +39,7 @@ describe('CampaignApplicationService', () => {
       }
 
       expect(() => service.create(dto)).toThrow(
-        new HttpException('All agreements must be checked', HttpStatus.BAD_REQUEST),
+        new BadRequestException('All agreements must be checked'),
       )
     })
 
@@ -52,7 +52,7 @@ describe('CampaignApplicationService', () => {
       }
 
       expect(() => service.create(dto)).toThrow(
-        new HttpException('All agreements must be checked', HttpStatus.BAD_REQUEST),
+        new BadRequestException('All agreements must be checked'),
       )
     })
 
@@ -65,7 +65,7 @@ describe('CampaignApplicationService', () => {
       }
 
       expect(() => service.create(dto)).toThrow(
-        new HttpException('All agreements must be checked', HttpStatus.BAD_REQUEST),
+        new BadRequestException('All agreements must be checked'),
       )
     })
 

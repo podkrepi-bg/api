@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
 import { UpdateCampaignApplicationDto } from './dto/update-campaign-application.dto'
 
@@ -14,7 +14,7 @@ export class CampaignApplicationService {
       !createCampaignApplicationDto.transparencyTermsAccepted ||
       !createCampaignApplicationDto.personalInformationProcessingAccepted
     ) {
-      throw new HttpException('All agreements must be checked', HttpStatus.BAD_REQUEST)
+      throw new BadRequestException('All agreements must be checked')
     }
     return 'This action adds a new campaignApplication'
   }
