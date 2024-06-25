@@ -17,19 +17,19 @@ export class CreateCampaignApplicationDto {
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  acceptTermsAndConditions: true
+  acceptTermsAndConditions: boolean
 
   /** user needs to agree to this as a prerequisite to creating a campaign application */
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  transparencyTermsAccepted: true
+  transparencyTermsAccepted: boolean
 
   /** user needs to agree to this as a prerequisite to creating a campaign application */
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  personalInformationProcessingAccepted: true
+  personalInformationProcessingAccepted: boolean
 
   /** Who is organizing this campaign */
   @ApiProperty()
