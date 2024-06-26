@@ -6,7 +6,6 @@ import { PrismaService } from '../prisma/prisma.service'
 @Injectable()
 export class CampaignApplicationService {
   constructor(private prisma: PrismaService) {}
-
   async getCampaignByIdWithPersonIds(id: string): Promise<UpdateCampaignApplicationDto> {
     throw new Error('Method not implemented.')
   }
