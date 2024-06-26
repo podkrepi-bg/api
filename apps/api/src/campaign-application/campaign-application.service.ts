@@ -1,9 +1,12 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
 import { UpdateCampaignApplicationDto } from './dto/update-campaign-application.dto'
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class CampaignApplicationService {
+  constructor(private prisma: PrismaService) {}
+
   async getCampaignByIdWithPersonIds(id: string): Promise<UpdateCampaignApplicationDto> {
     throw new Error('Method not implemented.')
   }

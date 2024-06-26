@@ -28,7 +28,7 @@ describe('CampaignApplicationService', () => {
       organizerBeneficiaryRel: 'Test Relation',
       goal: 'Test Goal',
       amount: '1000',
-      toEntity: jest.fn(), // Mock implementation
+      toEntity: jest.fn(), 
     }
     it('should throw an error if acceptTermsAndConditions are not accepted', () => {
       const dto: CreateCampaignApplicationDto = {
