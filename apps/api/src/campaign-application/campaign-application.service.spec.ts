@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignApplicationService } from './campaign-application.service'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
 import { BadRequestException, HttpStatus } from '@nestjs/common'
-import { CampaignState, Currency } from '@prisma/client'
+import {
+  CampaignApplicationState,
+  CampaignState,
+  CampaignTypeCategory,
+  Currency,
+} from '@prisma/client'
 import { CreateCampaignDto } from '../campaign/dto/create-campaign.dto'
 import { prismaMock, MockPrismaService } from '../prisma/prisma-client.mock'
 import { CampaignService } from '../campaign/campaign.service'
@@ -18,27 +23,6 @@ import { NotificationGateway } from '../sockets/notifications/gateway'
 import { TemplateService } from '../email/template.service'
 describe('CampaignApplicationService', () => {
   let service: CampaignApplicationService
-
-  const mockCreateCampaign = {
-    slug: 'test-slug',
-    title: 'Test name',
-    description: 'Test description',
-    essence: 'test',
-    coordinatorId: 'testCoordinatorId',
-    beneficiaryId: 'testBeneficiaryId',
-    organizerId: 'testOrganizerId',
-    companyId: 'testCompanyId',
-    campaignTypeId: 'testCampaignTypeId',
-    targetAmount: 1000,
-    reachedAmount: 0,
-
-    startDate: new Date('2021-04-08T06:36:33.661Z'),
-    endDate: new Date('2023-04-08T06:36:33.661Z'),
-    currency: Currency.BGN,
-    // donationWish: undefined,
-    allowDonationOnComplete: true,
-    toEntity: new CreateCampaignDto().toEntity,
-  } as CreateCampaignDto
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -142,57 +126,52 @@ describe('CampaignApplicationService', () => {
 
   describe('find all(GET) campains', () => {
     it('should return an array of campaign applications', async () => {
-      const paymentReferenceMock = 'NY5P-KVO4-DNBZ'
       const mockCampaigns = [
         {
-          ...mockCreateCampaign,
-          ...{
-            id: 'testId',
-            state: CampaignState.draft,
-            createdAt: new Date('2022-04-08T06:36:33.661Z'),
-            updatedAt: new Date('2022-04-08T06:36:33.662Z'),
-            deletedAt: null,
-            approvedById: null,
-            beneficiary: { person: { keycloakId: 'some-id' } },
-            coordinator: { person: { keycloakId: 'some-id' } },
-            organizer: { person: { keycloakId: 'some-id' } },
-            paymentReference: paymentReferenceMock,
-            campaignFiles: [],
-            donationWish: [],
-            irregularities: [],
-            outgoingTransfers: [],
-            incomingTransfers: [],
-            vaults: [],
-            slugArchive: [],
-            withdrawals: [],
-            notificationLists: [],
-            campaignNews: [],
-          },
+          id: 'testId',
+          createdAt: new Date('2022-04-08T06:36:33.661Z'),
+          updatedAt: new Date('2022-04-08T06:36:33.662Z'),
+          description: 'Test description',
+          organizerId: 'testOrganizerId1',
+          organizerName: 'Test Organizer1',
+          organizerEmail: 'organizer@example.com',
+          beneficiary: 'test beneficary',
+          organizerPhone: '123456789',
+          organizerBeneficiaryRel: 'Test Relation',
+          campaignName: 'Test Campaign',
+          goal: 'Test Goal',
+          history: 'test history',
+          amount: '1000',
+          campaignGuarantee: 'test campaignGuarantee',
+          otherFinanceSources: 'test otherFinanceSources',
+          otherNotes: 'test otherNotes',
+          state: CampaignApplicationState.review,
+          category: CampaignTypeCategory.medical,
+          ticketURL: 'testsodifhso',
+          archived: false,
         },
         {
-          ...mockCreateCampaign,
-          ...{
-            id: 'testId',
-            state: CampaignState.draft,
-            createdAt: new Date('2022-04-08T06:36:33.661Z'),
-            updatedAt: new Date('2022-04-08T06:36:33.662Z'),
-            deletedAt: null,
-            approvedById: null,
-            beneficiary: { person: { keycloakId: 'some-id2' } },
-            coordinator: { person: { keycloakId: 'some-id2' } },
-            organizer: { person: { keycloakId: 'some-id2' } },
-            paymentReference: paymentReferenceMock,
-            campaignFiles: [],
-            donationWish: [],
-            irregularities: [],
-            outgoingTransfers: [],
-            incomingTransfers: [],
-            withdrawals: [],
-            slugArchive: [],
-            campaignNews: [],
-            vaults: [],
-            notificationLists: [],
-          },
+          id: 'testId',
+          createdAt: new Date('2022-04-08T06:36:33.661Z'),
+          updatedAt: new Date('2022-04-08T06:36:33.662Z'),
+          description: 'Test description',
+          organizerId: 'testOrganizerId1',
+          organizerName: 'Test Organizer1',
+          organizerEmail: 'organizer@example.com',
+          beneficiary: 'test beneficary',
+          organizerPhone: '123456789',
+          organizerBeneficiaryRel: 'Test Relation',
+          campaignName: 'Test Campaign',
+          goal: 'Test Goal',
+          history: 'test history',
+          amount: '1000',
+          campaignGuarantee: 'test campaignGuarantee',
+          otherFinanceSources: 'test otherFinanceSources',
+          otherNotes: 'test otherNotes',
+          state: CampaignApplicationState.review,
+          category: CampaignTypeCategory.medical,
+          ticketURL: 'testsodifhso',
+          archived: false,
         },
       ]
 
