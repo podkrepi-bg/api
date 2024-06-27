@@ -21,32 +21,8 @@ import { NotificationsProviderInterface } from '../notifications/providers/notif
 import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
 import { NotificationGateway } from '../sockets/notifications/gateway'
 import { TemplateService } from '../email/template.service'
-import { OrganizerModule } from '../organizer/organizer.module' // import OrganizerModule
-import { OrganizerService } from '../organizer/organizer.service'
-
 describe('CampaignApplicationService', () => {
   let service: CampaignApplicationService
-
-  const mockCreateCampaign = {
-    slug: 'test-slug',
-    title: 'Test name',
-    description: 'Test description',
-    essence: 'test',
-    coordinatorId: 'testCoordinatorId',
-    beneficiaryId: 'testBeneficiaryId',
-    organizerId: 'testOrganizerId',
-    companyId: 'testCompanyId',
-    campaignTypeId: 'testCampaignTypeId',
-    targetAmount: 1000,
-    reachedAmount: 0,
-
-    startDate: new Date('2021-04-08T06:36:33.661Z'),
-    endDate: new Date('2023-04-08T06:36:33.661Z'),
-    currency: Currency.BGN,
-    // donationWish: undefined,
-    allowDonationOnComplete: true,
-    toEntity: new CreateCampaignDto().toEntity,
-  } as CreateCampaignDto
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -68,9 +44,7 @@ describe('CampaignApplicationService', () => {
         NotificationGateway,
         TemplateService,
         CampaignApplicationService,
-        OrganizerService, // Add OrganizerService here
       ],
-      imports: [OrganizerModule], //
     })
       .overrideProvider(EmailService)
       .useValue({
