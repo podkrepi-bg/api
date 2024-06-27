@@ -21,6 +21,9 @@ import { NotificationsProviderInterface } from '../notifications/providers/notif
 import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
 import { NotificationGateway } from '../sockets/notifications/gateway'
 import { TemplateService } from '../email/template.service'
+import { OrganizerModule } from '../organizer/organizer.module' // import OrganizerModule
+import { OrganizerService } from '../organizer/organizer.service'
+
 describe('CampaignApplicationService', () => {
   let service: CampaignApplicationService
 
@@ -44,7 +47,9 @@ describe('CampaignApplicationService', () => {
         NotificationGateway,
         TemplateService,
         CampaignApplicationService,
+        OrganizerService, // Add OrganizerService here
       ],
+      imports: [OrganizerModule], //
     })
       .overrideProvider(EmailService)
       .useValue({
