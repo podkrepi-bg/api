@@ -2,6 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignApplicationController } from './campaign-application.controller'
 import { CampaignApplicationService } from './campaign-application.service'
 import { SpyOf, autoSpy } from '@podkrepi-bg/testing'
+import { ForbiddenException } from '@nestjs/common'
+import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
+
+jest.mock('../auth/keycloak')
 
 describe('CampaignApplicationController', () => {
   let controller: CampaignApplicationController
@@ -43,14 +47,27 @@ describe('CampaignApplicationController', () => {
     })
   })
 
-  it('when findAll called it should delegate to the service findAll', () => {
+  it('when findAll called by a non-admin user it should throw a ForbiddenException', () => {
     // arrange
+    const user = { sub: 'non-admin', 'allowed-origins': ['test'] } as KeycloakTokenParsed
+    ;(isAdmin as jest.Mock).mockReturnValue(false)
+
+    // act & assert
+    expect(() => controller.findAll(user)).toThrow(ForbiddenException)
+  })
+
+  it('when findAll called by an admin user it should delegate to the service findAll', () => {
+    // arrange
+    const user = { sub: 'admin', 'allowed-origins': ['test'] } as KeycloakTokenParsed
+    ;(isAdmin as jest.Mock).mockReturnValue(true)
+
     // act
-    controller.findAll()
+    controller.findAll(user)
 
     // assert
     expect(service.findAll).toHaveBeenCalledWith()
   })
+
   it('when findOne called it should delegate to the service findOne', () => {
     // arrange
     // act
