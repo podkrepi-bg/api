@@ -799,7 +799,6 @@ export class CampaignService {
 
   async createDonationWish(wish: string, donationId: string, campaignId: string) {
     const person = await this.prisma.donation.findUnique({ where: { id: donationId } }).person()
-    console.log(person)
     await this.prisma.donationWish.upsert({
       where: { donationId },
       create: {

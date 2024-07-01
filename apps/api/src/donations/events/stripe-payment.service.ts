@@ -146,9 +146,6 @@ export class StripePaymentService {
 
     //and finally save the donation wish
     if (donationId && metadata?.wish) {
-      Logger.debug(`donationId: ${donationId}`)
-      Logger.debug(`wisth: ${metadata.wish}`)
-      Logger.debug(`campaignId: ${campaign.id}`)
       await this.campaignService.createDonationWish(metadata.wish, donationId, campaign.id)
     }
   }
