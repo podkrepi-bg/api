@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, ForbiddenException, NotFoundException, Logger } from '@nestjs/common'
+import { Controller, Get, Post, Body, Patch, Param, ForbiddenException, NotFoundException, Logger, Inject, forwardRef } from '@nestjs/common'
 import { CampaignApplicationService } from './campaign-application.service'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
 import { UpdateCampaignApplicationDto } from './dto/update-campaign-application.dto'
@@ -6,11 +6,15 @@ import { ApiTags } from '@nestjs/swagger'
 import { AuthenticatedUser, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
+import { PersonService } from '../person/person.service'
 
 @ApiTags('campaign-application')
 @Controller('campaign-application')
 export class CampaignApplicationController {
-  constructor(private readonly campaignApplicationService: CampaignApplicationService) {}
+  constructor(
+    private readonly campaignApplicationService: CampaignApplicationService,
+    @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
+  ) {}
 
   @Post('create')
   async create(
