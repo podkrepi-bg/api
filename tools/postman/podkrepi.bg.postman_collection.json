@@ -89,7 +89,17 @@
 	"variable": [
 		{
 			"key": "podkrepi_address",
-			"value": "https://dev.podkrepi.bg",
+			"value": "http://localhost:5010",
+			"type": "string"
+		},
+    {
+			"key": "user",
+			"value": "admin@podkrepi.bg",
+			"type": "string"
+		},
+    {
+			"key": "password",
+			"value": "$ecurePa33",
 			"type": "string"
 		}
 	]
