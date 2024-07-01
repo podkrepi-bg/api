@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, ForbiddenException } from '@nestjs/common'
+import { Controller, Get, Post, Body, Patch, Param, ForbiddenException, NotFoundException, Logger } from '@nestjs/common'
 import { CampaignApplicationService } from './campaign-application.service'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
 import { UpdateCampaignApplicationDto } from './dto/update-campaign-application.dto'
 import { ApiTags } from '@nestjs/swagger'
-import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { AuthenticatedUser, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 
@@ -13,9 +13,18 @@ export class CampaignApplicationController {
   constructor(private readonly campaignApplicationService: CampaignApplicationService) {}
 
   @Post('create')
-  @Public()
-  create(@Body() createCampaignApplicationDto: CreateCampaignApplicationDto) {
-    return this.campaignApplicationService.create(createCampaignApplicationDto)
+  async create(
+    @Body() createCampaignApplicationDto: CreateCampaignApplicationDto,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    const person = await this.personService.findOneByKeycloakId(user.sub)
+
+    if (!person) {
+      Logger.error('No person found in database')
+      throw new NotFoundException('No person found in database')
+    }
+
+    return this.campaignApplicationService.create(createCampaignApplicationDto, person)
   }
 
   @Get('list')
