@@ -1,33 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignApplicationService } from './campaign-application.service'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
-import { BadRequestException, HttpStatus } from '@nestjs/common'
-import {
-  CampaignApplicationState,
-  CampaignState,
-  CampaignTypeCategory,
-  Currency,
-} from '@prisma/client'
-import { CreateCampaignDto } from '../campaign/dto/create-campaign.dto'
+import { BadRequestException } from '@nestjs/common'
+import { CampaignApplicationState, CampaignTypeCategory, Person } from '@prisma/client'
 import { prismaMock, MockPrismaService } from '../prisma/prisma-client.mock'
-import { CampaignService } from '../campaign/campaign.service'
-import { NotificationService } from '../sockets/notifications/notification.service'
-import { VaultService } from '../vault/vault.service'
-import { ConfigService } from '@nestjs/config'
-import { MarketingNotificationsService } from '../notifications/notifications.service'
-import { PersonService } from '../person/person.service'
 import { EmailService } from '../email/email.service'
-import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
-import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
-import { NotificationGateway } from '../sockets/notifications/gateway'
-import { TemplateService } from '../email/template.service'
-import { OrganizerModule } from '../organizer/organizer.module' // import OrganizerModule
 import { OrganizerService } from '../organizer/organizer.service'
 
 describe('CampaignApplicationService', () => {
   let service: CampaignApplicationService
+
   const mockPerson = {
-    id: 'ad1cc48f-f8c7-49dc-af42-ca85dff05b2c',
+    id: '3ae36b22-2c46-4038-aa17-5427e2c082e5',
     firstName: 'Martototto',
     lastName: 'dfsdf',
     email: 'martbul01@gmail.com',
@@ -48,181 +32,213 @@ describe('CampaignApplicationService', () => {
     company: null,
     beneficiaries: [],
     organizer: { id: 'ffdbcc41-85ec-476c-9e59-0662f3b433af' },
+  } as Person
+
+  const mockNewCampaignApplication = {
+    campaignName: 'Test Campaign',
+    organizerName: 'Test Organizer',
+    organizerEmail: 'testemail@gmail.com',
+    organizerPhone: '123456789',
+    beneficiary: 'Test beneficary',
+    organizerBeneficiaryRel: 'Test organizerBeneficiaryRel',
+    goal: 'Test goal',
+    history: 'Test history',
+    amount: '1000',
+    description: 'Test description',
+    campaignGuarantee: 'Test guarantee',
+    otherFinanceSources: 'Test otherFinanceSources',
+    otherNotes: 'Test otherNotes',
+    category: CampaignTypeCategory.medical,
   }
 
-  // const newCampaignApplication = {
-  //   "campaignName": "FirstCampaign",
-  //   "acceptTermsAndConditions": true,
-  //   "transparencyTermsAccepted": true,
-  //   "personalInformationProcessingAccepted": true,
-  //   "organizerName": "Martin",
-  //   "organizerEmail": "martbul01@gmail.com",
-  //   "organizerPhone": "123456789",
-  //   "beneficiary": "First beneficary",
-  //   "organizerBeneficiaryRel": "First organizerBeneficiaryRel",
-  //   "goal": "First goal",
-  //   "history": "First history",
-  //   "amount": "1000",
-  //   "description": "First description",
-  //   "campaignGuarantee": "No guarantee",
-  //   "otherFinanceSources": "First otherFinanceSources",
-  //   "otherNotes": "First otherNotes",
-  //   "category": "medical"
-  // }
+  const mockCampaigns = [
+    {
+      id: '1',
+      createdAt: new Date('2022-04-08T06:36:33.661Z'),
+      updatedAt: new Date('2022-04-08T06:36:33.662Z'),
+      description: 'Test description1',
+      organizerId: 'testOrganizerId1',
+      organizerName: 'Test Organizer1',
+      organizerEmail: 'organizer1@example.com',
+      beneficiary: 'test beneficary1',
+      organizerPhone: '123456789',
+      organizerBeneficiaryRel: 'Test Relation1',
+      campaignName: 'Test Campaign1',
+      goal: 'Test Goal1',
+      history: 'test history1',
+      amount: '1000',
+      campaignGuarantee: 'test campaignGuarantee1',
+      otherFinanceSources: 'test otherFinanceSources1',
+      otherNotes: 'test otherNotes1',
+      state: CampaignApplicationState.review,
+      category: CampaignTypeCategory.medical,
+      ticketURL: 'testsodifhso1',
+      archived: false,
+    },
+    {
+      id: '2',
+      createdAt: new Date('2022-04-08T06:36:33.661Z'),
+      updatedAt: new Date('2022-04-08T06:36:33.662Z'),
+      description: 'Test description2',
+      organizerId: 'testOrganizerId2',
+      organizerName: 'Test Organizer2',
+      organizerEmail: 'organizer2@example.com',
+      beneficiary: 'test beneficary2',
+      organizerPhone: '123456789',
+      organizerBeneficiaryRel: 'Test Relation2',
+      campaignName: 'Test Campaign2',
+      goal: 'Test Goal2',
+      history: 'test history2',
+      amount: '1000',
+      campaignGuarantee: 'test campaignGuarantee2',
+      otherFinanceSources: 'test otherFinanceSources2',
+      otherNotes: 'test otherNotes2',
+      state: CampaignApplicationState.review,
+      category: CampaignTypeCategory.medical,
+      ticketURL: 'testsodifhso2',
+      archived: false,
+    },
+  ]
+
+  const mockOrganizerService = {
+    create: jest.fn().mockResolvedValue({
+      id: 'mockOrganizerId',
+      personId: mockPerson.id,
+    }),
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        {
-          // Use the interface as token
-          provide: NotificationsProviderInterface,
-          // But actually provide the service that implements the interface
-          useClass: SendGridNotificationsProvider,
-        },
-        CampaignService,
-        MockPrismaService,
-        NotificationService,
-        VaultService,
-        MarketingNotificationsService,
-        ConfigService,
-        PersonService,
-        EmailService,
-        NotificationGateway,
-        TemplateService,
         CampaignApplicationService,
-        OrganizerService, // Add OrganizerService here
+        MockPrismaService,
+        {
+          provide: EmailService,
+          useValue: {
+            sendFromTemplate: jest.fn(() => true),
+          },
+        },
+        MockPrismaService,
+        {
+          provide: OrganizerService,
+          useValue: mockOrganizerService,
+        },
       ],
-      imports: [OrganizerModule], //
-    })
-      .overrideProvider(EmailService)
-      .useValue({
-        sendFromTemplate: jest.fn(() => {
-          return true
-        }),
-      })
-      .compile()
+    }).compile()
 
     service = module.get<CampaignApplicationService>(CampaignApplicationService)
   })
-
   it('should be defined', () => {
     expect(service).toBeDefined()
   })
 
   describe('createNewApplication', () => {
-    const baseDto = {
-      campaignName: 'Test Campaign',
-      organizerName: 'Test Organizer',
-      organizerEmail: 'organizer@example.com',
-      organizerPhone: '123456789',
-      beneficiary: 'Test Beneficiary',
-      organizerBeneficiaryRel: 'Test Relation',
-      goal: 'Test Goal',
-      amount: '1000',
-      toEntity: jest.fn(),
-    }
-    it('should throw an error if acceptTermsAndConditions are not accepted', () => {
+    it('should throw an error if acceptTermsAndConditions is false', async () => {
       const dto: CreateCampaignApplicationDto = {
-        ...baseDto,
+        ...mockNewCampaignApplication,
         acceptTermsAndConditions: false,
         transparencyTermsAccepted: true,
         personalInformationProcessingAccepted: true,
+        toEntity: new CreateCampaignApplicationDto().toEntity,
       }
 
-      expect(() => service.create(dto, mockPerson)).toThrow(
+      await expect(service.create(dto, mockPerson)).rejects.toThrow(
         new BadRequestException('All agreements must be checked'),
       )
     })
 
-    it('should throw an error if transparencyTermsAccepted  are not accepted', () => {
+    it('should throw an error if transparencyTermsAccepted is false', async () => {
       const dto: CreateCampaignApplicationDto = {
-        ...baseDto,
+        ...mockNewCampaignApplication,
         acceptTermsAndConditions: true,
         transparencyTermsAccepted: false,
         personalInformationProcessingAccepted: true,
+        toEntity: new CreateCampaignApplicationDto().toEntity,
       }
 
-      expect(() => service.create(dto, mockPerson)).toThrow(
+      await expect(service.create(dto, mockPerson)).rejects.toThrow(
         new BadRequestException('All agreements must be checked'),
       )
     })
 
-    it('should throw an error if personalInformationProcessingAccepted is not accepted', () => {
+    it('should throw an error if personalInformationProcessingAccepted is false', async () => {
       const dto: CreateCampaignApplicationDto = {
-        ...baseDto,
+        ...mockNewCampaignApplication,
         acceptTermsAndConditions: true,
         transparencyTermsAccepted: true,
         personalInformationProcessingAccepted: false,
+        toEntity: new CreateCampaignApplicationDto().toEntity,
       }
 
-      expect(() => service.create(dto, mockPerson)).toThrow(
+      await expect(service.create(dto, mockPerson)).rejects.toThrow(
         new BadRequestException('All agreements must be checked'),
       )
     })
 
-    it('should add a new campaign application if all agreements are accepted', () => {
+    it('should add a new campaign-application if all agreements are true', async () => {
       const dto: CreateCampaignApplicationDto = {
-        ...baseDto,
+        ...mockNewCampaignApplication,
         acceptTermsAndConditions: true,
         transparencyTermsAccepted: true,
         personalInformationProcessingAccepted: true,
+        toEntity: new CreateCampaignApplicationDto().toEntity,
       }
 
-      expect(service.create(dto, mockPerson)).toBe(baseDto)
+      const mockOrganizerId = 'mockOrganizerId'
+      jest.spyOn(mockOrganizerService, 'create').mockResolvedValue({
+        id: mockOrganizerId,
+        personId: mockPerson.id,
+      })
+
+      const mockCreatedCampaignApplication = {
+        id: 'mockCampaignApplicationId',
+        createdAt: new Date('2022-04-08T06:36:33.661Z'),
+        updatedAt: new Date('2022-04-08T06:36:33.662Z'),
+        ...dto,
+        organizerId: mockOrganizerId,
+        state: 'review',
+        ticketURL: null,
+        archived: false,
+      }
+      jest
+        .spyOn(prismaMock.campaignApplication, 'create')
+        .mockResolvedValue(mockCreatedCampaignApplication)
+
+      const result = await service.create(dto, mockPerson)
+
+      expect(result).toEqual(mockCreatedCampaignApplication)
+
+      expect(mockOrganizerService.create).toHaveBeenCalledWith({
+        personId: mockPerson.id,
+      })
+
+      expect(prismaMock.campaignApplication.create).toHaveBeenCalledWith({
+        data: {
+          campaignName: dto.campaignName.trim(),
+          organizerName: dto.organizerName.trim(),
+          organizerEmail: dto.organizerEmail.trim(),
+          organizerPhone: dto.organizerPhone.trim(),
+          beneficiary: dto.beneficiary.trim(),
+          organizerBeneficiaryRel: dto.organizerBeneficiaryRel.trim(),
+          goal: dto.goal.trim(),
+          history: dto.history?.trim(),
+          amount: dto.amount.trim(),
+          description: dto.description?.trim(),
+          campaignGuarantee: dto.campaignGuarantee?.trim(),
+          otherFinanceSources: dto.otherFinanceSources?.trim(),
+          otherNotes: dto.otherNotes?.trim(),
+          category: dto.category,
+          organizerId: mockOrganizerId,
+        },
+      })
+
+      expect(mockOrganizerService.create).toHaveBeenCalledTimes(1)
+      expect(prismaMock.campaignApplication.create).toHaveBeenCalledTimes(1)
     })
   })
 
-  describe('find all(GET) campains', () => {
-    it('should return an array of campaign applications', async () => {
-      const mockCampaigns = [
-        {
-          id: 'testId',
-          createdAt: new Date('2022-04-08T06:36:33.661Z'),
-          updatedAt: new Date('2022-04-08T06:36:33.662Z'),
-          description: 'Test description',
-          organizerId: 'testOrganizerId1',
-          organizerName: 'Test Organizer1',
-          organizerEmail: 'organizer@example.com',
-          beneficiary: 'test beneficary',
-          organizerPhone: '123456789',
-          organizerBeneficiaryRel: 'Test Relation',
-          campaignName: 'Test Campaign',
-          goal: 'Test Goal',
-          history: 'test history',
-          amount: '1000',
-          campaignGuarantee: 'test campaignGuarantee',
-          otherFinanceSources: 'test otherFinanceSources',
-          otherNotes: 'test otherNotes',
-          state: CampaignApplicationState.review,
-          category: CampaignTypeCategory.medical,
-          ticketURL: 'testsodifhso',
-          archived: false,
-        },
-        {
-          id: 'testId',
-          createdAt: new Date('2022-04-08T06:36:33.661Z'),
-          updatedAt: new Date('2022-04-08T06:36:33.662Z'),
-          description: 'Test description',
-          organizerId: 'testOrganizerId1',
-          organizerName: 'Test Organizer1',
-          organizerEmail: 'organizer@example.com',
-          beneficiary: 'test beneficary',
-          organizerPhone: '123456789',
-          organizerBeneficiaryRel: 'Test Relation',
-          campaignName: 'Test Campaign',
-          goal: 'Test Goal',
-          history: 'test history',
-          amount: '1000',
-          campaignGuarantee: 'test campaignGuarantee',
-          otherFinanceSources: 'test otherFinanceSources',
-          otherNotes: 'test otherNotes',
-          state: CampaignApplicationState.review,
-          category: CampaignTypeCategory.medical,
-          ticketURL: 'testsodifhso',
-          archived: false,
-        },
-      ]
-
+  describe('findAll', () => {
+    it('should return an array of campaign-applications', async () => {
       prismaMock.campaignApplication.findMany.mockResolvedValue(mockCampaigns)
 
       const result = await service.findAll()
@@ -231,7 +247,7 @@ describe('CampaignApplicationService', () => {
       expect(prismaMock.campaignApplication.findMany).toHaveBeenCalledTimes(1)
     })
 
-    it('should return an empty array if no campaigns are found', async () => {
+    it('should return an empty array if no campaign-applications are found', async () => {
       prismaMock.campaignApplication.findMany.mockResolvedValue([])
 
       const result = await service.findAll()
@@ -241,7 +257,7 @@ describe('CampaignApplicationService', () => {
     })
 
     it('should handle errors and throw an exception', async () => {
-      const errorMessage = 'Database error'
+      const errorMessage = 'error'
       prismaMock.campaignApplication.findMany.mockRejectedValue(new Error(errorMessage))
 
       await expect(service.findAll()).rejects.toThrow(errorMessage)

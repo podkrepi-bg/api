@@ -20,50 +20,52 @@ export class CampaignApplicationService {
   }
 
   async create(createCampaignApplicationDto: CreateCampaignApplicationDto, person: Person) {
-    if (
-      !createCampaignApplicationDto.acceptTermsAndConditions ||
-      !createCampaignApplicationDto.transparencyTermsAccepted ||
-      !createCampaignApplicationDto.personalInformationProcessingAccepted
-    ) {
-      throw new BadRequestException('All agreements must be checked')
-    }
+    try {
+      if (
+        createCampaignApplicationDto.acceptTermsAndConditions === false ||
+        createCampaignApplicationDto.transparencyTermsAccepted === false ||
+        createCampaignApplicationDto.personalInformationProcessingAccepted === false
+      ) {
+        throw new BadRequestException('All agreements must be checked')
+      }
 
-    let organizer = await this.prisma.organizer.findUnique({
-      where: { personId: person.id },
-    })
-
-    if (!organizer) {
-      organizer = await this.organizerService.create({
-        personId: person.id,
+      let organizer = await this.prisma.organizer.findUnique({
+        where: { personId: person.id },
       })
-    }
 
-    //! kakvo trqbva da naprawq kogato veche ima kampaniq s dadeniq organaizerImeil
-    //   const existingApplication = await prisma.campaignApplication.findUnique({
-    //     where: { organizer_email: newOrganizerEmail }
-    // });
+      if (!organizer) {
+        organizer = await this.organizerService.create({
+          personId: person.id,
+        })
+      }
 
-    const newCampaignApplication = this.prisma.campaignApplication.create({
-      data: {
-        campaignName: createCampaignApplicationDto.campaignName,
-        organizerName: createCampaignApplicationDto.organizerName,
-        organizerEmail: createCampaignApplicationDto.organizerEmail,
-        organizerPhone: createCampaignApplicationDto.organizerPhone,
-        beneficiary: createCampaignApplicationDto.beneficiary,
-        organizerBeneficiaryRel: createCampaignApplicationDto.organizerBeneficiaryRel,
-        goal: createCampaignApplicationDto.goal,
-        history: createCampaignApplicationDto.history,
-        amount: createCampaignApplicationDto.amount,
-        description: createCampaignApplicationDto.description,
-        campaignGuarantee: createCampaignApplicationDto.campaignGuarantee,
-        otherFinanceSources: createCampaignApplicationDto.otherFinanceSources,
-        otherNotes: createCampaignApplicationDto.otherNotes,
+      const sanitizedData = {
+        campaignName: createCampaignApplicationDto.campaignName.trim(),
+        organizerName: createCampaignApplicationDto.organizerName.trim(),
+        organizerEmail: createCampaignApplicationDto.organizerEmail.trim(),
+        organizerPhone: createCampaignApplicationDto.organizerPhone.trim(),
+        beneficiary: createCampaignApplicationDto.beneficiary.trim(),
+        organizerBeneficiaryRel: createCampaignApplicationDto.organizerBeneficiaryRel.trim(),
+        goal: createCampaignApplicationDto.goal.trim(),
+        history: createCampaignApplicationDto.history?.trim(),
+        amount: createCampaignApplicationDto.amount.trim(),
+        description: createCampaignApplicationDto.description?.trim(),
+        campaignGuarantee: createCampaignApplicationDto.campaignGuarantee?.trim(),
+        otherFinanceSources: createCampaignApplicationDto.otherFinanceSources?.trim(),
+        otherNotes: createCampaignApplicationDto.otherNotes?.trim(),
         category: createCampaignApplicationDto.category,
         organizerId: organizer.id,
-      },
-    })
+      }
 
-    return newCampaignApplication
+      const newCampaignApplication = await this.prisma.campaignApplication.create({
+        data: sanitizedData,
+      })
+
+      return newCampaignApplication
+    } catch (error) {
+      console.error('Error in create():', error)
+      throw error
+    }
   }
 
   findAll() {
