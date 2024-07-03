@@ -1,11 +1,4 @@
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
 import { UpdateCampaignApplicationDto } from './dto/update-campaign-application.dto'
 import { PrismaService } from '../prisma/prisma.service'
@@ -63,7 +56,7 @@ export class CampaignApplicationService {
 
       return newCampaignApplication
     } catch (error) {
-      console.error('Error in create():', error)
+      Logger.error('Error in create():', error)
       throw error
     }
   }

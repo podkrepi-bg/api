@@ -8,8 +8,6 @@ import {
   ForbiddenException,
   NotFoundException,
   Logger,
-  Inject,
-  forwardRef,
 } from '@nestjs/common'
 import { CampaignApplicationService } from './campaign-application.service'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
@@ -25,7 +23,7 @@ import { PersonService } from '../person/person.service'
 export class CampaignApplicationController {
   constructor(
     private readonly campaignApplicationService: CampaignApplicationService,
-    @Inject(forwardRef(() => PersonService)) private readonly personService: PersonService,
+    private readonly personService: PersonService,
   ) {}
 
   @Post('create')
