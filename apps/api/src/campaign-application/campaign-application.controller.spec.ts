@@ -8,30 +8,18 @@ import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { ForbiddenException, NotFoundException } from '@nestjs/common'
 import { PersonService } from '../person/person.service'
 import { mockUser, mockUserAdmin } from './../auth/__mocks__'
+import { mockNewCampaignApplication } from './__mocks__/campaign-application-mocks'
 
 describe('CampaignApplicationController', () => {
   let controller: CampaignApplicationController
   let service: CampaignApplicationService
   let personService: PersonService
 
-  const mockNewCampaignApplication = {
-    campaignName: 'TestCampaign',
+  const mockCreateNewCampaignApplication = {
+    ...mockNewCampaignApplication,
     acceptTermsAndConditions: true,
     transparencyTermsAccepted: true,
     personalInformationProcessingAccepted: true,
-    organizerName: 'Test',
-    organizerEmail: 'testuser@gmail.com',
-    organizerPhone: '123456789',
-    beneficiary: 'testbeneficiary',
-    organizerBeneficiaryRel: 'testorganizerBeneficiaryRel',
-    goal: 'testgoal',
-    history: 'testhistory',
-    amount: '1000',
-    description: 'testdescription',
-    campaignGuarantee: 'testguarantee',
-    otherFinanceSources: 'testotherFinanceSources',
-    otherNotes: 'testotherNotes',
-    category: CampaignTypeCategory.medical,
     toEntity: new CreateCampaignApplicationDto().toEntity,
   } as CreateCampaignApplicationDto
 
@@ -57,7 +45,7 @@ describe('CampaignApplicationController', () => {
     jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(null)
 
     // Act & Assert
-    await expect(controller.create(mockNewCampaignApplication, mockUser)).rejects.toThrow(
+    await expect(controller.create(mockCreateNewCampaignApplication, mockUser)).rejects.toThrow(
       NotFoundException,
     )
   })
@@ -67,7 +55,7 @@ describe('CampaignApplicationController', () => {
       isAdmin: jest.fn().mockReturnValue(false),
     }))
 
-    await expect(controller.create(mockNewCampaignApplication, mockUser)).rejects.toThrow(
+    await expect(controller.create(mockCreateNewCampaignApplication, mockUser)).rejects.toThrow(
       NotFoundException,
     )
   })
