@@ -27,6 +27,7 @@ describe('CampaignApplicationController', () => {
     service = autoSpy(CampaignApplicationService)
     personService = autoSpy(PersonService)
 
+    const module: TestingModule = await Test.createTestingModule({
       controllers: [CampaignApplicationController],
       providers: [
         { provide: CampaignApplicationService, useValue: service },
