@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable, Logger } from '@nestjs/common'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
 import { UpdateCampaignApplicationDto } from './dto/update-campaign-application.dto'
 import { PrismaService } from '../prisma/prisma.service'
@@ -88,10 +88,25 @@ export class CampaignApplicationService {
     return `This action returns a #${id} campaignApplication`
   }
 
-  update(id: string, updateCampaignApplicationDto: UpdateCampaignApplicationDto) {
+  async updateByOrganizer(id: string, updateCampaignApplicationDto: UpdateCampaignApplicationDto, person: Person) {
+    
+    const campaignApplication = await this.prisma.campaignApplication.findUnique({ where: { id :id} }) 
+    console.log('person',person);
+    console.log(campaignApplication);
+    
+    
+    if (person.id !== campaignApplication.organizerId) {
+    throw new ForbiddenException('User is not organizer of the campaignApplication')
+    } 
     return `This action updates a #${id} campaignApplication`
   }
 
+
+  updateByAdmin(id: string, updateCampaignApplicationDto: UpdateCampaignApplicationDto, person) {
+    const campaignApplication = this.prisma.campaignApplication.findUnique({where: { id}}) 
+  
+    return `This action updates a #${id} campaignApplication`
+  }
   remove(id: string) {
     return `This action removes a #${id} campaignApplication`
   }
