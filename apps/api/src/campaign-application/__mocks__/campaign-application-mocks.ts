@@ -79,9 +79,9 @@ export const mockCreatedCampaignApplication = {
   id: 'mockCampaignApplicationId',
   createdAt: new Date('2022-04-08T06:36:33.661Z'),
   updatedAt: new Date('2022-04-08T06:36:33.662Z'),
-  ...dto,
+  ...mockNewCampaignApplication,
   organizerId: 'mockOrganizerId',
-  state: 'review',
+  state: CampaignApplicationState.review,
   ticketURL: null,
   archived: false,
 }
