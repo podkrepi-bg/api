@@ -1,10 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignApplicationController } from './campaign-application.controller'
 import { CampaignApplicationService } from './campaign-application.service'
-import { SpyOf, autoSpy } from '@podkrepi-bg/testing'
+import { autoSpy } from '@podkrepi-bg/testing'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
-import { CampaignTypeCategory } from '@prisma/client'
-import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
+import { KeycloakTokenParsed } from '../auth/keycloak'
 import { ForbiddenException, NotFoundException } from '@nestjs/common'
 import { PersonService } from '../person/person.service'
 import { mockUser, mockUserAdmin } from './../auth/__mocks__'
@@ -43,6 +42,17 @@ describe('CampaignApplicationController', () => {
   })
 
   it('when create called it should delegate to the service create', async () => {
+    // Arrange
+    jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockUser)
+
+    // Act
+    await controller.create(mockCreateNewCampaignApplication, mockUser)
+
+    // Assert
+    expect(service.create).toHaveBeenCalledWith(mockCreateNewCampaignApplication, mockUser)
+  })
+
+  it('when create called with wrong user it should throw NotFoundException', async () => {
     jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(null)
 
     // Act & Assert
@@ -51,15 +61,6 @@ describe('CampaignApplicationController', () => {
     )
   })
 
-  it('when create called with wrong user it should throw NotFoundException', async () => {
-    jest.mock('../auth/keycloak', () => ({
-      isAdmin: jest.fn().mockReturnValue(false),
-    }))
-
-    await expect(controller.create(mockCreateNewCampaignApplication, mockUser)).rejects.toThrow(
-      NotFoundException,
-    )
-  })
   it('when findAll called by a non-admin user it should throw a ForbiddenException', () => {
     jest.mock('../auth/keycloak', () => ({
       isAdmin: jest.fn().mockReturnValue(false),
