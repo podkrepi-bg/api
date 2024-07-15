@@ -1040,7 +1040,7 @@ export class CampaignService {
     let listId: string
     const lists = await this.marketingNotificationsService.provider.getContactLists()
     const campaginEmailLists = lists.body.result
-    const exists = campaginEmailLists.find((campaign) => campaign.name === updated.title)
+    const exists = campaignEmailLists.find((campaign) => campaign.name === updated.title)
     if (exists) {
       listId = exists.id
     } else {
