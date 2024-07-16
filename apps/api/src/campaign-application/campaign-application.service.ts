@@ -32,26 +32,26 @@ export class CampaignApplicationService {
         })
       }
 
-      const sanitizedData = {
-        campaignName: createCampaignApplicationDto.campaignName.trim(),
-        organizerName: createCampaignApplicationDto.organizerName.trim(),
-        organizerEmail: createCampaignApplicationDto.organizerEmail.trim(),
-        organizerPhone: createCampaignApplicationDto.organizerPhone.trim(),
-        beneficiary: createCampaignApplicationDto.beneficiary.trim(),
-        organizerBeneficiaryRel: createCampaignApplicationDto.organizerBeneficiaryRel.trim(),
-        goal: createCampaignApplicationDto.goal.trim(),
-        history: createCampaignApplicationDto.history?.trim(),
-        amount: createCampaignApplicationDto.amount.trim(),
-        description: createCampaignApplicationDto.description?.trim(),
-        campaignGuarantee: createCampaignApplicationDto.campaignGuarantee?.trim(),
-        otherFinanceSources: createCampaignApplicationDto.otherFinanceSources?.trim(),
-        otherNotes: createCampaignApplicationDto.otherNotes?.trim(),
+      const campaingApplicationData = {
+        campaignName: createCampaignApplicationDto.campaignName,
+        organizerName: createCampaignApplicationDto.organizerName,
+        organizerEmail: createCampaignApplicationDto.organizerEmail,
+        organizerPhone: createCampaignApplicationDto.organizerPhone,
+        beneficiary: createCampaignApplicationDto.beneficiary,
+        organizerBeneficiaryRel: createCampaignApplicationDto.organizerBeneficiaryRel,
+        goal: createCampaignApplicationDto.goal,
+        history: createCampaignApplicationDto.history,
+        amount: createCampaignApplicationDto.amount,
+        description: createCampaignApplicationDto.description,
+        campaignGuarantee: createCampaignApplicationDto.campaignGuarantee,
+        otherFinanceSources: createCampaignApplicationDto.otherFinanceSources,
+        otherNotes: createCampaignApplicationDto.otherNotes,
         category: createCampaignApplicationDto.category,
         organizerId: organizer.id,
       }
 
       const newCampaignApplication = await this.prisma.campaignApplication.create({
-        data: sanitizedData,
+        data: campaingApplicationData,
       })
 
       return newCampaignApplication

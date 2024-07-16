@@ -7,6 +7,6 @@ import { OrganizerService } from '../organizer/organizer.service'
 @Module({
   imports: [PrismaModule],
   controllers: [CampaignApplicationController],
-  providers: [CampaignApplicationService,PersonService,OrganizerService],
+  providers: [CampaignApplicationService, PersonService, OrganizerService],
 })
 export class CampaignApplicationModule {}
