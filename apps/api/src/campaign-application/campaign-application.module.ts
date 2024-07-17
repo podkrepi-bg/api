@@ -9,4 +9,3 @@ import { OrganizerModule } from '../organizer/organizer.module'
   controllers: [CampaignApplicationController],
   providers: [CampaignApplicationService],
 })
-export class CampaignApplicationModule {}

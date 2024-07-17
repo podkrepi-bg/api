@@ -8,6 +8,8 @@ import {
   ForbiddenException,
   NotFoundException,
   Logger,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common'
 import { CampaignApplicationService } from './campaign-application.service'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
@@ -17,6 +19,8 @@ import { AuthenticatedUser, RoleMatchingMode, Roles } from 'nest-keycloak-connec
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { PersonService } from '../person/person.service'
+import { FilesInterceptor } from '@nestjs/platform-express'
+import { validateFileType } from '../common/files'
 
 @ApiTags('campaign-application')
 @Controller('campaign-application')
@@ -27,18 +31,26 @@ export class CampaignApplicationController {
   ) {}
 
   @Post('create')
+  @UseInterceptors(
+    FilesInterceptor('file', 5, {
+      limits: { fileSize: 1024 * 1024 * 10 },
+      fileFilter: (_req: Request, file, cb) => {
+        validateFileType(file, cb)
+      },
+    }),
+  )
   async create(
+    @UploadedFiles() files: Express.Multer.File[],
     @Body() createCampaignApplicationDto: CreateCampaignApplicationDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
     const person = await this.personService.findOneByKeycloakId(user.sub)
-
     if (!person) {
       Logger.error('No person found in database')
       throw new NotFoundException('No person found in database')
     }
 
-    return this.campaignApplicationService.create(createCampaignApplicationDto, person)
+    return this.campaignApplicationService.create(createCampaignApplicationDto, person, files)
   }
 
   @Get('list')

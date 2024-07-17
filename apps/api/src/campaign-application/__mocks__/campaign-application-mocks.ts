@@ -1,5 +1,10 @@
-import { CampaignApplicationState, CampaignTypeCategory } from '@prisma/client'
+import {
+  CampaignApplicationFileRole,
+  CampaignApplicationState,
+  CampaignTypeCategory,
+} from '@prisma/client'
 import { CreateCampaignApplicationDto } from '../dto/create-campaign-application.dto'
+import { Readable } from 'stream'
 
 export const mockNewCampaignApplication = {
   campaignName: 'Test Campaign',
@@ -85,3 +90,44 @@ export const mockCreatedCampaignApplication = {
   ticketURL: null,
   archived: false,
 }
+export const mockCampaignApplicationFile = {
+  id: 'mockCampaignApplicationFileId',
+  filename: 'test.pdf',
+  mimetype: 'application/pdf',
+  campaignApplicationId: 'mockCampaignApplicationId',
+  personId: 'mockPersonId',
+  role: CampaignApplicationFileRole.document,
+}
+export const mockCampaignApplicationUploadFile = {
+  bucketName: 'campaignapplication-files',
+  ...mockCampaignApplicationFile,
+
+  campaignApplicationId: 'mockCampaignApplicationId',
+  personId: 'mockPersonId',
+}
+export const mockCampaignApplicationFiles: Express.Multer.File[] = [
+  {
+    fieldname: 'resume',
+    originalname: 'john_doe_resume.pdf',
+    encoding: '7bit',
+    mimetype: 'application/pdf',
+    size: 102400,
+    stream: new Readable(),
+    destination: '/uploads/resumes',
+    filename: 'john_doe_resume_1234.pdf',
+    path: '/uploads/resumes/john_doe_resume_1234.pdf',
+    buffer: Buffer.from(''),
+  },
+  {
+    fieldname: 'cover_letter',
+    originalname: 'john_doe_cover_letter.pdf',
+    encoding: '7bit',
+    mimetype: 'application/pdf',
+    size: 51200,
+    stream: new Readable(),
+    destination: '/uploads/cover_letters',
+    filename: 'john_doe_cover_letter_1234.pdf',
+    path: '/uploads/cover_letters/john_doe_cover_letter_1234.pdf',
+    buffer: Buffer.from(''),
+  },
+]

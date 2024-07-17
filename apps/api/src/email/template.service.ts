@@ -13,12 +13,14 @@ export class TemplateService {
     try {
       // pass it through mjml to produce html template
       const result = await this.getEmailTemplate(name)
+
       // compile the handlebar template
       const template = Handlebars.compile<typeof data>(result.html)
       // build the final html
       const html = template(data)
       // extract extra info (e.g. subject)
       const metadata = await this.getEmailData(name)
+
       return { html, metadata }
     } catch (err) {
       Logger.error(`can not get html from template=${name}`, err)

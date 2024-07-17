@@ -25,7 +25,6 @@ export class EmailService {
 
   async send(email: Email, settings: sg.MailDataRequired['mailSettings'] = {}): Promise<void> {
     if (!this.enabled) return
-
     try {
       await sgMail.send({ ...email, mailSettings: { ...settings } })
     } catch (err) {
@@ -41,6 +40,7 @@ export class EmailService {
     if (!emailInfo.to) {
       throw new Error('emailInfo.to is required')
     }
+
     const { html, metadata } = await this.template.getTemplate(template)
 
     this.send(
