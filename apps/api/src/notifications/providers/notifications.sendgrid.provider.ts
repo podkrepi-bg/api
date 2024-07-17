@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import sgClient from '@sendgrid/client'
 import { NotificationsProviderInterface } from './notifications.interface.providers'
-import { SendGridParams } from './notifications.sendgrid.types'
+import { ContactListRes, SGClientResponse, SendGridParams } from './notifications.sendgrid.types'
 import { ClientRequest } from '@sendgrid/client/src/request'
 import { DateTime } from 'luxon'
 
@@ -25,6 +25,14 @@ export class SendGridNotificationsProvider
     }
   }
 
+  async getContactLists() {
+    const request = {
+      url: '/v3/marketing/lists',
+      method: 'GET',
+    } as ClientRequest
+    const [response] = await sgClient.request(request)
+    return response as SGClientResponse<ContactListRes>
+  }
   async createNewContactList(data: SendGridParams['CreateListParams']) {
     const request = {
       url: `/v3/marketing/lists`,
