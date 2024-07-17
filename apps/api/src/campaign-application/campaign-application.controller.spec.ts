@@ -1,22 +1,37 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignApplicationController } from './campaign-application.controller'
 import { CampaignApplicationService } from './campaign-application.service'
-import { SpyOf, autoSpy } from '@podkrepi-bg/testing'
-import { ForbiddenException } from '@nestjs/common'
-import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
-
-jest.mock('../auth/keycloak')
+import { autoSpy } from '@podkrepi-bg/testing'
+import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
+import { KeycloakTokenParsed } from '../auth/keycloak'
+import { ForbiddenException, NotFoundException } from '@nestjs/common'
+import { PersonService } from '../person/person.service'
+import { mockUser, mockUserAdmin } from './../auth/__mocks__'
+import { mockNewCampaignApplication } from './__mocks__/campaign-application-mocks'
 
 describe('CampaignApplicationController', () => {
   let controller: CampaignApplicationController
-  let service: SpyOf<CampaignApplicationService>
+  let service: CampaignApplicationService
+  let personService: PersonService
+
+  const mockCreateNewCampaignApplication = {
+    ...mockNewCampaignApplication,
+    acceptTermsAndConditions: true,
+    transparencyTermsAccepted: true,
+    personalInformationProcessingAccepted: true,
+    toEntity: new CreateCampaignApplicationDto().toEntity,
+  } as CreateCampaignApplicationDto
 
   beforeEach(async () => {
     service = autoSpy(CampaignApplicationService)
+    personService = autoSpy(PersonService)
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CampaignApplicationController],
-      providers: [{ provide: CampaignApplicationService, useValue: service }],
+      providers: [
+        { provide: CampaignApplicationService, useValue: service },
+        { provide: PersonService, useValue: personService },
+      ],
     }).compile()
 
     controller = module.get<CampaignApplicationController>(CampaignApplicationController)
@@ -26,63 +41,63 @@ describe('CampaignApplicationController', () => {
     expect(controller).toBeDefined()
   })
 
-  it('when create called it should delegate to the service create', () => {
-    // arrange
-    // act
-    controller.create({
-      acceptTermsAndConditions: true,
-      personalInformationProcessingAccepted: true,
-      transparencyTermsAccepted: true,
-      title: 'new ',
-      toEntity: jest.fn(),
-    })
+  it('when create called it should delegate to the service create', async () => {
+    // Arrange
+    jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockUser)
 
-    // assert
-    expect(service.create).toHaveBeenCalledWith({
-      acceptTermsAndConditions: true,
-      personalInformationProcessingAccepted: true,
-      transparencyTermsAccepted: true,
-      title: 'new ',
-      toEntity: expect.any(Function),
-    })
+    // Act
+    await controller.create(mockCreateNewCampaignApplication, mockUser)
+
+    // Assert
+    expect(service.create).toHaveBeenCalledWith(mockCreateNewCampaignApplication, mockUser)
+  })
+
+  it('when create called with wrong user it should throw NotFoundException', async () => {
+    jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(null)
+
+    // Act & Assert
+    await expect(controller.create(mockCreateNewCampaignApplication, mockUser)).rejects.toThrow(
+      NotFoundException,
+    )
   })
 
   it('when findAll called by a non-admin user it should throw a ForbiddenException', () => {
-    // arrange
-    const user = { sub: 'non-admin', 'allowed-origins': ['test'] } as KeycloakTokenParsed
-    ;(isAdmin as jest.Mock).mockReturnValue(false)
+    jest.mock('../auth/keycloak', () => ({
+      isAdmin: jest.fn().mockReturnValue(false),
+    }))
 
-    // act & assert
+    // Arrange
+    const user = { sub: 'non-admin', 'allowed-origins': ['test'] } as KeycloakTokenParsed
+
+    // Act & Assert
     expect(() => controller.findAll(user)).toThrow(ForbiddenException)
   })
-
   it('when findAll called by an admin user it should delegate to the service findAll', () => {
-    // arrange
-    const user = { sub: 'admin', 'allowed-origins': ['test'] } as KeycloakTokenParsed
-    ;(isAdmin as jest.Mock).mockReturnValue(true)
+    jest.mock('../auth/keycloak', () => ({
+      isAdmin: jest.fn().mockImplementation((user: KeycloakTokenParsed) => {
+        return user.resource_access?.account?.roles.includes('account-view-supporters')
+      }),
+    }))
 
-    // act
-    controller.findAll(user)
-
-    // assert
-    expect(service.findAll).toHaveBeenCalledWith()
+    // Act & Assert
+    expect(() => controller.findAll(mockUserAdmin)).not.toThrow(ForbiddenException)
+    controller.findAll(mockUserAdmin)
+    expect(service.findAll).toHaveBeenCalled()
   })
 
   it('when findOne called it should delegate to the service findOne', () => {
-    // arrange
-    // act
+    // Act
     controller.findOne('id')
 
-    // assert
+    // Assert
     expect(service.findOne).toHaveBeenCalledWith('id')
   })
 
   it('when update called it should delegate to the service update', () => {
-    // arrange
-    // act
+    // Act
     controller.update('1', {}, { sub: 'test', 'allowed-origins': ['test'] })
 
-    // assert
+    // Assert
     expect(service.update).toHaveBeenCalledWith('1', {})
   })
 })
