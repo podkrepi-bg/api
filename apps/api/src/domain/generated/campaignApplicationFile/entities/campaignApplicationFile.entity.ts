@@ -8,5 +8,5 @@ export class CampaignApplicationFile {
   personId: string
   mimetype: string
   role: CampaignApplicationFileRole
-  campaignApplication?: CampaignApplication[]
+  campaignApplication?: CampaignApplication
 }

@@ -101,8 +101,6 @@ export class CampaignApplicationService {
     personId: string,
     campaignApplicationId: string,
   ) => {
-    console.log('campaignApplicationId', campaignApplicationId)
-
     const fileDto: CreateCampaignApplicationFileDto = {
       filename: file.originalname,
       mimetype: file.mimetype,
