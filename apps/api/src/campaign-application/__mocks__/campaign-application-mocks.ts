@@ -5,6 +5,7 @@ import {
 } from '@prisma/client'
 import { CreateCampaignApplicationDto } from '../dto/create-campaign-application.dto'
 import { Readable } from 'stream'
+import { CreateCampaignApplicationFileDto } from '../dto/create-campaignApplication-file.dto'
 
 export const mockNewCampaignApplication = {
   campaignName: 'Test Campaign',
@@ -131,3 +132,11 @@ export const mockCampaignApplicationFiles: Express.Multer.File[] = [
     buffer: Buffer.from(''),
   },
 ]
+
+export const mockFileDto: CreateCampaignApplicationFileDto = {
+  filename: 'Test Filename',
+  mimetype: 'Test mimetype',
+  campaignApplicationId: 'Test CampaignApplicationId',
+  personId: 'Test PersonId',
+  role: CampaignApplicationFileRole.document,
+}

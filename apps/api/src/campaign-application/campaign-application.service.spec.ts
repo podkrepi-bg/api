@@ -2,9 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignApplicationService } from './campaign-application.service'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
 import { BadRequestException } from '@nestjs/common'
-import { Person } from '@prisma/client'
+import { CampaignApplicationFileRole, CampaignTypeCategory, Person } from '@prisma/client'
 import { prismaMock, MockPrismaService } from '../prisma/prisma-client.mock'
-import { EmailService } from '../email/email.service'
 import { OrganizerService } from '../organizer/organizer.service'
 import { personMock } from '../person/__mock__/personMock'
 import {
@@ -14,9 +13,9 @@ import {
   mockCreatedCampaignApplication,
   mockNewCampaignApplication,
   mockCampaignApplicationUploadFile,
+  mockFileDto,
 } from './__mocks__/campaign-application-mocks'
 import { S3Service } from '../s3/s3.service'
-import { PrismaService } from '../prisma/prisma.service'
 
 describe('CampaignApplicationService', () => {
   let service: CampaignApplicationService
@@ -113,7 +112,6 @@ describe('CampaignApplicationService', () => {
         personId: mockPerson.id,
       })
 
-      //! working on it
       jest
         .spyOn(prismaMock.campaignApplication, 'create')
         .mockResolvedValue(mockCreatedCampaignApplication)
@@ -151,16 +149,37 @@ describe('CampaignApplicationService', () => {
           organizerId: mockOrganizerId,
         },
       })
-      expect(prismaMock.campaignApplicationFile.create).toHaveBeenCalledWith(
-        mockCampaignApplicationFile,
-      )
 
-      expect(mockS3Service.uploadObject).toHaveBeenCalledWith(mockCampaignApplicationFile)
+      mockCampaignApplicationFiles.forEach((file) => {
+        const fileDto = {
+          data: {
+            filename: file.originalname,
+            mimetype: file.mimetype,
+            campaignApplicationId: mockCreatedCampaignApplication.id,
+            personId: mockPerson.id,
+            role: CampaignApplicationFileRole.document,
+          },
+        }
+        expect(prismaMock.campaignApplicationFile.create).toHaveBeenCalledWith(fileDto)
+      })
+
+      mockCampaignApplicationFiles.forEach((file) => {
+        expect(mockS3Service.uploadObject).toHaveBeenCalledWith(
+          'campaignapplication-files',
+          mockCampaignApplicationFile.id,
+          file.filename,
+          file.mimetype,
+          file.buffer,
+          'CampaignApplicationFile',
+          mockCreatedCampaignApplication.id,
+          mockPerson.id,
+        )
+      })
+
       expect(mockOrganizerService.create).toHaveBeenCalledTimes(1)
       expect(prismaMock.campaignApplication.create).toHaveBeenCalledTimes(1)
     })
   })
-
   describe('findAll', () => {
     it('should return an array of campaign-applications', async () => {
       prismaMock.campaignApplication.findMany.mockResolvedValue(mockCampaigns)

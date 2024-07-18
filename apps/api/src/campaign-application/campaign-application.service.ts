@@ -3,7 +3,7 @@ import { CreateCampaignApplicationDto } from './dto/create-campaign-application.
 import { UpdateCampaignApplicationDto } from './dto/update-campaign-application.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { OrganizerService } from '../organizer/organizer.service'
-import { Person } from '@prisma/client'
+import { CampaignApplicationFileRole, Person } from '@prisma/client'
 import { S3Service } from './../s3/s3.service'
 import { CreateCampaignApplicationFileDto } from './dto/create-campaignApplication-file.dto'
 @Injectable()
@@ -101,17 +101,14 @@ export class CampaignApplicationService {
     personId: string,
     campaignApplicationId: string,
   ) => {
-    //! add other file types if needed(docx, xlsx, etc)
-    if (file.mimetype.includes('pdf')) {
-      file.role = 'document'
-    }
+    console.log('campaignApplicationId', campaignApplicationId)
 
     const fileDto: CreateCampaignApplicationFileDto = {
       filename: file.originalname,
       mimetype: file.mimetype,
-      campaignApplicationId,
+      campaignApplicationId: campaignApplicationId,
       personId,
-      role: file.role,
+      role: CampaignApplicationFileRole.document,
     }
 
     const createFileInDb = await this.prisma.campaignApplicationFile.create({
