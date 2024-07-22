@@ -8,7 +8,8 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common'
 import { PersonService } from '../person/person.service'
 import { mockUser, mockUserAdmin } from './../auth/__mocks__'
 import { mockNewCampaignApplication } from './__mocks__/campaign-application-mocks'
-import { mockCampaignApplicationFiles } from './__mocks__/campaign-application-mocks'
+import { mockCampaignApplicationFilesFn } from './__mocks__/campaing-application-file-mocks'
+
 describe('CampaignApplicationController', () => {
   let controller: CampaignApplicationController
   let service: CampaignApplicationService
@@ -45,6 +46,8 @@ describe('CampaignApplicationController', () => {
     // Arrange
     jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockUser)
 
+    const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
+
     // Act
     await controller.create(
       mockCampaignApplicationFiles,
@@ -62,6 +65,8 @@ describe('CampaignApplicationController', () => {
 
   it('when create called with wrong user it should throw NotFoundException', async () => {
     jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(null)
+
+    const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
 
     // Act & Assert
     await expect(

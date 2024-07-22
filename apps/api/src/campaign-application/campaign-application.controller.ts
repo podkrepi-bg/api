@@ -32,7 +32,7 @@ export class CampaignApplicationController {
 
   @Post('create')
   @UseInterceptors(
-    FilesInterceptor('file', 5, {
+    FilesInterceptor('file', 10, {
       limits: { fileSize: 1024 * 1024 * 10 },
       fileFilter: (_req: Request, file, cb) => {
         validateFileType(file, cb)

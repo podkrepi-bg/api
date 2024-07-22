@@ -96,11 +96,7 @@ export class CampaignApplicationService {
     return `This action removes a #${id} campaignApplication`
   }
 
-  campaignApplicationFilesCreate = async (
-    file,
-    personId: string,
-    campaignApplicationId: string,
-  ) => {
+  async campaignApplicationFilesCreate(file, personId: string, campaignApplicationId: string) {
     const fileDto: CreateCampaignApplicationFileDto = {
       filename: file.originalname,
       mimetype: file.mimetype,

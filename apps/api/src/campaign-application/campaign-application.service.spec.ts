@@ -7,15 +7,16 @@ import { prismaMock, MockPrismaService } from '../prisma/prisma-client.mock'
 import { OrganizerService } from '../organizer/organizer.service'
 import { personMock } from '../person/__mock__/personMock'
 import {
-  mockCampaignApplicationFile,
-  mockCampaignApplicationFiles,
   mockCampaigns,
   mockCreatedCampaignApplication,
   mockNewCampaignApplication,
-  mockCampaignApplicationUploadFile,
-  mockFileDto,
 } from './__mocks__/campaign-application-mocks'
 import { S3Service } from '../s3/s3.service'
+import {
+  mockCampaignApplicationFileFn,
+  mockCampaignApplicationFilesFn,
+  mockCampaignApplicationUploadFileFn,
+} from './__mocks__/campaing-application-file-mocks'
 
 describe('CampaignApplicationService', () => {
   let service: CampaignApplicationService
@@ -64,6 +65,8 @@ describe('CampaignApplicationService', () => {
         toEntity: new CreateCampaignApplicationDto().toEntity,
       }
 
+      const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
+
       await expect(service.create(dto, mockPerson, mockCampaignApplicationFiles)).rejects.toThrow(
         new BadRequestException('All agreements must be checked'),
       )
@@ -77,6 +80,8 @@ describe('CampaignApplicationService', () => {
         personalInformationProcessingAccepted: true,
         toEntity: new CreateCampaignApplicationDto().toEntity,
       }
+
+      const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
 
       await expect(service.create(dto, mockPerson, mockCampaignApplicationFiles)).rejects.toThrow(
         new BadRequestException('All agreements must be checked'),
@@ -92,6 +97,8 @@ describe('CampaignApplicationService', () => {
         toEntity: new CreateCampaignApplicationDto().toEntity,
       }
 
+      const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
+
       await expect(service.create(dto, mockPerson, mockCampaignApplicationFiles)).rejects.toThrow(
         new BadRequestException('All agreements must be checked'),
       )
@@ -105,6 +112,10 @@ describe('CampaignApplicationService', () => {
         personalInformationProcessingAccepted: true,
         toEntity: new CreateCampaignApplicationDto().toEntity,
       }
+
+      const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
+      const mockCampaignApplicationFile = mockCampaignApplicationFileFn()
+      const mockCampaignApplicationUploadFile = mockCampaignApplicationUploadFileFn()
 
       const mockOrganizerId = 'mockOrganizerId'
       jest.spyOn(mockOrganizerService, 'create').mockResolvedValue({
