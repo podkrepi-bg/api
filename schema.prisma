@@ -1057,7 +1057,8 @@ model CampaignApplicationFile {
   personId              String                      @map("person_id") @db.Uuid
   mimetype              String                      @db.VarChar(100)
   role                  CampaignApplicationFileRole
-  campaignApplication   CampaignApplication[]
+  campaignApplication   CampaignApplication       @relation(fields: [campaignApplicationId], references: [id])
+
 
   @@map("campaign_application_files")
 }

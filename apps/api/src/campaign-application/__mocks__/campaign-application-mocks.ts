@@ -18,14 +18,6 @@ export const mockNewCampaignApplication = {
   category: CampaignTypeCategory.medical,
 }
 
-const dto: CreateCampaignApplicationDto = {
-  ...mockNewCampaignApplication,
-  acceptTermsAndConditions: true,
-  transparencyTermsAccepted: true,
-  personalInformationProcessingAccepted: true,
-  toEntity: new CreateCampaignApplicationDto().toEntity,
-}
-
 export const mockCampaigns = [
   {
     id: '1',
