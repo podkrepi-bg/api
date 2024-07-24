@@ -77,3 +77,20 @@ export const mockCreatedCampaignApplication = {
   ticketURL: null,
   archived: false,
 }
+
+export const mockUpdateCampaignApplication = {
+  campaignName: 'Test Campaign',
+  organizerName: 'Test Organizer',
+  organizerEmail: 'testemail@gmail.com',
+  organizerPhone: '123456789',
+  beneficiary: 'Test beneficary',
+  organizerBeneficiaryRel: 'Test organizerBeneficiaryRel',
+  goal: 'Test goal',
+  history: 'Test history',
+  amount: '1000',
+  description: 'Test description',
+  campaignGuarantee: 'Test guarantee',
+  otherFinanceSources: 'Test otherFinanceSources',
+  otherNotes: 'Test otherNotes',
+  category: CampaignTypeCategory.medical,
+}

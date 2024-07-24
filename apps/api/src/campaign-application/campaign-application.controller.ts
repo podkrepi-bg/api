@@ -26,7 +26,7 @@ import { validateFileType } from '../common/files'
 @Controller('campaign-application')
 export class CampaignApplicationController {
   constructor(
-private readonly campaignApplicationService: CampaignApplicationService,
+    private readonly campaignApplicationService: CampaignApplicationService,
     private readonly personService: PersonService,
   ) {}
 
@@ -66,18 +66,33 @@ private readonly campaignApplicationService: CampaignApplicationService,
     return this.campaignApplicationService.findOne(id)
   }
 
-
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() updateCampaignApplicationDto: UpdateCampaignApplicationDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
-
     const person = await this.personService.findOneByKeycloakId(user.sub)
+    if (!person) throw new NotFoundException('User is not found')
+
+    let isAdminFlag
+
     if (isAdmin(user)) {
-    return this.campaignApplicationService.updateByAdmin(id, updateCampaignApplicationDto,person)
+      isAdminFlag = true
+      return this.campaignApplicationService.updateCampaignApplication(
+        id,
+        updateCampaignApplicationDto,
+        isAdminFlag,
+      )
+    } else {
+      if (!person.organizer) throw new NotFoundException('User has no campaigns')
+      isAdminFlag = false
+      return this.campaignApplicationService.updateCampaignApplication(
+        id,
+        updateCampaignApplicationDto,
+        isAdminFlag,
+        person.organizer.id,
+      )
     }
-    return this.campaignApplicationService.updateByOrganizer(id, updateCampaignApplicationDto,person)
   }
 }
