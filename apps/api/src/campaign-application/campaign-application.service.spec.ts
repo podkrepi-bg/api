@@ -232,6 +232,7 @@ describe('CampaignApplicationService', () => {
 
       const result = await service.updateCampaignApplication(
         '1',
+        'personId',
         mockUpdateCampaignApplication,
         false,
         mockPerson.organizer.id,
@@ -252,6 +253,7 @@ describe('CampaignApplicationService', () => {
       await expect(
         service.updateCampaignApplication(
           '1',
+          'personId',
           mockUpdateCampaignApplication,
           false,
           mockPerson.organizer.id,
@@ -270,6 +272,7 @@ describe('CampaignApplicationService', () => {
       await expect(
         service.updateCampaignApplication(
           '1',
+          'personId',
           mockUpdateCampaignApplication,
           false,
           mockPerson.organizer.id,
@@ -288,6 +291,7 @@ describe('CampaignApplicationService', () => {
 
       const result = await service.updateCampaignApplication(
         '1',
+        'personId',
         mockUpdateCampaignApplication,
         true,
       )

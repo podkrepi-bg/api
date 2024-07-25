@@ -67,7 +67,16 @@ export class CampaignApplicationController {
   }
 
   @Patch(':id')
+  @UseInterceptors(
+    FilesInterceptor('file', 10, {
+      limits: { fileSize: 1024 * 1024 * 30 },
+      fileFilter: (_req: Request, file, cb) => {
+        validateFileType(file, cb)
+      },
+    }),
+  )
   async update(
+    @UploadedFiles() files: Express.Multer.File[],
     @Param('id') id: string,
     @Body() updateCampaignApplicationDto: UpdateCampaignApplicationDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
@@ -81,17 +90,22 @@ export class CampaignApplicationController {
       isAdminFlag = true
       return this.campaignApplicationService.updateCampaignApplication(
         id,
+        person.id,
         updateCampaignApplicationDto,
         isAdminFlag,
+        'ADMIN',
+        files,
       )
     } else {
       if (!person.organizer) throw new NotFoundException('User has no campaigns')
       isAdminFlag = false
       return this.campaignApplicationService.updateCampaignApplication(
         id,
+        person.id,
         updateCampaignApplicationDto,
         isAdminFlag,
         person.organizer.id,
+        files,
       )
     }
   }

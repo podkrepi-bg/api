@@ -96,9 +96,11 @@ export class CampaignApplicationService {
 
   async updateCampaignApplication(
     id: string,
+    personId: string,
     updateCampaignApplicationDto: UpdateCampaignApplicationDto,
     isAdminFlag: boolean,
     organaizerId?: string,
+    files?: Express.Multer.File[],
   ) {
     console.log(id)
 
@@ -162,6 +164,26 @@ export class CampaignApplicationService {
           archived: updateCampaignApplicationDto?.archived,
         },
       })
+    }
+
+    if (files) {
+      const existingCampaignApplicationFiles = await this.prisma.campaignApplicationFile.findMany({
+        where: { campaignApplicationId: id },
+      })
+
+      for (const file of existingCampaignApplicationFiles) {
+        await this.s3.deleteObject(this.bucketName, file.id)
+      }
+
+      await this.prisma.campaignApplicationFile.deleteMany({
+        where: { campaignApplicationId: id },
+      })
+
+      await Promise.all(
+        files.map((file) => {
+          return this.campaignApplicationFilesCreate(file, personId, campaignApplication.id)
+        }),
+      )
     }
 
     return editedCampaignApplication

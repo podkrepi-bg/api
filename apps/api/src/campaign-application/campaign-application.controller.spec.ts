@@ -120,16 +120,24 @@ describe('CampaignApplicationController', () => {
   it('when update called by an user it should delegate to the service update', async () => {
     // Arrange
     jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockPerson)
+    const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
 
     // Act
-    await controller.update('campaignApplicationId', mockUpdateCampaignApplication, mockUser)
+    await controller.update(
+      mockCampaignApplicationFiles,
+      'campaignApplicationId',
+      mockUpdateCampaignApplication,
+      mockUser,
+    )
 
     // Assert
     expect(service.updateCampaignApplication).toHaveBeenCalledWith(
       'campaignApplicationId',
+      'personId',
       mockUpdateCampaignApplication,
       false,
       'personOrganaizerId',
+      mockCampaignApplicationFiles,
     )
   })
 
@@ -137,15 +145,24 @@ describe('CampaignApplicationController', () => {
     // Arrange
     jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockPerson)
     jest.spyOn(service, 'updateCampaignApplication').mockImplementation(async () => {})
+    const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
 
     // Act
-    await controller.update('campaignApplicationId', mockUpdateCampaignApplication, mockUserAdmin)
+    await controller.update(
+      mockCampaignApplicationFiles,
+      'campaignApplicationId',
+      mockUpdateCampaignApplication,
+      mockUserAdmin,
+    )
 
     // Assert
     expect(service.updateCampaignApplication).toHaveBeenCalledWith(
       'campaignApplicationId',
+      'personId',
       mockUpdateCampaignApplication,
       true,
+      'ADMIN',
+      mockCampaignApplicationFiles,
     )
   })
 })

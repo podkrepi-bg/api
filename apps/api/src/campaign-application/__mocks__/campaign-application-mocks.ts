@@ -94,3 +94,40 @@ export const mockUpdateCampaignApplication = {
   otherNotes: 'Test otherNotes',
   category: CampaignTypeCategory.medical,
 }
+
+const mockUpdateCampaignApplicationResponceOrganizer = {
+  amount: '1000',
+  beneficiary: 'Test beneficary',
+  campaignGuarantee: 'Test guarantee',
+  campaignName: 'Test Campaign',
+  category: 'medical',
+  description: 'Test description',
+  goal: 'Test goal',
+  history: 'Test history',
+  organizerBeneficiaryRel: 'Test organizerBeneficiaryRel',
+  organizerEmail: 'testemail@gmail.com',
+  organizerName: 'Test Organizer',
+  organizerPhone: '123456789',
+  otherFinanceSources: 'Test otherFinanceSources',
+  otherNotes: 'Test otherNotes',
+}
+
+const mockUpdateCampaignApplicationResponceAdmin = {
+  amount: '1000',
+  beneficiary: 'Test beneficary',
+  campaignGuarantee: 'Test guarantee',
+  campaignName: 'Test Campaign',
+  category: 'medical',
+  description: 'Test description',
+  goal: 'Test goal',
+  history: 'Test history',
+  organizerBeneficiaryRel: 'Test organizerBeneficiaryRel',
+  organizerEmail: 'testemail@gmail.com',
+  organizerName: 'Test Organizer',
+  organizerPhone: '123456789',
+  otherFinanceSources: 'Test otherFinanceSources',
+  otherNotes: 'Test otherNotes',
+  archived: false,
+  state: 'active',
+  ticketURL: 'http://test.com/ticket',
+}
