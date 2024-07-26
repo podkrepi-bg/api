@@ -99,11 +99,9 @@ export class CampaignApplicationService {
     personId: string,
     updateCampaignApplicationDto: UpdateCampaignApplicationDto,
     isAdminFlag: boolean,
-    organaizerId?: string,
+    organizerId?: string,
     files?: Express.Multer.File[],
   ) {
-    console.log(id)
-
     const campaignApplication = await this.prisma.campaignApplication.findUnique({
       where: { id },
     })
@@ -112,7 +110,7 @@ export class CampaignApplicationService {
       throw new NotFoundException('Campaign application doesnt exist')
     }
 
-    if (isAdminFlag == false && organaizerId !== campaignApplication.organizerId) {
+    if (isAdminFlag == false && organizerId !== campaignApplication.organizerId) {
       throw new ForbiddenException('User is not organizer of the campaignApplication')
     }
 
@@ -167,18 +165,6 @@ export class CampaignApplicationService {
     }
 
     if (files) {
-      const existingCampaignApplicationFiles = await this.prisma.campaignApplicationFile.findMany({
-        where: { campaignApplicationId: id },
-      })
-
-      for (const file of existingCampaignApplicationFiles) {
-        await this.s3.deleteObject(this.bucketName, file.id)
-      }
-
-      await this.prisma.campaignApplicationFile.deleteMany({
-        where: { campaignApplicationId: id },
-      })
-
       await Promise.all(
         files.map((file) => {
           return this.campaignApplicationFilesCreate(file, personId, campaignApplication.id)
