@@ -122,12 +122,10 @@ export class SendGridNotificationsProvider
       )
     }
     const exportUrl = exportStatusResponse.urls[0]
-    const response = await fetch(exportUrl, {
-      headers: { 'Content-Type': 'application/json', 'Accept-Encoding': 'zlib' },
-    })
+    const response = await fetch(exportUrl)
 
-    const gzipped = await response.arrayBuffer()
-    const buffer = Buffer.from(gzipped)
+    const exportFile = await response.arrayBuffer()
+    const buffer = Buffer.from(exportFile)
 
     const contactsList = buffer
       .toString()
@@ -300,7 +298,7 @@ export class SendGridNotificationsProvider
       personalizations,
       from: this.config.get('SENDGRID_SENDER_EMAIL', ''),
       content: [{ type: 'text/html', value: value }],
-      templateId: data.templateId,
+      templateId: data.templateId.trim(),
     }
     sgMail
       .send(message)
