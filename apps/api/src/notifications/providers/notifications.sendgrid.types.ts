@@ -1,4 +1,8 @@
+import { ClientResponse } from '@sendgrid/mail'
 import { MarketingTemplateHTMLFields } from '../marketing_templates/template.type'
+import Response from '@sendgrid/helpers/classes/response'
+
+export type SGClientResponse<T = object> = Response<T>
 
 export type SendGridParams = {
   // Parameters
@@ -24,6 +28,7 @@ export type SendGridParams = {
   AddToUnsubscribedRes: unknown
   SendNotificationRes: unknown
   GetContactsFromListRes: ContactsResponse[]
+  contactListsRes: SGClientResponse<ContactListRes>
 
   // Implementation specific
   ContactData: ContactData
@@ -125,4 +130,16 @@ export interface ContactsResponse {
   custom_fields: object
   email: string
   updated_at: string
+}
+
+type SendGridContactList = {
+  id: string
+  name: string
+  contact_count: number
+  _metadata: object
+}
+
+export type ContactListRes = {
+  result: SendGridContactList[]
+  _metadata: object
 }

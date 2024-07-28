@@ -10,10 +10,12 @@ import sgClient from '@sendgrid/client'
 import sgMail from '@sendgrid/mail'
 import { NotificationsProviderInterface } from './notifications.interface.providers'
 import {
+  ContactListRes,
   ContactsFromListParams,
   ContactsResponse,
   SendGridExportStatusResponse,
   SendGridParams,
+  SGClientResponse,
 } from './notifications.sendgrid.types'
 import { ClientRequest } from '@sendgrid/client/src/request'
 import { DateTime } from 'luxon'
@@ -42,6 +44,14 @@ export class SendGridNotificationsProvider
     }
   }
 
+  async getContactLists() {
+    const request = {
+      url: '/v3/marketing/lists',
+      method: 'GET',
+    } as ClientRequest
+    const [response] = await sgClient.request(request)
+    return response as SGClientResponse<ContactListRes>
+  }
   async createNewContactList(data: SendGridParams['CreateListParams']) {
     const request = {
       url: `/v3/marketing/lists`,

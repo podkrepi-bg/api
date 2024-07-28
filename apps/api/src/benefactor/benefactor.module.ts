@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common'
 import { BenefactorService } from './benefactor.service'
 import { BenefactorController } from './benefactor.controller'
-import { PrismaService } from '../prisma/prisma.service'
+import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
+  imports: [PrismaModule],
   controllers: [BenefactorController],
-  providers: [BenefactorService, PrismaService],
+  providers: [BenefactorService],
 })
 export class BenefactorModule {}

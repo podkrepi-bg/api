@@ -14,10 +14,11 @@ import { NotificationService } from '../sockets/notifications/notification.servi
 import { SendGridNotificationsProvider } from '../notifications/providers/notifications.sendgrid.provider'
 import { EmailService } from '../email/email.service'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
+import { SendGridParams } from '../notifications/providers/notifications.sendgrid.types'
 
 describe('CampaignService', () => {
   let service: CampaignService
-  let marketing: NotificationsProviderInterface<unknown>
+  let marketing: NotificationsProviderInterface<SendGridParams>
 
   const mockCreateCampaign = {
     slug: 'test-slug',
@@ -121,6 +122,14 @@ describe('CampaignService', () => {
 
       jest.spyOn(marketing, 'createNewContactList').mockImplementation(async () => 'list-id')
       jest.spyOn(marketing, 'updateContactList').mockImplementation(async () => '')
+      jest.spyOn(marketing, 'getContactLists').mockResolvedValue({
+        statusCode: 200,
+        headers: '',
+        body: {
+          result: [],
+          _metadata: {},
+        },
+      })
       jest.spyOn(service, 'createCampaignNotificationList')
 
       expect(await service.update(mockUpdateCampaign.id, updateData, mockCampaign)).toEqual(
@@ -133,6 +142,7 @@ describe('CampaignService', () => {
         include: { campaignType: { select: { name: true, slug: true, category: true } } },
       })
       expect(service.createCampaignNotificationList).toHaveBeenCalledWith(updatedCampaign)
+
       expect(marketing.createNewContactList).toHaveBeenCalledWith({
         name: updatedCampaign.title,
       })

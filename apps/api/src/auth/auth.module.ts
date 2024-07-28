@@ -3,7 +3,6 @@ import { KeycloakConnectModule } from 'nest-keycloak-connect'
 
 import { AuthService } from './auth.service'
 import { LoginController } from './login.controller'
-import { PrismaService } from '../prisma/prisma.service'
 import { RegisterController } from './register.controller'
 import { AppConfigModule } from '../config/app-config.module'
 import { KeycloakConfigService } from '../config/keycloak-config.service'
@@ -15,10 +14,9 @@ import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
 import { CompanyModule } from '../company/company.module'
+import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
-  controllers: [LoginController, RegisterController, RefreshController, ProviderLoginController],
-  providers: [AuthService, PrismaService, EmailService, JwtService, TemplateService],
   imports: [
     AppConfigModule,
     HttpModule,
@@ -29,7 +27,10 @@ import { CompanyModule } from '../company/company.module'
     }),
     MarketingNotificationsModule,
     CompanyModule,
+    PrismaModule,
   ],
+  controllers: [LoginController, RegisterController, RefreshController, ProviderLoginController],
+  providers: [AuthService, EmailService, JwtService, TemplateService],
   exports: [AuthService],
 })
 export class AuthModule {}

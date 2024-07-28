@@ -1,0 +1,106 @@
+{
+	"info": {
+		"name": "podkrepi.bg",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "get token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// console.log('[INFO] Request: ', JSON.stringify(request))",
+							"var data = JSON.parse(responseBody);",
+							"// console.log('[info] response:', this)",
+							"postman.setGlobalVariable(\"access_token\", data.accessToken);",
+							"postman.setGlobalVariable(\"refresh_token\", data.refreshToken);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "accept",
+						"value": "*/*"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{user}}\",\n    \"password\": \"{{password}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{podkrepi_address}}/api/v1/login"
+			},
+			"response": []
+		},
+		{
+			"name": "User donations",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{podkrepi_address}}/api/v1/donation/user-donations"
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": {
+			"token": "{{access_token}}"
+		}
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "podkrepi_address",
+			"value": "http://localhost:5010",
+			"type": "string"
+		},
+    {
+			"key": "user",
+			"value": "admin@podkrepi.bg",
+			"type": "string"
+		},
+    {
+			"key": "password",
+			"value": "$ecurePa33",
+			"type": "string"
+		}
+	]
+}

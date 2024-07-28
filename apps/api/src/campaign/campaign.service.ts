@@ -603,29 +603,28 @@ export class CampaignService {
     return await this.prisma.$transaction(async (tx) => {
       let donationId
       // Find donation by extPaymentIntentId
-      const existingDonation = await this.findExistingDonation(tx, paymentData)
+      const existingPayment = await this.findExistingDonation(tx, paymentData)
 
       //if missing create the donation with the incoming status
-      if (!existingDonation) {
+      if (!existingPayment) {
         const newDonation = await this.createIncomingDonation(
           tx,
           paymentData,
           newDonationStatus,
           campaign,
         )
-        donationId = newDonation.id
+        donationId = newDonation.donations[0].id
       }
       //donation exists, so check if it is safe to update it
       else {
         const updatedDonation = await this.updateDonationIfAllowed(
           tx,
-          existingDonation,
+          existingPayment,
           newDonationStatus,
           paymentData,
         )
-        donationId = updatedDonation?.id
+        donationId = updatedDonation?.donations[0].id
       }
-
       return donationId
     }) //end of the transaction scope
   }
@@ -1037,9 +1036,17 @@ export class CampaignService {
 
   async createCampaignNotificationList(updated: { title: string; id: string }) {
     // Generate list in the marketing platform
-    const listId = await this.marketingNotificationsService.provider.createNewContactList({
-      name: updated.title || updated.id,
-    })
+    let listId: string
+    const lists = await this.marketingNotificationsService.provider.getContactLists()
+    const campaignEmailLists = lists.body.result
+    const exists = campaignEmailLists.find((campaign) => campaign.name === updated.title)
+    if (exists) {
+      listId = exists.id
+    } else {
+      listId = await this.marketingNotificationsService.provider.createNewContactList({
+        name: updated.title || updated.id,
+      })
+    }
 
     const name = updated.title || ''
 

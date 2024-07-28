@@ -28,6 +28,7 @@ export class CreateSessionDto {
   @ApiProperty()
   @Expose()
   @IsEnum(DonationType)
+  @IsOptional()
   public readonly type: DonationType
 
   @ApiProperty()

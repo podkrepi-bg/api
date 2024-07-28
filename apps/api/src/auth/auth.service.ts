@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -9,7 +10,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
-import { catchError, firstValueFrom, map, Observable } from 'rxjs'
+import { catchError, firstValueFrom, map, Observable, retry, timer } from 'rxjs'
 import KeycloakConnect from 'keycloak-connect'
 import { ConfigService } from '@nestjs/config'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
@@ -33,6 +34,7 @@ import { ForgottenPasswordMailDto } from '../email/template.interface'
 import { NewPasswordDto } from './dto/recovery-password.dto'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
 import { PersonService } from '../person/person.service'
+import FederatedIdentityRepresentation from '@keycloak/keycloak-admin-client/lib/defs/federatedIdentityRepresentation'
 
 type ErrorResponse = { error: string; data: unknown }
 type KeycloakErrorResponse = { error: string; error_description: string }
@@ -71,14 +73,26 @@ export class AuthService {
     return this.keycloak.grantManager.obtainDirectly(email, password)
   }
 
+  shouldRetry(error: AxiosResponse) {
+    //Retry request if status is 409.
+    if (error.status === 409) {
+      Logger.debug(`Retrying oauth query`)
+      return timer(1000) // Adding a timer from RxJS to return observable to delay param.
+    }
+
+    throw error
+  }
+
   async tokenEndpoint(
     data: Record<'grant_type' & string, string>,
+    providerDto?: ProviderDto,
   ): Promise<Observable<ApiTokenResponse>> {
     const params = new URLSearchParams({
       ...this.requestSecrets(),
       ...data,
     })
-    return await this.httpService
+
+    return this.httpService
       .post<KeycloakErrorResponse | TokenResponseRaw>(this.createTokenUrl(), params.toString())
       .pipe(
         map((res: AxiosResponse<TokenResponseRaw>) => ({
@@ -86,16 +100,34 @@ export class AuthService {
           accessToken: res.data.access_token,
           expires: res.data.expires_in,
         })),
-        catchError(({ response }: { response: AxiosResponse<KeycloakErrorResponse> }) => {
+        catchError(async ({ response }: { response: AxiosResponse<KeycloakErrorResponse> }) => {
           const error = response.data
           Logger.error("Couldn't get authentication from keycloak. Error: " + JSON.stringify(error))
 
+          if (
+            error.error === 'invalid_token' &&
+            error.error_description === 'User already exists'
+          ) {
+            //User already exists. Link IDP data to it
+            if (!providerDto)
+              throw new BadRequestException('ProviderDto must be passed to tokenEndpoint')
+            const person = await this.prismaService.person.findUnique({
+              where: { email: providerDto?.email },
+            })
+            if (!person || !person.keycloakId)
+              throw new NotFoundException(`No user found with email ${providerDto?.email}`)
+
+            //Create Oauth Link with existing account
+            await this.addUserToFederatedIdentity(providerDto, person.keycloakId)
+            throw new ConflictException('User already exists')
+          }
           if (error.error === 'invalid_grant') {
             throw new UnauthorizedException(error['error_description'])
           }
 
           throw new InternalServerErrorException('CannotIssueTokenError')
         }),
+        retry({ count: 2, delay: this.shouldRetry }),
       )
   }
 
@@ -108,7 +140,7 @@ export class AuthService {
       subject_issuer: providerDto.provider,
       subject_token_type: 'urn:ietf:params:oauth:token-type:access_token',
     }
-    const tokenObs$ = await this.tokenEndpoint(data)
+    const tokenObs$ = await this.tokenEndpoint(data, providerDto)
     const keycloakResponse = await firstValueFrom(tokenObs$)
     const userInfo = await this.keycloak.grantManager.userInfo<string, KeycloakTokenParsed>(
       keycloakResponse.accessToken as string,
@@ -270,6 +302,35 @@ export class AuthService {
       client_secret: secret,
       client_id: clientId,
     }
+  }
+
+  private async addUserToFederatedIdentity(providerDto: ProviderDto, keycloakId: string) {
+    const params = {
+      identityProvider: providerDto.provider,
+      userId: providerDto.userId,
+      userName: providerDto.name,
+    } as FederatedIdentityRepresentation
+
+    try {
+      await this.authenticateAdmin()
+      const result = await this.admin.users.addToFederatedIdentity({
+        id: keycloakId,
+        federatedIdentityId: providerDto.provider,
+        federatedIdentity: params,
+      })
+      Logger.debug(result)
+      return result
+    } catch (err) {
+      Logger.debug(err)
+      throw err
+    }
+  }
+
+  private createIdentityLinkUrl(keycloakId: string, provider: string) {
+    const serverUrl = this.config.get<string>('keycloak.serverUrl')
+    const realm = this.config.get<string>('keycloak.realm')
+    //http://localhost:8180/auth/admin/realms/webapp/users/2545d07e-3e7d-4e8f-932e-c5e5153227a4/federated-identity/google
+    return `${serverUrl}/realms/${realm}/users/${keycloakId}/federated-identity/${provider}`
   }
 
   private createTokenUrl() {

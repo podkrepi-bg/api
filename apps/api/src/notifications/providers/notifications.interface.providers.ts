@@ -25,6 +25,7 @@ type NotificationsInterfaceParams = {
   AddToUnsubscribedRes: unknown
   SendNotificationRes: unknown
   GetContactsFromListRes: unknown
+  contactListsRes: unknown
 }
 
 export abstract class NotificationsProviderInterface<
@@ -56,4 +57,5 @@ export abstract class NotificationsProviderInterface<
     value: string,
     timeout?: number,
   ): Promise<void>
+  abstract getContactLists(): Promise<T['contactListsRes']>
 }
