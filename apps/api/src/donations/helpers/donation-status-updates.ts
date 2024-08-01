@@ -1,4 +1,5 @@
 import { PaymentStatus } from '@prisma/client'
+import Stripe from 'stripe'
 
 const initial: PaymentStatus[] = [PaymentStatus.initial]
 const changeable: PaymentStatus[] = [
@@ -57,4 +58,17 @@ export function shouldAllowStatusChange(
   }
 
   throw new Error(`Unhandled donation status change from ${oldStatus} to ${newStatus}`)
+}
+
+/**
+ * Convert stripe status to one used internally
+ * @param charge Stripe.Charge object
+ * @returns
+ */
+
+export function mapStripeStatusToInternal(charge: Stripe.Charge): PaymentStatus {
+  if (charge.refunded) return PaymentStatus.refund
+  if (charge.status === 'succeeded') return PaymentStatus.succeeded
+  if (charge.status === 'pending') return PaymentStatus.waiting
+  return PaymentStatus.declined
 }

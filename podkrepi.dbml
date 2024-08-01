@@ -697,6 +697,7 @@ Enum PaymentProvider {
   epay
   bank
   cash
+  benevity
 }
 
 Enum DocumentType {

@@ -375,7 +375,7 @@ export class CampaignService {
     return campaign
   }
 
-  async getCampaignBySlug(slug: string): Promise<Campaign> {
+  async getCampaignBySlug(slug: string) {
     const includeFilter = {
       campaignType: {
         select: { name: true, slug: true, category: true },
@@ -409,6 +409,7 @@ export class CampaignService {
           },
         },
       },
+      vaults: true,
       campaignFiles: true,
     }
 
