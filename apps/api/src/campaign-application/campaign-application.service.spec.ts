@@ -66,9 +66,7 @@ describe('CampaignApplicationService', () => {
         toEntity: new CreateCampaignApplicationDto().toEntity,
       }
 
-      const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
-
-      await expect(service.create(dto, mockPerson, mockCampaignApplicationFiles)).rejects.toThrow(
+      await expect(service.create(dto, mockPerson)).rejects.toThrow(
         new BadRequestException('All agreements must be checked'),
       )
     })
@@ -82,9 +80,7 @@ describe('CampaignApplicationService', () => {
         toEntity: new CreateCampaignApplicationDto().toEntity,
       }
 
-      const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
-
-      await expect(service.create(dto, mockPerson, mockCampaignApplicationFiles)).rejects.toThrow(
+      await expect(service.create(dto, mockPerson)).rejects.toThrow(
         new BadRequestException('All agreements must be checked'),
       )
     })
@@ -98,9 +94,7 @@ describe('CampaignApplicationService', () => {
         toEntity: new CreateCampaignApplicationDto().toEntity,
       }
 
-      const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
-
-      await expect(service.create(dto, mockPerson, mockCampaignApplicationFiles)).rejects.toThrow(
+      await expect(service.create(dto, mockPerson)).rejects.toThrow(
         new BadRequestException('All agreements must be checked'),
       )
     })
@@ -114,10 +108,6 @@ describe('CampaignApplicationService', () => {
         toEntity: new CreateCampaignApplicationDto().toEntity,
       }
 
-      const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
-      const mockCampaignApplicationFile = mockCampaignApplicationFileFn()
-      const mockCampaignApplicationUploadFile = mockCampaignApplicationUploadFileFn()
-
       const mockOrganizerId = 'mockOrganizerId'
       jest.spyOn(mockOrganizerService, 'create').mockResolvedValue({
         id: mockOrganizerId,
@@ -128,13 +118,7 @@ describe('CampaignApplicationService', () => {
         .spyOn(prismaMock.campaignApplication, 'create')
         .mockResolvedValue(mockCreatedCampaignApplication)
 
-      jest
-        .spyOn(prismaMock.campaignApplicationFile, 'create')
-        .mockResolvedValue(mockCampaignApplicationFile)
-
-      jest.spyOn(mockS3Service, 'uploadObject').mockResolvedValue(mockCampaignApplicationUploadFile)
-
-      const result = await service.create(dto, mockPerson, mockCampaignApplicationFiles)
+      const result = await service.create(dto, mockPerson)
 
       expect(result).toEqual(mockCreatedCampaignApplication)
 
@@ -162,36 +146,34 @@ describe('CampaignApplicationService', () => {
         },
       })
 
-      mockCampaignApplicationFiles.forEach((file) => {
-        const fileDto = {
-          data: {
-            filename: file.originalname,
-            mimetype: file.mimetype,
-            campaignApplicationId: mockCreatedCampaignApplication.id,
-            personId: mockPerson.id,
-            role: CampaignApplicationFileRole.document,
-          },
-        }
-        expect(prismaMock.campaignApplicationFile.create).toHaveBeenCalledWith(fileDto)
-      })
-
-      mockCampaignApplicationFiles.forEach((file) => {
-        expect(mockS3Service.uploadObject).toHaveBeenCalledWith(
-          'campaignapplication-files',
-          mockCampaignApplicationFile.id,
-          file.filename,
-          file.mimetype,
-          file.buffer,
-          'CampaignApplicationFile',
-          mockCreatedCampaignApplication.id,
-          mockPerson.id,
-        )
-      })
-
       expect(mockOrganizerService.create).toHaveBeenCalledTimes(1)
       expect(prismaMock.campaignApplication.create).toHaveBeenCalledTimes(1)
     })
   })
+
+  describe('uploadFile', () => {
+    it('should add files to a campaignApplication and upload them to s3', async () => {
+      const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
+      const mockCampaignApplicationFile = mockCampaignApplicationFileFn()
+
+      jest
+        .spyOn(prismaMock.campaignApplicationFile, 'create')
+        .mockResolvedValue(mockCampaignApplicationFile)
+      jest
+        .spyOn(service, 'campaignApplicationFilesCreate')
+        .mockResolvedValueOnce(mockCampaignApplicationFile)
+
+      const result = await service.uploadFiles(
+        'mockCampaignApplicationId',
+        mockPerson,
+        mockCampaignApplicationFiles,
+      )
+
+      expect(result).toEqual([mockCampaignApplicationFile, mockCampaignApplicationFile])
+      expect(service.campaignApplicationFilesCreate).toHaveBeenCalledTimes(2)
+    })
+  })
+
   describe('findAll', () => {
     it('should return an array of campaign-applications', async () => {
       prismaMock.campaignApplication.findMany.mockResolvedValue(mockCampaigns)
@@ -232,7 +214,6 @@ describe('CampaignApplicationService', () => {
 
       const result = await service.updateCampaignApplication(
         '1',
-        'personId',
         mockUpdateCampaignApplication,
         false,
         mockPerson.organizer.id,
@@ -253,7 +234,6 @@ describe('CampaignApplicationService', () => {
       await expect(
         service.updateCampaignApplication(
           '1',
-          'personId',
           mockUpdateCampaignApplication,
           false,
           mockPerson.organizer.id,
@@ -272,7 +252,6 @@ describe('CampaignApplicationService', () => {
       await expect(
         service.updateCampaignApplication(
           '1',
-          'personId',
           mockUpdateCampaignApplication,
           false,
           mockPerson.organizer.id,
@@ -291,7 +270,6 @@ describe('CampaignApplicationService', () => {
 
       const result = await service.updateCampaignApplication(
         '1',
-        'personId',
         mockUpdateCampaignApplication,
         true,
       )

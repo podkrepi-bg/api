@@ -57,31 +57,45 @@ describe('CampaignApplicationController', () => {
     // Arrange
     jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockUser)
 
-    const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
-
     // Act
-    await controller.create(
-      mockCampaignApplicationFiles,
-      mockCreateNewCampaignApplication,
-      mockUser,
-    )
+    await controller.create(mockCreateNewCampaignApplication, mockUser)
 
     // Assert
-    expect(service.create).toHaveBeenCalledWith(
-      mockCreateNewCampaignApplication,
-      mockUser,
-      mockCampaignApplicationFiles,
-    )
+    expect(service.create).toHaveBeenCalledWith(mockCreateNewCampaignApplication, mockUser)
   })
 
   it('when create called with wrong user it should throw NotFoundException', async () => {
     jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(null)
 
+    // Act & Assert
+    await expect(controller.create(mockCreateNewCampaignApplication, mockUser)).rejects.toThrow(
+      NotFoundException,
+    )
+  })
+
+  it('when uploadFile/:id called it should delegate to the service uploadFiles', async () => {
+    // Arrange
+    jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockUser)
+    const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
+
+    // Act
+    await controller.uploadFiles(mockCampaignApplicationFiles, 'newCampaignApplicationId', mockUser)
+
+    // Assert
+    expect(service.uploadFiles).toHaveBeenCalledWith(
+      'newCampaignApplicationId',
+      mockUser,
+      mockCampaignApplicationFiles,
+    )
+  })
+
+  it('when uploadFile/:id called  with wrong user it should throw NotFoundException', async () => {
+    jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(null)
     const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
 
     // Act & Assert
     await expect(
-      controller.create(mockCampaignApplicationFiles, mockCreateNewCampaignApplication, mockUser),
+      controller.uploadFiles(mockCampaignApplicationFiles, 'newCampaignApplicationId', mockUser),
     ).rejects.toThrow(NotFoundException)
   })
 
@@ -120,24 +134,16 @@ describe('CampaignApplicationController', () => {
   it('when update called by an user it should delegate to the service update', async () => {
     // Arrange
     jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockPerson)
-    const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
 
     // Act
-    await controller.update(
-      mockCampaignApplicationFiles,
-      'campaignApplicationId',
-      mockUpdateCampaignApplication,
-      mockUser,
-    )
+    await controller.update('campaignApplicationId', mockUpdateCampaignApplication, mockUser)
 
     // Assert
     expect(service.updateCampaignApplication).toHaveBeenCalledWith(
       'campaignApplicationId',
-      'personId',
       mockUpdateCampaignApplication,
       false,
       'personOrganaizerId',
-      mockCampaignApplicationFiles,
     )
   })
 
@@ -145,24 +151,16 @@ describe('CampaignApplicationController', () => {
     // Arrange
     jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockPerson)
     jest.spyOn(service, 'updateCampaignApplication').mockImplementation(async () => {})
-    const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
 
     // Act
-    await controller.update(
-      mockCampaignApplicationFiles,
-      'campaignApplicationId',
-      mockUpdateCampaignApplication,
-      mockUserAdmin,
-    )
+    await controller.update('campaignApplicationId', mockUpdateCampaignApplication, mockUserAdmin)
 
     // Assert
     expect(service.updateCampaignApplication).toHaveBeenCalledWith(
       'campaignApplicationId',
-      'personId',
       mockUpdateCampaignApplication,
       true,
       'ADMIN',
-      mockCampaignApplicationFiles,
     )
   })
 })

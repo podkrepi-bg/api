@@ -25,11 +25,7 @@ export class CampaignApplicationService {
     throw new Error('Method not implemented.')
   }
 
-  async create(
-    createCampaignApplicationDto: CreateCampaignApplicationDto,
-    person: Person,
-    files: Express.Multer.File[],
-  ) {
+  async create(createCampaignApplicationDto: CreateCampaignApplicationDto, person: Person) {
     try {
       if (
         createCampaignApplicationDto.acceptTermsAndConditions === false ||
@@ -71,17 +67,21 @@ export class CampaignApplicationService {
         data: campaingApplicationData,
       })
 
-      if (files) {
-        await Promise.all(
-          files.map((file) => {
-            return this.campaignApplicationFilesCreate(file, person.id, newCampaignApplication.id)
-          }),
-        )
-      }
-
       return newCampaignApplication
     } catch (error) {
       Logger.error('Error in create():', error)
+      throw error
+    }
+  }
+
+  async uploadFiles(id: string, person: Person, files: Express.Multer.File[]) {
+    try {
+      const createdFiles = await Promise.all(
+        files.map((file) => this.campaignApplicationFilesCreate(file, person.id, id)),
+      )
+      return createdFiles
+    } catch (error) {
+      Logger.error('Error in uploadFiles():', error)
       throw error
     }
   }
@@ -96,11 +96,9 @@ export class CampaignApplicationService {
 
   async updateCampaignApplication(
     id: string,
-    personId: string,
     updateCampaignApplicationDto: UpdateCampaignApplicationDto,
     isAdminFlag: boolean,
     organizerId?: string,
-    files?: Express.Multer.File[],
   ) {
     const campaignApplication = await this.prisma.campaignApplication.findUnique({
       where: { id },
@@ -164,14 +162,6 @@ export class CampaignApplicationService {
       })
     }
 
-    if (files) {
-      await Promise.all(
-        files.map((file) => {
-          return this.campaignApplicationFilesCreate(file, personId, campaignApplication.id)
-        }),
-      )
-    }
-
     return editedCampaignApplication
   }
 
@@ -179,7 +169,11 @@ export class CampaignApplicationService {
     return `This action removes a #${id} campaignApplication`
   }
 
-  async campaignApplicationFilesCreate(file, personId: string, campaignApplicationId: string) {
+  async campaignApplicationFilesCreate(
+    file: Express.Multer.File,
+    personId: string,
+    campaignApplicationId: string,
+  ) {
     const fileDto: CreateCampaignApplicationFileDto = {
       filename: file.originalname,
       mimetype: file.mimetype,
@@ -195,12 +189,13 @@ export class CampaignApplicationService {
     await this.s3.uploadObject(
       this.bucketName,
       createFileInDb.id,
-      file.filename,
+      file.originalname,
       file.mimetype,
       file.buffer,
       'CampaignApplicationFile',
       campaignApplicationId,
       personId,
     )
+    return createFileInDb
   }
 }

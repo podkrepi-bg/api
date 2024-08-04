@@ -31,16 +31,7 @@ export class CampaignApplicationController {
   ) {}
 
   @Post('create')
-  @UseInterceptors(
-    FilesInterceptor('file', 10, {
-      limits: { fileSize: 1024 * 1024 * 30 },
-      fileFilter: (_req: Request, file, cb) => {
-        validateFileType(file, cb)
-      },
-    }),
-  )
   async create(
-    @UploadedFiles() files: Express.Multer.File[],
     @Body() createCampaignApplicationDto: CreateCampaignApplicationDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
@@ -50,7 +41,30 @@ export class CampaignApplicationController {
       throw new NotFoundException('No person found in database')
     }
 
-    return this.campaignApplicationService.create(createCampaignApplicationDto, person, files)
+    return this.campaignApplicationService.create(createCampaignApplicationDto, person)
+  }
+
+  @Post('uploadFile/:id')
+  @UseInterceptors(
+    FilesInterceptor('file', 10, {
+      limits: { fileSize: 1024 * 1024 * 30 },
+      fileFilter: (_req: Request, file, cb) => {
+        validateFileType(file, cb)
+      },
+    }),
+  )
+  async uploadFiles(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Param('id') id: string,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    const person = await this.personService.findOneByKeycloakId(user.sub)
+    if (!person) {
+      Logger.error('No person found in database')
+      throw new NotFoundException('No person found in database')
+    }
+
+    return this.campaignApplicationService.uploadFiles(id, person, files)
   }
 
   @Get('list')
@@ -67,16 +81,7 @@ export class CampaignApplicationController {
   }
 
   @Patch(':id')
-  @UseInterceptors(
-    FilesInterceptor('file', 100, {
-      limits: { fileSize: 1024 * 1024 * 30 },
-      fileFilter: (_req: Request, file, cb) => {
-        validateFileType(file, cb)
-      },
-    }),
-  )
   async update(
-    @UploadedFiles() files: Express.Multer.File[],
     @Param('id') id: string,
     @Body() updateCampaignApplicationDto: UpdateCampaignApplicationDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
@@ -90,22 +95,18 @@ export class CampaignApplicationController {
       isAdminFlag = true
       return this.campaignApplicationService.updateCampaignApplication(
         id,
-        person.id,
         updateCampaignApplicationDto,
         isAdminFlag,
         'ADMIN',
-        files,
       )
     } else {
       if (!person.organizer) throw new NotFoundException('User has no campaigns')
       isAdminFlag = false
       return this.campaignApplicationService.updateCampaignApplication(
         id,
-        person.id,
         updateCampaignApplicationDto,
         isAdminFlag,
         person.organizer.id,
-        files,
       )
     }
   }
