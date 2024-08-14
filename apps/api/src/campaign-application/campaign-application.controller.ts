@@ -76,7 +76,10 @@ export class CampaignApplicationController {
   }
 
   @Get('byId/:id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
+    if (!isAdmin(user)) {
+      throw new ForbiddenException('Must be admin to get a single campaign-application')
+    }
     return this.campaignApplicationService.findOne(id)
   }
 

@@ -123,11 +123,28 @@ describe('CampaignApplicationController', () => {
     expect(service.findAll).toHaveBeenCalled()
   })
 
-  it('when findOne called it should delegate to the service findOne', () => {
-    // Act
-    controller.findOne('id')
+  it('when findOne called by a non-admin user it should throw a ForbiddenException', () => {
+    jest.mock('../auth/keycloak', () => ({
+      isAdmin: jest.fn().mockReturnValue(false),
+    }))
 
-    // Assert
+    // Arrange
+    const user = { sub: 'non-admin', 'allowed-origins': ['test'] } as KeycloakTokenParsed
+
+    // Act & Assert
+    expect(() => controller.findOne('id', user)).toThrow(ForbiddenException)
+  })
+
+  it('when findOne called by an admin user it should delegate to the service findOne', () => {
+    jest.mock('../auth/keycloak', () => ({
+      isAdmin: jest.fn().mockImplementation((user: KeycloakTokenParsed) => {
+        return user.resource_access?.account?.roles.includes('account-view-supporters')
+      }),
+    }))
+
+    // Act & Assert
+    expect(() => controller.findOne('id', mockUserAdmin)).not.toThrow(ForbiddenException)
+    controller.findOne('id', mockUserAdmin)
     expect(service.findOne).toHaveBeenCalledWith('id')
   })
 

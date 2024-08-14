@@ -10,6 +10,7 @@ import {
   mockCampaigns,
   mockCreatedCampaignApplication,
   mockNewCampaignApplication,
+  mockSingleCampaignApplication,
   mockUpdateCampaignApplication,
 } from './__mocks__/campaign-application-mocks'
 import { S3Service } from '../s3/s3.service'
@@ -199,6 +200,34 @@ describe('CampaignApplicationService', () => {
 
       await expect(service.findAll()).rejects.toThrow(errorMessage)
       expect(prismaMock.campaignApplication.findMany).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('findOne', () => {
+    it('should return a single campaign-application', async () => {
+      prismaMock.campaignApplication.findUnique.mockResolvedValue(mockSingleCampaignApplication)
+
+      const result = await service.findOne('id')
+
+      expect(result).toEqual(mockSingleCampaignApplication)
+      expect(prismaMock.campaignApplication.findUnique).toHaveBeenCalledTimes(1)
+    })
+
+    it('should throw a NotFoundException if no campaign-application is found', async () => {
+      prismaMock.campaignApplication.findUnique.mockResolvedValue(null)
+
+      await expect(service.findOne('id')).rejects.toThrow(
+        new NotFoundException('Campaign application doesnt exist'),
+      )
+      expect(prismaMock.campaignApplication.findUnique).toHaveBeenCalledTimes(1)
+    })
+
+    it('should handle errors and throw an exception', async () => {
+      const errorMessage = 'error'
+      prismaMock.campaignApplication.findUnique.mockRejectedValue(new Error(errorMessage))
+
+      await expect(service.findOne('id')).rejects.toThrow(errorMessage)
+      expect(prismaMock.campaignApplication.findUnique).toHaveBeenCalledTimes(1)
     })
   })
 

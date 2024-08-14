@@ -18,6 +18,30 @@ export const mockNewCampaignApplication = {
   category: CampaignTypeCategory.medical,
 }
 
+export const mockSingleCampaignApplication = {
+  id: '1',
+  createdAt: new Date('2022-04-08T06:36:33.661Z'),
+  updatedAt: new Date('2022-04-08T06:36:33.662Z'),
+  description: 'Test description1',
+  organizerId: 'testOrganizerId1',
+  organizerName: 'Test Organizer1',
+  organizerEmail: 'organizer1@example.com',
+  beneficiary: 'test beneficary1',
+  organizerPhone: '123456789',
+  organizerBeneficiaryRel: 'Test Relation1',
+  campaignName: 'Test Campaign1',
+  goal: 'Test Goal1',
+  history: 'test history1',
+  amount: '1000',
+  campaignGuarantee: 'test campaignGuarantee1',
+  otherFinanceSources: 'test otherFinanceSources1',
+  otherNotes: 'test otherNotes1',
+  state: CampaignApplicationState.review,
+  category: CampaignTypeCategory.medical,
+  ticketURL: 'testsodifhso1',
+  archived: false,
+}
+
 export const mockCampaigns = [
   {
     id: '1',

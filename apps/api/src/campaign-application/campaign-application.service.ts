@@ -86,12 +86,29 @@ export class CampaignApplicationService {
     }
   }
 
-  findAll() {
-    return this.prisma.campaignApplication.findMany()
+  async findAll() {
+    try {
+      const campaignApplications = await this.prisma.campaignApplication.findMany()
+      return campaignApplications
+    } catch (error) {
+      Logger.error('Error in findAll():', error)
+      throw error
+    }
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} campaignApplication`
+  async findOne(id: string) {
+    try {
+      const singleCampaignApplication = await this.prisma.campaignApplication.findUnique({
+        where: { id },
+      })
+      if (!singleCampaignApplication) {
+        throw new NotFoundException('Campaign application doesnt exist')
+      }
+      return singleCampaignApplication
+    } catch (error) {
+      Logger.error('Error in findOne():', error)
+      throw error
+    }
   }
 
   async updateCampaignApplication(
