@@ -39,6 +39,7 @@ describe('CampaignApplicationService', () => {
 
   const mockS3Service = {
     uploadObject: jest.fn(),
+    deleteObject: jest.fn(),
   }
 
   beforeEach(async () => {
@@ -207,7 +208,7 @@ describe('CampaignApplicationService', () => {
     it('should return a single campaign-application', async () => {
       prismaMock.campaignApplication.findUnique.mockResolvedValue(mockSingleCampaignApplication)
 
-      const result = await service.findOne('id')
+      const result = await service.findOne('id', false, mockPerson)
 
       expect(result).toEqual(mockSingleCampaignApplication)
       expect(prismaMock.campaignApplication.findUnique).toHaveBeenCalledTimes(1)
@@ -216,7 +217,7 @@ describe('CampaignApplicationService', () => {
     it('should throw a NotFoundException if no campaign-application is found', async () => {
       prismaMock.campaignApplication.findUnique.mockResolvedValue(null)
 
-      await expect(service.findOne('id')).rejects.toThrow(
+      await expect(service.findOne('id', false, mockPerson)).rejects.toThrow(
         new NotFoundException('Campaign application doesnt exist'),
       )
       expect(prismaMock.campaignApplication.findUnique).toHaveBeenCalledTimes(1)
@@ -226,8 +227,37 @@ describe('CampaignApplicationService', () => {
       const errorMessage = 'error'
       prismaMock.campaignApplication.findUnique.mockRejectedValue(new Error(errorMessage))
 
-      await expect(service.findOne('id')).rejects.toThrow(errorMessage)
+      await expect(service.findOne('id', false, mockPerson)).rejects.toThrow(errorMessage)
       expect(prismaMock.campaignApplication.findUnique).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('deleteFile', () => {
+    it('should return a message on successful deletion', async () => {
+      prismaMock.campaignApplication.findFirst.mockResolvedValue(mockSingleCampaignApplication)
+
+      const result = await service.deleteFile('fileId', false, mockPerson)
+
+      expect(result).toEqual('Successfully deleted file')
+      expect(prismaMock.campaignApplication.findFirst).toHaveBeenCalledTimes(1)
+    })
+
+    it('should throw a NotFoundException if no campaign-application is found', async () => {
+      prismaMock.campaignApplication.findUnique.mockResolvedValue(null)
+
+      await expect(service.deleteFile('fileId', false, mockPerson)).rejects.toThrow(
+        new NotFoundException('File does not exist'),
+      )
+      expect(prismaMock.campaignApplication.findFirst).toHaveBeenCalledTimes(1)
+    })
+
+    it('should handle errors and throw an exception', async () => {
+      const errorMessage = 'error'
+      prismaMock.campaignApplication.findFirst.mockRejectedValue(new Error(errorMessage))
+
+      await expect(service.deleteFile('fileId', false, mockPerson)).rejects.toThrow(errorMessage)
+      expect(prismaMock.campaignApplication.findFirst).toHaveBeenCalledTimes(1)
+      expect(prismaMock.campaignApplicationFile.delete).not.toHaveBeenCalled()
     })
   })
 

@@ -23,7 +23,7 @@ export const mockSingleCampaignApplication = {
   createdAt: new Date('2022-04-08T06:36:33.661Z'),
   updatedAt: new Date('2022-04-08T06:36:33.662Z'),
   description: 'Test description1',
-  organizerId: 'testOrganizerId1',
+  organizerId: 'ffdbcc41-85ec-476c-9e59-0662f3b433af',
   organizerName: 'Test Organizer1',
   organizerEmail: 'organizer1@example.com',
   beneficiary: 'test beneficary1',
@@ -40,6 +40,7 @@ export const mockSingleCampaignApplication = {
   category: CampaignTypeCategory.medical,
   ticketURL: 'testsodifhso1',
   archived: false,
+  documents: [{ id: 'fileId' }],
 }
 
 export const mockCampaigns = [

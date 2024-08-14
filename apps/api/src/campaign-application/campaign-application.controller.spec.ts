@@ -18,6 +18,7 @@ describe('CampaignApplicationController', () => {
   let controller: CampaignApplicationController
   let service: CampaignApplicationService
   let personService: PersonService
+  const { isAdmin } = require('../auth/keycloak')
 
   const mockPerson = {
     ...personMock,
@@ -25,6 +26,10 @@ describe('CampaignApplicationController', () => {
     beneficiaries: [],
     organizer: { id: 'personOrganaizerId' },
   }
+
+  jest.mock('../auth/keycloak', () => ({
+    isAdmin: jest.fn(),
+  }))
 
   const mockCreateNewCampaignApplication = {
     ...mockNewCampaignApplication,
@@ -110,42 +115,31 @@ describe('CampaignApplicationController', () => {
     // Act & Assert
     expect(() => controller.findAll(user)).toThrow(ForbiddenException)
   })
-  it('when findAll called by an admin user it should delegate to the service findAll', () => {
-    jest.mock('../auth/keycloak', () => ({
-      isAdmin: jest.fn().mockImplementation((user: KeycloakTokenParsed) => {
-        return user.resource_access?.account?.roles.includes('account-view-supporters')
-      }),
-    }))
 
-    // Act & Assert
-    expect(() => controller.findAll(mockUserAdmin)).not.toThrow(ForbiddenException)
-    controller.findAll(mockUserAdmin)
-    expect(service.findAll).toHaveBeenCalled()
-  })
-
-  it('when findOne called by a non-admin user it should throw a ForbiddenException', () => {
-    jest.mock('../auth/keycloak', () => ({
-      isAdmin: jest.fn().mockReturnValue(false),
-    }))
-
+  it('when findOne is called by an organizer, it should delegate to the service findOne', async () => {
     // Arrange
-    const user = { sub: 'non-admin', 'allowed-origins': ['test'] } as KeycloakTokenParsed
+    jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockUser)
+    isAdmin.mockReturnValue(false) // Non-admin user
 
-    // Act & Assert
-    expect(() => controller.findOne('id', user)).toThrow(ForbiddenException)
+    // Act
+    await controller.findOne('id', mockUser)
+
+    // Assert
+    expect(personService.findOneByKeycloakId).toHaveBeenCalledWith(mockUser.sub)
+    expect(service.findOne).toHaveBeenCalledWith('id', false, mockUser)
   })
 
-  it('when findOne called by an admin user it should delegate to the service findOne', () => {
-    jest.mock('../auth/keycloak', () => ({
-      isAdmin: jest.fn().mockImplementation((user: KeycloakTokenParsed) => {
-        return user.resource_access?.account?.roles.includes('account-view-supporters')
-      }),
-    }))
+  it('when findOne is called by an admin user, it should delegate to the service with isAdmin true', async () => {
+    // Arrange
+    jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockUserAdmin)
+    isAdmin.mockReturnValue(true) // Admin user
 
-    // Act & Assert
-    expect(() => controller.findOne('id', mockUserAdmin)).not.toThrow(ForbiddenException)
-    controller.findOne('id', mockUserAdmin)
-    expect(service.findOne).toHaveBeenCalledWith('id')
+    // Act
+    await controller.findOne('id', mockUserAdmin)
+
+    // Assert
+    expect(personService.findOneByKeycloakId).toHaveBeenCalledWith(mockUserAdmin.sub)
+    expect(service.findOne).toHaveBeenCalledWith('id', true, mockUserAdmin)
   })
 
   it('when update called by an user it should delegate to the service update', async () => {
