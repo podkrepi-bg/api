@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignApplicationService } from './campaign-application.service'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
-import { BadRequestException } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common'
 import { CampaignApplicationFileRole, CampaignTypeCategory, Person } from '@prisma/client'
 import { prismaMock, MockPrismaService } from '../prisma/prisma-client.mock'
 import { OrganizerService } from '../organizer/organizer.service'
@@ -10,6 +10,7 @@ import {
   mockCampaigns,
   mockCreatedCampaignApplication,
   mockNewCampaignApplication,
+  mockUpdateCampaignApplication,
 } from './__mocks__/campaign-application-mocks'
 import { S3Service } from '../s3/s3.service'
 import {
@@ -26,7 +27,7 @@ describe('CampaignApplicationService', () => {
     company: null,
     beneficiaries: [],
     organizer: { id: 'ffdbcc41-85ec-476c-9e59-0662f3b433af' },
-  } as Person
+  }
 
   const mockOrganizerService = {
     create: jest.fn().mockResolvedValue({
@@ -65,9 +66,7 @@ describe('CampaignApplicationService', () => {
         toEntity: new CreateCampaignApplicationDto().toEntity,
       }
 
-      const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
-
-      await expect(service.create(dto, mockPerson, mockCampaignApplicationFiles)).rejects.toThrow(
+      await expect(service.create(dto, mockPerson)).rejects.toThrow(
         new BadRequestException('All agreements must be checked'),
       )
     })
@@ -81,9 +80,7 @@ describe('CampaignApplicationService', () => {
         toEntity: new CreateCampaignApplicationDto().toEntity,
       }
 
-      const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
-
-      await expect(service.create(dto, mockPerson, mockCampaignApplicationFiles)).rejects.toThrow(
+      await expect(service.create(dto, mockPerson)).rejects.toThrow(
         new BadRequestException('All agreements must be checked'),
       )
     })
@@ -97,9 +94,7 @@ describe('CampaignApplicationService', () => {
         toEntity: new CreateCampaignApplicationDto().toEntity,
       }
 
-      const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
-
-      await expect(service.create(dto, mockPerson, mockCampaignApplicationFiles)).rejects.toThrow(
+      await expect(service.create(dto, mockPerson)).rejects.toThrow(
         new BadRequestException('All agreements must be checked'),
       )
     })
@@ -113,10 +108,6 @@ describe('CampaignApplicationService', () => {
         toEntity: new CreateCampaignApplicationDto().toEntity,
       }
 
-      const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
-      const mockCampaignApplicationFile = mockCampaignApplicationFileFn()
-      const mockCampaignApplicationUploadFile = mockCampaignApplicationUploadFileFn()
-
       const mockOrganizerId = 'mockOrganizerId'
       jest.spyOn(mockOrganizerService, 'create').mockResolvedValue({
         id: mockOrganizerId,
@@ -127,13 +118,7 @@ describe('CampaignApplicationService', () => {
         .spyOn(prismaMock.campaignApplication, 'create')
         .mockResolvedValue(mockCreatedCampaignApplication)
 
-      jest
-        .spyOn(prismaMock.campaignApplicationFile, 'create')
-        .mockResolvedValue(mockCampaignApplicationFile)
-
-      jest.spyOn(mockS3Service, 'uploadObject').mockResolvedValue(mockCampaignApplicationUploadFile)
-
-      const result = await service.create(dto, mockPerson, mockCampaignApplicationFiles)
+      const result = await service.create(dto, mockPerson)
 
       expect(result).toEqual(mockCreatedCampaignApplication)
 
@@ -161,36 +146,34 @@ describe('CampaignApplicationService', () => {
         },
       })
 
-      mockCampaignApplicationFiles.forEach((file) => {
-        const fileDto = {
-          data: {
-            filename: file.originalname,
-            mimetype: file.mimetype,
-            campaignApplicationId: mockCreatedCampaignApplication.id,
-            personId: mockPerson.id,
-            role: CampaignApplicationFileRole.document,
-          },
-        }
-        expect(prismaMock.campaignApplicationFile.create).toHaveBeenCalledWith(fileDto)
-      })
-
-      mockCampaignApplicationFiles.forEach((file) => {
-        expect(mockS3Service.uploadObject).toHaveBeenCalledWith(
-          'campaignapplication-files',
-          mockCampaignApplicationFile.id,
-          file.filename,
-          file.mimetype,
-          file.buffer,
-          'CampaignApplicationFile',
-          mockCreatedCampaignApplication.id,
-          mockPerson.id,
-        )
-      })
-
       expect(mockOrganizerService.create).toHaveBeenCalledTimes(1)
       expect(prismaMock.campaignApplication.create).toHaveBeenCalledTimes(1)
     })
   })
+
+  describe('uploadFile', () => {
+    it('should add files to a campaignApplication and upload them to s3', async () => {
+      const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
+      const mockCampaignApplicationFile = mockCampaignApplicationFileFn()
+
+      jest
+        .spyOn(prismaMock.campaignApplicationFile, 'create')
+        .mockResolvedValue(mockCampaignApplicationFile)
+      jest
+        .spyOn(service, 'campaignApplicationFilesCreate')
+        .mockResolvedValueOnce(mockCampaignApplicationFile)
+
+      const result = await service.uploadFiles(
+        'mockCampaignApplicationId',
+        mockPerson,
+        mockCampaignApplicationFiles,
+      )
+
+      expect(result).toEqual([mockCampaignApplicationFile, mockCampaignApplicationFile])
+      expect(service.campaignApplicationFilesCreate).toHaveBeenCalledTimes(2)
+    })
+  })
+
   describe('findAll', () => {
     it('should return an array of campaign-applications', async () => {
       prismaMock.campaignApplication.findMany.mockResolvedValue(mockCampaigns)
@@ -216,6 +199,88 @@ describe('CampaignApplicationService', () => {
 
       await expect(service.findAll()).rejects.toThrow(errorMessage)
       expect(prismaMock.campaignApplication.findMany).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('updateCampaignApplication', () => {
+    it('should update a campaign application if the user is the organizer', async () => {
+      const mockCampaignApplication = {
+        ...mockCreatedCampaignApplication,
+        organizerId: mockPerson.organizer.id,
+      }
+
+      prismaMock.campaignApplication.findUnique.mockResolvedValue(mockCampaignApplication)
+      prismaMock.campaignApplication.update.mockResolvedValue(mockCampaignApplication)
+
+      const result = await service.updateCampaignApplication(
+        '1',
+        mockUpdateCampaignApplication,
+        false,
+        mockPerson.organizer.id,
+      )
+
+      expect(result).toEqual(mockCampaignApplication)
+      expect(prismaMock.campaignApplication.update).toHaveBeenCalledWith({
+        where: { id: '1' },
+        data: {
+          ...mockUpdateCampaignApplication,
+        },
+      })
+    })
+
+    it('should throw a NotFoundException if the campaign application is not found', async () => {
+      prismaMock.campaignApplication.findUnique.mockResolvedValue(null)
+
+      await expect(
+        service.updateCampaignApplication(
+          '1',
+          mockUpdateCampaignApplication,
+          false,
+          mockPerson.organizer.id,
+        ),
+      ).rejects.toThrow(NotFoundException)
+    })
+
+    it('should throw a ForbiddenException if the user is not the organizer and not an admin', async () => {
+      const mockCampaignApplication = {
+        ...mockCreatedCampaignApplication,
+        organizerId: 'different-organizer-id',
+      }
+
+      prismaMock.campaignApplication.findUnique.mockResolvedValue(mockCampaignApplication)
+
+      await expect(
+        service.updateCampaignApplication(
+          '1',
+          mockUpdateCampaignApplication,
+          false,
+          mockPerson.organizer.id,
+        ),
+      ).rejects.toThrow(ForbiddenException)
+    })
+
+    it('should update a campaign application if the user is an admin', async () => {
+      const mockCampaignApplication = {
+        ...mockCreatedCampaignApplication,
+        organizerId: 'different-organizer-id',
+      }
+
+      prismaMock.campaignApplication.findUnique.mockResolvedValue(mockCampaignApplication)
+      prismaMock.campaignApplication.update.mockResolvedValue(mockCampaignApplication)
+
+      const result = await service.updateCampaignApplication(
+        '1',
+        mockUpdateCampaignApplication,
+        true,
+      )
+
+      expect(result).toEqual(mockCampaignApplication)
+      expect(prismaMock.campaignApplication.update).toHaveBeenCalledWith({
+        where: { id: '1' },
+        data: {
+          ...mockUpdateCampaignApplication,
+        },
+      })
     })
   })
 })

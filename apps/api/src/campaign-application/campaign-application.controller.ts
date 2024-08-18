@@ -31,16 +31,7 @@ export class CampaignApplicationController {
   ) {}
 
   @Post('create')
-  @UseInterceptors(
-    FilesInterceptor('file', 10, {
-      limits: { fileSize: 1024 * 1024 * 30 },
-      fileFilter: (_req: Request, file, cb) => {
-        validateFileType(file, cb)
-      },
-    }),
-  )
   async create(
-    @UploadedFiles() files: Express.Multer.File[],
     @Body() createCampaignApplicationDto: CreateCampaignApplicationDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
@@ -50,7 +41,30 @@ export class CampaignApplicationController {
       throw new NotFoundException('No person found in database')
     }
 
-    return this.campaignApplicationService.create(createCampaignApplicationDto, person, files)
+    return this.campaignApplicationService.create(createCampaignApplicationDto, person)
+  }
+
+  @Post('uploadFile/:id')
+  @UseInterceptors(
+    FilesInterceptor('file', 10, {
+      limits: { fileSize: 1024 * 1024 * 30 },
+      fileFilter: (_req: Request, file, cb) => {
+        validateFileType(file, cb)
+      },
+    }),
+  )
+  async uploadFiles(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Param('id') id: string,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+  ) {
+    const person = await this.personService.findOneByKeycloakId(user.sub)
+    if (!person) {
+      Logger.error('No person found in database')
+      throw new NotFoundException('No person found in database')
+    }
+
+    return this.campaignApplicationService.uploadFiles(id, person, files)
   }
 
   @Get('list')
@@ -67,15 +81,33 @@ export class CampaignApplicationController {
   }
 
   @Patch(':id')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
   async update(
     @Param('id') id: string,
     @Body() updateCampaignApplicationDto: UpdateCampaignApplicationDto,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
-    return this.campaignApplicationService.update(id, updateCampaignApplicationDto)
+    const person = await this.personService.findOneByKeycloakId(user.sub)
+    if (!person) throw new NotFoundException('User is not found')
+
+    let isAdminFlag
+
+    if (isAdmin(user)) {
+      isAdminFlag = true
+      return this.campaignApplicationService.updateCampaignApplication(
+        id,
+        updateCampaignApplicationDto,
+        isAdminFlag,
+        'ADMIN',
+      )
+    } else {
+      if (!person.organizer) throw new NotFoundException('User has no campaigns')
+      isAdminFlag = false
+      return this.campaignApplicationService.updateCampaignApplication(
+        id,
+        updateCampaignApplicationDto,
+        isAdminFlag,
+        person.organizer.id,
+      )
+    }
   }
 }
