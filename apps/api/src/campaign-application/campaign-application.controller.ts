@@ -83,12 +83,9 @@ export class CampaignApplicationController {
       Logger.error('No person found in database')
       throw new NotFoundException('No person found in database')
     }
-    let isAdminFlag
-    if (!isAdmin(user)) {
-      isAdminFlag = false
-    } else {
-      isAdminFlag = true
-    }
+
+    const isAdminFlag = isAdmin(user)
+   
     return this.campaignApplicationService.findOne(id, isAdminFlag, person)
   }
 
@@ -99,13 +96,9 @@ export class CampaignApplicationController {
       Logger.error('No person found in database')
       throw new NotFoundException('No person found in database')
     }
-    let isAdminFlag
-    if (!isAdmin(user)) {
-      isAdminFlag = false
-    } else {
-      isAdminFlag = true
-    }
 
+    const isAdminFlag = isAdmin(user)
+   
     return this.campaignApplicationService.deleteFile(id, isAdminFlag, person)
   }
 
