@@ -1,7 +1,7 @@
 import { Person } from '@prisma/client'
 
 export const personMock: Person = {
-  id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
+  id: 'personId',
   firstName: 'John',
   lastName: 'Doe',
   keycloakId: 'some-id',
