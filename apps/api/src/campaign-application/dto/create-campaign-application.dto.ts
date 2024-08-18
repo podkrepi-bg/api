@@ -1,13 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { CampaignTypeCategory, Prisma } from '@prisma/client'
 import { Expose } from 'class-transformer'
-import { IsBoolean, IsOptional, IsString } from 'class-validator'
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator'
 
 @Expose()
 export class CreateCampaignApplicationDto {
   /**
    * What would the campaign be called. ('Help Vesko' or 'Castrate Plovdiv Cats')
    */
+  @IsNotEmpty()
   @ApiProperty()
   @Expose()
   @IsString()
@@ -17,51 +18,57 @@ export class CreateCampaignApplicationDto {
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  acceptTermsAndConditions: true
+  acceptTermsAndConditions: boolean
 
   /** user needs to agree to this as a prerequisite to creating a campaign application */
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  transparencyTermsAccepted: true
+  transparencyTermsAccepted: boolean
 
   /** user needs to agree to this as a prerequisite to creating a campaign application */
   @ApiProperty()
   @Expose()
   @IsBoolean()
-  personalInformationProcessingAccepted: true
+  personalInformationProcessingAccepted: boolean
 
   /** Who is organizing this campaign */
+  @IsNotEmpty()
   @ApiProperty()
   @Expose()
   @IsString()
   organizerName: string
 
   /** Contact Email to use for the Campaign Application process i.e. if more documents or other info are requested */
+  @IsNotEmpty()
   @ApiProperty()
   @Expose()
   @IsString()
   organizerEmail: string
 
   /** Contact Email to use for the Campaign Application process i.e. if more documents or other info are requested */
+  @IsNotEmpty()
   @ApiProperty()
   @Expose()
   @IsString()
   organizerPhone: string
 
   /** Who will benefit and use the collected donations */
+  @IsNotEmpty()
   @ApiProperty()
   @Expose()
   @IsString()
   beneficiary: string
 
   /** What is the relationship between the Organizer and the Beneficiary ('They're my elderly relative and I'm helping with the internet-computer stuff') */
+  @IsNotEmpty()
   @ApiProperty()
   @Expose()
   @IsString()
   organizerBeneficiaryRel: string
 
   /** What is the result that the collected donations will help achieve */
+  @IsNotEmpty()
   @ApiProperty()
   @Expose()
   @IsString()
@@ -75,6 +82,7 @@ export class CreateCampaignApplicationDto {
   history?: string
 
   /** How much would the campaign be looking for i.e '10000lv or 5000 Eur or $5000' */
+  @IsNotEmpty()
   @ApiProperty()
   @Expose()
   @IsString()

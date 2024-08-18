@@ -1018,7 +1018,7 @@ model CampaignApplication {
   organizerId             String                    @map("organizer_id") @db.Uuid
   organizer               Organizer?                @relation(fields: [organizerId], references: [id])
   organizerName           String                    @map("organizer_name") @db.VarChar(200)
-  organizerEmail          String?                   @unique @map("organizer_email") @db.Citext
+  organizerEmail          String?                   @map("organizer_email") @db.Citext
   organizerPhone          String?                   @map("organizer_phone") @db.VarChar(50)
   // will create a beneficiary after approve of campaign application
   beneficiary             String                    @db.VarChar(1500)
@@ -1058,7 +1058,8 @@ model CampaignApplicationFile {
   personId              String                      @map("person_id") @db.Uuid
   mimetype              String                      @db.VarChar(100)
   role                  CampaignApplicationFileRole
-  campaignApplication   CampaignApplication[]
+  campaignApplication   CampaignApplication       @relation(fields: [campaignApplicationId], references: [id])
+
 
   @@map("campaign_application_files")
 }

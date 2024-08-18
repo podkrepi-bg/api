@@ -583,7 +583,7 @@ Table campaign_applications {
   organizerId String [not null]
   organizer organizers
   organizerName String [not null]
-  organizerEmail String [unique]
+  organizerEmail String
   organizerPhone String
   beneficiary String [not null]
   organizerBeneficiaryRel String [not null]

@@ -1,18 +1,49 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { CampaignApplicationController } from './campaign-application.controller'
 import { CampaignApplicationService } from './campaign-application.service'
-import { SpyOf, autoSpy } from '@podkrepi-bg/testing'
+import { autoSpy } from '@podkrepi-bg/testing'
+import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
+import { KeycloakTokenParsed } from '../auth/keycloak'
+import { ForbiddenException, NotFoundException } from '@nestjs/common'
+import { PersonService } from '../person/person.service'
+import { mockUser, mockUserAdmin } from './../auth/__mocks__'
+import {
+  mockNewCampaignApplication,
+  mockUpdateCampaignApplication,
+} from './__mocks__/campaign-application-mocks'
+import { mockCampaignApplicationFilesFn } from './__mocks__/campaing-application-file-mocks'
+import { personMock } from '../person/__mock__/personMock'
 
 describe('CampaignApplicationController', () => {
   let controller: CampaignApplicationController
-  let service: SpyOf<CampaignApplicationService>
+  let service: CampaignApplicationService
+  let personService: PersonService
+
+  const mockPerson = {
+    ...personMock,
+    company: null,
+    beneficiaries: [],
+    organizer: { id: 'personOrganaizerId' },
+  }
+
+  const mockCreateNewCampaignApplication = {
+    ...mockNewCampaignApplication,
+    acceptTermsAndConditions: true,
+    transparencyTermsAccepted: true,
+    personalInformationProcessingAccepted: true,
+    toEntity: new CreateCampaignApplicationDto().toEntity,
+  } as CreateCampaignApplicationDto
 
   beforeEach(async () => {
     service = autoSpy(CampaignApplicationService)
+    personService = autoSpy(PersonService)
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CampaignApplicationController],
-      providers: [{ provide: CampaignApplicationService, useValue: service }],
+      providers: [
+        { provide: CampaignApplicationService, useValue: service },
+        { provide: PersonService, useValue: personService },
+      ],
     }).compile()
 
     controller = module.get<CampaignApplicationController>(CampaignApplicationController)
@@ -22,50 +53,114 @@ describe('CampaignApplicationController', () => {
     expect(controller).toBeDefined()
   })
 
-  it('when create called it should delegate to the service create', () => {
-    // arrange
-    // act
-    controller.create({
-      acceptTermsAndConditions: true,
-      personalInformationProcessingAccepted: true,
-      transparencyTermsAccepted: true,
-      title: 'new ',
-      toEntity: jest.fn(),
-    })
+  it('when create called it should delegate to the service create', async () => {
+    // Arrange
+    jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockUser)
 
-    // assert
-    expect(service.create).toHaveBeenCalledWith({
-      acceptTermsAndConditions: true,
-      personalInformationProcessingAccepted: true,
-      transparencyTermsAccepted: true,
-      title: 'new ',
-      toEntity: expect.any(Function),
-    })
+    // Act
+    await controller.create(mockCreateNewCampaignApplication, mockUser)
+
+    // Assert
+    expect(service.create).toHaveBeenCalledWith(mockCreateNewCampaignApplication, mockUser)
   })
 
-  it('when findAll called it should delegate to the service findAll', () => {
-    // arrange
-    // act
-    controller.findAll()
+  it('when create called with wrong user it should throw NotFoundException', async () => {
+    jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(null)
 
-    // assert
-    expect(service.findAll).toHaveBeenCalledWith()
+    // Act & Assert
+    await expect(controller.create(mockCreateNewCampaignApplication, mockUser)).rejects.toThrow(
+      NotFoundException,
+    )
   })
+
+  it('when uploadFile/:id called it should delegate to the service uploadFiles', async () => {
+    // Arrange
+    jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockUser)
+    const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
+
+    // Act
+    await controller.uploadFiles(mockCampaignApplicationFiles, 'newCampaignApplicationId', mockUser)
+
+    // Assert
+    expect(service.uploadFiles).toHaveBeenCalledWith(
+      'newCampaignApplicationId',
+      mockUser,
+      mockCampaignApplicationFiles,
+    )
+  })
+
+  it('when uploadFile/:id called  with wrong user it should throw NotFoundException', async () => {
+    jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(null)
+    const mockCampaignApplicationFiles = mockCampaignApplicationFilesFn()
+
+    // Act & Assert
+    await expect(
+      controller.uploadFiles(mockCampaignApplicationFiles, 'newCampaignApplicationId', mockUser),
+    ).rejects.toThrow(NotFoundException)
+  })
+
+  it('when findAll called by a non-admin user it should throw a ForbiddenException', () => {
+    jest.mock('../auth/keycloak', () => ({
+      isAdmin: jest.fn().mockReturnValue(false),
+    }))
+
+    // Arrange
+    const user = { sub: 'non-admin', 'allowed-origins': ['test'] } as KeycloakTokenParsed
+
+    // Act & Assert
+    expect(() => controller.findAll(user)).toThrow(ForbiddenException)
+  })
+  it('when findAll called by an admin user it should delegate to the service findAll', () => {
+    jest.mock('../auth/keycloak', () => ({
+      isAdmin: jest.fn().mockImplementation((user: KeycloakTokenParsed) => {
+        return user.resource_access?.account?.roles.includes('account-view-supporters')
+      }),
+    }))
+
+    // Act & Assert
+    expect(() => controller.findAll(mockUserAdmin)).not.toThrow(ForbiddenException)
+    controller.findAll(mockUserAdmin)
+    expect(service.findAll).toHaveBeenCalled()
+  })
+
   it('when findOne called it should delegate to the service findOne', () => {
-    // arrange
-    // act
+    // Act
     controller.findOne('id')
 
-    // assert
+    // Assert
     expect(service.findOne).toHaveBeenCalledWith('id')
   })
 
-  it('when update called it should delegate to the service update', () => {
-    // arrange
-    // act
-    controller.update('1', {}, { sub: 'test', 'allowed-origins': ['test'] })
+  it('when update called by an user it should delegate to the service update', async () => {
+    // Arrange
+    jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockPerson)
 
-    // assert
-    expect(service.update).toHaveBeenCalledWith('1', {})
+    // Act
+    await controller.update('campaignApplicationId', mockUpdateCampaignApplication, mockUser)
+
+    // Assert
+    expect(service.updateCampaignApplication).toHaveBeenCalledWith(
+      'campaignApplicationId',
+      mockUpdateCampaignApplication,
+      false,
+      'personOrganaizerId',
+    )
+  })
+
+  it('when update called by an admin it should delegate to the service update with isAdminFlag true', async () => {
+    // Arrange
+    jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockPerson)
+    jest.spyOn(service, 'updateCampaignApplication').mockImplementation(async () => {})
+
+    // Act
+    await controller.update('campaignApplicationId', mockUpdateCampaignApplication, mockUserAdmin)
+
+    // Assert
+    expect(service.updateCampaignApplication).toHaveBeenCalledWith(
+      'campaignApplicationId',
+      mockUpdateCampaignApplication,
+      true,
+      'ADMIN',
+    )
   })
 })
