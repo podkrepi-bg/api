@@ -18,7 +18,6 @@ describe('CampaignApplicationController', () => {
   let controller: CampaignApplicationController
   let service: CampaignApplicationService
   let personService: PersonService
-  const { isAdmin } = require('../auth/keycloak')
 
   const mockPerson = {
     ...personMock,
@@ -26,10 +25,6 @@ describe('CampaignApplicationController', () => {
     beneficiaries: [],
     organizer: { id: 'personOrganaizerId' },
   }
-
-  jest.mock('../auth/keycloak', () => ({
-    isAdmin: jest.fn(),
-  }))
 
   const mockCreateNewCampaignApplication = {
     ...mockNewCampaignApplication,
@@ -119,7 +114,10 @@ describe('CampaignApplicationController', () => {
   it('when findOne is called by an organizer, it should delegate to the service findOne', async () => {
     // Arrange
     jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockUser)
-    isAdmin.mockReturnValue(false) // Non-admin user
+
+    jest.mock('../auth/keycloak', () => ({
+      isAdmin: jest.fn().mockReturnValue(false),
+    }))
 
     // Act
     await controller.findOne('id', mockUser)
@@ -132,7 +130,9 @@ describe('CampaignApplicationController', () => {
   it('when findOne is called by an admin user, it should delegate to the service with isAdmin true', async () => {
     // Arrange
     jest.spyOn(personService, 'findOneByKeycloakId').mockResolvedValue(mockUserAdmin)
-    isAdmin.mockReturnValue(true) // Admin user
+    jest.mock('../auth/keycloak', () => ({
+      isAdmin: jest.fn().mockReturnValue(true),
+    }))
 
     // Act
     await controller.findOne('id', mockUserAdmin)
