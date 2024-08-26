@@ -12,6 +12,9 @@ import { OrganizerService } from '../organizer/organizer.service'
 import { CampaignApplicationFileRole, Person } from '@prisma/client'
 import { S3Service } from './../s3/s3.service'
 import { CreateCampaignApplicationFileDto } from './dto/create-campaignApplication-file.dto'
+import { EmailService } from '../email/email.service'
+import { EmailData } from '../email/email.interface'
+import { CreateCampaignApplicationEmailDto } from '../email/template.interface'
 @Injectable()
 export class CampaignApplicationService {
   private readonly bucketName: string = 'campaignapplication-files'
@@ -19,6 +22,7 @@ export class CampaignApplicationService {
     private prisma: PrismaService,
     private organizerService: OrganizerService,
     private s3: S3Service,
+    private sendEmail: EmailService,
   ) {}
 
   async getCampaignByIdWithPersonIds(id: string): Promise<UpdateCampaignApplicationDto> {
@@ -66,6 +70,19 @@ export class CampaignApplicationService {
       const newCampaignApplication = await this.prisma.campaignApplication.create({
         data: campaingApplicationData,
       })
+
+       const userEmail = { to: [person.email] as EmailData[] }
+
+       const emailData = {
+         campaignApplicationName: newCampaignApplication.campaignName,
+         editLink: 'https://www.formula1.com/',
+       }
+
+       const mail = new CreateCampaignApplicationEmailDto(emailData)
+
+       await this.sendEmail.sendFromTemplate(mail, userEmail, {
+         bypassUnsubscribeManagement: { enable: true },
+       })
 
       return newCampaignApplication
     } catch (error) {
