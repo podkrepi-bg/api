@@ -15,6 +15,7 @@ import { CreateCampaignApplicationFileDto } from './dto/create-campaignApplicati
 import { EmailService } from '../email/email.service'
 import { EmailData } from '../email/email.interface'
 import { CreateCampaignApplicationEmailDto } from '../email/template.interface'
+
 @Injectable()
 export class CampaignApplicationService {
   private readonly bucketName: string = 'campaignapplication-files'
@@ -76,6 +77,9 @@ export class CampaignApplicationService {
        const emailData = {
          campaignApplicationName: newCampaignApplication.campaignName,
          editLink: 'https://www.formula1.com/',
+        email: person.email,
+        firstName: person.firstName,
+    
        }
 
        const mail = new CreateCampaignApplicationEmailDto(emailData)
