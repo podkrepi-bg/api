@@ -9,7 +9,7 @@ import { CreateCampaignApplicationDto } from './dto/create-campaign-application.
 import { UpdateCampaignApplicationDto } from './dto/update-campaign-application.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { OrganizerService } from '../organizer/organizer.service'
-import { CampaignApplicationFileRole, Person } from '@prisma/client'
+import { CampaignApplicationFileRole, Person, Prisma } from '@prisma/client'
 import { S3Service } from './../s3/s3.service'
 import { CreateCampaignApplicationFileDto } from './dto/create-campaignApplication-file.dto'
 @Injectable()
@@ -96,7 +96,7 @@ export class CampaignApplicationService {
     }
   }
 
-  async findOne(id: string, isAdminFlag: boolean, person: Person) {
+  async findOne(id: string, isAdminFlag: boolean, person: Prisma.PersonGetPayload<{ include: { organizer: {select:{id:true}}}}>) {
     try {
       const singleCampaignApplication = await this.prisma.campaignApplication.findUnique({
         where: { id },
@@ -105,7 +105,7 @@ export class CampaignApplicationService {
         throw new NotFoundException('Campaign application doesnt exist')
       }
 
-      if (isAdminFlag === false && singleCampaignApplication.organizerId !== person.organizer.id) {
+      if (isAdminFlag === false && singleCampaignApplication.organizerId !== person.organizer?.id) {
         throw new ForbiddenException('User is not admin or organizer of the campaignApplication')
       }
 
@@ -116,7 +116,7 @@ export class CampaignApplicationService {
     }
   }
 
-  async deleteFile(id: string, isAdminFlag: boolean, person: Person) {
+  async deleteFile(id: string, isAdminFlag: boolean, person: Prisma.PersonGetPayload<{ include: { organizer: {select:{id:true}}}}>) {
     try {
       const campaignApplication = await this.prisma.campaignApplication.findFirst({
         where: {
@@ -132,7 +132,7 @@ export class CampaignApplicationService {
         throw new NotFoundException('File does not exist')
       }
 
-      if (isAdminFlag === false && campaignApplication.organizerId !== person.organizer.id) {
+      if (isAdminFlag === false && campaignApplication.organizerId !== person.organizer?.id) {
         throw new ForbiddenException('User is not admin or organizer of the campaignApplication')
       }
 
