@@ -10,6 +10,7 @@ import {
   Logger,
   UploadedFiles,
   UseInterceptors,
+  Delete,
 } from '@nestjs/common'
 import { CampaignApplicationService } from './campaign-application.service'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
@@ -76,8 +77,29 @@ export class CampaignApplicationController {
   }
 
   @Get('byId/:id')
-  findOne(@Param('id') id: string) {
-    return this.campaignApplicationService.findOne(id)
+  async findOne(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
+    const person = await this.personService.findOneByKeycloakId(user.sub)
+    if (!person) {
+      Logger.error('No person found in database')
+      throw new NotFoundException('No person found in database')
+    }
+
+    const isAdminFlag = isAdmin(user)
+   
+    return this.campaignApplicationService.findOne(id, isAdminFlag, person)
+  }
+
+  @Delete('fileById/:id')
+  async deleteFile(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
+    const person = await this.personService.findOneByKeycloakId(user.sub)
+    if (!person) {
+      Logger.error('No person found in database')
+      throw new NotFoundException('No person found in database')
+    }
+
+    const isAdminFlag = isAdmin(user)
+   
+    return this.campaignApplicationService.deleteFile(id, isAdminFlag, person)
   }
 
   @Patch(':id')
