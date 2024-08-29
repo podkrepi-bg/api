@@ -14,7 +14,7 @@ import { S3Service } from './../s3/s3.service'
 import { CreateCampaignApplicationFileDto } from './dto/create-campaignApplication-file.dto'
 import { EmailService } from '../email/email.service'
 import { EmailData } from '../email/email.interface'
-import { CreateCampaignApplicationEmailDto } from '../email/template.interface'
+import { CreateCampaignApplicationAdminEmailDto, CreateCampaignApplicationOrganizerEmailDto } from '../email/template.interface'
 
 @Injectable()
 export class CampaignApplicationService {
@@ -73,18 +73,34 @@ export class CampaignApplicationService {
       })
 
        const userEmail = { to: [person.email] as EmailData[] }
+       const adminEmail = { to: [person.email] as EmailData[] } //! reciever admin email
 
-       const emailData = {
-         campaignApplicationName: newCampaignApplication.campaignName,
-         editLink: 'https://www.formula1.com/',
-        email: person.email,
-        firstName: person.firstName,
-    
+      
+       const emailAdminData = {
+          campaignApplicationName: newCampaignApplication.campaignName,
+          adminEditLink:`https://podkrepi.bg/admin/campaign-applications/edit/${newCampaignApplication.id}`,
+          campaignApplicationLink: `https://podkrepi.bg/campaigns/nadezhda-za-kaloyan`,
+         email: person.email as string,
+          firstName: person.firstName,
        }
+       
+      const emailOrganizerData = {
+        campaignApplicationName: newCampaignApplication.campaignName,
+        editLink: `https://podkrepi.bg/admin/campaign-applications/edit/${newCampaignApplication.id}`,
+        campaignApplicationLink: `https://podkrepi.bg/campaigns/nadezhda-za-kaloyan`,
 
-       const mail = new CreateCampaignApplicationEmailDto(emailData)
+        email: person.email as string,
+        firstName: person.firstName,
+      }
 
-       await this.sendEmail.sendFromTemplate(mail, userEmail, {
+       const mailAdmin = new CreateCampaignApplicationAdminEmailDto(emailAdminData)
+       const mailOrganizer = new CreateCampaignApplicationOrganizerEmailDto(emailOrganizerData)
+
+       await this.sendEmail.sendFromTemplate(mailAdmin, userEmail, {
+         bypassUnsubscribeManagement: { enable: true },
+       })
+
+       await this.sendEmail.sendFromTemplate(mailOrganizer, adminEmail, {
          bypassUnsubscribeManagement: { enable: true },
        })
 

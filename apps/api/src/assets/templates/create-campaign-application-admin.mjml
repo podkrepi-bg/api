@@ -15,7 +15,7 @@
           padding-right="25px"
           padding-bottom="30px"
           padding-top="50px">
-          Успешно създадохте кампания в Подкрепи.бг
+          Успешно създадена кампания от {{firstName}}
         </mj-text>
       </mj-column>
     </mj-section>
@@ -38,15 +38,14 @@
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
           padding-right="25px">
-          Благодарим, че проявихте интерес и желание да се включите с помощ в проекта!<br /><br />
-          Предлагаме да продължим комуникацията в
-          <a style="color: #feeb35" href="https://discord.gg/3FBXDPjXEp" target="_blank"
-            >Discord сървъра</a
-          >, където се помещава нашият виртуален офис. Съветът ни е да прочетете внимателно какво
-          пише на началната страница в канал #започни-от-тук. <br /><br />
-         При желания за промяна на детайли по кампанията посетете ЛИНК. <br /><br />
-          Още веднъж благодарим за готовността да помогнете за нашата кауза!
-        </mj-text>
+            Организатор: {{firstName}} с имейл: {{email}} създаде нова кампания <a style="color: #feeb35" href="{{campaignApplicationLink}}" target="_blank"
+            >ТУК</a
+          >!<br /><br />
+           За промяна на детайли по кампанията посетете 
+          <a style="color: #feeb35" href="{{adminEditLink}}" target="_blank"
+            >Редактиране на кампания</a
+          > <br /><br />
+                  </mj-text>
         <mj-text
           align="left"
           color="#ffffff"
