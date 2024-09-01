@@ -30,7 +30,7 @@ jobs:
       - name: Copy env file
         run: cp .env.example .env
       - name: Run database
-        run: docker-compose up -d pg-db
+        run: docker compose up -d pg-db
       - name: Install dependencies 
         run: yarn install --immutable
       - name: Generate Prisma DB client
