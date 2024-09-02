@@ -125,6 +125,7 @@ export class PersonService {
         company: true,
         beneficiaries: { select: { id: true } },
         organizer: { select: { id: true } },
+        recurringDonations: { select: { id: true } },
       },
     })
   }

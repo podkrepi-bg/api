@@ -502,6 +502,12 @@ export class AuthService {
       )
     }
 
+    if (user.recurringDonations.length) {
+      throw new ForbiddenException(
+        `Account cannot be deleted due to active recurring payments. Please cancel all recurring payments before deleting this account`,
+      )
+    }
+
     return this.authenticateAdmin()
       .then(() => this.admin.users.del({ id: keycloakId }))
       .then(() => this.personService.softDelete(user.id))
