@@ -19,6 +19,11 @@ import {
   mockCampaignApplicationFilesFn,
   mockCampaignApplicationUploadFileFn,
 } from './__mocks__/campaing-application-file-mocks'
+import { EmailService } from '../email/email.service'
+import {
+  CreateCampaignApplicationAdminEmailDto,
+  CreateCampaignApplicationOrganizerEmailDto,
+} from '../email/template.interface'
 
 describe('CampaignApplicationService', () => {
   let service: CampaignApplicationService
@@ -42,6 +47,10 @@ describe('CampaignApplicationService', () => {
     deleteObject: jest.fn(),
   }
 
+  const mockEmailService = {
+    sendFromTemplate: jest.fn(),
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -49,6 +58,7 @@ describe('CampaignApplicationService', () => {
         MockPrismaService,
         { provide: OrganizerService, useValue: mockOrganizerService },
         { provide: S3Service, useValue: mockS3Service },
+        { provide: EmailService, useValue: mockEmailService },
       ],
     }).compile()
 
@@ -101,7 +111,7 @@ describe('CampaignApplicationService', () => {
       )
     })
 
-    it('should add a new campaign-application to db if all agreements are true', async () => {
+    it('should add a new campaign-application to db a if all agreements are true', async () => {
       const dto: CreateCampaignApplicationDto = {
         ...mockNewCampaignApplication,
         acceptTermsAndConditions: true,
@@ -119,6 +129,10 @@ describe('CampaignApplicationService', () => {
       jest
         .spyOn(prismaMock.campaignApplication, 'create')
         .mockResolvedValue(mockCreatedCampaignApplication)
+
+      const sendEmailsOnCreatedCampaignApplicationSpy = jest
+        .spyOn(service, 'sendEmailsOnCreatedCampaignApplication')
+        .mockResolvedValue(undefined)
 
       const result = await service.create(dto, mockPerson)
 
@@ -148,8 +162,58 @@ describe('CampaignApplicationService', () => {
         },
       })
 
+      expect(sendEmailsOnCreatedCampaignApplicationSpy).toHaveBeenCalledWith(
+        mockCreatedCampaignApplication.campaignName,
+        mockCreatedCampaignApplication.id,
+        mockPerson,
+      )
+
       expect(mockOrganizerService.create).toHaveBeenCalledTimes(1)
       expect(prismaMock.campaignApplication.create).toHaveBeenCalledTimes(1)
+      expect(sendEmailsOnCreatedCampaignApplicationSpy).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('sendEmailsOnCreatedCampaignApplication', () => {
+    it('should send emails to both the organizer and the admin', async () => {
+      const mockAdminEmail = 'campaign_coordinators@podkrepi.bg'
+      const userEmail = { to: [mockPerson.email] }
+      const adminEmail = { to: [mockAdminEmail] }
+
+      const emailAdminData = {
+        campaignApplicationName: mockSingleCampaignApplication.campaignName,
+        campaignApplicationLink: `https://podkrepi.bg/admin/campaigns/${mockSingleCampaignApplication.id}`,
+        email: mockPerson.email as string,
+        firstName: mockPerson.firstName,
+      }
+
+      const emailOrganizerData = {
+        campaignApplicationName: mockSingleCampaignApplication.campaignName,
+        campaignApplicationLink: `https://podkrepi.bg/campaign/applications/${mockSingleCampaignApplication.id}`,
+        email: mockPerson.email as string,
+        firstName: mockPerson.firstName,
+      }
+
+      const mailAdmin = new CreateCampaignApplicationAdminEmailDto(emailAdminData)
+      const mailOrganizer = new CreateCampaignApplicationOrganizerEmailDto(emailOrganizerData)
+
+      mockEmailService.sendFromTemplate.mockResolvedValueOnce(undefined)
+
+      await service.sendEmailsOnCreatedCampaignApplication(
+        mockSingleCampaignApplication.campaignName,
+        mockSingleCampaignApplication.id,
+        mockPerson,
+      )
+
+      expect(mockEmailService.sendFromTemplate).toHaveBeenCalledWith(mailOrganizer, userEmail, {
+        bypassUnsubscribeManagement: { enable: true },
+      })
+
+      expect(mockEmailService.sendFromTemplate).toHaveBeenCalledWith(mailAdmin, adminEmail, {
+        bypassUnsubscribeManagement: { enable: true },
+      })
+
+      expect(mockEmailService.sendFromTemplate).toHaveBeenCalledTimes(2)
     })
   })
 

@@ -14,7 +14,10 @@ import { S3Service } from './../s3/s3.service'
 import { CreateCampaignApplicationFileDto } from './dto/create-campaignApplication-file.dto'
 import { EmailService } from '../email/email.service'
 import { EmailData } from '../email/email.interface'
-import { CreateCampaignApplicationAdminEmailDto, CreateCampaignApplicationOrganizerEmailDto } from '../email/template.interface'
+import {
+  CreateCampaignApplicationAdminEmailDto,
+  CreateCampaignApplicationOrganizerEmailDto,
+} from '../email/template.interface'
 
 @Injectable()
 export class CampaignApplicationService {
@@ -72,41 +75,54 @@ export class CampaignApplicationService {
         data: campaingApplicationData,
       })
 
-       const userEmail = { to: [person.email] as EmailData[] }
-       const adminEmail = { to: [person.email] as EmailData[] } //! reciever admin email
-
-      
-       const emailAdminData = {
-          campaignApplicationName: newCampaignApplication.campaignName,
-          adminEditLink:`https://podkrepi.bg/admin/campaign-applications/edit/${newCampaignApplication.id}`,
-          campaignApplicationLink: `https://podkrepi.bg/campaigns/nadezhda-za-kaloyan`,
-         email: person.email as string,
-          firstName: person.firstName,
-       }
-       
-      const emailOrganizerData = {
-        campaignApplicationName: newCampaignApplication.campaignName,
-        editLink: `https://podkrepi.bg/admin/campaign-applications/edit/${newCampaignApplication.id}`,
-        campaignApplicationLink: `https://podkrepi.bg/campaigns/nadezhda-za-kaloyan`,
-
-        email: person.email as string,
-        firstName: person.firstName,
-      }
-
-       const mailAdmin = new CreateCampaignApplicationAdminEmailDto(emailAdminData)
-       const mailOrganizer = new CreateCampaignApplicationOrganizerEmailDto(emailOrganizerData)
-
-       await this.sendEmail.sendFromTemplate(mailAdmin, userEmail, {
-         bypassUnsubscribeManagement: { enable: true },
-       })
-
-       await this.sendEmail.sendFromTemplate(mailOrganizer, adminEmail, {
-         bypassUnsubscribeManagement: { enable: true },
-       })
+      await this.sendEmailsOnCreatedCampaignApplication(
+        newCampaignApplication.campaignName,
+        newCampaignApplication.id,
+        person,
+      )
 
       return newCampaignApplication
     } catch (error) {
       Logger.error('Error in create():', error)
+      throw error
+    }
+  }
+
+  async sendEmailsOnCreatedCampaignApplication(
+    campaignApplicationName: string,
+    campaignApplicationId: string,
+    person: Person,
+  ) {
+    const userEmail = { to: [person.email] as EmailData[] }
+    const adminEmail = { to: ['campaign_coordinators@podkrepi.bg'] as EmailData[] }
+
+    const emailAdminData = {
+      campaignApplicationName,
+      campaignApplicationLink: `https://podkrepi.bg/admin/campaigns/${campaignApplicationId}`,
+      email: person.email as string,
+      firstName: person.firstName,
+    }
+
+    const emailOrganizerData = {
+      campaignApplicationName,
+      campaignApplicationLink: `https://podkrepi.bg/campaign/applications/${campaignApplicationId}`,
+      email: person.email as string,
+      firstName: person.firstName,
+    }
+
+    const mailAdmin = new CreateCampaignApplicationAdminEmailDto(emailAdminData)
+    const mailOrganizer = new CreateCampaignApplicationOrganizerEmailDto(emailOrganizerData)
+
+    try {
+      await this.sendEmail.sendFromTemplate(mailOrganizer, userEmail, {
+        bypassUnsubscribeManagement: { enable: true },
+      })
+
+      await this.sendEmail.sendFromTemplate(mailAdmin, adminEmail, {
+        bypassUnsubscribeManagement: { enable: true },
+      })
+    } catch (error) {
+      Logger.error('Error in sendEmailsOnCreatedCampaignApplication():', error)
       throw error
     }
   }
@@ -133,7 +149,11 @@ export class CampaignApplicationService {
     }
   }
 
-  async findOne(id: string, isAdminFlag: boolean, person: Prisma.PersonGetPayload<{ include: { organizer: {select:{id:true}}}}>) {
+  async findOne(
+    id: string,
+    isAdminFlag: boolean,
+    person: Prisma.PersonGetPayload<{ include: { organizer: { select: { id: true } } } }>,
+  ) {
     try {
       const singleCampaignApplication = await this.prisma.campaignApplication.findUnique({
         where: { id },
@@ -153,7 +173,11 @@ export class CampaignApplicationService {
     }
   }
 
-  async deleteFile(id: string, isAdminFlag: boolean, person: Prisma.PersonGetPayload<{ include: { organizer: {select:{id:true}}}}>) {
+  async deleteFile(
+    id: string,
+    isAdminFlag: boolean,
+    person: Prisma.PersonGetPayload<{ include: { organizer: { select: { id: true } } } }>,
+  ) {
     try {
       const campaignApplication = await this.prisma.campaignApplication.findFirst({
         where: {

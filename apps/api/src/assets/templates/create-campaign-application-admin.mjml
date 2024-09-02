@@ -1,9 +1,6 @@
 <mjml>
-  <mj-body background-color="#ffffff" >
-    <mj-section
-      background-color="#009FE3"
-      padding-bottom="0px"
-      padding-top="0">
+  <mj-body background-color="#ffffff">
+    <mj-section background-color="#009FE3" padding-bottom="0px" padding-top="0">
       <mj-column vertical-align="top" width="100%">
         <mj-text
           align="left"
@@ -24,28 +21,15 @@
         <mj-text
           align="left"
           color="#ffffff"
-          font-size="22px"
-          font-family="open Sans Helvetica, Arial, sans-serif"
-          padding-left="25px"
-          padding-right="25px">
-          <span style="color: #feeb35"> Здравейте {{firstName}}, </span>
-          <br /><br />
-        </mj-text>
-        <mj-text
-          align="left"
-          color="#ffffff"
           font-size="15px"
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
           padding-right="25px">
-            Организатор: {{firstName}} с имейл: {{email}} създаде нова кампания <a style="color: #feeb35" href="{{campaignApplicationLink}}" target="_blank"
-            >ТУК</a
+          Организатор: {{firstName}} с имейл: {{email}} създаде нова кампания
+          <a style="color: #feeb35" href="{{campaignApplicationLink}}" target="_blank"
+            >{{campaignApplicationName}}</a
           >!<br /><br />
-           За промяна на детайли по кампанията посетете 
-          <a style="color: #feeb35" href="{{adminEditLink}}" target="_blank"
-            >Редактиране на кампания</a
-          > <br /><br />
-                  </mj-text>
+        </mj-text>
         <mj-text
           align="left"
           color="#ffffff"

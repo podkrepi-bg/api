@@ -1,9 +1,6 @@
 <mjml>
-  <mj-body background-color="#ffffff" >
-    <mj-section
-      background-color="#009FE3"
-      padding-bottom="0px"
-      padding-top="0">
+  <mj-body background-color="#ffffff">
+    <mj-section background-color="#009FE3" padding-bottom="0px" padding-top="0">
       <mj-column vertical-align="top" width="100%">
         <mj-text
           align="left"
@@ -38,15 +35,11 @@
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
           padding-right="25px">
-          Вашата кампания бе създадена успешно, може да я намерите  <a style="color: #feeb35" href="{{adminEditLink}}" target="_blank"
-            >ТУК</a
+          Вашата кампания е създадена успешно! Вижте я
+          <a style="color: #feeb35" href="{{campaignApplicationLink}}" target="_blank">ТУК</a
           >!<br /><br />
-           За промяна на детайли по кампанията посетете 
-          <a style="color: #feeb35" href="{{adminEditLink}}" target="_blank"
-            >Редактиране на кампания</a
-          > <br /><br />
-          
-          Пожелаваме успешно набиране на средства!
+
+          Пожелаваме успешно набиране на средствата!
         </mj-text>
         <mj-text
           align="left"
