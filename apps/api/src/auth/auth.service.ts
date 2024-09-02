@@ -503,7 +503,7 @@ export class AuthService {
 
     return this.authenticateAdmin()
       .then(() => this.admin.users.del({ id: keycloakId }))
-      .then(() => this.prismaService.person.delete({ where: { keycloakId } }))
+      .then(() => this.personService.softDelete(keycloakId))
       .then(() => Logger.log(`User with keycloak id ${keycloakId} was successfully deleted!`))
       .catch((err) => {
         const errorMessage = `Deleting user fails with reason: ${err.message ?? 'server error!'}`

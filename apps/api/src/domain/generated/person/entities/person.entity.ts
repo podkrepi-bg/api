@@ -28,6 +28,7 @@ export class Person {
   phone: string | null
   createdAt: Date
   updatedAt: Date | null
+  deletedAt: Date | null
   newsletter: boolean | null
   helpUsImprove: boolean | null
   address: string | null

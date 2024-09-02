@@ -15,6 +15,7 @@ Table people {
   phone String
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
+  deletedAt DateTime
   newsletter Boolean [default: false]
   helpUsImprove Boolean [default: false]
   address String
@@ -989,3 +990,5 @@ Ref: expense_files.uploaderId > people.id
 Ref: documents.ownerId > people.id
 
 Ref: campaign_applications.organizerId > organizers.id
+
+Ref: campaign_application_files.campaignApplicationId > campaign_applications.id

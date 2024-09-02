@@ -137,6 +137,23 @@ export class PersonService {
     return await this.prisma.person.delete({ where: { id } })
   }
 
+  async softDelete(id: string) {
+    return await this.prisma.person.update({
+      where: { keycloakId: id },
+      data: {
+        firstName: '',
+        lastName: '',
+        address: '',
+        email: '',
+        birthday: '',
+        personalNumber: '',
+        phone: '',
+        helpUsImprove: false,
+        profileEnabled: false,
+        deletedAt: new Date(),
+      },
+    })
+  }
   private async addToContactList(createPersonDto: CreatePersonDto) {
     const data = {
       contacts: [
