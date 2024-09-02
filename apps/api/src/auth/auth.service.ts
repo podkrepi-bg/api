@@ -502,7 +502,7 @@ export class AuthService {
       )
     }
 
-    if (user.recurringDonations.length) {
+    if (user.recurringDonations?.length) {
       throw new ForbiddenException(
         `Account cannot be deleted due to active recurring payments. Please cancel all recurring payments before deleting this account`,
       )

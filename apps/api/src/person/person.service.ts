@@ -146,7 +146,7 @@ export class PersonService {
         lastName: '',
         address: '',
         email: '',
-        birthday: '',
+        birthday: null,
         personalNumber: '',
         phone: '',
         helpUsImprove: false,
