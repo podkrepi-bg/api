@@ -139,7 +139,7 @@ export class PersonService {
 
   async softDelete(id: string) {
     return await this.prisma.person.update({
-      where: { keycloakId: id },
+      where: { id },
       data: {
         firstName: '',
         lastName: '',

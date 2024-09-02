@@ -494,6 +494,7 @@ export class AuthService {
   async deleteUser(keycloakId: string) {
     const user = await this.personService.findOneByKeycloakId(keycloakId)
 
+    if (!user) throw new NotFoundException('User not found')
     //Check and throw if user is a beneficiary, organizer or corporate profile
     if ((!!user && user.beneficiaries.length > 0) || user?.organizer || user?.companyId) {
       throw new InternalServerErrorException(
@@ -503,7 +504,7 @@ export class AuthService {
 
     return this.authenticateAdmin()
       .then(() => this.admin.users.del({ id: keycloakId }))
-      .then(() => this.personService.softDelete(keycloakId))
+      .then(() => this.personService.softDelete(user.id))
       .then(() => Logger.log(`User with keycloak id ${keycloakId} was successfully deleted!`))
       .catch((err) => {
         const errorMessage = `Deleting user fails with reason: ${err.message ?? 'server error!'}`
