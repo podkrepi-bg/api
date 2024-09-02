@@ -287,6 +287,7 @@ export class CampaignService {
     let campaign: Awaited<ReturnType<CampaignService['getCampaignByIdWithPersonIds']>>
     try {
       campaign = await this.getCampaignByIdWithPersonIds(campaign_id)
+      console.log(campaign)
     } catch (e) {
       Logger.error(e)
       throw new BadRequestException('Failed to get campaign info')
@@ -311,10 +312,12 @@ export class CampaignService {
 
       // Check if the campaign has a notification list
       if (!campaign.notificationLists?.length) {
+        console.log(`creating new notification list`)
         const campaignList = await this.createCampaignNotificationList(campaign)
         // Add email to this campaign's notification list
         listIds.push(campaignList)
       } else {
+        console.log(`notification lists exists??`)
         listIds.push(campaign.notificationLists[0].id)
       }
 
@@ -1036,30 +1039,36 @@ export class CampaignService {
 
   async createCampaignNotificationList(updated: { title: string; id: string }) {
     // Generate list in the marketing platform
-    let listId: string
-    const lists = await this.marketingNotificationsService.provider.getContactLists()
-    const campaignEmailLists = lists.body.result
-    const exists = campaignEmailLists.find((campaign) => campaign.name === updated.title)
-    if (exists) {
-      listId = exists.id
-    } else {
-      listId = await this.marketingNotificationsService.provider.createNewContactList({
-        name: updated.title || updated.id,
+    try {
+      console.log(`HEREE`)
+      let listId: string
+      const lists = await this.marketingNotificationsService.provider.getContactLists()
+      const campaignEmailLists = lists.body.result
+      const exists = campaignEmailLists.find((campaign) => campaign.name === updated.title)
+      if (exists) {
+        listId = exists.id
+      } else {
+        listId = await this.marketingNotificationsService.provider.createNewContactList({
+          name: updated.title || updated.id,
+        })
+      }
+
+      const name = updated.title || ''
+
+      // Save the list_id in the DB
+      await this.prisma.notificationList.create({
+        data: {
+          id: listId,
+          name: name.slice(0, 99),
+          campaignId: updated.id,
+        },
       })
+
+      return listId
+    } catch (err) {
+      console.log(err)
+      throw new InternalServerErrorException(JSON.stringify(err.response.body.errors))
     }
-
-    const name = updated.title || ''
-
-    // Save the list_id in the DB
-    await this.prisma.notificationList.create({
-      data: {
-        id: listId,
-        name: name.slice(0, 99),
-        campaignId: updated.id,
-      },
-    })
-
-    return listId
   }
 
   async sendNewCampaignNotification(
