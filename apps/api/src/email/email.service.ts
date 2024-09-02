@@ -41,8 +41,8 @@ export class EmailService {
     if (!emailInfo.to) {
       throw new Error('emailInfo.to is required')
     }
-    const { html, metadata } = await this.template.getTemplate(template)
 
+    const { html, metadata } = await this.template.getTemplate(template)
     this.send(
       {
         to: emailInfo.to,

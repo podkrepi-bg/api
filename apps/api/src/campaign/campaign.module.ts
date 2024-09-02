@@ -10,6 +10,7 @@ import { CampaignService } from './campaign.service'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 import { CampaignNewsModule } from '../campaign-news/campaign-news.module'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
+import { PrismaModule } from '../prisma/prisma.module'
 @Module({
   imports: [MarketingNotificationsModule, NotificationModule, CampaignNewsModule],
 

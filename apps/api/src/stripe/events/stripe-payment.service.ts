@@ -144,7 +144,6 @@ export class StripePaymentService {
       billingData,
       PaymentStatus.succeeded,
     )
-
     //updateDonationPayment will mark the campaign as completed if amount is reached
     await this.cancelSubscriptionsIfCompletedCampaign(metadata.campaignId)
 

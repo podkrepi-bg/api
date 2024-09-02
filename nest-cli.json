@@ -1,3 +1,17 @@
 {
-  "sourceRoot": "apps/api/src"
+  "sourceRoot": "apps/api/src",
+  "projects": {
+    "testing": {
+      "type": "library",
+      "root": "libs/testing",
+      "entryFile": "index",
+      "sourceRoot": "libs/testing/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/testing/tsconfig.lib.json"
+      }
+    }
+  },
+  "compilerOptions": {
+    "webpack": true
+  }
 }

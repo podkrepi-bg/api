@@ -3,7 +3,6 @@ import { ApiProperty } from '@nestjs/swagger'
 
 export class UpdateCampaignApplicationFileDto {
   filename?: string
-  campaignApplicationId?: string
   personId?: string
   mimetype?: string
   @ApiProperty({ enum: CampaignApplicationFileRole })

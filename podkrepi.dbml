@@ -583,7 +583,7 @@ Table campaign_applications {
   organizerId String [not null]
   organizer organizers
   organizerName String [not null]
-  organizerEmail String [unique]
+  organizerEmail String
   organizerPhone String
   beneficiary String [not null]
   organizerBeneficiaryRel String [not null]
@@ -600,6 +600,8 @@ Table campaign_applications {
   category CampaignTypeCategory [default: 'others']
   ticketURL String
   archived Boolean [default: false]
+
+  Note: 'CampaignApplication represents a request for a new campaign - it is not a Campaign yet and has to proove it needs to be'
 }
 
 Table campaign_application_files {

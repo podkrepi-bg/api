@@ -19,6 +19,7 @@ import { ExportModule } from './../export/export.module'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
 import { EmailService } from '../email/email.service'
+import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
   imports: [
@@ -30,12 +31,12 @@ import { EmailService } from '../email/email.service'
     NotificationModule,
     MarketingNotificationsModule,
     ConfigModule,
+    PrismaModule,
   ],
   controllers: [DonationsController],
   providers: [
     DonationsService,
     RecurringDonationService,
-    PrismaService,
     VaultService,
     PersonService,
     ExportService,

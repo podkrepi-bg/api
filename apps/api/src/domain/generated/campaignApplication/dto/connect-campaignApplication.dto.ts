@@ -1,4 +1,3 @@
 export class ConnectCampaignApplicationDto {
-  id?: string
-  organizerEmail?: string
+  id: string
 }

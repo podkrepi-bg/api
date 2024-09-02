@@ -378,3 +378,7 @@ yarn prisma migrate deploy
 ```
 
 6. At this point you can re-deploy the `api-headless` deployment to trigger the standard flow of operation
+
+## Postman
+
+If you'd like to use Postman to query the API - see [postman doc](./tools/postman/readme.md)

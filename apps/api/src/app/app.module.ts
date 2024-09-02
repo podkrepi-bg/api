@@ -62,6 +62,8 @@ import { AffiliateModule } from '../affiliate/affiliate.module'
 import { StripeModule } from '../stripe/stripe.module'
 
 import { LoggerModule } from '../logger/logger.module'
+import { PrismaModule } from '../prisma/prisma.module'
+import { CampaignApplicationModule } from '../campaign-application/campaign-application.module'
 
 @Module({
   imports: [
@@ -131,12 +133,13 @@ import { LoggerModule } from '../logger/logger.module'
     CampaignNewsFileModule,
     MarketingNotificationsModule,
     LoggerModule,
+    CampaignApplicationModule,
     StripeModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    PrismaService,
+    PrismaModule,
     EmailService,
     TemplateService,
     {
