@@ -333,7 +333,6 @@ export class StripePaymentService {
     const invoice: Stripe.Invoice = event.data.object as Stripe.Invoice
 
     Logger.log('[ handleInvoicePaid ]', invoice)
-    const charge = await this.stripeService.findChargeById(invoice.charge as string)
     let metadata: StripeMetadata = {
       type: null,
       campaignId: null,
@@ -365,6 +364,7 @@ export class StripePaymentService {
       )
     }
 
+    const charge = await this.stripeService.findChargeById(invoice.charge as string)
     const paymentData = getInvoiceData(invoice, charge)
 
     await this.donationService.updateDonationPayment(campaign, paymentData, PaymentStatus.succeeded)

@@ -36,7 +36,7 @@ export function getPaymentData(
   charge?: Stripe.Charge,
 ): PaymentData {
   const isAnonymous = paymentIntent.metadata.isAnonymous === 'true'
-  console.log(charge?.payment_method_details?.card?.country)
+
   return {
     paymentProvider: PaymentProvider.stripe,
     paymentIntentId: paymentIntent.id,
@@ -63,7 +63,7 @@ export function getPaymentData(
 
 export function getPaymentDataFromCharge(charge: Stripe.Charge): PaymentData {
   const isAnonymous = charge.metadata.isAnonymous === 'true'
-  console.log(charge?.payment_method_details?.card?.country)
+
   return {
     paymentProvider: PaymentProvider.stripe,
     paymentIntentId: charge.payment_intent as string,
