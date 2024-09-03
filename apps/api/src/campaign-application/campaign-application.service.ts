@@ -176,11 +176,7 @@ export class CampaignApplicationService {
     }
   }
 
-  async deleteFile(
-    id: string,
-    isAdminFlag: boolean,
-    person: Prisma.PersonGetPayload<{ include: { organizer: { select: { id: true } } } }>,
-  ) {
+  async deleteFile(id: string, isAdminFlag: boolean, person: Prisma.PersonGetPayload<{ include: { organizer: {select:{id:true}}}}>) {
     try {
       const campaignApplication = await this.prisma.campaignApplication.findFirst({
         where: {
