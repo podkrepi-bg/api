@@ -14,6 +14,3 @@ ALTER TYPE "campaign_state_new" RENAME TO "campaign_state";
 DROP TYPE "campaign_state_old";
 ALTER TABLE "campaigns" ALTER COLUMN "state" SET DEFAULT 'draft';
 COMMIT;
-
--- AlterEnum
-ALTER TYPE "person_relation" ADD VALUE 'CampaignState';

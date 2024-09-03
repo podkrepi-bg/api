@@ -637,7 +637,6 @@ Enum PersonRelation {
   colleague
   myself
   myorg
-  CampaignState
 }
 
 Enum CampaignState {
