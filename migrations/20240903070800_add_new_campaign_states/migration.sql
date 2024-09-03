@@ -1,12 +1,12 @@
 /*
   Warnings:
 
-  - The values [initial,pending_validation,approved,rejected,active_pending_validation,suspended,disabled,error,deleted] on the enum `campaign_state` will be removed. If these variants are still used in the database, this will fail.
+  - The values [initial,pending_validation,approved,rejected,active_pending_validation,disabled,error] on the enum `campaign_state` will be removed. If these variants are still used in the database, this will fail.
 
 */
 -- AlterEnum
 BEGIN;
-CREATE TYPE "campaign_state_new" AS ENUM ('draft', 'active', 'complete');
+CREATE TYPE "campaign_state_new" AS ENUM ('draft', 'active', 'complete', 'partially_financed', 'paused', 'suspended', 'blocked', 'deleted');
 ALTER TABLE "campaigns" ALTER COLUMN "state" DROP DEFAULT;
 ALTER TABLE "campaigns" ALTER COLUMN "state" TYPE "campaign_state_new" USING ("state"::text::"campaign_state_new");
 ALTER TYPE "campaign_state" RENAME TO "campaign_state_old";
