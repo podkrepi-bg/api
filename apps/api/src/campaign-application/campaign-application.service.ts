@@ -26,7 +26,7 @@ export class CampaignApplicationService {
     private prisma: PrismaService,
     private organizerService: OrganizerService,
     private s3: S3Service,
-    private sendEmail: EmailService,
+    private emailService: EmailService,
   ) {}
 
   async getCampaignByIdWithPersonIds(id: string): Promise<UpdateCampaignApplicationDto> {
@@ -94,7 +94,8 @@ export class CampaignApplicationService {
     person: Person,
   ) {
     const userEmail = { to: [person.email] as EmailData[] }
-    const adminEmail = { to: ['campaign_coordinators@podkrepi.bg'] as EmailData[] }
+    // const adminEmail = { to: [process.env.CAMPAIGN_COORDINATOR_EMAIL] as EmailData[] }
+    const adminEmail = { to: ["martbul01@gmail.com"] as EmailData[] }
 
     const emailAdminData = {
       campaignApplicationName,
@@ -114,13 +115,15 @@ export class CampaignApplicationService {
     const mailOrganizer = new CreateCampaignApplicationOrganizerEmailDto(emailOrganizerData)
 
     try {
-      await this.sendEmail.sendFromTemplate(mailOrganizer, userEmail, {
+      const userEmailPromise = this.emailService.sendFromTemplate(mailOrganizer, userEmail, {
         bypassUnsubscribeManagement: { enable: true },
       })
 
-      await this.sendEmail.sendFromTemplate(mailAdmin, adminEmail, {
+      const adminEmailPromise = this.emailService.sendFromTemplate(mailAdmin, adminEmail, {
         bypassUnsubscribeManagement: { enable: true },
       })
+
+      await Promise.allSettled([userEmailPromise, adminEmailPromise])
     } catch (error) {
       Logger.error('Error in sendEmailsOnCreatedCampaignApplication():', error)
       throw error

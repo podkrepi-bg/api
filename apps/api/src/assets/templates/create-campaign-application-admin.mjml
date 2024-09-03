@@ -25,7 +25,7 @@
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
           padding-right="25px">
-          Организатор: {{firstName}} с имейл: {{email}} създаде нова кампания
+          Организатор {{firstName}} с имейл {{email}} създаде нова кампания
           <a style="color: #feeb35" href="{{campaignApplicationLink}}" target="_blank"
             >{{campaignApplicationName}}</a
           >!<br /><br />
