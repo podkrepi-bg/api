@@ -287,7 +287,6 @@ export class CampaignService {
     let campaign: Awaited<ReturnType<CampaignService['getCampaignByIdWithPersonIds']>>
     try {
       campaign = await this.getCampaignByIdWithPersonIds(campaign_id)
-      console.log(campaign)
     } catch (e) {
       Logger.error(e)
       throw new BadRequestException('Failed to get campaign info')
@@ -312,12 +311,10 @@ export class CampaignService {
 
       // Check if the campaign has a notification list
       if (!campaign.notificationLists?.length) {
-        console.log(`creating new notification list`)
         const campaignList = await this.createCampaignNotificationList(campaign)
         // Add email to this campaign's notification list
         listIds.push(campaignList)
       } else {
-        console.log(`notification lists exists??`)
         listIds.push(campaign.notificationLists[0].id)
       }
 
@@ -1040,7 +1037,6 @@ export class CampaignService {
   async createCampaignNotificationList(updated: { title: string; id: string }) {
     // Generate list in the marketing platform
     try {
-      console.log(`HEREE`)
       let listId: string
       const lists = await this.marketingNotificationsService.provider.getContactLists()
       const campaignEmailLists = lists.body.result
