@@ -644,6 +644,11 @@ Enum CampaignState {
   draft
   active
   complete
+  partially_financed
+  paused
+  suspended
+  blocked
+  deleted
 }
 
 Enum CampaignNewsState {
