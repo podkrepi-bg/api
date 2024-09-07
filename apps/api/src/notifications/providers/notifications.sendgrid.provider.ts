@@ -5,6 +5,7 @@ import { NotificationsProviderInterface } from './notifications.interface.provid
 import { ContactListRes, SGClientResponse, SendGridParams } from './notifications.sendgrid.types'
 import { ClientRequest } from '@sendgrid/client/src/request'
 import { DateTime } from 'luxon'
+import { truncateNameToBytes } from '../helpers/truncateNameToBytes'
 
 @Injectable()
 export class SendGridNotificationsProvider
@@ -34,6 +35,7 @@ export class SendGridNotificationsProvider
     return response as SGClientResponse<ContactListRes>
   }
   async createNewContactList(data: SendGridParams['CreateListParams']) {
+    data.name = truncateNameToBytes(data.name, 99)
     const request = {
       url: `/v3/marketing/lists`,
       method: 'POST',
