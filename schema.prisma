@@ -1008,9 +1008,9 @@ enum EmailType {
 
 /// CampaignApplication represents a request for a new campaign - it is not a Campaign yet and has to proove it needs to be
 model CampaignApplication {
-  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt               DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime?                 @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // organizer editable fields
   // need to be logged in to create a campaign application
@@ -1033,10 +1033,10 @@ model CampaignApplication {
   otherNotes              String?                   @db.Text
 
   // operator editable fields
-  state     CampaignApplicationState @default(review)
-  category  CampaignTypeCategory?    @default(others)
-  ticketURL String?                  @db.VarChar(500)
-  archived  Boolean?                 @default(false)
+  state                   CampaignApplicationState  @default(review)
+  campaignTypeId          String?                   @db.Uuid
+  ticketURL               String?                   @db.VarChar(500)
+  archived                Boolean?                  @default(false)
 
   @@map("campaign_applications")
 }

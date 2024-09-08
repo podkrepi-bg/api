@@ -21,10 +21,6 @@ export class CampaignApplicationService {
     private s3: S3Service,
   ) {}
 
-  async getCampaignByIdWithPersonIds(id: string): Promise<UpdateCampaignApplicationDto> {
-    throw new Error('Method not implemented.')
-  }
-
   async create(createCampaignApplicationDto: CreateCampaignApplicationDto, person: Person) {
     try {
       if (
@@ -59,7 +55,7 @@ export class CampaignApplicationService {
         campaignGuarantee: createCampaignApplicationDto.campaignGuarantee,
         otherFinanceSources: createCampaignApplicationDto.otherFinanceSources,
         otherNotes: createCampaignApplicationDto.otherNotes,
-        category: createCampaignApplicationDto.category,
+        campaignTypeId: createCampaignApplicationDto.campaignTypeId,
         organizerId: organizer.id,
       }
 
@@ -96,10 +92,22 @@ export class CampaignApplicationService {
     }
   }
 
-  async findOne(id: string, isAdminFlag: boolean, person: Prisma.PersonGetPayload<{ include: { organizer: {select:{id:true}}}}>) {
+  async findOne(
+    id: string,
+    isAdminFlag: boolean,
+    person: Prisma.PersonGetPayload<{ include: { organizer: { select: { id: true } } } }>,
+  ) {
     try {
       const singleCampaignApplication = await this.prisma.campaignApplication.findUnique({
         where: { id },
+        include: {
+          documents: {
+            select: {
+              id: true,
+              filename: true,
+            },
+          },
+        },
       })
       if (!singleCampaignApplication) {
         throw new NotFoundException('Campaign application doesnt exist')
@@ -116,7 +124,11 @@ export class CampaignApplicationService {
     }
   }
 
-  async deleteFile(id: string, isAdminFlag: boolean, person: Prisma.PersonGetPayload<{ include: { organizer: {select:{id:true}}}}>) {
+  async deleteFile(
+    id: string,
+    isAdminFlag: boolean,
+    person: Prisma.PersonGetPayload<{ include: { organizer: { select: { id: true } } } }>,
+  ) {
     try {
       const campaignApplication = await this.prisma.campaignApplication.findFirst({
         where: {
@@ -184,7 +196,7 @@ export class CampaignApplicationService {
           campaignGuarantee: updateCampaignApplicationDto?.campaignGuarantee,
           otherFinanceSources: updateCampaignApplicationDto?.otherFinanceSources,
           otherNotes: updateCampaignApplicationDto?.otherNotes,
-          category: updateCampaignApplicationDto?.category,
+          campaignTypeId: updateCampaignApplicationDto?.campaignTypeId,
         },
       })
 
@@ -208,7 +220,7 @@ export class CampaignApplicationService {
           campaignGuarantee: updateCampaignApplicationDto?.campaignGuarantee,
           otherFinanceSources: updateCampaignApplicationDto?.otherFinanceSources,
           otherNotes: updateCampaignApplicationDto?.otherNotes,
-          category: updateCampaignApplicationDto?.category,
+          campaignTypeId: updateCampaignApplicationDto?.campaignTypeId,
           state: updateCampaignApplicationDto?.state,
           ticketURL: updateCampaignApplicationDto?.ticketURL,
           archived: updateCampaignApplicationDto?.archived,

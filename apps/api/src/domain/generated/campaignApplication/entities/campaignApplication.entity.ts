@@ -1,4 +1,4 @@
-import { CampaignApplicationState, CampaignTypeCategory } from '@prisma/client'
+import { CampaignApplicationState } from '@prisma/client'
 import { Organizer } from '../../organizer/entities/organizer.entity'
 import { CampaignApplicationFile } from '../../campaignApplicationFile/entities/campaignApplicationFile.entity'
 
@@ -23,7 +23,7 @@ export class CampaignApplication {
   otherFinanceSources: string | null
   otherNotes: string | null
   state: CampaignApplicationState
-  category: CampaignTypeCategory | null
+  campaignTypeId: string | null
   ticketURL: string | null
   archived: boolean | null
 }

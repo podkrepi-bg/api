@@ -597,7 +597,7 @@ Table campaign_applications {
   otherFinanceSources String
   otherNotes String
   state CampaignApplicationState [not null, default: 'review']
-  category CampaignTypeCategory [default: 'others']
+  campaignTypeId String
   ticketURL String
   archived Boolean [default: false]
 
@@ -989,3 +989,5 @@ Ref: expense_files.uploaderId > people.id
 Ref: documents.ownerId > people.id
 
 Ref: campaign_applications.organizerId > organizers.id
+
+Ref: campaign_application_files.campaignApplicationId > campaign_applications.id
