@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Prisma } from '@prisma/client'
 import { Expose } from 'class-transformer'
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { IsBoolean, IsDateString, IsNotEmpty, IsOptional, IsString } from 'class-validator'
 
 @Expose()
 export class CreateCampaignApplicationDto {
@@ -121,6 +121,18 @@ export class CreateCampaignApplicationDto {
   @IsString()
   @IsOptional()
   campaignTypeId?: string
+
+  @ApiProperty()
+  @Expose()
+  @IsString()
+  @IsOptional()
+  campaignEnd?: string
+
+  @ApiProperty()
+  @Expose()
+  @IsDateString()
+  @IsOptional()
+  campaignEndDate?: string
 
   public toEntity(): Prisma.CampaignApplicationCreateInput {
     return {

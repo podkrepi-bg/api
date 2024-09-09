@@ -15,4 +15,6 @@ export class UpdateCampaignApplicationDto {
   campaignTypeId?: string
   ticketURL?: string
   archived?: boolean
+  campaignEnd?: string
+  campaignEndDate?: Date
 }

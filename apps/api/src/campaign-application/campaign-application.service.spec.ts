@@ -106,6 +106,7 @@ describe('CampaignApplicationService', () => {
         transparencyTermsAccepted: true,
         personalInformationProcessingAccepted: true,
         toEntity: new CreateCampaignApplicationDto().toEntity,
+        campaignEndDate: '2024-01-01'
       }
 
       const mockOrganizerId = 'mockOrganizerId'
@@ -143,6 +144,8 @@ describe('CampaignApplicationService', () => {
           otherNotes: 'Test otherNotes',
           campaignTypeId: 'ffdbcc41-85ec-0000-9e59-0662f3b433af',
           organizerId: mockOrganizerId,
+          campaignEnd: 'funds',
+          campaignEndDate: new Date('2024-01-01T00:00:00.000Z'),
         },
       })
 
@@ -281,6 +284,7 @@ describe('CampaignApplicationService', () => {
         where: { id: '1' },
         data: {
           ...mockUpdateCampaignApplication,
+          campaignEndDate: new Date('2024-09-09T00:00:00.000Z')
         },
       })
     })
@@ -336,6 +340,7 @@ describe('CampaignApplicationService', () => {
         where: { id: '1' },
         data: {
           ...mockUpdateCampaignApplication,
+          campaignEndDate: new Date('2024-09-09T00:00:00.000Z')
         },
       })
     })

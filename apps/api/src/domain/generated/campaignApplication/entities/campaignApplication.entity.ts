@@ -26,4 +26,6 @@ export class CampaignApplication {
   campaignTypeId: string | null
   ticketURL: string | null
   archived: boolean | null
+  campaignEnd: string | null
+  campaignEndDate: Date | null
 }

@@ -12,6 +12,15 @@ import { OrganizerService } from '../organizer/organizer.service'
 import { CampaignApplicationFileRole, Person, Prisma } from '@prisma/client'
 import { S3Service } from './../s3/s3.service'
 import { CreateCampaignApplicationFileDto } from './dto/create-campaignApplication-file.dto'
+
+function dateMaybe (d?: string) {
+  return d != null &&
+    typeof d === 'string' &&
+    new Date(d).toString() != new Date('----invalid date ---').toString()
+    ? new Date(d)
+    : undefined
+}
+
 @Injectable()
 export class CampaignApplicationService {
   private readonly bucketName: string = 'campaignapplication-files'
@@ -57,6 +66,8 @@ export class CampaignApplicationService {
         otherNotes: createCampaignApplicationDto.otherNotes,
         campaignTypeId: createCampaignApplicationDto.campaignTypeId,
         organizerId: organizer.id,
+        campaignEnd: createCampaignApplicationDto.campaignEnd,
+        campaignEndDate: dateMaybe(createCampaignApplicationDto.campaignEndDate)
       }
 
       const newCampaignApplication = await this.prisma.campaignApplication.create({
@@ -197,6 +208,8 @@ export class CampaignApplicationService {
           otherFinanceSources: updateCampaignApplicationDto?.otherFinanceSources,
           otherNotes: updateCampaignApplicationDto?.otherNotes,
           campaignTypeId: updateCampaignApplicationDto?.campaignTypeId,
+          campaignEnd: updateCampaignApplicationDto.campaignEnd,
+          campaignEndDate: dateMaybe(updateCampaignApplicationDto.campaignEndDate),
         },
       })
 
@@ -224,6 +237,8 @@ export class CampaignApplicationService {
           state: updateCampaignApplicationDto?.state,
           ticketURL: updateCampaignApplicationDto?.ticketURL,
           archived: updateCampaignApplicationDto?.archived,
+          campaignEnd: updateCampaignApplicationDto.campaignEnd,
+          campaignEndDate: dateMaybe(updateCampaignApplicationDto.campaignEndDate),
         },
       })
     }

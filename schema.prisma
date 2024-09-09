@@ -1037,6 +1037,8 @@ model CampaignApplication {
   campaignTypeId          String?                   @db.Uuid
   ticketURL               String?                   @db.VarChar(500)
   archived                Boolean?                  @default(false)
+  campaignEnd             String?                   @default("funds")
+  campaignEndDate         DateTime?                 @db.Timestamptz(6)
 
   @@map("campaign_applications")
 }

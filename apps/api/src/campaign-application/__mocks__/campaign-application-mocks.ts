@@ -15,6 +15,8 @@ export const mockNewCampaignApplication = {
   otherFinanceSources: 'Test otherFinanceSources',
   otherNotes: 'Test otherNotes',
   campaignTypeId: 'ffdbcc41-85ec-0000-9e59-0662f3b433af',
+  campaignEnd: 'funds',
+  campaignEndDate: '2024-02-02',
 }
 
 export const mockSingleCampaignApplication = {
@@ -40,6 +42,8 @@ export const mockSingleCampaignApplication = {
   ticketURL: 'testsodifhso1',
   archived: false,
   documents: [{ id: 'fileId' }],
+  campaignEnd: 'funds',
+  campaignEndDate: undefined,
 }
 
 export const mockCampaigns = [
@@ -117,4 +121,6 @@ export const mockUpdateCampaignApplication = {
   otherFinanceSources: 'Test otherFinanceSources',
   otherNotes: 'Test otherNotes',
   campaignTypeId: 'ffdbcc41-85ec-0000-9e59-0662f3b433af',
+  campaignEnd: 'funds',
+  campaignEndDate: '2024-09-09',
 }
