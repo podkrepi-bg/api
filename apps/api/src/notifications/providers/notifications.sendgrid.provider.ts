@@ -1,11 +1,32 @@
-import { Injectable, Logger } from '@nestjs/common'
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  RequestTimeoutException,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import sgClient from '@sendgrid/client'
+import sgMail from '@sendgrid/mail'
 import { NotificationsProviderInterface } from './notifications.interface.providers'
-import { ContactListRes, SGClientResponse, SendGridParams } from './notifications.sendgrid.types'
+import {
+  ContactListRes,
+  ContactsFromListParams,
+  ContactsResponse,
+  SendGridExportStatusResponse,
+  SendGridParams,
+  SGClientResponse,
+} from './notifications.sendgrid.types'
 import { ClientRequest } from '@sendgrid/client/src/request'
 import { DateTime } from 'luxon'
+
 import { truncateNameToBytes } from '../helpers/truncateNameToBytes'
+
+import { MassMailDto } from '../dto/massmail.dto'
+import { ContactsMap } from '../notifications.service'
+import { MailDataRequired } from '@sendgrid/mail'
+import { PersonalizationData } from '@sendgrid/helpers/classes/personalization'
+
 
 @Injectable()
 export class SendGridNotificationsProvider
@@ -21,6 +42,7 @@ export class SendGridNotificationsProvider
 
     if (apiKey) {
       sgClient.setApiKey(apiKey)
+      sgMail.setApiKey(apiKey)
     } else {
       Logger.warn('no apiKey for sendgrid, will not send notifications')
     }
@@ -47,6 +69,76 @@ export class SendGridNotificationsProvider
     const listId = response?.body['id'] as string
 
     return listId
+  }
+
+  private async createContactExport(listId: string) {
+    const request = {
+      url: `/v3/marketing/contacts/exports`,
+      method: 'POST',
+      body: {
+        list_ids: [listId],
+        file_type: 'json',
+      },
+    } as ClientRequest
+    const [response] = await sgClient.request(request).catch((err) => {
+      throw new BadRequestException(`Couldn't create export. Error is ${err}`)
+    })
+    return response.body as { id: string }
+  }
+
+  private async getContactExportStatus(jobId: string) {
+    const request = {
+      url: `/v3/marketing/contacts/exports/${jobId}`,
+      method: 'GET',
+    } as ClientRequest
+    const [response] = await sgClient.request(request).catch((err) => {
+      throw new BadRequestException(`Couldn't create export. Error is ${err}`)
+    })
+    return response.body as SendGridExportStatusResponse
+  }
+
+  async getContactsFromList({ listId }: ContactsFromListParams) {
+    const SENDGRID_EXPORT_TIMEOUT = 10000
+    const RETRY_LIMIT = 5
+    let numOfRetries = 0
+    Logger.debug('Creating contacts exports')
+    const createContactExport = await this.createContactExport(listId)
+    const jobId = createContactExport.id
+    Logger.debug(`Created export with id ${jobId}`)
+    let exportStatusResponse = await this.getContactExportStatus(jobId)
+
+    do {
+      Logger.debug('Waiting export to be finished')
+      await new Promise((r) => setTimeout(r, SENDGRID_EXPORT_TIMEOUT))
+      exportStatusResponse = await this.getContactExportStatus(jobId)
+      Logger.debug(`Export finished with status ${exportStatusResponse.status}`)
+      switch (exportStatusResponse.status) {
+        case 'failure':
+          return Promise.reject(exportStatusResponse.message)
+        case 'ready':
+          break
+        default:
+      }
+      numOfRetries++
+    } while (exportStatusResponse.status === 'pending' && numOfRetries < RETRY_LIMIT)
+    if (numOfRetries >= RETRY_LIMIT) {
+      throw new InternalServerErrorException(
+        `Couldn't export contacts within the limit. Try again later.`,
+      )
+    }
+    const exportUrl = exportStatusResponse.urls[0]
+    const response = await fetch(exportUrl)
+
+    const exportFile = await response.arrayBuffer()
+    const buffer = Buffer.from(exportFile)
+
+    const contactsList = buffer
+      .toString()
+      .trim()
+      .split('\n')
+      .map<ContactsResponse>((contact: string) => JSON.parse(contact))
+    Logger.debug(`Exported contacts: ${contactsList.length}`)
+    return contactsList
   }
 
   async updateContactList(data: SendGridParams['UpdateListParams']) {
@@ -189,5 +281,54 @@ export class SendGridNotificationsProvider
     ;[response] = await sgClient.request(request)
 
     return response
+  }
+
+  async sendBulkEmail(data: MassMailDto, contactsMap: ContactsMap[], value: string): Promise<void> {
+    const currentDate = new Date()
+    contactsMap.forEach((contacts, index) => {
+      //Schedule  batches in a minute difference
+      currentDate.setMinutes(currentDate.getMinutes() + index)
+      this.sendEmail(data, contacts, currentDate, value)
+    })
+  }
+
+  async sendEmail(
+    data: MassMailDto,
+    contacts: ContactsMap,
+    date: Date,
+    value: string,
+  ): Promise<void> {
+    const personalizations = this.prepareTemplatePersonalizations(data, contacts, date)
+    const message: MailDataRequired = {
+      personalizations,
+      from: this.config.get('SENDGRID_SENDER_EMAIL', ''),
+      content: [{ type: 'text/html', value: value }],
+      templateId: data.templateId.trim(),
+    }
+    sgMail
+      .send(message)
+      .then(() => Logger.debug(`Email sent`))
+      .catch((err) => Logger.error(err))
+  }
+
+  prepareTemplatePersonalizations(
+    data: MassMailDto,
+    contacts: ContactsMap,
+    date: Date,
+  ): PersonalizationData[] {
+    const personalizations: PersonalizationData[] = []
+    const scheduleAt = Math.floor(date.getTime() / 1000)
+    contacts.forEach((mailList, email) => {
+      personalizations.push({
+        to: { email, name: '' },
+        dynamicTemplateData: {
+          subscribe_link: `${process.env.APP_URL}/notifications/subscribe?hash=${mailList.hash}&email=${email}&consent=true`,
+          unsubscribe_link: `${process.env.APP_URL}/notifications/unsubscribe?email=${email}`,
+          subject: data.subject,
+        },
+        sendAt: scheduleAt,
+      })
+    })
+    return personalizations
   }
 }
