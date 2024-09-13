@@ -15,24 +15,17 @@ import { CampaignService } from '../campaign/campaign.service'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
 import { ConfigService } from 'aws-sdk'
 import { ConfigModule } from '@nestjs/config'
-import { PersonModule } from '../person/person.module'
-import { CampaignModule } from '../campaign/campaign.module'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
-import { DonationsModule } from '../donations/donations.module'
 import { RecurringDonationModule } from '../recurring-donation/recurring-donation.module'
-import configuration from '../config/configuration'
-import { StripePaymentService } from './events/stripe-payment.service'
+
 import { EmailService } from '../email/email.service'
-import { NotificationsProviderInterface } from '../notifications/providers/notifications.interface.providers'
+
 import { TemplateService } from '../email/template.service'
 import { DonationsService } from '../donations/donations.service'
 import { VaultService } from '../vault/vault.service'
 import { ExportService } from '../export/export.service'
 import { NotificationModule } from '../sockets/notifications/notification.module'
-import { CACHE_MANAGER } from '@nestjs/cache-manager'
-import { CreateSubscriptionPaymentDto } from './dto/create-subscription-payment.dto'
-import { mockDeep } from 'jest-mock-extended'
-import { Grant } from 'keycloak-connect'
+
 import { KeycloakTokenParsed } from '../auth/keycloak'
 describe('StripeController', () => {
   let controller: StripeController
