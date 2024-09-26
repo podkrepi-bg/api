@@ -16,9 +16,18 @@ import {
   mockCampaignApplicationFilesFn,
 } from './__mocks__/campaing-application-file-mocks'
 import { CampaignApplicationService } from './campaign-application.service'
+import {
+  CreateCampaignApplicationAdminEmailDto,
+  CreateCampaignApplicationOrganizerEmailDto,
+} from '../email/template.interface'
+import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
+import { EmailService } from '../email/email.service'
+import { ConfigService } from 'aws-sdk'
+import { ConfigModule } from '@nestjs/config'
 
 describe('CampaignApplicationService', () => {
   let service: CampaignApplicationService
+  let configService: ConfigService
 
   const mockPerson = {
     ...personMock,
@@ -39,8 +48,17 @@ describe('CampaignApplicationService', () => {
     deleteObject: jest.fn(),
   }
 
+  const mockEmailService = {
+    sendFromTemplate: jest.fn(),
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forFeature(async () => ({
+          APP_URL: process.env.APP_URL,
+        })),
+      ],
       providers: [
         CampaignApplicationService,
         MockPrismaService,
@@ -173,14 +191,14 @@ describe('CampaignApplicationService', () => {
 
       const emailAdminData = {
         campaignApplicationName: mockSingleCampaignApplication.campaignName,
-        campaignApplicationLink: `https://podkrepi.bg/admin/campaigns/${mockSingleCampaignApplication.id}`,
+        campaignApplicationLink: `${process.env.APP_URL}/admin/campaigns/${mockSingleCampaignApplication.id}`,
         email: mockPerson.email as string,
         firstName: mockPerson.firstName,
       }
 
       const emailOrganizerData = {
         campaignApplicationName: mockSingleCampaignApplication.campaignName,
-        campaignApplicationLink: `https://podkrepi.bg/campaign/applications/${mockSingleCampaignApplication.id}`,
+        campaignApplicationLink: `${process.env.APP_URL}/campaign/applications/${mockSingleCampaignApplication.id}`,
         email: mockPerson.email as string,
         firstName: mockPerson.firstName,
       }
@@ -196,11 +214,16 @@ describe('CampaignApplicationService', () => {
         mockPerson,
       )
 
-      expect(mockEmailService.sendFromTemplate).toHaveBeenCalledWith(mailOrganizer, userEmail, {
-        bypassUnsubscribeManagement: { enable: true },
-      })
+      expect(mockEmailService.sendFromTemplate).toHaveBeenNthCalledWith(
+        1,
+        mailOrganizer,
+        userEmail,
+        {
+          bypassUnsubscribeManagement: { enable: true },
+        },
+      )
 
-      expect(mockEmailService.sendFromTemplate).toHaveBeenCalledWith(mailAdmin, adminEmail, {
+      expect(mockEmailService.sendFromTemplate).toHaveBeenNthCalledWith(2, mailAdmin, adminEmail, {
         bypassUnsubscribeManagement: { enable: true },
       })
 

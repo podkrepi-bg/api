@@ -18,6 +18,7 @@ import {
   CreateCampaignApplicationAdminEmailDto,
   CreateCampaignApplicationOrganizerEmailDto,
 } from '../email/template.interface'
+import { ConfigService } from '@nestjs/config'
 
 function dateMaybe(d?: string) {
   return d != null &&
@@ -35,6 +36,7 @@ export class CampaignApplicationService {
     private organizerService: OrganizerService,
     private s3: S3Service,
     private emailService: EmailService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(createCampaignApplicationDto: CreateCampaignApplicationDto, person: Person) {
@@ -99,20 +101,25 @@ export class CampaignApplicationService {
     campaignApplicationId: string,
     person: Person,
   ) {
+    const adminMail = this.configService.get('CAMPAIGN_COORDINATOR_EMAIL', '')
     const userEmail = { to: [person.email] as EmailData[] }
-    // const adminEmail = { to: [process.env.CAMPAIGN_COORDINATOR_EMAIL] as EmailData[] }
-    const adminEmail = { to: ['martbul01@gmail.com'] as EmailData[] }
+    const adminEmail = { to: [adminMail] as EmailData[] }
+    // const adminEmail = { to: ['martbul01@gmail.com'] as EmailData[] }
 
     const emailAdminData = {
       campaignApplicationName,
-      campaignApplicationLink: `https://podkrepi.bg/admin/campaigns/${campaignApplicationId}`,
+      campaignApplicationLink: `${this.configService.get(
+        'APP_URL',
+      )}/admin/campaigns/${campaignApplicationId}`,
       email: person.email as string,
       firstName: person.firstName,
     }
 
     const emailOrganizerData = {
       campaignApplicationName,
-      campaignApplicationLink: `https://podkrepi.bg/campaign/applications/${campaignApplicationId}`,
+      campaignApplicationLink: `${this.configService.get(
+        'APP_URL',
+      )}/campaign/applications/${campaignApplicationId}`,
       email: person.email as string,
       firstName: person.firstName,
     }
