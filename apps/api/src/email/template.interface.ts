@@ -105,7 +105,7 @@ export class RefundDonationEmailDto extends EmailTemplate<{
 
 export class CreateCampaignApplicationAdminEmailDto extends EmailTemplate<{
   campaignApplicationName: string
-  adminEditLink: string
+  adminEditLink?: string
   campaignApplicationLink: string
   email: string
   firstName: string
@@ -116,8 +116,8 @@ export class CreateCampaignApplicationAdminEmailDto extends EmailTemplate<{
 
 export class CreateCampaignApplicationOrganizerEmailDto extends EmailTemplate<{
   campaignApplicationName: string
-  editLink: string
-  campaignApplicationLink:string
+  editLink?: string
+  campaignApplicationLink: string
   email: string
   firstName: string
 }> {
