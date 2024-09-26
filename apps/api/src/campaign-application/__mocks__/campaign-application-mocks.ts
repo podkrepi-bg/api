@@ -1,5 +1,4 @@
-import { CampaignApplicationState, CampaignTypeCategory } from '@prisma/client'
-import { CreateCampaignApplicationDto } from '../dto/create-campaign-application.dto'
+import { CampaignApplicationState } from '@prisma/client'
 
 export const mockNewCampaignApplication = {
   campaignName: 'Test Campaign',
@@ -15,7 +14,36 @@ export const mockNewCampaignApplication = {
   campaignGuarantee: 'Test guarantee',
   otherFinanceSources: 'Test otherFinanceSources',
   otherNotes: 'Test otherNotes',
-  category: CampaignTypeCategory.medical,
+  campaignTypeId: 'ffdbcc41-85ec-0000-9e59-0662f3b433af',
+  campaignEnd: 'funds',
+  campaignEndDate: '2024-02-02',
+}
+
+export const mockSingleCampaignApplication = {
+  id: '1',
+  createdAt: new Date('2022-04-08T06:36:33.661Z'),
+  updatedAt: new Date('2022-04-08T06:36:33.662Z'),
+  description: 'Test description1',
+  organizerId: 'ffdbcc41-85ec-476c-9e59-0662f3b433af',
+  organizerName: 'Test Organizer1',
+  organizerEmail: 'organizer1@example.com',
+  beneficiary: 'test beneficary1',
+  organizerPhone: '123456789',
+  organizerBeneficiaryRel: 'Test Relation1',
+  campaignName: 'Test Campaign1',
+  goal: 'Test Goal1',
+  history: 'test history1',
+  amount: '1000',
+  campaignGuarantee: 'test campaignGuarantee1',
+  otherFinanceSources: 'test otherFinanceSources1',
+  otherNotes: 'test otherNotes1',
+  state: CampaignApplicationState.review,
+  campaignTypeId: 'ffdbcc41-85ec-0000-9e59-0662f3b433af',
+  ticketURL: 'testsodifhso1',
+  archived: false,
+  documents: [{ id: 'fileId' }],
+  campaignEnd: 'funds',
+  campaignEndDate: undefined,
 }
 
 export const mockSingleCampaignApplication = {
@@ -63,7 +91,7 @@ export const mockCampaigns = [
     otherFinanceSources: 'test otherFinanceSources1',
     otherNotes: 'test otherNotes1',
     state: CampaignApplicationState.review,
-    category: CampaignTypeCategory.medical,
+    campaignTypeId: 'ffdbcc41-85ec-0000-9e59-0662f3b433af',
     ticketURL: 'testsodifhso1',
     archived: false,
   },
@@ -86,7 +114,7 @@ export const mockCampaigns = [
     otherFinanceSources: 'test otherFinanceSources2',
     otherNotes: 'test otherNotes2',
     state: CampaignApplicationState.review,
-    category: CampaignTypeCategory.medical,
+    campaignTypeId: 'ffdbcc41-85ec-0000-9e59-0662f3b433af',
     ticketURL: 'testsodifhso2',
     archived: false,
   },
@@ -117,42 +145,7 @@ export const mockUpdateCampaignApplication = {
   campaignGuarantee: 'Test guarantee',
   otherFinanceSources: 'Test otherFinanceSources',
   otherNotes: 'Test otherNotes',
-  category: CampaignTypeCategory.medical,
-}
-
-const mockUpdateCampaignApplicationResponceOrganizer = {
-  amount: '1000',
-  beneficiary: 'Test beneficary',
-  campaignGuarantee: 'Test guarantee',
-  campaignName: 'Test Campaign',
-  category: 'medical',
-  description: 'Test description',
-  goal: 'Test goal',
-  history: 'Test history',
-  organizerBeneficiaryRel: 'Test organizerBeneficiaryRel',
-  organizerEmail: 'testemail@gmail.com',
-  organizerName: 'Test Organizer',
-  organizerPhone: '123456789',
-  otherFinanceSources: 'Test otherFinanceSources',
-  otherNotes: 'Test otherNotes',
-}
-
-const mockUpdateCampaignApplicationResponceAdmin = {
-  amount: '1000',
-  beneficiary: 'Test beneficary',
-  campaignGuarantee: 'Test guarantee',
-  campaignName: 'Test Campaign',
-  category: 'medical',
-  description: 'Test description',
-  goal: 'Test goal',
-  history: 'Test history',
-  organizerBeneficiaryRel: 'Test organizerBeneficiaryRel',
-  organizerEmail: 'testemail@gmail.com',
-  organizerName: 'Test Organizer',
-  organizerPhone: '123456789',
-  otherFinanceSources: 'Test otherFinanceSources',
-  otherNotes: 'Test otherNotes',
-  archived: false,
-  state: 'active',
-  ticketURL: 'http://test.com/ticket',
+  campaignTypeId: 'ffdbcc41-85ec-0000-9e59-0662f3b433af',
+  campaignEnd: 'funds',
+  campaignEndDate: '2024-09-09',
 }

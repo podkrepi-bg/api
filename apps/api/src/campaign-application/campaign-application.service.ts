@@ -19,6 +19,14 @@ import {
   CreateCampaignApplicationOrganizerEmailDto,
 } from '../email/template.interface'
 
+function dateMaybe(d?: string) {
+  return d != null &&
+    typeof d === 'string' &&
+    new Date(d).toString() != new Date('----invalid date ---').toString()
+    ? new Date(d)
+    : undefined
+}
+
 @Injectable()
 export class CampaignApplicationService {
   private readonly bucketName: string = 'campaignapplication-files'
@@ -28,10 +36,6 @@ export class CampaignApplicationService {
     private s3: S3Service,
     private emailService: EmailService,
   ) {}
-
-  async getCampaignByIdWithPersonIds(id: string): Promise<UpdateCampaignApplicationDto> {
-    throw new Error('Method not implemented.')
-  }
 
   async create(createCampaignApplicationDto: CreateCampaignApplicationDto, person: Person) {
     try {
@@ -67,8 +71,10 @@ export class CampaignApplicationService {
         campaignGuarantee: createCampaignApplicationDto.campaignGuarantee,
         otherFinanceSources: createCampaignApplicationDto.otherFinanceSources,
         otherNotes: createCampaignApplicationDto.otherNotes,
-        category: createCampaignApplicationDto.category,
+        campaignTypeId: createCampaignApplicationDto.campaignTypeId,
         organizerId: organizer.id,
+        campaignEnd: createCampaignApplicationDto.campaignEnd,
+        campaignEndDate: dateMaybe(createCampaignApplicationDto.campaignEndDate),
       }
 
       const newCampaignApplication = await this.prisma.campaignApplication.create({
@@ -95,7 +101,7 @@ export class CampaignApplicationService {
   ) {
     const userEmail = { to: [person.email] as EmailData[] }
     // const adminEmail = { to: [process.env.CAMPAIGN_COORDINATOR_EMAIL] as EmailData[] }
-    const adminEmail = { to: ["martbul01@gmail.com"] as EmailData[] }
+    const adminEmail = { to: ['martbul01@gmail.com'] as EmailData[] }
 
     const emailAdminData = {
       campaignApplicationName,
@@ -176,7 +182,11 @@ export class CampaignApplicationService {
     }
   }
 
-  async deleteFile(id: string, isAdminFlag: boolean, person: Prisma.PersonGetPayload<{ include: { organizer: {select:{id:true}}}}>) {
+  async deleteFile(
+    id: string,
+    isAdminFlag: boolean,
+    person: Prisma.PersonGetPayload<{ include: { organizer: { select: { id: true } } } }>,
+  ) {
     try {
       const campaignApplication = await this.prisma.campaignApplication.findFirst({
         where: {
@@ -244,7 +254,9 @@ export class CampaignApplicationService {
           campaignGuarantee: updateCampaignApplicationDto?.campaignGuarantee,
           otherFinanceSources: updateCampaignApplicationDto?.otherFinanceSources,
           otherNotes: updateCampaignApplicationDto?.otherNotes,
-          category: updateCampaignApplicationDto?.category,
+          campaignTypeId: updateCampaignApplicationDto?.campaignTypeId,
+          campaignEnd: updateCampaignApplicationDto.campaignEnd,
+          campaignEndDate: dateMaybe(updateCampaignApplicationDto.campaignEndDate),
         },
       })
 
@@ -268,10 +280,12 @@ export class CampaignApplicationService {
           campaignGuarantee: updateCampaignApplicationDto?.campaignGuarantee,
           otherFinanceSources: updateCampaignApplicationDto?.otherFinanceSources,
           otherNotes: updateCampaignApplicationDto?.otherNotes,
-          category: updateCampaignApplicationDto?.category,
+          campaignTypeId: updateCampaignApplicationDto?.campaignTypeId,
           state: updateCampaignApplicationDto?.state,
           ticketURL: updateCampaignApplicationDto?.ticketURL,
           archived: updateCampaignApplicationDto?.archived,
+          campaignEnd: updateCampaignApplicationDto.campaignEnd,
+          campaignEndDate: dateMaybe(updateCampaignApplicationDto.campaignEndDate),
         },
       })
     }

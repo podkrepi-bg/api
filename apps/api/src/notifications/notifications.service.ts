@@ -27,11 +27,28 @@ import {
   UnregisteredNotificationConsent,
 } from '@prisma/client'
 import { NotificationsProviderInterface } from './providers/notifications.interface.providers'
-import { SendGridParams } from './providers/notifications.sendgrid.types'
+import { ContactsResponse, SendGridParams } from './providers/notifications.sendgrid.types'
 import { DateTime } from 'luxon'
 import * as crypto from 'crypto'
 import { CampaignService } from '../campaign/campaign.service'
 import { KeycloakTokenParsed } from '../auth/keycloak'
+import { MassMailDto } from './dto/massmail.dto'
+import { randomUUID } from 'crypto'
+import { mapChunk } from '../common/mapChunk'
+
+type UnregisteredInsert = {
+  id: string
+  email: string
+  consent: boolean
+}
+
+type MailList = {
+  id: string
+  hash: string
+  registered: boolean
+}
+
+export type ContactsMap = Map<string, MailList>
 
 @Injectable()
 export class MarketingNotificationsService {
@@ -491,5 +508,89 @@ export class MarketingNotificationsService {
     const minutesPassed = now.diff(dateSent, 'minutes').minutes
 
     return minutesPassed <= period
+  }
+
+  private generateMapFromMailList(emailList: string[], contacts: ContactsMap): void {
+    for (const email of emailList) {
+      const id = randomUUID()
+
+      contacts.set(email, {
+        id: id,
+        hash: this.generateHash(id),
+        registered: false,
+      })
+    }
+  }
+
+  private updateMailListMap(
+    regUser: Person[],
+    contacts: ContactsMap,
+    skipAfterDate: Date,
+    unregisteredConsent: UnregisteredNotificationConsent[],
+  ) {
+    for (const registeredUser of regUser) {
+      const createdAt = new Date(registeredUser.createdAt)
+
+      // Remove email if it belongs to user created after the change has been deployed, as they had already decided
+      // whether to give consent or not.
+      if (contacts.get(registeredUser.email as string) && createdAt > skipAfterDate) {
+        Logger.debug(`Removing email ${registeredUser.email} from list`)
+        contacts.delete(registeredUser.email as string)
+        continue
+      }
+      //Update the value of this mail
+      contacts.set(registeredUser.email as string, {
+        id: registeredUser.id,
+        hash: this.generateHash(registeredUser.id),
+        registered: true,
+      })
+    }
+
+    Logger.debug('Removing emails in unregistered consent emails')
+    for (const consent of unregisteredConsent) {
+      if (contacts.has(consent.email)) {
+        Logger.debug(`Removing email ${consent.email}`)
+        contacts.delete(consent.email)
+        continue
+      }
+    }
+  }
+
+  private async insertUnregisteredConsentFromContacts(contacts: ContactsMap) {
+    const emailsToAdd: UnregisteredInsert[] = []
+    for (const [key, value] of contacts) {
+      if (value.registered) continue
+      emailsToAdd.push({ id: value.id, email: key, consent: false })
+    }
+
+    await this.prisma.unregisteredNotificationConsent.createMany({
+      data: emailsToAdd,
+    })
+  }
+  async sendConsentMail(data: MassMailDto) {
+    const contacts = await this.marketingNotificationsProvider.getContactsFromList(data)
+
+    const sendList: ContactsMap = new Map()
+    const emailList = contacts.map((contact: ContactsResponse) => contact.email)
+    this.generateMapFromMailList(emailList, sendList)
+    const registeredMails = await this.prisma.person.findMany({
+      where: { email: { in: emailList } },
+    })
+
+    const unregisteredUsers = await this.prisma.unregisteredNotificationConsent.findMany()
+
+    const skipUsersAfterDate = new Date(data.dateThreshold)
+    this.updateMailListMap(registeredMails, sendList, skipUsersAfterDate, unregisteredUsers)
+
+    await this.insertUnregisteredConsentFromContacts(sendList)
+
+    const contactsChunked = mapChunk<ContactsMap>(sendList, data.chunkSize)
+    Logger.debug(`Splitted email list into ${contactsChunked.length} chunk`)
+    await this.marketingNotificationsProvider.sendBulkEmail(
+      data,
+      contactsChunked,
+      'Podkrepi.BG Newsletter Subscription Consent',
+    )
+    return { contactCount: sendList.size }
   }
 }
