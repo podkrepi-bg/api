@@ -1,6 +1,3 @@
-import { CampaignTypeCategory } from '@prisma/client'
-import { ApiProperty } from '@nestjs/swagger'
-
 export class UpdateCampaignApplicationDto {
   organizerName?: string
   organizerEmail?: string
@@ -15,8 +12,9 @@ export class UpdateCampaignApplicationDto {
   campaignGuarantee?: string
   otherFinanceSources?: string
   otherNotes?: string
-  @ApiProperty({ enum: CampaignTypeCategory })
-  category?: CampaignTypeCategory
+  campaignTypeId?: string
   ticketURL?: string
   archived?: boolean
+  campaignEnd?: string
+  campaignEndDate?: Date
 }

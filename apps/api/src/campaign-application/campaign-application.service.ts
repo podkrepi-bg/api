@@ -12,6 +12,22 @@ import { OrganizerService } from '../organizer/organizer.service'
 import { CampaignApplicationFileRole, Person, Prisma } from '@prisma/client'
 import { S3Service } from './../s3/s3.service'
 import { CreateCampaignApplicationFileDto } from './dto/create-campaignApplication-file.dto'
+import { EmailService } from '../email/email.service'
+import { EmailData } from '../email/email.interface'
+import {
+  CreateCampaignApplicationAdminEmailDto,
+  CreateCampaignApplicationOrganizerEmailDto,
+} from '../email/template.interface'
+import { ConfigService } from '@nestjs/config'
+
+function dateMaybe(d?: string) {
+  return d != null &&
+    typeof d === 'string' &&
+    new Date(d).toString() != new Date('----invalid date ---').toString()
+    ? new Date(d)
+    : undefined
+}
+
 @Injectable()
 export class CampaignApplicationService {
   private readonly bucketName: string = 'campaignapplication-files'
@@ -19,11 +35,9 @@ export class CampaignApplicationService {
     private prisma: PrismaService,
     private organizerService: OrganizerService,
     private s3: S3Service,
+    private emailService: EmailService,
+    private readonly configService: ConfigService,
   ) {}
-
-  async getCampaignByIdWithPersonIds(id: string): Promise<UpdateCampaignApplicationDto> {
-    throw new Error('Method not implemented.')
-  }
 
   async create(createCampaignApplicationDto: CreateCampaignApplicationDto, person: Person) {
     try {
@@ -59,17 +73,72 @@ export class CampaignApplicationService {
         campaignGuarantee: createCampaignApplicationDto.campaignGuarantee,
         otherFinanceSources: createCampaignApplicationDto.otherFinanceSources,
         otherNotes: createCampaignApplicationDto.otherNotes,
-        category: createCampaignApplicationDto.category,
+        campaignTypeId: createCampaignApplicationDto.campaignTypeId,
         organizerId: organizer.id,
+        campaignEnd: createCampaignApplicationDto.campaignEnd,
+        campaignEndDate: dateMaybe(createCampaignApplicationDto.campaignEndDate),
       }
 
       const newCampaignApplication = await this.prisma.campaignApplication.create({
         data: campaingApplicationData,
       })
 
+      await this.sendEmailsOnCreatedCampaignApplication(
+        newCampaignApplication.campaignName,
+        newCampaignApplication.id,
+        person,
+      )
+
       return newCampaignApplication
     } catch (error) {
       Logger.error('Error in create():', error)
+      throw error
+    }
+  }
+
+  async sendEmailsOnCreatedCampaignApplication(
+    campaignApplicationName: string,
+    campaignApplicationId: string,
+    person: Person,
+  ) {
+    const adminMail = this.configService.get('CAMPAIGN_COORDINATOR_EMAIL', '')
+    const userEmail = { to: [person.email] as EmailData[] }
+    const adminEmail = { to: [adminMail] as EmailData[] }
+    // const adminEmail = { to: ['martbul01@gmail.com'] as EmailData[] }
+
+    const emailAdminData = {
+      campaignApplicationName,
+      campaignApplicationLink: `${this.configService.get(
+        'APP_URL',
+      )}/admin/campaigns/${campaignApplicationId}`,
+      email: person.email as string,
+      firstName: person.firstName,
+    }
+
+    const emailOrganizerData = {
+      campaignApplicationName,
+      campaignApplicationLink: `${this.configService.get(
+        'APP_URL',
+      )}/campaign/applications/${campaignApplicationId}`,
+      email: person.email as string,
+      firstName: person.firstName,
+    }
+
+    const mailAdmin = new CreateCampaignApplicationAdminEmailDto(emailAdminData)
+    const mailOrganizer = new CreateCampaignApplicationOrganizerEmailDto(emailOrganizerData)
+
+    try {
+      const userEmailPromise = this.emailService.sendFromTemplate(mailOrganizer, userEmail, {
+        bypassUnsubscribeManagement: { enable: true },
+      })
+
+      const adminEmailPromise = this.emailService.sendFromTemplate(mailAdmin, adminEmail, {
+        bypassUnsubscribeManagement: { enable: true },
+      })
+
+      await Promise.allSettled([userEmailPromise, adminEmailPromise])
+    } catch (error) {
+      Logger.error('Error in sendEmailsOnCreatedCampaignApplication():', error)
       throw error
     }
   }
@@ -96,7 +165,11 @@ export class CampaignApplicationService {
     }
   }
 
-  async findOne(id: string, isAdminFlag: boolean, person: Prisma.PersonGetPayload<{ include: { organizer: {select:{id:true}}}}>) {
+  async findOne(
+    id: string,
+    isAdminFlag: boolean,
+    person: Prisma.PersonGetPayload<{ include: { organizer: { select: { id: true } } } }>,
+  ) {
     try {
       const singleCampaignApplication = await this.prisma.campaignApplication.findUnique({
         where: { id },
@@ -116,7 +189,11 @@ export class CampaignApplicationService {
     }
   }
 
-  async deleteFile(id: string, isAdminFlag: boolean, person: Prisma.PersonGetPayload<{ include: { organizer: {select:{id:true}}}}>) {
+  async deleteFile(
+    id: string,
+    isAdminFlag: boolean,
+    person: Prisma.PersonGetPayload<{ include: { organizer: { select: { id: true } } } }>,
+  ) {
     try {
       const campaignApplication = await this.prisma.campaignApplication.findFirst({
         where: {
@@ -184,7 +261,9 @@ export class CampaignApplicationService {
           campaignGuarantee: updateCampaignApplicationDto?.campaignGuarantee,
           otherFinanceSources: updateCampaignApplicationDto?.otherFinanceSources,
           otherNotes: updateCampaignApplicationDto?.otherNotes,
-          category: updateCampaignApplicationDto?.category,
+          campaignTypeId: updateCampaignApplicationDto?.campaignTypeId,
+          campaignEnd: updateCampaignApplicationDto.campaignEnd,
+          campaignEndDate: dateMaybe(updateCampaignApplicationDto.campaignEndDate),
         },
       })
 
@@ -208,10 +287,12 @@ export class CampaignApplicationService {
           campaignGuarantee: updateCampaignApplicationDto?.campaignGuarantee,
           otherFinanceSources: updateCampaignApplicationDto?.otherFinanceSources,
           otherNotes: updateCampaignApplicationDto?.otherNotes,
-          category: updateCampaignApplicationDto?.category,
+          campaignTypeId: updateCampaignApplicationDto?.campaignTypeId,
           state: updateCampaignApplicationDto?.state,
           ticketURL: updateCampaignApplicationDto?.ticketURL,
           archived: updateCampaignApplicationDto?.archived,
+          campaignEnd: updateCampaignApplicationDto.campaignEnd,
+          campaignEndDate: dateMaybe(updateCampaignApplicationDto.campaignEndDate),
         },
       })
     }

@@ -1037,30 +1037,35 @@ export class CampaignService {
 
   async createCampaignNotificationList(updated: { title: string; id: string }) {
     // Generate list in the marketing platform
-    let listId: string
-    const lists = await this.marketingNotificationsService.provider.getContactLists()
-    const campaignEmailLists = lists.body.result
-    const exists = campaignEmailLists.find((campaign) => campaign.name === updated.title)
-    if (exists) {
-      listId = exists.id
-    } else {
-      listId = await this.marketingNotificationsService.provider.createNewContactList({
-        name: updated.title || updated.id,
+    try {
+      let listId: string
+      const lists = await this.marketingNotificationsService.provider.getContactLists()
+      const campaignEmailLists = lists.body.result
+      const exists = campaignEmailLists.find((campaign) => campaign.name === updated.title)
+      if (exists) {
+        listId = exists.id
+      } else {
+        listId = await this.marketingNotificationsService.provider.createNewContactList({
+          name: updated.title || updated.id,
+        })
+      }
+
+      const name = updated.title || ''
+
+      // Save the list_id in the DB
+      await this.prisma.notificationList.create({
+        data: {
+          id: listId,
+          name: name.slice(0, 99),
+          campaignId: updated.id,
+        },
       })
+
+      return listId
+    } catch (err) {
+      console.log(err)
+      throw new InternalServerErrorException(JSON.stringify(err.response.body.errors))
     }
-
-    const name = updated.title || ''
-
-    // Save the list_id in the DB
-    await this.prisma.notificationList.create({
-      data: {
-        id: listId,
-        name: name.slice(0, 99),
-        campaignId: updated.id,
-      },
-    })
-
-    return listId
   }
 
   async sendNewCampaignNotification(
