@@ -14,6 +14,8 @@ export enum TemplateType {
   confirmConsent = 'confirm-notifications-consent',
   campaignNewsDraft = 'campaign-news-draft',
   refundDonation = 'refund-donation',
+  createCampaignApplicationAdmin = 'create-campaign-application-admin',
+  createCampaignApplicationOrganizer = 'create-campaign-application-organizer',
 }
 export type TemplateTypeKeys = keyof typeof TemplateType
 export type TemplateTypeValues = typeof TemplateType[TemplateTypeKeys]
@@ -99,4 +101,25 @@ export class RefundDonationEmailDto extends EmailTemplate<{
   currency: string
 }> {
   name = TemplateType.refundDonation
+}
+
+export class CreateCampaignApplicationAdminEmailDto extends EmailTemplate<{
+  campaignApplicationName: string
+  adminEditLink?: string
+  campaignApplicationLink: string
+  email: string
+  firstName: string
+}> {
+  name = TemplateType.createCampaignApplicationAdmin
+}
+
+
+export class CreateCampaignApplicationOrganizerEmailDto extends EmailTemplate<{
+  campaignApplicationName: string
+  editLink?: string
+  campaignApplicationLink: string
+  email: string
+  firstName: string
+}> {
+  name = TemplateType.createCampaignApplicationOrganizer
 }
