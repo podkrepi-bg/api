@@ -12,6 +12,15 @@ import { OrganizerService } from '../organizer/organizer.service'
 import { CampaignApplicationFileRole, Person, Prisma } from '@prisma/client'
 import { S3Service } from './../s3/s3.service'
 import { CreateCampaignApplicationFileDto } from './dto/create-campaignApplication-file.dto'
+
+function dateMaybe (d?: string) {
+  return d != null &&
+    typeof d === 'string' &&
+    new Date(d).toString() != new Date('----invalid date ---').toString()
+    ? new Date(d)
+    : undefined
+}
+
 @Injectable()
 export class CampaignApplicationService {
   private readonly bucketName: string = 'campaignapplication-files'
@@ -20,10 +29,6 @@ export class CampaignApplicationService {
     private organizerService: OrganizerService,
     private s3: S3Service,
   ) {}
-
-  async getCampaignByIdWithPersonIds(id: string): Promise<UpdateCampaignApplicationDto> {
-    throw new Error('Method not implemented.')
-  }
 
   async create(createCampaignApplicationDto: CreateCampaignApplicationDto, person: Person) {
     try {
@@ -59,8 +64,10 @@ export class CampaignApplicationService {
         campaignGuarantee: createCampaignApplicationDto.campaignGuarantee,
         otherFinanceSources: createCampaignApplicationDto.otherFinanceSources,
         otherNotes: createCampaignApplicationDto.otherNotes,
-        category: createCampaignApplicationDto.category,
+        campaignTypeId: createCampaignApplicationDto.campaignTypeId,
         organizerId: organizer.id,
+        campaignEnd: createCampaignApplicationDto.campaignEnd,
+        campaignEndDate: dateMaybe(createCampaignApplicationDto.campaignEndDate)
       }
 
       const newCampaignApplication = await this.prisma.campaignApplication.create({
@@ -96,10 +103,22 @@ export class CampaignApplicationService {
     }
   }
 
-  async findOne(id: string, isAdminFlag: boolean, person: Prisma.PersonGetPayload<{ include: { organizer: {select:{id:true}}}}>) {
+  async findOne(
+    id: string,
+    isAdminFlag: boolean,
+    person: Prisma.PersonGetPayload<{ include: { organizer: { select: { id: true } } } }>,
+  ) {
     try {
       const singleCampaignApplication = await this.prisma.campaignApplication.findUnique({
         where: { id },
+        include: {
+          documents: {
+            select: {
+              id: true,
+              filename: true,
+            },
+          },
+        },
       })
       if (!singleCampaignApplication) {
         throw new NotFoundException('Campaign application doesnt exist')
@@ -116,7 +135,11 @@ export class CampaignApplicationService {
     }
   }
 
-  async deleteFile(id: string, isAdminFlag: boolean, person: Prisma.PersonGetPayload<{ include: { organizer: {select:{id:true}}}}>) {
+  async deleteFile(
+    id: string,
+    isAdminFlag: boolean,
+    person: Prisma.PersonGetPayload<{ include: { organizer: { select: { id: true } } } }>,
+  ) {
     try {
       const campaignApplication = await this.prisma.campaignApplication.findFirst({
         where: {
@@ -184,7 +207,9 @@ export class CampaignApplicationService {
           campaignGuarantee: updateCampaignApplicationDto?.campaignGuarantee,
           otherFinanceSources: updateCampaignApplicationDto?.otherFinanceSources,
           otherNotes: updateCampaignApplicationDto?.otherNotes,
-          category: updateCampaignApplicationDto?.category,
+          campaignTypeId: updateCampaignApplicationDto?.campaignTypeId,
+          campaignEnd: updateCampaignApplicationDto.campaignEnd,
+          campaignEndDate: dateMaybe(updateCampaignApplicationDto.campaignEndDate),
         },
       })
 
@@ -208,10 +233,12 @@ export class CampaignApplicationService {
           campaignGuarantee: updateCampaignApplicationDto?.campaignGuarantee,
           otherFinanceSources: updateCampaignApplicationDto?.otherFinanceSources,
           otherNotes: updateCampaignApplicationDto?.otherNotes,
-          category: updateCampaignApplicationDto?.category,
+          campaignTypeId: updateCampaignApplicationDto?.campaignTypeId,
           state: updateCampaignApplicationDto?.state,
           ticketURL: updateCampaignApplicationDto?.ticketURL,
           archived: updateCampaignApplicationDto?.archived,
+          campaignEnd: updateCampaignApplicationDto.campaignEnd,
+          campaignEndDate: dateMaybe(updateCampaignApplicationDto.campaignEndDate),
         },
       })
     }

@@ -1,27 +1,26 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
+  Delete,
   ForbiddenException,
-  NotFoundException,
+  Get,
   Logger,
+  NotFoundException,
+  Param,
+  Patch,
+  Post,
   UploadedFiles,
   UseInterceptors,
-  Delete,
 } from '@nestjs/common'
+import { FilesInterceptor } from '@nestjs/platform-express'
+import { ApiTags } from '@nestjs/swagger'
+import { AuthenticatedUser } from 'nest-keycloak-connect'
+import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
+import { validateFileType } from '../common/files'
+import { PersonService } from '../person/person.service'
 import { CampaignApplicationService } from './campaign-application.service'
 import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
 import { UpdateCampaignApplicationDto } from './dto/update-campaign-application.dto'
-import { ApiTags } from '@nestjs/swagger'
-import { AuthenticatedUser, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
-import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
-import { PersonService } from '../person/person.service'
-import { FilesInterceptor } from '@nestjs/platform-express'
-import { validateFileType } from '../common/files'
 
 @ApiTags('campaign-application')
 @Controller('campaign-application')
@@ -85,7 +84,7 @@ export class CampaignApplicationController {
     }
 
     const isAdminFlag = isAdmin(user)
-   
+
     return this.campaignApplicationService.findOne(id, isAdminFlag, person)
   }
 
@@ -98,7 +97,7 @@ export class CampaignApplicationController {
     }
 
     const isAdminFlag = isAdmin(user)
-   
+
     return this.campaignApplicationService.deleteFile(id, isAdminFlag, person)
   }
 

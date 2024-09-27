@@ -1,11 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing'
-import { CampaignApplicationService } from './campaign-application.service'
-import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common'
-import { CampaignApplicationFileRole, CampaignTypeCategory, Person } from '@prisma/client'
-import { prismaMock, MockPrismaService } from '../prisma/prisma-client.mock'
+import { Test, TestingModule } from '@nestjs/testing'
 import { OrganizerService } from '../organizer/organizer.service'
 import { personMock } from '../person/__mock__/personMock'
+import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
+import { S3Service } from '../s3/s3.service'
 import {
   mockCampaigns,
   mockCreatedCampaignApplication,
@@ -13,12 +11,12 @@ import {
   mockSingleCampaignApplication,
   mockUpdateCampaignApplication,
 } from './__mocks__/campaign-application-mocks'
-import { S3Service } from '../s3/s3.service'
 import {
   mockCampaignApplicationFileFn,
   mockCampaignApplicationFilesFn,
-  mockCampaignApplicationUploadFileFn,
 } from './__mocks__/campaing-application-file-mocks'
+import { CampaignApplicationService } from './campaign-application.service'
+import { CreateCampaignApplicationDto } from './dto/create-campaign-application.dto'
 
 describe('CampaignApplicationService', () => {
   let service: CampaignApplicationService
@@ -108,6 +106,7 @@ describe('CampaignApplicationService', () => {
         transparencyTermsAccepted: true,
         personalInformationProcessingAccepted: true,
         toEntity: new CreateCampaignApplicationDto().toEntity,
+        campaignEndDate: '2024-01-01'
       }
 
       const mockOrganizerId = 'mockOrganizerId'
@@ -143,8 +142,10 @@ describe('CampaignApplicationService', () => {
           campaignGuarantee: 'Test guarantee',
           otherFinanceSources: 'Test otherFinanceSources',
           otherNotes: 'Test otherNotes',
-          category: CampaignTypeCategory.medical,
+          campaignTypeId: 'ffdbcc41-85ec-0000-9e59-0662f3b433af',
           organizerId: mockOrganizerId,
+          campaignEnd: 'funds',
+          campaignEndDate: new Date('2024-01-01T00:00:00.000Z'),
         },
       })
 
@@ -283,6 +284,7 @@ describe('CampaignApplicationService', () => {
         where: { id: '1' },
         data: {
           ...mockUpdateCampaignApplication,
+          campaignEndDate: new Date('2024-09-09T00:00:00.000Z')
         },
       })
     })
@@ -338,6 +340,7 @@ describe('CampaignApplicationService', () => {
         where: { id: '1' },
         data: {
           ...mockUpdateCampaignApplication,
+          campaignEndDate: new Date('2024-09-09T00:00:00.000Z')
         },
       })
     })
