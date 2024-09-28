@@ -173,6 +173,15 @@ export class CampaignApplicationService {
     try {
       const singleCampaignApplication = await this.prisma.campaignApplication.findUnique({
         where: { id },
+        include: {
+          documents: {
+            select: {
+              id: true,
+              filename: true,
+              mimetype: true,
+            },
+          },
+        },
       })
       if (!singleCampaignApplication) {
         throw new NotFoundException('Campaign application doesnt exist')
@@ -335,6 +344,47 @@ export class CampaignApplicationService {
       return createFileInDb
     } catch (error) {
       Logger.error('Error in campaignApplicationFilesCreate():', error)
+      throw error
+    }
+  }
+
+  async getFile(
+    id: string,
+    isAdminFlag: boolean,
+    person: Prisma.PersonGetPayload<{ include: { organizer: { select: { id: true } } } }>,
+  ) {
+    try {
+      const campaignApplication = await this.prisma.campaignApplication.findFirst({
+        where: {
+          documents: {
+            some: {
+              id: id,
+            },
+          },
+        },
+      })
+
+      if (!campaignApplication) {
+        throw new NotFoundException('File does not exist')
+      }
+
+      if (isAdminFlag === false && campaignApplication.organizerId !== person.organizer?.id) {
+        throw new ForbiddenException('User is not admin or organizer of the campaignApplication')
+      }
+
+      const file = await this.prisma.campaignApplicationFile.findFirst({ where: { id: id } })
+      if (!file) {
+        Logger.warn('No campaign application file record with ID: ' + id)
+        throw new NotFoundException('No campaign application file record with ID: ' + id)
+      }
+
+      return {
+        filename: encodeURIComponent(file.filename),
+        mimetype: file.mimetype,
+        stream: await this.s3.streamFile(this.bucketName, id),
+      }
+    } catch (error) {
+      Logger.error('Error in getFile():', error)
       throw error
     }
   }
