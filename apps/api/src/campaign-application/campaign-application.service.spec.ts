@@ -46,6 +46,7 @@ describe('CampaignApplicationService', () => {
   const mockS3Service = {
     uploadObject: jest.fn(),
     deleteObject: jest.fn(),
+    streamFile: jest.fn().mockResolvedValue(1234),
   }
 
   const mockEmailService = {
@@ -290,6 +291,18 @@ describe('CampaignApplicationService', () => {
 
       expect(result).toEqual(mockSingleCampaignApplication)
       expect(prismaMock.campaignApplication.findUnique).toHaveBeenCalledTimes(1)
+      expect(prismaMock.campaignApplication.findUnique).toHaveBeenCalledWith({
+        where: { id: 'id' },
+        include: {
+          documents: {
+            select: {
+              id: true,
+              filename: true,
+              mimetype: true,
+            },
+          },
+        },
+      })
     })
 
     it('should throw a NotFoundException if no campaign-application is found', async () => {
@@ -420,6 +433,74 @@ describe('CampaignApplicationService', () => {
           campaignEndDate: new Date('2024-09-09T00:00:00.000Z'),
         },
       })
+    })
+  })
+
+  describe('getFile', () => {
+    it('should return a single campaign-application file', async () => {
+      prismaMock.campaignApplication.findFirst.mockResolvedValue(mockSingleCampaignApplication)
+      prismaMock.campaignApplicationFile.findFirst.mockResolvedValue({
+        id: '123',
+        filename: 'my-file',
+      } as File)
+
+      const result = await service.getFile('id', false, mockPerson)
+
+      expect(result).toEqual({
+        filename: 'my-file',
+        stream: 1234,
+      })
+      expect(prismaMock.campaignApplication.findFirst).toHaveBeenCalledTimes(1)
+      expect(prismaMock.campaignApplication.findFirst).toHaveBeenCalledWith({
+        where: {
+          documents: {
+            some: {
+              id: 'id',
+            },
+          },
+        },
+      })
+
+      expect(prismaMock.campaignApplicationFile.findFirst).toHaveBeenNthCalledWith(1, {
+        where: { id: 'id' },
+      })
+    })
+
+    it('should throw a NotFoundException if no campaign-application is found', async () => {
+      prismaMock.campaignApplication.findUnique.mockResolvedValue(null)
+
+      await expect(service.getFile('id', false, mockPerson)).rejects.toThrow(
+        new NotFoundException('File does not exist'),
+      )
+    })
+
+    it('should handle errors and throw an exception', async () => {
+      const errorMessage = 'error'
+      prismaMock.campaignApplication.findFirst.mockRejectedValue(new Error(errorMessage))
+
+      await expect(service.getFile('id', false, mockPerson)).rejects.toThrow(errorMessage)
+    })
+
+    it('should not allow non-admin users to see files belonging to other users', async () => {
+      prismaMock.campaignApplication.findFirst.mockResolvedValue(mockSingleCampaignApplication)
+      await expect(
+        service.getFile('id', false, { ...mockPerson, organizer: { id: 'different-id' } }),
+      ).rejects.toThrow(
+        new ForbiddenException('User is not admin or organizer of the campaignApplication'),
+      )
+    })
+
+    it('should allow admin users to see files belonging to other users', async () => {
+      prismaMock.campaignApplication.findFirst.mockResolvedValue(mockSingleCampaignApplication)
+      prismaMock.campaignApplicationFile.findFirst.mockResolvedValue({
+        id: '123',
+        filename: 'my-file',
+      } as File)
+      await expect(
+        service.getFile('id', true, { ...mockPerson, organizer: { id: 'different-id' } }),
+      ).resolves.not.toThrow(
+        new ForbiddenException('User is not admin or organizer of the campaignApplication'),
+      )
     })
   })
 })
