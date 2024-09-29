@@ -1,4 +1,4 @@
-import { CampaignApplicationState } from '@prisma/client'
+import { CampaignApplicationState, CampaignTypeCategory } from '@prisma/client'
 
 export const mockNewCampaignApplication = {
   campaignName: 'Test Campaign',
@@ -38,12 +38,10 @@ export const mockSingleCampaignApplication = {
   otherFinanceSources: 'test otherFinanceSources1',
   otherNotes: 'test otherNotes1',
   state: CampaignApplicationState.review,
-  campaignTypeId: 'ffdbcc41-85ec-0000-9e59-0662f3b433af',
+  category: CampaignTypeCategory.medical,
   ticketURL: 'testsodifhso1',
   archived: false,
   documents: [{ id: 'fileId' }],
-  campaignEnd: 'funds',
-  campaignEndDate: undefined,
 }
 
 export const mockCampaigns = [
