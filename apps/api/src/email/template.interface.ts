@@ -113,7 +113,6 @@ export class CreateCampaignApplicationAdminEmailDto extends EmailTemplate<{
   name = TemplateType.createCampaignApplicationAdmin
 }
 
-
 export class CreateCampaignApplicationOrganizerEmailDto extends EmailTemplate<{
   campaignApplicationName: string
   editLink?: string
