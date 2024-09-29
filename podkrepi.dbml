@@ -597,9 +597,11 @@ Table campaign_applications {
   otherFinanceSources String
   otherNotes String
   state CampaignApplicationState [not null, default: 'review']
-  category CampaignTypeCategory [default: 'others']
+  campaignTypeId String
   ticketURL String
   archived Boolean [default: false]
+  campaignEnd String [default: 'funds']
+  campaignEndDate DateTime
 
   Note: 'CampaignApplication represents a request for a new campaign - it is not a Campaign yet and has to proove it needs to be'
 }

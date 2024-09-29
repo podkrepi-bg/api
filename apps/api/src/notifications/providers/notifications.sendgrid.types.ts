@@ -15,6 +15,7 @@ export type SendGridParams = {
   RemoveFromUnsubscribedParams: RemoveFromUnsubscribedParams
   AddToUnsubscribedParams: AddToUnsubscribedParams
   SendNotificationParams: SendNotificationParams
+  GetContactsFromListParam: ContactsFromListParams
 
   // Responses
   CreateListRes: string
@@ -26,12 +27,16 @@ export type SendGridParams = {
   RemoveFromUnsubscribedRes: unknown
   AddToUnsubscribedRes: unknown
   SendNotificationRes: unknown
+  GetContactsFromListRes: ContactsResponse[]
   contactListsRes: SGClientResponse<ContactListRes>
 
   // Implementation specific
   ContactData: ContactData
 }
 
+export type ContactsFromListParams = {
+  listId: string
+}
 type ContactData = {
   email: string
   first_name?: string
@@ -85,6 +90,46 @@ type SendNotificationParams = {
 // Reponses
 type GetContactsInfoRes = {
   [key: string]: { contact: { id: string; [key: string]: unknown; list_ids: string[] } }
+}
+
+export interface SendGridExportMetadata {
+  prev: string
+  self: string
+  next: string
+  count: number
+}
+
+export type SendGridExportResponse = {
+  id: string
+  _metadata: SendGridExportMetadata
+}
+
+export type SendGridExportStatusResponse = {
+  id: string
+  status: 'pending' | 'failure' | 'ready'
+  created_at: string
+  updated_at: string
+  completed_at: string
+  expires_at: string
+  urls: string[]
+  message?: string
+  _metadata: SendGridExportMetadata
+  contact_count: number
+}
+
+export interface SendgridExportParams {
+  list_ids: string[]
+  file_type: 'json' | 'csv'
+  segments?: string[]
+  max_file_size?: number
+}
+
+export interface ContactsResponse {
+  contact_id: string
+  created_at: string
+  custom_fields: object
+  email: string
+  updated_at: string
 }
 
 type SendGridContactList = {
