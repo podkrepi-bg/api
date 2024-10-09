@@ -61,54 +61,6 @@ export class DonationsController {
     }
   }
 
-  @Post('create-checkout-session')
-  @Public()
-  async createCheckoutSession(@Body() sessionDto: CreateSessionDto) {
-    if (
-      sessionDto.mode === 'subscription' &&
-      (sessionDto.personId === null || sessionDto.personId.length === 0)
-    ) {
-      // in case of a intermediate (step 2) login, we might end up with no personId
-      // not able to fetch the current logged user here (due to @Public())
-      sessionDto.personId = await this.donationsService.getUserId(sessionDto.personEmail)
-    }
-
-    if (
-      sessionDto.mode == 'subscription' &&
-      (sessionDto.personId == null || sessionDto.personId.length == 0)
-    ) {
-      Logger.error(
-        `No personId found for email ${sessionDto.personEmail}. Unable to create a checkout session for a recurring donation`,
-      )
-      throw new UnauthorizedException('You must be logged in to create a recurring donation')
-    }
-
-    Logger.debug(`Creating checkout session with data ${JSON.stringify(sessionDto)}`)
-
-    return this.donationsService.createCheckoutSession(sessionDto)
-  }
-
-  @Get('prices')
-  @UseInterceptors(CacheInterceptor)
-  @Public()
-  findPrices() {
-    return this.donationsService.listPrices()
-  }
-
-  @Get('prices/single')
-  @UseInterceptors(CacheInterceptor)
-  @Public()
-  findSinglePrices() {
-    return this.donationsService.listPrices('one_time')
-  }
-
-  @Get('prices/recurring')
-  @UseInterceptors(CacheInterceptor)
-  @Public()
-  findRecurringPrices() {
-    return this.donationsService.listPrices('recurring')
-  }
-
   @Get('user-donations')
   async userDonations(@AuthenticatedUser() user: KeycloakTokenParsed) {
     return await this.donationsService.getDonationsByUser(user.sub, user.email)
@@ -204,57 +156,16 @@ export class DonationsController {
     return this.donationsService.getPaymentById(paymentId)
   }
 
+  @Get('payment-intent')
+  @Public()
+  async findDonationByPaymentIntent(@Query('id') paymentIntentId: string) {
+    return await this.donationsService.getDonationByPaymentIntent(paymentIntentId)
+  }
+
   @Get('user/:id')
   async userDonationById(@Param('id') id: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
     const donation = await this.donationsService.getUserDonationById(id, user.sub, user.email)
     return donation
-  }
-
-  @Post('payment-intent')
-  @Public()
-  createPaymentIntent(
-    @Body()
-    createPaymentIntentDto: CreatePaymentIntentDto,
-  ) {
-    return this.donationsService.createPaymentIntent(createPaymentIntentDto)
-  }
-
-  @Post('payment-intent/:id')
-  @Public()
-  updatePaymentIntent(
-    @Param('id') id: string,
-    @Body()
-    updatePaymentIntentDto: UpdatePaymentIntentDto,
-  ) {
-    return this.donationsService.updatePaymentIntent(id, updatePaymentIntentDto)
-  }
-
-  @Post('payment-intent/:id/cancel')
-  @Public()
-  cancelPaymentIntent(
-    @Param('id') id: string,
-    @Body()
-    cancelPaymentIntentDto: CancelPaymentIntentDto,
-  ) {
-    return this.donationsService.cancelPaymentIntent(id, cancelPaymentIntentDto)
-  }
-
-  @Post('create-stripe-payment')
-  @Public()
-  createStripePayment(
-    @Body()
-    stripePaymentDto: CreateStripePaymentDto,
-  ) {
-    return this.donationsService.createStripePayment(stripePaymentDto)
-  }
-
-  @Post('/refund-stripe-payment/:id')
-  @Roles({
-    roles: [EditFinancialsRequests.role],
-    mode: RoleMatchingMode.ANY,
-  })
-  refundStripePaymet(@Param('id') paymentIntentId: string) {
-    return this.donationsService.refundStripePayment(paymentIntentId)
   }
 
   @Post('create-bank-payment')
