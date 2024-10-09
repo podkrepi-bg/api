@@ -9,6 +9,8 @@ import {
   Param,
   Patch,
   Post,
+  Response,
+  StreamableFile,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common'
@@ -99,6 +101,33 @@ export class CampaignApplicationController {
     const isAdminFlag = isAdmin(user)
 
     return this.campaignApplicationService.deleteFile(id, isAdminFlag, person)
+  }
+
+  @Get('fileById/:id')
+  async fetchFile(
+    @Param('id') id: string,
+    @AuthenticatedUser() user: KeycloakTokenParsed,
+    @Response({ passthrough: true }) res,
+  ): Promise<StreamableFile> {
+    const person = await this.personService.findOneByKeycloakId(user.sub)
+    if (!person) {
+      Logger.error('No person found in database')
+      throw new NotFoundException('No person found in database')
+    }
+
+    const isAdminFlag = isAdmin(user)
+
+    const file = await this.campaignApplicationService.getFile(id, isAdminFlag, person)
+
+    res.set({
+      'Content-Type': file?.mimetype,
+      'Content-Disposition': 'attachment; filename="' + file.filename + '"',
+      'Cache-Control': (file.mimetype ?? '').startsWith('image/')
+        ? 'public, s-maxage=15552000, stale-while-revalidate=15552000, immutable'
+        : 'no-store',
+    })
+
+    return new StreamableFile(file.stream)
   }
 
   @Patch(':id')
