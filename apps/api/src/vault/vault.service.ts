@@ -170,7 +170,6 @@ export class VaultService {
     if (amount <= 0) {
       throw new Error('Amount cannot be negative or zero.')
     }
-
     const updateStatement = {
       where: { id: vaultId },
       data: {

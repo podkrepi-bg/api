@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common'
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-import { Roles, RoleMatchingMode, AuthenticatedUser } from 'nest-keycloak-connect'
+import { Roles, RoleMatchingMode, AuthenticatedUser, Public } from 'nest-keycloak-connect'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { BankTransactionsService } from './bank-transactions.service'
 import {
@@ -68,6 +68,14 @@ export class BankTransactionsController {
     )
   }
 
+  @Get(':id')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async findTransactionById(@Param('id') id: string) {
+    return await this.bankTransactionsService.findTransactionById(id)
+  }
   @Get('export-excel')
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],

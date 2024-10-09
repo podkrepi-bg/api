@@ -12,6 +12,7 @@ import {
   Res,
   Inject,
   forwardRef,
+  Put,
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
 
@@ -36,6 +37,10 @@ import { DonationsApiQuery } from './queries/donations.apiquery'
 import { PersonService } from '../person/person.service'
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager'
 import { UseInterceptors } from '@nestjs/common'
+
+import { CreateUpdatePaymentFromStripeChargeDto } from './dto/create-update-payment-from-stripe-charge.dto.ts'
+import { CreateBenevityPaymentDto } from './dto/create-benevity-payment'
+import Stripe from 'stripe'
 
 @ApiTags('donation')
 @Controller('donation')
@@ -293,6 +298,33 @@ export class DonationsController {
     Logger.debug(`Updating donation with id ${id}`)
 
     return this.donationsService.update(id, updatePaymentDto)
+  }
+
+  @Get('stripe/:id/')
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async findStripePayment(@Param('id') stripeId: string) {
+    return await this.donationsService.findDonationByStripeId(stripeId)
+  }
+
+  @Put('create-update-stripe-payment')
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async syncWithPaymentWithStripe(@Body() stripeChargeDto: Stripe.Charge) {
+    return await this.donationsService.syncPaymentWithStripe(stripeChargeDto)
+  }
+
+  @Post('import/benevity')
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async createDonationFromBenevity(@Body() benevityDto: CreateBenevityPaymentDto) {
+    return await this.donationsService.createFromBenevity(benevityDto)
   }
 
   @Patch(':id/sync-with-payment')

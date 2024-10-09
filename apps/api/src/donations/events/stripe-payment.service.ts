@@ -19,6 +19,7 @@ import { PaymentStatus, CampaignState } from '@prisma/client'
 import { EmailService } from '../../email/email.service'
 import { RefundDonationEmailDto } from '../../email/template.interface'
 import { PrismaService } from '../../prisma/prisma.service'
+import { DonationsService } from '../donations.service'
 
 /** Testing Stripe on localhost is described here:
  * https://github.com/podkrepi-bg/api/blob/master/TESTING.md#testing-stripe
@@ -29,7 +30,6 @@ export class StripePaymentService {
     private campaignService: CampaignService,
     private recurringDonationService: RecurringDonationService,
     private sendEmail: EmailService,
-    private prismaService: PrismaService,
   ) {}
 
   @StripeWebhookHandler('payment_intent.created')

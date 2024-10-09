@@ -1,7 +1,15 @@
 import Stripe from 'stripe'
 import { ConfigService } from '@nestjs/config'
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common'
 import {
   Campaign,
   PaymentStatus,
@@ -33,6 +41,19 @@ import { CreateAffiliateDonationDto } from '../affiliate/dto/create-affiliate-do
 import { VaultUpdate } from '../vault/types/vault'
 import { PaymentWithDonation } from './types/donation'
 import type { DonationWithPersonAndVault, PaymentWithDonationCount } from './types/donation'
+import { getCountryRegion, stripeFeeCalculator } from './helpers/stripe-fee-calculator'
+import { PaymentData, getPaymentDataFromCharge } from './helpers/payment-intent-helpers'
+import {
+  NotificationService,
+  donationNotificationSelect,
+} from '../sockets/notifications/notification.service'
+import {
+  mapStripeStatusToInternal,
+  shouldAllowStatusChange,
+} from './helpers/donation-status-updates'
+import { CreateUpdatePaymentFromStripeChargeDto } from './dto/create-update-payment-from-stripe-charge.dto.ts'
+import { CreateBenevityPaymentDto } from './dto/create-benevity-payment'
+import { stringToUUID } from '../common/stringToUUID'
 
 @Injectable()
 export class DonationsService {
@@ -43,6 +64,7 @@ export class DonationsService {
     private prisma: PrismaService,
     private vaultService: VaultService,
     private exportService: ExportService,
+    private notificationService: NotificationService,
   ) {}
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
     const listResponse = await this.stripeClient.prices.list({ active, type, limit: 100 }).then(
@@ -931,5 +953,100 @@ export class DonationsService {
         },
       })
     })
+  }
+
+  async findDonationByStripeId(id: string) {
+    const charge = await this.stripeClient.charges.retrieve(id)
+    if (!charge) throw new NotFoundException('Charge not found, by payment_intent')
+    const internalDonation = await this.prisma.payment.findFirst({
+      where: {
+        provider: 'stripe',
+        extPaymentIntentId: charge.payment_intent as string,
+      },
+    })
+
+    return {
+      stripe: charge,
+      internal: internalDonation,
+      region: getCountryRegion(charge.payment_method_details?.card?.country as string),
+    }
+  }
+
+  async syncPaymentWithStripe(stripeChargeDto: Stripe.Charge) {
+    const paymentData = getPaymentDataFromCharge(stripeChargeDto)
+
+    const campaignId = stripeChargeDto.metadata?.campaignId
+    const campaign = await this.campaignService.getCampaignById(campaignId)
+    const newStatus = mapStripeStatusToInternal(stripeChargeDto)
+    this.campaignService.updateDonationPayment(campaign, paymentData, newStatus)
+  }
+
+  async createFromBenevity(benevityDto: CreateBenevityPaymentDto) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { extPaymentIntentId: benevityDto.extPaymentIntentId },
+    })
+    if (payment)
+      throw new ConflictException(`Payment with id ${payment.extPaymentIntentId} already exists`)
+
+    const campaignSlug = benevityDto.benevityData.donations[0].projectRemoteId
+    const campaign = await this.campaignService.getCampaignBySlug(campaignSlug)
+
+    if (!campaign) throw new NotFoundException(`Campaign with ${campaignSlug} not found`)
+
+    // Prepare person records for bulk insertion
+    const personObj: Prisma.PersonCreateInput[] = []
+    for (const donation of benevityDto.benevityData.donations) {
+      const donorString = `${donation.donorFirstName}-${donation.donorLastName}-${donation.email}`
+      const personId = stringToUUID(donorString)
+      personObj.push({
+        id: personId,
+        firstName: donation.donorFirstName,
+        lastName: donation.donorLastName,
+        email: donation.email,
+      })
+    }
+
+    //Prepare payment and donation records for bulk insertion
+    const paymentData = Prisma.validator<Prisma.PaymentCreateInput>()({
+      type: 'benevity',
+      extPaymentIntentId: benevityDto.extPaymentIntentId,
+      extPaymentMethodId: 'benevity',
+      provider: 'benevity',
+      billingName: 'UK ONLINE GIVING FOUNDATION',
+      extCustomerId: '',
+      amount: benevityDto.amount * 100,
+      status: PaymentStatus.succeeded,
+      donations: {
+        createMany: {
+          data: benevityDto.benevityData.donations.map((donation, index) => {
+            const isAnonymous =
+              personObj[index].firstName === 'Not shared by donor' ||
+              personObj[index].lastName === 'Not shared by donor'
+            return {
+              type: DonationType.donation,
+              amount: donation.totalAmount * benevityDto.exchangeRate * 100,
+              targetVaultId: campaign.vaults[0].id,
+              personId: !isAnonymous ? personObj[index].id : null,
+            }
+          }),
+        },
+      },
+    })
+
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.person.createMany({ data: personObj, skipDuplicates: true })
+        await tx.payment.create({ data: paymentData })
+        await this.vaultService.incrementVaultAmount(
+          campaign.vaults[0].id,
+          benevityDto.amount * 100,
+          tx,
+        )
+      })
+    } catch (err) {
+      console.log(err)
+    }
+    // console.log(result)
+    // return result
   }
 }
