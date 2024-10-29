@@ -19,10 +19,14 @@ import {
 } from './notifications.sendgrid.types'
 import { ClientRequest } from '@sendgrid/client/src/request'
 import { DateTime } from 'luxon'
+
+import { truncateNameToBytes } from '../helpers/truncateNameToBytes'
+
 import { MassMailDto } from '../dto/massmail.dto'
 import { ContactsMap } from '../notifications.service'
 import { MailDataRequired } from '@sendgrid/mail'
 import { PersonalizationData } from '@sendgrid/helpers/classes/personalization'
+
 
 @Injectable()
 export class SendGridNotificationsProvider
@@ -53,6 +57,7 @@ export class SendGridNotificationsProvider
     return response as SGClientResponse<ContactListRes>
   }
   async createNewContactList(data: SendGridParams['CreateListParams']) {
+    data.name = truncateNameToBytes(data.name, 99)
     const request = {
       url: `/v3/marketing/lists`,
       method: 'POST',

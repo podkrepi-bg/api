@@ -12,16 +12,10 @@ import { CampaignNewsModule } from '../campaign-news/campaign-news.module'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
 import { PrismaModule } from '../prisma/prisma.module'
 @Module({
-  imports: [
-    forwardRef(() => VaultModule),
-    MarketingNotificationsModule,
-    NotificationModule,
-    CampaignNewsModule,
-    PrismaModule,
-  ],
+  imports: [MarketingNotificationsModule, NotificationModule, CampaignNewsModule],
 
   controllers: [CampaignController, CampaignTypeController],
-  providers: [CampaignService, VaultService, PersonService, ConfigService],
+  providers: [CampaignService, PrismaService, PersonService, ConfigService],
 
   exports: [CampaignService],
 })

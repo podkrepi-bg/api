@@ -135,7 +135,7 @@ export const mockPaymentEventCreated: Stripe.Event = {
 export const mockPaymentEventCancelled: Stripe.Event = {
   id: 'evt_3LUzB4KApGjVGa9t0lyGsAk8',
   object: 'event',
-  api_version: '2020-08-27',
+  api_version: '2022-11-15',
   created: 1660163846,
   data: {
     object: {
@@ -209,7 +209,7 @@ export const mockPaymentEventCancelled: Stripe.Event = {
 export const mockPaymentEventFailed: Stripe.Event = {
   id: 'evt_3LUzB4KApGjVGa9t0lyGsAk8',
   object: 'event',
-  api_version: '2020-08-27',
+  api_version: '2022-11-15',
   created: 1660163846,
   data: {
     object: {
@@ -1138,7 +1138,7 @@ export const mockPaymentIntentUKIncluded: Stripe.PaymentIntent = {
 export const mockCustomerSubscriptionCreated: Stripe.Event = {
   id: 'evt_1MCs25FIrMXL5nkaYRibZXAc',
   object: 'event',
-  api_version: '2022-08-01',
+  api_version: '2022-11-15',
   created: 1670536411,
   data: {
     object: {
@@ -1306,7 +1306,7 @@ export const mockedRecurringDonation: RecurringDonation = {
 export const mockInvoicePaidEvent: Stripe.Event = {
   id: 'evt_1MDz4SFIrMXL5nkawzOfj5Uh',
   object: 'event',
-  api_version: '2022-08-01',
+  api_version: '2022-11-15',
   created: 1670801796,
   data: {
     object: {
@@ -1500,4 +1500,100 @@ export const mockInvoicePaidEvent: Stripe.Event = {
     idempotency_key: null,
   },
   type: 'invoice.paid',
+}
+
+export const mockCharge: Stripe.Charge = {
+  id: 'ch_3LNwijKApGjVGa9t1tuRzvbL',
+  object: 'charge',
+  amount: 1063,
+  amount_captured: 1063,
+  amount_refunded: 0,
+  application: null,
+  application_fee: null,
+  application_fee_amount: null,
+  balance_transaction: 'txn_3LNwijKApGjVGa9t100xnggj',
+  billing_details: {
+    address: {
+      city: null,
+      country: 'BG',
+      line1: null,
+      line2: null,
+      postal_code: null,
+      state: null,
+    },
+    email: 'test@gmail.com',
+    name: 'First Last',
+    phone: null,
+  },
+  calculated_statement_descriptor: 'PODKREPI.BG',
+  captured: true,
+  created: 1658399779,
+  currency: 'bgn',
+  customer: 'cus_M691kVNYuUp4po',
+  description: null,
+  destination: null,
+  dispute: null,
+  disputed: false,
+  failure_balance_transaction: null,
+  failure_code: null,
+  failure_message: null,
+  fraud_details: {},
+  invoice: null,
+  livemode: false,
+  metadata: {
+    campaignId: '4c1616b0-1284-4b7d-8b89-9098e7ded2c4',
+  },
+  on_behalf_of: null,
+  outcome: {
+    network_status: 'approved_by_network',
+    reason: null,
+    risk_level: 'normal',
+    risk_score: 33,
+    seller_message: 'Payment complete.',
+    type: 'authorized',
+  },
+  paid: true,
+  payment_intent: 'pi_3LNwijKApGjVGa9t1F9QYd5s',
+  payment_method: 'pm_1LNwjtKApGjVGa9thtth9iu7',
+  payment_method_details: {
+    card: {
+      brand: 'visa',
+      checks: {
+        address_line1_check: null,
+        address_postal_code_check: null,
+        cvc_check: 'pass',
+      },
+      country: 'BG',
+      exp_month: 4,
+      exp_year: 2024,
+      fingerprint: 'iCySKWAAAZGp2hwr',
+      funding: 'credit',
+      installments: null,
+      last4: '0000',
+      mandate: null,
+      network: 'visa',
+      three_d_secure: null,
+      wallet: null,
+    },
+    type: 'card',
+  },
+  receipt_email: 'test@gmail.com',
+  receipt_number: null,
+  receipt_url: 'https://pay.stripe.com/receipts/',
+  refunded: false,
+  refunds: {
+    object: 'list',
+    data: [],
+    has_more: false,
+    url: '/v1/charges/ch_3LNwijKApGjVGa9t1tuRzvbL/refunds',
+  },
+  review: null,
+  shipping: null,
+  source: null,
+  source_transfer: null,
+  statement_descriptor: null,
+  statement_descriptor_suffix: null,
+  status: 'succeeded',
+  transfer_data: null,
+  transfer_group: null,
 }

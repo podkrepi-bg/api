@@ -5,19 +5,9 @@ import { CreateRecurringDonationDto } from './dto/create-recurring-donation.dto'
 import { UpdateRecurringDonationDto } from './dto/update-recurring-donation.dto'
 import { RecurringDonationStatus } from '@prisma/client'
 
-import { HttpService } from '@nestjs/axios'
-import { ConfigService } from '@nestjs/config'
-import { InjectStripeClient } from '@golevelup/nestjs-stripe'
-import Stripe from 'stripe'
-
 @Injectable()
 export class RecurringDonationService {
-  constructor(
-    private prisma: PrismaService,
-    private config: ConfigService,
-    private httpService: HttpService,
-    @InjectStripeClient() private stripeClient: Stripe,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async create(CreateRecurringDonationDto: CreateRecurringDonationDto): Promise<RecurringDonation> {
     return await this.prisma.recurringDonation.create({
@@ -172,21 +162,5 @@ export class RecurringDonationService {
       throw new BadRequestException(`Unable to find and update status of ${id} to ${status}`)
     }
     return result
-  }
-
-  async cancelSubscription(subscriptionId: string) {
-    Logger.log(`Canceling subscription with api request to cancel: ${subscriptionId}`)
-    const result = await this.stripeClient.subscriptions.cancel(subscriptionId)
-    if (result.status !== 'canceled') {
-      Logger.log(`Subscription cancel attempt failed with status of ${result.id}: ${result.status}`)
-      return
-    }
-
-    // the webhook will handle this as well.
-    // but we cancel it here, in case the webhook is slow.
-    const rd = await this.findSubscriptionByExtId(result.id)
-    if (rd) {
-      return this.cancel(rd.id)
-    }
   }
 }

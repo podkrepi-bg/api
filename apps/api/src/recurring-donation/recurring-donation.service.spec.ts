@@ -86,16 +86,6 @@ describe('RecurringDonationService', () => {
     expect(result).toStrictEqual(mockRecurring)
   })
 
-  it('should call stripe cancel service my subscription id', async () => {
-    const cancelSubscriptionSpy = jest
-      .spyOn(stripeMock.subscriptions, 'cancel')
-      .mockImplementation(() => {
-        return Promise.resolve({ status: 'canceled' })
-      })
-    await service.cancelSubscription('sub1')
-    expect(cancelSubscriptionSpy).toHaveBeenCalledWith('sub1')
-  })
-
   it('should cancel a subscription in db', async () => {
     prismaMock.recurringDonation.update.mockResolvedValueOnce(mockRecurring)
     await service.cancel('1')

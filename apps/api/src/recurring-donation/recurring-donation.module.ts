@@ -19,5 +19,6 @@ import { PrismaModule } from '../prisma/prisma.module'
 
   controllers: [RecurringDonationController],
   providers: [RecurringDonationService],
+  exports: [RecurringDonationService],
 })
 export class RecurringDonationModule {}

@@ -59,6 +59,7 @@ import { MarketingNotificationsModule } from '../notifications/notifications.mod
 
 import { StatisticsModule } from '../statistics/statistics.module'
 import { AffiliateModule } from '../affiliate/affiliate.module'
+import { StripeModule } from '../stripe/stripe.module'
 
 import { LoggerModule } from '../logger/logger.module'
 import { PrismaModule } from '../prisma/prisma.module'
@@ -66,7 +67,11 @@ import { CampaignApplicationModule } from '../campaign-application/campaign-appl
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ validationSchema, isGlobal: true, load: [configuration] }),
+    ConfigModule.forRoot({
+      validationSchema,
+      isGlobal: true,
+      load: [configuration],
+    }),
     /* External modules */
     SentryModule.forRootAsync({
       imports: [ConfigModule],
@@ -117,7 +122,7 @@ import { CampaignApplicationModule } from '../campaign-application/campaign-appl
     BankTransactionsModule,
     StatisticsModule,
     CacheModule.registerAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule, AppModule],
       useFactory: async (config: ConfigService) => ({
         ttl: Number(config.get<number>('CACHE_TTL', 30 * 1000 /* ms */)),
       }),
@@ -129,6 +134,7 @@ import { CampaignApplicationModule } from '../campaign-application/campaign-appl
     MarketingNotificationsModule,
     LoggerModule,
     CampaignApplicationModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [
