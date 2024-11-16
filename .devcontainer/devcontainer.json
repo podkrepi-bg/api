@@ -8,6 +8,8 @@
   },
   "postStartCommand": "yarn",
   "extensions": [
+    "ms-azuretools.vscode-docker",
+    "nrwl.angular-console",
     "esbenp.prettier-vscode",
     "firsttris.vscode-jest-runner",
     "dbaeumer.vscode-eslint",
