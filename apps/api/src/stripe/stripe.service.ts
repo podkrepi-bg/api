@@ -37,9 +37,6 @@ export class StripeService {
   ): Promise<Stripe.Response<Stripe.SetupIntent>> {
     if (!inputDto.metadata.campaignId)
       throw new BadRequestException('campaignId is missing from metadata')
-    const campaign = await this.campaignService.validateCampaignId(
-      inputDto.metadata.campaignId as string,
-    )
     return await this.stripeClient.setupIntents.update(id, inputDto, { idempotencyKey })
   }
   /**
