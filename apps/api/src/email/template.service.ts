@@ -26,7 +26,7 @@ export class TemplateService {
     }
   }
 
-  private async getEmailTemplate(templateName: TemplateType): Promise<ReturnType<typeof mjml>> {
+  protected async getEmailTemplate(templateName: TemplateType): Promise<ReturnType<typeof mjml>> {
     try {
       const file = await readFile(
         path.resolve(__dirname, `./assets/templates/${templateName}.mjml`),
@@ -39,7 +39,7 @@ export class TemplateService {
     }
   }
 
-  private async getEmailData(templateName: string): Promise<EmailMetadata> {
+  protected async getEmailData(templateName: string): Promise<EmailMetadata> {
     try {
       const contents = await readFile(
         path.resolve(__dirname, `./assets/templates/${templateName}.json`),
