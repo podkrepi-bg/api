@@ -9,6 +9,7 @@ bases:
 patches:
   - path: keycloak-config.patch.yaml
   - path: deployment.patch.yaml
+  - path: sendgrid-config.patch.yaml
 
 images:
   - name: ghcr.io/podkrepi-bg/api/migrations
