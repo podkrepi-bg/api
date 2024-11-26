@@ -34,7 +34,7 @@ describe('StripeController', () => {
     checkout: { sessions: { create: jest.fn() } },
     paymentIntents: { retrieve: jest.fn() },
     refunds: { create: jest.fn() },
-    setupIntents: { retrieve: jest.fn() },
+    setupIntents: { retrieve: jest.fn(), update: jest.fn() },
     customers: { create: jest.fn(), list: jest.fn() },
     paymentMethods: { attach: jest.fn() },
     products: { search: jest.fn(), create: jest.fn() },
@@ -199,7 +199,7 @@ describe('StripeController', () => {
       reason: 'requested_by_customer',
     })
   })
-  it(`should not call setupintents.update if campaign can't accept donations`, async () => {
+  it(`should not call setupintents.update if no campaignId is provided`, async () => {
     prismaMock.campaign.findFirst.mockResolvedValue({
       id: 'complete-campaign',
       allowDonationOnComplete: false,
