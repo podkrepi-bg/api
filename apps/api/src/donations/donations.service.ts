@@ -914,7 +914,7 @@ export class DonationsService {
             create: {
               amount: paymentData.netAmount,
               type: paymentData.type as DonationType,
-              person: paymentData.personId ? { connect: { email: paymentData.billingEmail } } : {},
+              person: paymentData.personId ? { connect: { id: paymentData.personId } } : {},
               targetVault: targetVaultData,
             },
           },
@@ -928,7 +928,7 @@ export class DonationsService {
           donation.amount,
           tx,
         )
-        this.notificationService.sendNotification('successfulDonation', donation)
+        this.notificationService.sendNotification('successfulDonation', donation.donations[0])
       }
 
       return donation
@@ -966,7 +966,9 @@ export class DonationsService {
         },
         include: { donations: true },
       })
-      Logger.debug('Donation found by subscription: ', donation)
+      if (donation) {
+        Logger.debug('Donation found by subscription: ', donation)
+      }
     }
     return donation
   }
