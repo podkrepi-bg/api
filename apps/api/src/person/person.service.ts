@@ -125,6 +125,7 @@ export class PersonService {
         company: true,
         beneficiaries: { select: { id: true } },
         organizer: { select: { id: true } },
+        recurringDonations: { select: { id: true } },
       },
     })
   }
@@ -137,6 +138,23 @@ export class PersonService {
     return await this.prisma.person.delete({ where: { id } })
   }
 
+  async softDelete(id: string) {
+    return await this.prisma.person.update({
+      where: { id },
+      data: {
+        firstName: '',
+        lastName: '',
+        address: '',
+        email: '',
+        birthday: null,
+        personalNumber: '',
+        phone: '',
+        helpUsImprove: false,
+        profileEnabled: false,
+        deletedAt: new Date(),
+      },
+    })
+  }
   private async addToContactList(createPersonDto: CreatePersonDto) {
     const data = {
       contacts: [
