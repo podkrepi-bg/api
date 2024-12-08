@@ -949,7 +949,7 @@ export class CampaignService {
     })
   }
 
-  private getVaultAndDonationSummaries(campaignId: string, campaignSums: CampaignSummaryDto[]) {
+  getVaultAndDonationSummaries(campaignId: string, campaignSums: CampaignSummaryDto[]) {
     const csum = campaignSums.find((e) => e.id === campaignId)
     return {
       reachedAmount: csum?.reachedAmount || 0,
