@@ -227,11 +227,16 @@ describe('StripeController', () => {
       state: CampaignState.complete,
       title: 'active-campaign',
     } as Campaign)
-    await expect(controller.setupIntentToSubscription('123').catch((err) => console.log(err))).toResolve()
-    expect(stripeMock.setupIntents.retrieve).toHaveBeenCalledWith('123', {
-      expand: ['payment_method'],
-    })
-    expect(stripeMock.customers.create).not.toHaveBeenCalled()
-    expect(stripeMock.products.create).not.toHaveBeenCalled()
+    try {
+      
+      await expect(controller.setupIntentToSubscription('123')).toResolve()
+      expect(stripeMock.setupIntents.retrieve).toHaveBeenCalledWith('123', {
+        expand: ['payment_method'],
+      })
+      expect(stripeMock.customers.create).not.toHaveBeenCalled()
+      expect(stripeMock.products.create).not.toHaveBeenCalled()
+    } catch (err) {
+      throw new Error(JSON.stringify(err))
+    }
   })
 })
