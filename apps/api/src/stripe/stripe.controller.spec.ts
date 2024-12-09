@@ -29,7 +29,6 @@ import { NotificationModule } from '../sockets/notifications/notification.module
 import { KeycloakTokenParsed } from '../auth/keycloak'
 describe('StripeController', () => {
   let controller: StripeController
-  const idempotencyKey = 'test_123'
   const stripeMock = {
     checkout: { sessions: { create: jest.fn() } },
     paymentIntents: { retrieve: jest.fn() },
@@ -212,7 +211,7 @@ describe('StripeController', () => {
       },
     }
 
-    await expect(controller.updateSetupIntent('123', idempotencyKey, payload)).rejects.toThrow(
+    await expect(controller.updateSetupIntent('123', payload)).rejects.toThrow(
       new NotAcceptableException('Campaign cannot accept donations in state: complete'),
     )
   })
@@ -228,7 +227,7 @@ describe('StripeController', () => {
       state: CampaignState.complete,
       title: 'active-campaign',
     } as Campaign)
-    await expect(controller.setupIntentToSubscription('123', idempotencyKey)).toResolve()
+    await expect(controller.setupIntentToSubscription('123')).toResolve()
     expect(stripeMock.setupIntents.retrieve).toHaveBeenCalledWith('123', {
       expand: ['payment_method'],
     })
