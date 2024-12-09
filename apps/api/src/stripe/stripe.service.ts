@@ -118,11 +118,8 @@ export class StripeService {
    * @param inputDto Payment intent create params
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
-  async createSetupIntent({
-    idempotencyKey,
-  }: {
-    idempotencyKey: string
-  }): Promise<Stripe.Response<Stripe.SetupIntent>> {
+  async createSetupIntent(): Promise<Stripe.Response<Stripe.SetupIntent>> {
+    const idempotencyKey = crypto.randomUUID()
     return await this.stripeClient.setupIntents.create({}, { idempotencyKey })
   }
 
