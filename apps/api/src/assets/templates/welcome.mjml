@@ -29,7 +29,7 @@
           font-family="open Sans Helvetica, Arial, sans-serif"
           padding-left="25px"
           padding-right="25px">
-          <span style="color: #feeb35"> Здравейте {{person.firstName}}, </span>
+          <span style="color: #feeb35"> Здравейте, {{person.firstName}}, </span>
           <br /><br />
         </mj-text>
         <mj-text
@@ -44,9 +44,9 @@
           <a style="color: #feeb35" href="https://discord.gg/3FBXDPjXEp" target="_blank"
             >Discord сървъра</a
           >, където се помещава нашият виртуален офис. Съветът ни е да прочетете внимателно какво
-          пише на началната страница в канал #започни-от-тук. <br /><br />
-          След това може да се включите в дискусиите и Ви чакаме на обща среща всяка сряда от 19:00
-          ч. в гласовия канал #обща-среща-сряда-19ч на сървъра. <br /><br />
+          пише на началната страница в канал <strong>#започни-от-тук</strong>. <br /><br />
+          След това може да се включите в дискусиите и Ви чакаме на обща среща <strong>всяка сряда от 19:00
+          ч.</strong> в гласовия канал <strong>#обща-среща-сряда-19ч</strong> на сървъра. <br /><br />
           Още веднъж благодарим за готовността да помогнете за нашата кауза!
         </mj-text>
         <mj-text

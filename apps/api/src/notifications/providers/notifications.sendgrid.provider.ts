@@ -27,7 +27,6 @@ import { ContactsMap } from '../notifications.service'
 import { MailDataRequired } from '@sendgrid/mail'
 import { PersonalizationData } from '@sendgrid/helpers/classes/personalization'
 
-
 @Injectable()
 export class SendGridNotificationsProvider
   implements NotificationsProviderInterface<SendGridParams>

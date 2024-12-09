@@ -110,7 +110,7 @@ export class CampaignApplicationService {
       campaignApplicationName,
       campaignApplicationLink: `${this.configService.get(
         'APP_URL',
-      )}/admin/campaigns/${campaignApplicationId}`,
+      )}/admin/campaigns/edit/${campaignApplicationId}`,
       email: person.email as string,
       firstName: person.firstName,
     }
@@ -119,7 +119,7 @@ export class CampaignApplicationService {
       campaignApplicationName,
       campaignApplicationLink: `${this.configService.get(
         'APP_URL',
-      )}/campaign/applications/${campaignApplicationId}`,
+      )}/campaigns/application/${campaignApplicationId}`,
       email: person.email as string,
       firstName: person.firstName,
     }
