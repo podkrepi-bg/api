@@ -36,9 +36,7 @@ export class StripeService {
   ): Promise<Stripe.Response<Stripe.SetupIntent>> {
     if (!inputDto.metadata.campaignId)
       throw new BadRequestException('campaignId is missing from metadata')
-    await this.campaignService.validateCampaignId(
-      inputDto.metadata.campaignId as string,
-    )
+    await this.campaignService.validateCampaignId(inputDto.metadata.campaignId as string)
     const idempotencyKey = crypto.randomUUID()
     return await this.stripeClient.setupIntents.update(id, inputDto, { idempotencyKey })
   }
@@ -85,9 +83,7 @@ export class StripeService {
       { idempotencyKey: `${idempotencyKey}--pm` },
     )
   }
-  async setupIntentToPaymentIntent(
-    setupIntentId: string,
-  ): Promise<Stripe.PaymentIntent> {
+  async setupIntentToPaymentIntent(setupIntentId: string): Promise<Stripe.PaymentIntent> {
     const setupIntent = await this.findSetupIntentById(setupIntentId)
 
     if (setupIntent instanceof Error) throw new BadRequestException(setupIntent.message)
@@ -129,9 +125,7 @@ export class StripeService {
     return await this.stripeClient.setupIntents.create({}, { idempotencyKey })
   }
 
-  async setupIntentToSubscription(
-    setupIntentId: string,
-  ): Promise<Stripe.PaymentIntent | Error> {
+  async setupIntentToSubscription(setupIntentId: string): Promise<Stripe.PaymentIntent | Error> {
     const setupIntent = await this.findSetupIntentById(setupIntentId)
     if (setupIntent instanceof Error) throw new BadRequestException(setupIntent.message)
     const paymentMethod = setupIntent.payment_method as Stripe.PaymentMethod
@@ -196,11 +190,7 @@ export class StripeService {
     } else return new Array<Stripe.Price>()
   }
 
-  async createCustomer(
-    email: string,
-    name: string,
-    paymentMethod: Stripe.PaymentMethod,
-  ) {
+  async createCustomer(email: string, name: string, paymentMethod: Stripe.PaymentMethod) {
     const customerLookup = await this.stripeClient.customers.list({
       email,
     })

@@ -10,7 +10,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { ApiBody, ApiTags } from '@nestjs/swagger'
-import {  Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
 import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto'
@@ -75,10 +75,7 @@ export class StripeController {
 
   @Post('setup-intent/:id')
   @Public()
-  updateSetupIntent(
-    @Param('id') id: string,
-    @Body() updateSetupIntentDto: UpdateSetupIntentDto,
-  ) {
+  updateSetupIntent(@Param('id') id: string, @Body() updateSetupIntentDto: UpdateSetupIntentDto) {
     return this.stripeService.updateSetupIntent(id, updateSetupIntentDto)
   }
 
@@ -93,9 +90,7 @@ export class StripeController {
     description: 'Create payment intent from setup intent',
   })
   @Public()
-  setupIntentToPaymentIntent(
-    @Param('id') id: string,
-  ) {
+  setupIntentToPaymentIntent(@Param('id') id: string) {
     return this.stripeService.setupIntentToPaymentIntent(id)
   }
 
@@ -103,9 +98,7 @@ export class StripeController {
   @ApiBody({
     description: 'Create payment intent from setup intent',
   })
-  setupIntentToSubscription(
-    @Param('id') id: string,
-  ) {
+  setupIntentToSubscription(@Param('id') id: string) {
     return this.stripeService.setupIntentToSubscription(id)
   }
 
