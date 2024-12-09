@@ -13,6 +13,7 @@ import { ConfigService } from '@nestjs/config'
 import { StripeMetadata } from './stripe-metadata.interface'
 import { CreateStripePaymentDto } from '../donations/dto/create-stripe-payment.dto'
 import { RecurringDonationService } from '../recurring-donation/recurring-donation.service'
+import * as crypto from 'crypto'
 
 @Injectable()
 export class StripeService {
