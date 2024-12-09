@@ -216,14 +216,17 @@ export class StripeService {
     if (!campaign) throw new Error(`Campaign with id ${campaignId} not found`)
 
     const productLookup = await this.stripeClient.products.search({
-      query: `-name:'${campaign.title}'`,
+      query: `metadata["campaignId"]:"${campaign.id}"`,
     })
 
-    if (productLookup) return productLookup.data[0]
+    if (productLookup.data.length) return productLookup.data[0]
     return await this.stripeClient.products.create(
       {
         name: campaign.title,
         description: `Donate to ${campaign.title}`,
+        metadata: {
+          campaignId: campaign.id,
+        },
       },
       { idempotencyKey: `${idempotencyKey}--product` },
     )
