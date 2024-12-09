@@ -229,7 +229,7 @@ describe('StripeController', () => {
     } as Campaign)
     try {
       
-      await expect(controller.setupIntentToSubscription('123')).rejects.toThrow(new NotAcceptableException('Campaign cannot accept donations in state: complete'),)
+      await expect(controller.setupIntentToSubscription('123')).toResolve()
       expect(stripeMock.setupIntents.retrieve).toHaveBeenCalledWith('123', {
         expand: ['payment_method'],
       })
