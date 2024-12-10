@@ -30,8 +30,8 @@ export class StripeController {
 
   @Post('setup-intent')
   @Public()
-  createSetupIntent(@Body() body: { idempotencyKey: string }) {
-    return this.stripeService.createSetupIntent(body)
+  createSetupIntent() {
+    return this.stripeService.createSetupIntent()
   }
 
   @Post('create-checkout-session')
