@@ -13,6 +13,7 @@ import { ConfigService } from '@nestjs/config'
 import { StripeMetadata } from './stripe-metadata.interface'
 import { CreateStripePaymentDto } from '../donations/dto/create-stripe-payment.dto'
 import { RecurringDonationService } from '../recurring-donation/recurring-donation.service'
+import * as crypto from 'crypto'
 
 @Injectable()
 export class StripeService {
@@ -32,14 +33,12 @@ export class StripeService {
    */
   async updateSetupIntent(
     id: string,
-    idempotencyKey: string,
     inputDto: UpdateSetupIntentDto,
   ): Promise<Stripe.Response<Stripe.SetupIntent>> {
     if (!inputDto.metadata.campaignId)
       throw new BadRequestException('campaignId is missing from metadata')
-    await this.campaignService.validateCampaignId(
-      inputDto.metadata.campaignId as string,
-    )
+    await this.campaignService.validateCampaignId(inputDto.metadata.campaignId as string)
+    const idempotencyKey = crypto.randomUUID()
     return await this.stripeClient.setupIntents.update(id, inputDto, { idempotencyKey })
   }
   /**
@@ -74,8 +73,9 @@ export class StripeService {
   async attachPaymentMethodToCustomer(
     paymentMethod: Stripe.PaymentMethod,
     customer: Stripe.Customer,
-    idempotencyKey: string,
   ) {
+    const idempotencyKey = crypto.randomUUID()
+
     return await this.stripeClient.paymentMethods.attach(
       paymentMethod.id,
       {
@@ -84,10 +84,7 @@ export class StripeService {
       { idempotencyKey: `${idempotencyKey}--pm` },
     )
   }
-  async setupIntentToPaymentIntent(
-    setupIntentId: string,
-    idempotencyKey: string,
-  ): Promise<Stripe.PaymentIntent> {
+  async setupIntentToPaymentIntent(setupIntentId: string): Promise<Stripe.PaymentIntent> {
     const setupIntent = await this.findSetupIntentById(setupIntentId)
 
     if (setupIntent instanceof Error) throw new BadRequestException(setupIntent.message)
@@ -96,9 +93,10 @@ export class StripeService {
     const name = paymentMethod.billing_details.name as string
     const metadata = setupIntent.metadata as Stripe.Metadata
 
-    const customer = await this.createCustomer(email, name, paymentMethod, idempotencyKey)
+    const customer = await this.createCustomer(email, name, paymentMethod)
 
-    await this.attachPaymentMethodToCustomer(paymentMethod, customer, idempotencyKey)
+    await this.attachPaymentMethodToCustomer(paymentMethod, customer)
+    const idempotencyKey = crypto.randomUUID()
 
     const paymentIntent = await this.stripeClient.paymentIntents.create(
       {
@@ -120,18 +118,12 @@ export class StripeService {
    * @param inputDto Payment intent create params
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
-  async createSetupIntent({
-    idempotencyKey,
-  }: {
-    idempotencyKey: string
-  }): Promise<Stripe.Response<Stripe.SetupIntent>> {
+  async createSetupIntent(): Promise<Stripe.Response<Stripe.SetupIntent>> {
+    const idempotencyKey = crypto.randomUUID()
     return await this.stripeClient.setupIntents.create({}, { idempotencyKey })
   }
 
-  async setupIntentToSubscription(
-    setupIntentId: string,
-    idempotencyKey: string,
-  ): Promise<Stripe.PaymentIntent | Error> {
+  async setupIntentToSubscription(setupIntentId: string): Promise<Stripe.PaymentIntent | Error> {
     const setupIntent = await this.findSetupIntentById(setupIntentId)
     if (setupIntent instanceof Error) throw new BadRequestException(setupIntent.message)
     const paymentMethod = setupIntent.payment_method as Stripe.PaymentMethod
@@ -139,11 +131,11 @@ export class StripeService {
     const name = paymentMethod.billing_details.name as string
     const metadata = setupIntent.metadata as Stripe.Metadata
 
-    const customer = await this.createCustomer(email, name, paymentMethod, idempotencyKey)
-    await this.attachPaymentMethodToCustomer(paymentMethod, customer, idempotencyKey)
+    const customer = await this.createCustomer(email, name, paymentMethod)
+    await this.attachPaymentMethodToCustomer(paymentMethod, customer)
 
-    const product = await this.createProduct(metadata.campaignId, idempotencyKey)
-    return await this.createSubscription(metadata, customer, product, paymentMethod, idempotencyKey)
+    const product = await this.createProduct(metadata.campaignId)
+    return await this.createSubscription(metadata, customer, product, paymentMethod)
   }
 
   /**
@@ -196,15 +188,11 @@ export class StripeService {
     } else return new Array<Stripe.Price>()
   }
 
-  async createCustomer(
-    email: string,
-    name: string,
-    paymentMethod: Stripe.PaymentMethod,
-    idempotencyKey: string,
-  ) {
+  async createCustomer(email: string, name: string, paymentMethod: Stripe.PaymentMethod) {
     const customerLookup = await this.stripeClient.customers.list({
       email,
     })
+    const idempotencyKey = crypto.randomUUID()
     const customer = customerLookup.data[0]
     //Customer not found. Create new onw
     if (!customer)
@@ -220,19 +208,23 @@ export class StripeService {
     return customer
   }
 
-  async createProduct(campaignId: string, idempotencyKey: string): Promise<Stripe.Product> {
+  async createProduct(campaignId: string): Promise<Stripe.Product> {
     const campaign = await this.campaignService.getCampaignById(campaignId)
+    const idempotencyKey = crypto.randomUUID()
     if (!campaign) throw new Error(`Campaign with id ${campaignId} not found`)
 
     const productLookup = await this.stripeClient.products.search({
-      query: `-name:'${campaign.title}'`,
+      query: `metadata["campaignId"]:"${campaign.id}"`,
     })
 
-    if (productLookup) return productLookup.data[0]
+    if (productLookup.data.length) return productLookup.data[0]
     return await this.stripeClient.products.create(
       {
         name: campaign.title,
         description: `Donate to ${campaign.title}`,
+        metadata: {
+          campaignId: campaign.id,
+        },
       },
       { idempotencyKey: `${idempotencyKey}--product` },
     )
@@ -242,8 +234,9 @@ export class StripeService {
     customer: Stripe.Customer,
     product: Stripe.Product,
     paymentMethod: Stripe.PaymentMethod,
-    idempotencyKey: string,
   ) {
+    const idempotencyKey = crypto.randomUUID()
+
     const subscription = await this.stripeClient.subscriptions.create(
       {
         customer: customer.id,
