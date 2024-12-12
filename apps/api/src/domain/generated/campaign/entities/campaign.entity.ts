@@ -14,6 +14,7 @@ import { Withdrawal } from '../../withdrawal/entities/withdrawal.entity'
 import { SlugArchive } from '../../slugArchive/entities/slugArchive.entity'
 import { CampaignNews } from '../../campaignNews/entities/campaignNews.entity'
 import { NotificationList } from '../../notificationList/entities/notificationList.entity'
+import { BankDonationReferences } from '../../bankDonationReferences/entities/bankDonationReferences.entity'
 
 export class Campaign {
   id: string
@@ -53,4 +54,5 @@ export class Campaign {
   slugArchive?: SlugArchive[]
   campaignNews?: CampaignNews[]
   notificationLists?: NotificationList[]
+  BankDonationReferences?: BankDonationReferences[]
 }

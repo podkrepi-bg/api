@@ -192,6 +192,7 @@ Table campaigns {
   slugArchive slug_archive [not null]
   campaignNews campaign_news [not null]
   notificationLists notification_list [not null]
+  BankDonationReferences bank_donation_references [not null]
 }
 
 Table campaign_news {
@@ -443,6 +444,15 @@ Table recurring_donations {
   sourceVault vaults [not null]
 
   Note: 'Donate on monthly basis'
+}
+
+Table bank_donation_references {
+  id String [pk]
+  amount Int [not null, default: 0]
+  campaignId String [not null]
+  billingName String [not null]
+  billingEmail String [not null]
+  campaign campaigns [not null]
 }
 
 Table transfers {
@@ -959,6 +969,8 @@ Ref: donation_wishes.donationId - donations.id
 Ref: recurring_donations.personId > people.id
 
 Ref: recurring_donations.vaultId > vaults.id
+
+Ref: bank_donation_references.campaignId > campaigns.id
 
 Ref: transfers.approvedById > people.id
 

@@ -199,43 +199,44 @@ model CampaignType {
 }
 
 model Campaign {
-  id                      String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  state                   CampaignState      @default(draft)
-  slug                    String             @unique @db.VarChar(250)
-  title                   String             @db.VarChar(200)
-  essence                 String             @db.VarChar(500)
-  coordinatorId           String             @map("coordinator_id") @db.Uuid
-  beneficiaryId           String             @map("beneficiary_id") @db.Uuid
-  campaignTypeId          String             @map("campaign_type_id") @db.Uuid
+  id                      String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  state                   CampaignState            @default(draft)
+  slug                    String                   @unique @db.VarChar(250)
+  title                   String                   @db.VarChar(200)
+  essence                 String                   @db.VarChar(500)
+  coordinatorId           String                   @map("coordinator_id") @db.Uuid
+  beneficiaryId           String                   @map("beneficiary_id") @db.Uuid
+  campaignTypeId          String                   @map("campaign_type_id") @db.Uuid
   description             String?
-  targetAmount            Int?               @default(0) @map("target_amount")
-  startDate               DateTime?          @map("start_date") @db.Timestamptz(6)
-  endDate                 DateTime?          @map("end_date") @db.Timestamptz(6)
-  createdAt               DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt               DateTime?          @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt               DateTime?          @map("deleted_at") @db.Timestamptz(6)
-  approvedById            String?            @map("approved_by_id") @db.Uuid
-  currency                Currency           @default(BGN)
-  allowDonationOnComplete Boolean            @default(false) @map("allow_donation_on_complete")
-  paymentReference        String             @unique @map("payment_reference") @db.VarChar(15)
-  organizerId             String?            @map("organizer_id") @db.Uuid
-  companyId               String?            @map("company_id") @db.Uuid
-  approvedBy              Person?            @relation(fields: [approvedById], references: [id])
-  beneficiary             Beneficiary        @relation(fields: [beneficiaryId], references: [id])
-  campaignType            CampaignType       @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  coordinator             Coordinator        @relation(fields: [coordinatorId], references: [id])
-  organizer               Organizer?         @relation(fields: [organizerId], references: [id])
-  company                 Company?           @relation(fields: [companyId], references: [id])
+  targetAmount            Int?                     @default(0) @map("target_amount")
+  startDate               DateTime?                @map("start_date") @db.Timestamptz(6)
+  endDate                 DateTime?                @map("end_date") @db.Timestamptz(6)
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime?                @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt               DateTime?                @map("deleted_at") @db.Timestamptz(6)
+  approvedById            String?                  @map("approved_by_id") @db.Uuid
+  currency                Currency                 @default(BGN)
+  allowDonationOnComplete Boolean                  @default(false) @map("allow_donation_on_complete")
+  paymentReference        String                   @unique @map("payment_reference") @db.VarChar(15)
+  organizerId             String?                  @map("organizer_id") @db.Uuid
+  companyId               String?                  @map("company_id") @db.Uuid
+  approvedBy              Person?                  @relation(fields: [approvedById], references: [id])
+  beneficiary             Beneficiary              @relation(fields: [beneficiaryId], references: [id])
+  campaignType            CampaignType             @relation(fields: [campaignTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  coordinator             Coordinator              @relation(fields: [coordinatorId], references: [id])
+  organizer               Organizer?               @relation(fields: [organizerId], references: [id])
+  company                 Company?                 @relation(fields: [companyId], references: [id])
   campaignFiles           CampaignFile[]
   donationWish            DonationWish[]
   irregularities          Irregularity[]
-  outgoingTransfers       Transfer[]         @relation("source_campaign")
-  incomingTransfers       Transfer[]         @relation("target_campaign")
+  outgoingTransfers       Transfer[]               @relation("source_campaign")
+  incomingTransfers       Transfer[]               @relation("target_campaign")
   vaults                  Vault[]
   withdrawals             Withdrawal[]
   slugArchive             SlugArchive[]
   campaignNews            CampaignNews[]
   notificationLists       NotificationList[]
+  BankDonationReferences  BankDonationReferences[]
 
   @@map("campaigns")
 }
@@ -535,6 +536,17 @@ model RecurringDonation {
   sourceVault       Vault                   @relation(fields: [vaultId], references: [id])
 
   @@map("recurring_donations")
+}
+
+model BankDonationReferences {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  amount       Int      @default(0)
+  campaignId   String   @map("campaign_id") @db.Uuid
+  billingName  String   @map("billing_name")
+  billingEmail String   @map("billing_email")
+  campaign     Campaign @relation(fields: [campaignId], references: [id])
+
+  @@map("bank_donation_references")
 }
 
 /// Move funds from one vault to another
@@ -1008,9 +1020,9 @@ enum EmailType {
 
 /// CampaignApplication represents a request for a new campaign - it is not a Campaign yet and has to proove it needs to be
 model CampaignApplication {
-  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt               DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt               DateTime?                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // organizer editable fields
   // need to be logged in to create a campaign application
@@ -1033,12 +1045,12 @@ model CampaignApplication {
   otherNotes              String?                   @db.Text
 
   // operator editable fields
-  state                   CampaignApplicationState  @default(review)
-  campaignTypeId          String?                   @db.Uuid
-  ticketURL               String?                   @db.VarChar(500)
-  archived                Boolean?                  @default(false)
-  campaignEnd             String?                   @default("funds")
-  campaignEndDate         DateTime?                 @db.Timestamptz(6)
+  state           CampaignApplicationState @default(review)
+  campaignTypeId  String?                  @db.Uuid
+  ticketURL       String?                  @db.VarChar(500)
+  archived        Boolean?                 @default(false)
+  campaignEnd     String?                  @default("funds")
+  campaignEndDate DateTime?                @db.Timestamptz(6)
 
   @@map("campaign_applications")
 }
@@ -1059,8 +1071,7 @@ model CampaignApplicationFile {
   personId              String                      @map("person_id") @db.Uuid
   mimetype              String                      @db.VarChar(100)
   role                  CampaignApplicationFileRole
-  campaignApplication   CampaignApplication       @relation(fields: [campaignApplicationId], references: [id])
-
+  campaignApplication   CampaignApplication         @relation(fields: [campaignApplicationId], references: [id])
 
   @@map("campaign_application_files")
 }
