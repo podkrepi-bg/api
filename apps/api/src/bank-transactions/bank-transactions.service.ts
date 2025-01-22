@@ -20,6 +20,7 @@ import { DonationsService } from '../donations/donations.service'
 import { IrisTasks } from '../tasks/bank-import/import-transactions.task'
 import { IrisIbanAccountInfoDto } from './dto/iris-bank-account-info.dto'
 import { IrisTransactionInfoDto } from './dto/iris-bank-transaction-info.dto'
+import { CreateBankDonationReferenceDto } from './dto/bank-donation-reference.dto'
 
 @Injectable()
 export class BankTransactionsService {
@@ -173,6 +174,10 @@ export class BankTransactionsService {
 
   async rerunBankTransactionsForDate(transactionsDate: Date) {
     await this.irisBankImport.importBankTransactionsTASK(transactionsDate)
+  }
+
+  async createBankDonationReference(bankDonationReference: CreateBankDonationReferenceDto) {
+    return await this.prisma.bankDonationReferences.create({ data: bankDonationReference })
   }
 
   async simulateIrisTask(

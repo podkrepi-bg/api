@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common'
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
-import { Roles, RoleMatchingMode, AuthenticatedUser } from 'nest-keycloak-connect'
+import { Roles, RoleMatchingMode, AuthenticatedUser, Public } from 'nest-keycloak-connect'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 import { BankTransactionsService } from './bank-transactions.service'
 import {
@@ -29,6 +29,7 @@ import { DateTime, Interval } from 'luxon'
 import { ConfigService } from '@nestjs/config'
 import { IrisBankTransactionSimulationDto } from './dto/bank-transactions-iris-simulate.dto'
 import { AffiliateService } from '../affiliate/affiliate.service'
+import { CreateBankDonationReferenceDto } from './dto/bank-donation-reference.dto'
 
 @ApiTags('bank-transaction')
 @Controller('bank-transaction')
@@ -120,6 +121,12 @@ export class BankTransactionsController {
       paymentRef: campaign.paymentReference,
       status: BankDonationStatus.reImported,
     }
+  }
+
+  @Post('create-donation-reference')
+  @Public(false)
+  async createBankDonationRefererence(@Body() bankDonationReference: CreateBankDonationReferenceDto) {
+    return await this.bankTransactionsService.createBankDonationReference(bankDonationReference)
   }
 
   /** Manually rerun bank transactions for date interval */
