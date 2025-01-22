@@ -9,7 +9,6 @@ import {
   PaymentProvider,
   Vault,
   PaymentType,
-  BankDonationReferences,
 } from '@prisma/client'
 import { ExportService } from '../export/export.service'
 import { getTemplateByTable } from '../export/helpers/exportableData'
@@ -176,10 +175,6 @@ export class BankTransactionsService {
     await this.irisBankImport.importBankTransactionsTASK(transactionsDate)
   }
 
-  async createBankDonationReference(bankDonationReference: BankDonationReferences) {
-    return await this.prisma.bankDonationReferences.create({data:bankDonationReference})
-  }
-  
   async simulateIrisTask(
     ibanAccount: IrisIbanAccountInfoDto,
     transactions: IrisTransactionInfoDto[],
