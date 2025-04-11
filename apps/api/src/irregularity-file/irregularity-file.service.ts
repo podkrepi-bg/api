@@ -5,12 +5,15 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { S3Service } from '../s3/s3.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateIrregularityFileDto } from './dto/create-irregularity-file.dto'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class IrregularityFileService {
-  private readonly bucketName: string = 'irregularity-files'
-
-  constructor(private prisma: PrismaService, private s3: S3Service) {}
+  
+  constructor(private prisma: PrismaService, private s3: S3Service, private readonly configService: ConfigService) { }
+  
+  private readonly S3_BUCKET_NAME =  'irregularity-files'
+  private readonly bucketName: string = this.configService.get('IRREGULARITY_FILES_BUCKET', this.S3_BUCKET_NAME)
 
   async create(
     irregularityId: string,

@@ -6,9 +6,10 @@ import { S3Service } from '../s3/s3.service'
 import { PersonModule } from '../person/person.module'
 import { CampaignNewsModule } from '../campaign-news/campaign-news.module'
 import { PrismaModule } from '../prisma/prisma.module'
+import { ConfigModule } from '@nestjs/config'
 
 @Module({
-  imports: [CampaignNewsModule, PersonModule, PrismaModule],
+  imports: [CampaignNewsModule, PersonModule, PrismaModule, ConfigModule],
   controllers: [CampaignNewsFileController],
   providers: [CampaignNewsFileService, S3Service],
 })

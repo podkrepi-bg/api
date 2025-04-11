@@ -6,7 +6,7 @@ import { PersonService } from '../person/person.service'
 import { DonationsService } from '../donations/donations.service'
 import { VaultService } from '../vault/vault.service'
 import { CampaignService } from '../campaign/campaign.service'
-import { ConfigService } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { StripeModule } from '@golevelup/nestjs-stripe'
 import { StripeConfigFactory } from '../donations/helpers/stripe-config-factory'
 import { ExportService } from '../export/export.service'
@@ -23,6 +23,7 @@ import { PrismaModule } from '../prisma/prisma.module'
     NotificationModule,
     MarketingNotificationsModule,
     PrismaModule,
+    ConfigModule
   ],
   controllers: [BankTransactionsFileController],
   providers: [

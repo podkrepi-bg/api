@@ -5,11 +5,13 @@ import { CampaignFile, CampaignFileRole, Person } from '@prisma/client'
 import { S3Service } from '../s3/s3.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCampaignFileDto } from './dto/create-campaign-file.dto'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class CampaignFileService {
-  private readonly bucketName: string = 'campaign-files'
-  constructor(private prisma: PrismaService, private s3: S3Service) {}
+  constructor(private prisma: PrismaService, private s3: S3Service, private readonly configService:ConfigService) {}
+  private readonly S3_BUCKET_NAME =  'campaign-files'
+  private readonly bucketName: string = this.configService.get('CAMPAIGN_FILES_BUCKET', this.S3_BUCKET_NAME)
 
   async create(
     role: CampaignFileRole,
