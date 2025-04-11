@@ -4,11 +4,14 @@ import { Readable } from 'stream'
 import { PrismaService } from '../prisma/prisma.service'
 import { S3Service } from '../s3/s3.service'
 import { CreateBankTransactionsFileDto } from './dto/create-bank-transactions-file.dto'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class BankTransactionsFileService {
-  private readonly bucketName: string = 'banktransactions-files'
-  constructor(private prisma: PrismaService, private s3: S3Service) {}
+  constructor(private prisma: PrismaService, private s3: S3Service, private readonly configService: ConfigService) { }
+  
+  private readonly S3_BUCKET_NAME = 'banktransactions-files'
+  private readonly bucketName: string = this.configService.get('BANK_TRANSACTION_FILES_BUCKET', this.S3_BUCKET_NAME)
 
   async create(
     type: BankTransactionsFileType,

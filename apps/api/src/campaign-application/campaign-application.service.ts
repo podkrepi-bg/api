@@ -30,7 +30,6 @@ function dateMaybe(d?: string) {
 
 @Injectable()
 export class CampaignApplicationService {
-  private readonly bucketName: string = 'campaignapplication-files'
   constructor(
     private prisma: PrismaService,
     private organizerService: OrganizerService,
@@ -38,7 +37,10 @@ export class CampaignApplicationService {
     private emailService: EmailService,
     private readonly configService: ConfigService,
   ) {}
-
+  
+  private readonly S3_BUCKET_NAME = 'campaignapplication-files'
+  private readonly bucketName: string = this.configService.get('CAMPAIGN_APPLICATIONS_FILES_BUCKET', this.S3_BUCKET_NAME)
+  
   async create(createCampaignApplicationDto: CreateCampaignApplicationDto, person: Person) {
     try {
       if (
