@@ -4,12 +4,14 @@ import { IrregularityFileService } from '../irregularity-file/irregularity-file.
 import { S3Service } from '../s3/s3.service'
 import { IrregularityController } from './irregularity.controller'
 import { IrregularityService } from './irregularity.service'
+import { ConfigModule } from '@nestjs/config'
 
 describe('IrregularityController', () => {
   let controller: IrregularityController
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports:[ConfigModule],
       controllers: [IrregularityController],
       providers: [IrregularityService, MockPrismaService, IrregularityFileService, S3Service],
     }).compile()
