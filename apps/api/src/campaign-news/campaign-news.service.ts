@@ -164,8 +164,14 @@ export class CampaignNewsService {
           newsFiles: true,
           campaign: {
             select: {
+              id: true,
               title: true,
               state: true,
+              campaignType: {
+                select: {
+                  category: true,
+                },
+              },
             },
           },
         },
@@ -248,7 +254,23 @@ export class CampaignNewsService {
 
   async findArticleBySlug(slug: string) {
     return await this.prisma.campaignNews
-      .findFirst({ where: { slug: slug }, include: { newsFiles: true } })
+      .findFirst({
+        where: { slug: slug },
+        include: {
+          newsFiles: true,
+          campaign: {
+            select: {
+              title: true,
+              state: true,
+              campaignType: {
+                select: {
+                  category: true,
+                },
+              },
+            },
+          },
+        },
+      })
       .catch((error) => Logger.warn(error))
   }
 
