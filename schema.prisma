@@ -725,24 +725,18 @@ enum PersonRelation {
   colleague
   myself
   myorg
-
   @@map("person_relation")
 }
 
 enum CampaignState {
-  initial
   draft
-  pending_validation
-  approved
-  rejected
   active
-  active_pending_validation
-  suspended
   complete
-  disabled
-  error
+  partially_financed
+  paused
+  suspended
+  blocked
   deleted
-
   @@map("campaign_state")
 }
 
