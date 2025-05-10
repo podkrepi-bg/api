@@ -320,8 +320,10 @@ export class CampaignApplicationService {
     personId: string,
     campaignApplicationId: string,
   ) {
+    
+    const decodedFilename = Buffer.from(file.originalname, 'base64').toString('utf-8')
     const fileDto: CreateCampaignApplicationFileDto = {
-      filename: file.originalname,
+      filename: decodedFilename,
       mimetype: file.mimetype,
       campaignApplicationId: campaignApplicationId,
       personId,
