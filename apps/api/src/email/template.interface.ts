@@ -16,6 +16,7 @@ export enum TemplateType {
   refundDonation = 'refund-donation',
   createCampaignApplicationAdmin = 'create-campaign-application-admin',
   createCampaignApplicationOrganizer = 'create-campaign-application-organizer',
+  corporateActivation = 'corporate-activation',
 }
 export type TemplateTypeKeys = keyof typeof TemplateType
 export type TemplateTypeValues = typeof TemplateType[TemplateTypeKeys]
@@ -121,4 +122,14 @@ export class CreateCampaignApplicationOrganizerEmailDto extends EmailTemplate<{
   firstName: string
 }> {
   name = TemplateType.createCampaignApplicationOrganizer
+}
+
+export class CorporateActivationEmailDto extends EmailTemplate<{
+  corporateActivationTitle: string
+  companyName: string
+  representitiveName: string
+  representitiveEmail: string
+  activationLink: string
+}> {
+  name = TemplateType.corporateActivation
 }

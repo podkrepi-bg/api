@@ -30,7 +30,7 @@ import { UpdatePersonDto } from '../person/dto/update-person.dto'
 import { ForgottenPasswordEmailDto } from './dto/forgot-password.dto'
 import { JwtService } from '@nestjs/jwt'
 import { EmailService } from '../email/email.service'
-import { ForgottenPasswordMailDto } from '../email/template.interface'
+import { ForgottenPasswordMailDto, CorporateActivationEmailDto } from '../email/template.interface'
 import { NewPasswordDto } from './dto/recovery-password.dto'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
 import { PersonService } from '../person/person.service'
@@ -230,6 +230,21 @@ export class AuthService {
         company = await this.createCompany(registerDto)
       }
       person = await this.createPerson(registerDto, user.id, company?.id)
+
+      if (isCorporateReg) { 
+        const mail = new CorporateActivationEmailDto({
+          corporateActivationTitle: 'Нова корпоративна регистрация',
+          companyName: registerDto.companyName || '',
+          representitiveName: `${registerDto.firstName} ${registerDto.lastName}`,
+          representitiveEmail: registerDto.email,
+          activationLink: `${this.config.get('APP_URL')}/admin/users?search=${registerDto.email}`,
+        })
+        await this.sendEmail.sendFromTemplate(
+          mail,
+          { to: [this.config.get('CORPORATE_DONORS_EMAIL', '')] },
+          { bypassUnsubscribeManagement: { enable: true } }
+        )
+      }
     } catch (error) {
       const response = {
         error: error.message,
