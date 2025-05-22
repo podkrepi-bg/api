@@ -243,3 +243,5 @@ spec:
                   key: webhook-id
             - name: CACHE_TTL
               value: '60000'
+            - name: CORPORATE_DONORS_EMAIL
+              value: csr@podkrepi.bg
