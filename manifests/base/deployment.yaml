@@ -71,25 +71,25 @@ spec:
               memory: 450Mi
               cpu: 200m
           ports:
-            - containerPort: 8080
+            - containerPort: 80
           livenessProbe:
             httpGet:
               path: /api/v1/health
-              port: 8080
+              port: 80
             initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 2
           readinessProbe:
             httpGet:
               path: /api/v1/health
-              port: 8080
+              port: 80
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 2
           startupProbe:
             httpGet:
               path: /api/v1/health
-              port: 8080
+              port: 80
             failureThreshold: 12
             initialDelaySeconds: 10
             periodSeconds: 10
@@ -98,7 +98,7 @@ spec:
             - name: NODE_ENV
               value: production
             - name: PORT
-              value: '8080'
+              value: '80'
             - name: TARGET_APP
               value: api
             - name: DATABASE_URL

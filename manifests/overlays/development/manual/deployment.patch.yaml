@@ -24,27 +24,15 @@ spec:
             - name: S3_ENDPOINT
               valueFrom:
                 secretKeyRef:
-                  name: s3-access
+                  name: rook-ceph-object-user-object-store-dev-object-store-dev-admin
                   key: Endpoint
             - name: S3_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: s3-access
+                  name: rook-ceph-object-user-object-store-dev-object-store-dev-admin
                   key: AccessKey
             - name: S3_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: s3-access
+                  name: rook-ceph-object-user-object-store-dev-object-store-dev-admin
                   key: SecretKey
-            - name: BANK_TRANSACTION_FILES_BUCKET
-              value: banktransaction-files-dev
-            - name: CAMPAIGN_APPLICATIONS_FILES_BUCKET
-              value: campaignapplication-files-dev
-            - name: CAMPAIGN_FILES_BUCKET
-              value: campaign-files-dev
-            - name: CAMPAIGN_NEWS_FILES_BUCKET
-              value: campaign-news-files-dev
-            - name: EXPENSES_FILES_BUCKET
-              value: expenses-files-dev
-            - name: IRREGULARITY_FILES_BUCKET
-              value: irregularity-files-dev
