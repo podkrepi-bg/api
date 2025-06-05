@@ -18,11 +18,30 @@ import { VaultService } from '../vault/vault.service'
 import { ExportService } from '../export/export.service'
 import { DonationsService } from '../donations/donations.service'
 import { StripeController } from './stripe.controller'
-import { MockPrismaService } from '../prisma/prisma-client.mock'
+import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
+import { CacheModule, forwardRef } from '@nestjs/common'
+import { DonationsModule } from '../donations/donations.module'
+import { RecurringDonation, RecurringDonationStatus } from '@prisma/client'
+import { RecurringDonationService } from '../recurring-donation/recurring-donation.service'
 
 describe('StripeService', () => {
   let service: StripeService
 
+
+  const mockRecurring = {
+    id: '1',
+    vaultId: '1',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    amount: 1,
+    currency: 'EUR',
+    personId: '1',
+    extCustomerId: '1',
+    extSubscriptionId: 'sub1',
+    campaignId: '1',
+    status: RecurringDonationStatus.active,
+  } as RecurringDonation
+  
   const stripeMock = {
     checkout: { sessions: { create: jest.fn() } },
     paymentIntents: { retrieve: jest.fn() },
@@ -55,8 +74,7 @@ describe('StripeService', () => {
           useFactory: () => moduleConfig,
         }),
         MarketingNotificationsModule,
-        NotificationModule,
-        RecurringDonationModule,
+        NotificationModule
       ],
       controllers: [StripeController],
       providers: [
@@ -67,6 +85,8 @@ describe('StripeService', () => {
         DonationsService,
         CampaignService,
         PersonService,
+        RecurringDonationService,
+        DonationsService,
         {
           provide: ConfigService,
           useValue: {
@@ -95,6 +115,9 @@ describe('StripeService', () => {
       .mockImplementation(() => {
         return Promise.resolve({ status: 'canceled' })
       })
+    prismaMock.recurringDonation.findUnique.mockResolvedValue(mockRecurring)
+    prismaMock.recurringDonation.update.mockResolvedValue(mockRecurring)
+
     await service.cancelSubscription('sub1')
     expect(cancelSubscriptionSpy).toHaveBeenCalledWith('sub1')
   })

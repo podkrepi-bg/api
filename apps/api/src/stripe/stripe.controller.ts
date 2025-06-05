@@ -10,7 +10,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { ApiBody, ApiTags } from '@nestjs/swagger'
-import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
 import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto'
@@ -19,6 +19,7 @@ import { StripeService } from './stripe.service'
 import { EditFinancialsRequests } from '@podkrepi-bg/podkrepi-types'
 import { CreateSessionDto } from '../donations/dto/create-session.dto'
 import { PersonService } from '../person/person.service'
+import { KeycloakTokenParsed } from '../auth/keycloak'
 
 @Controller('stripe')
 @ApiTags('stripe')
@@ -141,6 +142,11 @@ export class StripeController {
   @Public()
   findSinglePrices() {
     return this.stripeService.listPrices('one_time')
+  }
+
+  @Post(':id/cancel-subscription')
+  cancelSubscription(@Param('id') subscriptionId: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
+    return this.stripeService.cancelSubscription(subscriptionId, user)
   }
 
   @Get('prices/recurring')
