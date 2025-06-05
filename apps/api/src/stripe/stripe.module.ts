@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { forwardRef, Module } from '@nestjs/common'
 import { StripeModule as StripeClientModule } from '@golevelup/nestjs-stripe'
 import { StripeService } from './stripe.service'
 import { StripeController } from './stripe.controller'
@@ -23,9 +23,10 @@ import { TemplateService } from '../email/template.service'
     CampaignModule,
     PersonModule,
     DonationsModule,
-    RecurringDonationModule,
+    forwardRef(()=>RecurringDonationModule),
   ],
   providers: [StripeService, StripePaymentService, EmailService, TemplateService],
   controllers: [StripeController],
+  exports: [StripeService]
 })
 export class StripeModule {}

@@ -14,6 +14,7 @@ import { StripeMetadata } from './stripe-metadata.interface'
 import { CreateStripePaymentDto } from '../donations/dto/create-stripe-payment.dto'
 import { RecurringDonationService } from '../recurring-donation/recurring-donation.service'
 import * as crypto from 'crypto'
+import { RealmViewSupporters } from '@podkrepi-bg/podkrepi-types'
 
 @Injectable()
 export class StripeService {
@@ -420,17 +421,33 @@ export class StripeService {
     })
   }
 
-  async cancelSubscription(subscriptionId: string) {
+  async cancelSubscription(subscriptionId: string, user?: KeycloakTokenParsed) {
+
+    const rd = await this.reacurringDonationService.findOne(subscriptionId)
+    if (!rd) {
+      throw new Error(`Recurring donation with id ${subscriptionId} not found`)
+    }
+
+    if (user) {
+    
+      const isAdmin = user.realm_access?.roles.includes(RealmViewSupporters.role)
+  
+      if (!isAdmin && !this.reacurringDonationService.donationBelongsTo(subscriptionId, user.sub)) {
+        throw new Error(`User ${user.sub} is not allowed to cancel recurring donation with id ${subscriptionId} of person: ${rd.personId}`,
+        )
+      }
+    }
+
     Logger.log(`Canceling subscription with api request to cancel: ${subscriptionId}`)
-    const result = await this.stripeClient.subscriptions.cancel(subscriptionId)
+    const result = await this.stripeClient.subscriptions.cancel(rd.extSubscriptionId)
     if (result.status !== 'canceled') {
       Logger.log(`Subscription cancel attempt failed with status of ${result.id}: ${result.status}`)
       return
     }
+    
 
     // the webhook will handle this as well.
     // but we cancel it here, in case the webhook is slow.
-    const rd = await this.reacurringDonationService.findSubscriptionByExtId(result.id)
     if (rd) {
       return this.reacurringDonationService.cancel(rd.id)
     }

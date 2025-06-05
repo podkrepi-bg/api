@@ -9,7 +9,7 @@ import { StripeService } from './stripe.service'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { Campaign, CampaignState } from '@prisma/client'
 import { CreateSessionDto } from '../donations/dto/create-session.dto'
-import { NotAcceptableException } from '@nestjs/common'
+import { forwardRef, NotAcceptableException } from '@nestjs/common'
 import { PersonService } from '../person/person.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
@@ -27,6 +27,8 @@ import { ExportService } from '../export/export.service'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
+import { PrismaModule } from '../prisma/prisma.module'
+import { RecurringDonationService } from '../recurring-donation/recurring-donation.service'
 describe('StripeController', () => {
   let controller: StripeController
   const stripeMock = {
@@ -71,6 +73,14 @@ describe('StripeController', () => {
   } as CreateSessionDto
 
   beforeEach(async () => {
+    jest.clearAllMocks()
+
+      Object.values(prismaMock).forEach(
+    modelMock => Object.values(modelMock).forEach(
+      methodMock => (methodMock as any).mockReset?.()
+    )
+      );
+    
     const stripeSecret = 'wh_123'
     const moduleConfig: StripeModuleConfig = {
       apiKey: stripeSecret,
@@ -83,6 +93,8 @@ describe('StripeController', () => {
         },
       },
     }
+
+    jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
@@ -90,9 +102,7 @@ describe('StripeController', () => {
           useFactory: () => moduleConfig,
         }),
         MarketingNotificationsModule,
-        NotificationModule,
-        RecurringDonationModule,
-      ],
+        NotificationModule,      ],
       controllers: [StripeController],
       providers: [
         EmailService,
@@ -103,6 +113,7 @@ describe('StripeController', () => {
         CampaignService,
         PersonService,
         StripeService,
+        RecurringDonationService,
         MockPrismaService,
         {
           provide: STRIPE_CLIENT_TOKEN,
