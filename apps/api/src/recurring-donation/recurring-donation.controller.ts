@@ -45,7 +45,6 @@ export class RecurringDonationController {
     return this.recurringDonationService.create(createRecurringDonationDto)
   }
 
-  //TODO: Deprecate this endpont after FE is configured to call stripe cancel webhook
   @Patch(':id/cancel')
   async cancelSubscription(
     @Param('id') id: string,
