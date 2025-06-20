@@ -144,7 +144,6 @@ export class RecurringDonationService {
     
     const isAdmin = user.realm_access?.roles.includes(RealmViewSupporters.role)
     const belongsTo = await this.donationBelongsTo(recurringDonation.id, user.sub)
-    console.log(isAdmin, belongsTo)
     if (!isAdmin && !belongsTo) {
       throw new ForbiddenException(`User ${user.sub} is not allowed to cancel recurring donation with id ${recurringDonation.id} of person: ${recurringDonation.personId}`,
       )

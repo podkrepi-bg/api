@@ -420,7 +420,6 @@ export class StripeService {
   }
 
   async cancelSubscription(stripeSubscriptionId: string) {
-    console.log(stripeSubscriptionId)
     const result = await this.stripeClient.subscriptions.cancel(stripeSubscriptionId)
     return result
   }
