@@ -23,7 +23,7 @@ import { TemplateService } from '../email/template.service'
     CampaignModule,
     PersonModule,
     DonationsModule,
-    forwardRef(()=>RecurringDonationModule),
+    forwardRef(() => RecurringDonationModule),
   ],
   providers: [StripeService, StripePaymentService, EmailService, TemplateService],
   controllers: [StripeController],
