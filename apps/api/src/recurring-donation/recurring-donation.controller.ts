@@ -47,12 +47,12 @@ export class RecurringDonationController {
   }
 
   //TODO: Deprecate this endpont after FE is configured to call stripe cancel webhook
-  @Get('cancel/:id')
+  @Patch(':id/cancel')
   async cancelSubscription(
     @Param('id') id: string,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
-    return await this.stripeService.cancelSubscription(id, user)
+    return await this.recurringDonationService.cancel(id, user)
   }
 
   @Patch(':id')

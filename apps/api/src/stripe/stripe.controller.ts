@@ -144,11 +144,6 @@ export class StripeController {
     return this.stripeService.listPrices('one_time')
   }
 
-  @Post(':id/cancel-subscription')
-  cancelSubscription(@Param('id') subscriptionId: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
-    return this.stripeService.cancelSubscription(subscriptionId, user)
-  }
-
   @Get('prices/recurring')
   @Public()
   findRecurringPrices() {
