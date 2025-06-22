@@ -32,7 +32,7 @@
     "@nestjs/axios": "^2.0.0",
     "@nestjs/cache-manager": "^2.0.1",
     "@nestjs/cli": "^9.3.0",
-    "@nestjs/common": "^9.3.12",
+    "@nestjs/common": "^10.4.16",
     "@nestjs/config": "^2.3.1",
     "@nestjs/core": "^9.3.12",
     "@nestjs/jwt": "^10.0.3",
