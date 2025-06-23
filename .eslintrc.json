@@ -27,6 +27,19 @@
       "rules": {}
     },
     {
+      "files": ["*.spec.ts"],
+      "extends": ["plugin:@nrwl/nx/typescript"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "message": "Do you really need to write file to disk in a test?",
+            "selector": "[name=writeFileSync], [name=writeFile]"
+          }
+        ]
+      }
+    },
+    {
       "files": ["*.js", "*.jsx"],
       "extends": ["plugin:@nrwl/nx/javascript"],
       "rules": {}

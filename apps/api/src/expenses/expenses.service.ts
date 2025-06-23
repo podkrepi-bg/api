@@ -7,11 +7,14 @@ import { UpdateExpenseDto } from './dto/update-expense.dto'
 import { CreateExpenseFileDto } from './dto/create-expense-file.dto'
 import { S3Service } from '../s3/s3.service'
 import { Readable } from 'stream'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class ExpensesService {
-  private readonly bucketName: string = 'expenses-files'
-  constructor(private prisma: PrismaService, private s3: S3Service) {}
+  constructor(private prisma: PrismaService, private s3: S3Service, private readonly configService:ConfigService) { }
+
+  private readonly S3_BUCKET_NAME = 'expenses-files'
+  private readonly bucketName: string = this.configService.get('EXPENSES_FILES_BUCKET', this.S3_BUCKET_NAME)
 
   /**
    * Creates an expense, while blocking the corresponding amount in the source vault.

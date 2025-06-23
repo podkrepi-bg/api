@@ -30,7 +30,6 @@ function dateMaybe(d?: string) {
 
 @Injectable()
 export class CampaignApplicationService {
-  private readonly bucketName: string = 'campaignapplication-files'
   constructor(
     private prisma: PrismaService,
     private organizerService: OrganizerService,
@@ -38,7 +37,10 @@ export class CampaignApplicationService {
     private emailService: EmailService,
     private readonly configService: ConfigService,
   ) {}
-
+  
+  private readonly S3_BUCKET_NAME = 'campaignapplication-files'
+  private readonly bucketName: string = this.configService.get('CAMPAIGN_APPLICATIONS_FILES_BUCKET', this.S3_BUCKET_NAME)
+  
   async create(createCampaignApplicationDto: CreateCampaignApplicationDto, person: Person) {
     try {
       if (
@@ -110,7 +112,7 @@ export class CampaignApplicationService {
       campaignApplicationName,
       campaignApplicationLink: `${this.configService.get(
         'APP_URL',
-      )}/admin/campaigns/${campaignApplicationId}`,
+      )}/admin/campaigns/edit/${campaignApplicationId}`,
       email: person.email as string,
       firstName: person.firstName,
     }
@@ -119,7 +121,7 @@ export class CampaignApplicationService {
       campaignApplicationName,
       campaignApplicationLink: `${this.configService.get(
         'APP_URL',
-      )}/campaign/applications/${campaignApplicationId}`,
+      )}/campaigns/application/${campaignApplicationId}`,
       email: person.email as string,
       firstName: person.firstName,
     }
@@ -318,8 +320,10 @@ export class CampaignApplicationService {
     personId: string,
     campaignApplicationId: string,
   ) {
+    
+    const decodedFilename = Buffer.from(file.originalname, 'base64').toString('utf-8')
     const fileDto: CreateCampaignApplicationFileDto = {
-      filename: file.originalname,
+      filename: decodedFilename,
       mimetype: file.mimetype,
       campaignApplicationId: campaignApplicationId,
       personId,

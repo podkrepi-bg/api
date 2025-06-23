@@ -6,11 +6,14 @@ import { S3Service } from '../s3/s3.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateCampaignNewsFileDto } from './dto/create-campaign-news-file.dto'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class CampaignNewsFileService {
-  private readonly bucketName: string = 'campaign-news-files'
-  constructor(private prisma: PrismaService, private s3: S3Service) {}
+  constructor(private prisma: PrismaService, private s3: S3Service, private readonly configService:ConfigService) { }
+  
+  private readonly S3_BUCKET_NAME =  'campaign-news-files'
+  private readonly bucketName: string = this.configService.get('CAMPAIGN_NEWS_FILES_BUCKET', this.S3_BUCKET_NAME)
 
   async create(
     role: CampaignFileRole,

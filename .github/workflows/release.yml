@@ -187,7 +187,7 @@ jobs:
           kustomize edit set annotation app.komodor.com/app.ref:$GITHUB_SHA
 
       - name: Set kubeconfig
-        run: echo ${{ secrets.K8S_DEV_CONFIG }} | base64 -d > config.yaml
+        run: echo ${{ secrets.K8S_DEV_CONFIG_DO }} | base64 -d > config.yaml
 
       - name: Apply new manifests
         run: kubectl apply -k manifests/overlays/development --kubeconfig config.yaml
@@ -240,7 +240,7 @@ jobs:
           kustomize edit set annotation app.komodor.com/app.ref:$GITHUB_SHA
 
       - name: Set kubeconfig
-        run: echo ${{ secrets.K8S_CONFIG }} | base64 -d > config.yaml
+        run: echo ${{ secrets.K8S_CONFIG_DO }} | base64 -d > config.yaml
 
       - name: Apply new manifests
         run: kubectl apply -k manifests/overlays/production --kubeconfig config.yaml

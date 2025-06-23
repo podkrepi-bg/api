@@ -7,7 +7,6 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   UnauthorizedException,
 } from '@nestjs/common'
 import { ApiBody, ApiTags } from '@nestjs/swagger'
@@ -17,11 +16,10 @@ import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
 import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto'
 import { UpdateSetupIntentDto } from './dto/update-setup-intent.dto'
 import { StripeService } from './stripe.service'
-import { KeycloakTokenParsed } from '../auth/keycloak'
-import { CreateSubscriptionPaymentDto } from './dto/create-subscription-payment.dto'
 import { EditFinancialsRequests } from '@podkrepi-bg/podkrepi-types'
 import { CreateSessionDto } from '../donations/dto/create-session.dto'
 import { PersonService } from '../person/person.service'
+import { KeycloakTokenParsed } from '../auth/keycloak'
 
 @Controller('stripe')
 @ApiTags('stripe')
@@ -33,8 +31,8 @@ export class StripeController {
 
   @Post('setup-intent')
   @Public()
-  createSetupIntent(@Body() body: { idempotencyKey: string }) {
-    return this.stripeService.createSetupIntent(body)
+  createSetupIntent() {
+    return this.stripeService.createSetupIntent()
   }
 
   @Post('create-checkout-session')
@@ -78,12 +76,8 @@ export class StripeController {
 
   @Post('setup-intent/:id')
   @Public()
-  updateSetupIntent(
-    @Param('id') id: string,
-    @Query('idempotency-key') idempotencyKey: string,
-    @Body() updateSetupIntentDto: UpdateSetupIntentDto,
-  ) {
-    return this.stripeService.updateSetupIntent(id, idempotencyKey, updateSetupIntentDto)
+  updateSetupIntent(@Param('id') id: string, @Body() updateSetupIntentDto: UpdateSetupIntentDto) {
+    return this.stripeService.updateSetupIntent(id, updateSetupIntentDto)
   }
 
   @Patch('setup-intent/:id/cancel')
@@ -97,22 +91,16 @@ export class StripeController {
     description: 'Create payment intent from setup intent',
   })
   @Public()
-  setupIntentToPaymentIntent(
-    @Param('id') id: string,
-    @Query('idempotency-key') idempotencyKey: string,
-  ) {
-    return this.stripeService.setupIntentToPaymentIntent(id, idempotencyKey)
+  setupIntentToPaymentIntent(@Param('id') id: string) {
+    return this.stripeService.setupIntentToPaymentIntent(id)
   }
 
   @Post('setup-intent/:id/subscription')
   @ApiBody({
     description: 'Create payment intent from setup intent',
   })
-  setupIntentToSubscription(
-    @Param('id') id: string,
-    @Query('idempotency-key') idempotencyKey: string,
-  ) {
-    return this.stripeService.setupIntentToSubscription(id, idempotencyKey)
+  setupIntentToSubscription(@Param('id') id: string) {
+    return this.stripeService.setupIntentToSubscription(id)
   }
 
   @Post('payment-intent')
@@ -154,6 +142,11 @@ export class StripeController {
   @Public()
   findSinglePrices() {
     return this.stripeService.listPrices('one_time')
+  }
+
+  @Post(':id/cancel-subscription')
+  cancelSubscription(@Param('id') subscriptionId: string, @AuthenticatedUser() user: KeycloakTokenParsed) {
+    return this.stripeService.cancelSubscription(subscriptionId, user)
   }
 
   @Get('prices/recurring')

@@ -9,7 +9,7 @@ import { StripeService } from './stripe.service'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { Campaign, CampaignState } from '@prisma/client'
 import { CreateSessionDto } from '../donations/dto/create-session.dto'
-import { NotAcceptableException } from '@nestjs/common'
+import { forwardRef, NotAcceptableException } from '@nestjs/common'
 import { PersonService } from '../person/person.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
@@ -27,14 +27,15 @@ import { ExportService } from '../export/export.service'
 import { NotificationModule } from '../sockets/notifications/notification.module'
 
 import { KeycloakTokenParsed } from '../auth/keycloak'
+import { PrismaModule } from '../prisma/prisma.module'
+import { RecurringDonationService } from '../recurring-donation/recurring-donation.service'
 describe('StripeController', () => {
   let controller: StripeController
-  const idempotencyKey = 'test_123'
   const stripeMock = {
     checkout: { sessions: { create: jest.fn() } },
     paymentIntents: { retrieve: jest.fn() },
     refunds: { create: jest.fn() },
-    setupIntents: { retrieve: jest.fn() },
+    setupIntents: { retrieve: jest.fn(), update: jest.fn() },
     customers: { create: jest.fn(), list: jest.fn() },
     paymentMethods: { attach: jest.fn() },
     products: { search: jest.fn(), create: jest.fn() },
@@ -72,6 +73,14 @@ describe('StripeController', () => {
   } as CreateSessionDto
 
   beforeEach(async () => {
+    jest.clearAllMocks()
+
+      Object.values(prismaMock).forEach(
+    modelMock => Object.values(modelMock).forEach(
+      methodMock => (methodMock as any).mockReset?.()
+    )
+      );
+    
     const stripeSecret = 'wh_123'
     const moduleConfig: StripeModuleConfig = {
       apiKey: stripeSecret,
@@ -84,6 +93,8 @@ describe('StripeController', () => {
         },
       },
     }
+
+    jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
@@ -91,9 +102,7 @@ describe('StripeController', () => {
           useFactory: () => moduleConfig,
         }),
         MarketingNotificationsModule,
-        NotificationModule,
-        RecurringDonationModule,
-      ],
+        NotificationModule,      ],
       controllers: [StripeController],
       providers: [
         EmailService,
@@ -104,6 +113,7 @@ describe('StripeController', () => {
         CampaignService,
         PersonService,
         StripeService,
+        RecurringDonationService,
         MockPrismaService,
         {
           provide: STRIPE_CLIENT_TOKEN,
@@ -199,7 +209,7 @@ describe('StripeController', () => {
       reason: 'requested_by_customer',
     })
   })
-  it(`should not call setupintents.update if campaign can't accept donations`, async () => {
+  it(`should not call setupintents.update if no campaignId is provided`, async () => {
     prismaMock.campaign.findFirst.mockResolvedValue({
       id: 'complete-campaign',
       allowDonationOnComplete: false,
@@ -212,7 +222,7 @@ describe('StripeController', () => {
       },
     }
 
-    await expect(controller.updateSetupIntent('123', idempotencyKey, payload)).rejects.toThrow(
+    await expect(controller.updateSetupIntent('123', payload)).rejects.toThrow(
       new NotAcceptableException('Campaign cannot accept donations in state: complete'),
     )
   })
@@ -228,11 +238,16 @@ describe('StripeController', () => {
       state: CampaignState.complete,
       title: 'active-campaign',
     } as Campaign)
-    await expect(controller.setupIntentToSubscription('123', idempotencyKey)).toResolve()
-    expect(stripeMock.setupIntents.retrieve).toHaveBeenCalledWith('123', {
-      expand: ['payment_method'],
-    })
-    expect(stripeMock.customers.create).not.toHaveBeenCalled()
-    expect(stripeMock.products.create).not.toHaveBeenCalled()
+    try {
+      
+      await expect(controller.setupIntentToSubscription('123')).toResolve()
+      expect(stripeMock.setupIntents.retrieve).toHaveBeenCalledWith('123', {
+        expand: ['payment_method'],
+      })
+      expect(stripeMock.customers.create).not.toHaveBeenCalled()
+      expect(stripeMock.products.create).not.toHaveBeenCalled()
+    } catch (err) {
+      throw new Error(JSON.stringify(err))
+    }
   })
 })

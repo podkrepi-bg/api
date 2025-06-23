@@ -192,14 +192,14 @@ describe('CampaignApplicationService', () => {
 
       const emailAdminData = {
         campaignApplicationName: mockSingleCampaignApplication.campaignName,
-        campaignApplicationLink: `${process.env.APP_URL}/admin/campaigns/${mockSingleCampaignApplication.id}`,
+        campaignApplicationLink: `${process.env.APP_URL}/admin/campaigns/edit/${mockSingleCampaignApplication.id}`,
         email: mockPerson.email as string,
         firstName: mockPerson.firstName,
       }
 
       const emailOrganizerData = {
         campaignApplicationName: mockSingleCampaignApplication.campaignName,
-        campaignApplicationLink: `${process.env.APP_URL}/campaign/applications/${mockSingleCampaignApplication.id}`,
+        campaignApplicationLink: `${process.env.APP_URL}/campaigns/application/${mockSingleCampaignApplication.id}`,
         email: mockPerson.email as string,
         firstName: mockPerson.firstName,
       }

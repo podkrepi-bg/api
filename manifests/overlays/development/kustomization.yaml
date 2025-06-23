@@ -9,6 +9,7 @@ bases:
 patches:
 - path: manual/keycloak-config.patch.yaml
 - path: manual/deployment.patch.yaml
+- path: manual/sendgrid-config.patch.yaml
 
 images:
 - name: ghcr.io/podkrepi-bg/api

@@ -102,10 +102,12 @@ export class RecurringDonationService {
   }
 
   async findOne(id: string): Promise<RecurringDonation | null> {
+    console.log(id)
     const result = await this.prisma.recurringDonation.findUnique({
       where: { id },
       include: RecurringDonationService.defaultIncludeFields,
     })
+    console.log(result)
     if (!result) throw new NotFoundException('Not found')
     return result
   }

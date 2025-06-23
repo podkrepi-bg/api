@@ -59,7 +59,7 @@
     "keycloak-connect": "21.0.1",
     "luxon": "^3.3.0",
     "mjml": "^4.14.1",
-    "nanoid": "3.3.4",
+    "nanoid": "3.3.8",
     "nest-keycloak-connect": "^1.9.1",
     "reflect-metadata": "0.1.13",
     "rxjs": "7.5.5",

@@ -8,6 +8,7 @@ import { CreateExpenseDto } from './dto/create-expense.dto'
 import { UpdateExpenseDto } from './dto/update-expense.dto'
 import { S3Service } from '../s3/s3.service'
 import { KeycloakTokenParsed } from '../auth/keycloak'
+import { ConfigModule } from '@nestjs/config'
 
 const mockData = [
   {
@@ -35,6 +36,7 @@ describe('ExpensesController', () => {
     prismaMock.expense.findMany.mockResolvedValue(mockData)
 
     const module: TestingModule = await Test.createTestingModule({
+      imports:[ConfigModule],
       controllers: [ExpensesController],
       providers: [MockPrismaService, ExpensesService, S3Service],
     }).compile()
@@ -43,7 +45,7 @@ describe('ExpensesController', () => {
   })
 
   // Reset the mock after each test
-  afterEach(() => {
+  >  afterEach(() => {
     mockReset(prismaMock)
   })
 
