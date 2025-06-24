@@ -67,7 +67,7 @@ export class CampaignService {
       orderBy: {
         endDate: 'asc',
       },
-      where: { state: { in: [CampaignState.active, CampaignState.complete] } },
+      where: { NOT: { state: { in: [CampaignState.draft, CampaignState.deleted] } } },
       ...CampaignListItemSelect,
     })
     const campaignSums = await this.getCampaignSums()
@@ -81,7 +81,7 @@ export class CampaignService {
 
   async listAllCampaigns(): Promise<AdminCampaignListItem[]> {
     const campaigns = await this.prisma.campaign.findMany({
-      where: { NOT: { state: { in: [CampaignState.deleted] } } },
+      where: { NOT: { state: { in: [CampaignState.draft] } } },
       orderBy: {
         updatedAt: 'desc',
       },
@@ -611,7 +611,7 @@ export class CampaignService {
   }
 
   async canAcceptDonations(campaign: Campaign): Promise<boolean> {
-    const validStates: CampaignState[] = [CampaignState.active, CampaignState.approved]
+    const validStates: CampaignState[] = [CampaignState.active]
     if (campaign.allowDonationOnComplete) {
       validStates.push(CampaignState.complete)
     }
