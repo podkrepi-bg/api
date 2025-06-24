@@ -7,12 +7,11 @@ import { UpdateRecurringDonationDto } from './dto/update-recurring-donation.dto'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { ApiTags } from '@nestjs/swagger'
 import { KeycloakTokenParsed } from '../auth/keycloak'
-import { StripeService } from '../stripe/stripe.service'
 
 @ApiTags('recurring-donation')
 @Controller('recurring-donation')
 export class RecurringDonationController {
-  constructor(private readonly recurringDonationService: RecurringDonationService, private readonly stripeService:StripeService) {}
+  constructor(private readonly recurringDonationService: RecurringDonationService) {}
 
   @Get('list')
   @Roles({
@@ -46,13 +45,12 @@ export class RecurringDonationController {
     return this.recurringDonationService.create(createRecurringDonationDto)
   }
 
-  //TODO: Deprecate this endpont after FE is configured to call stripe cancel webhook
-  @Get('cancel/:id')
+  @Patch(':id/cancel')
   async cancelSubscription(
     @Param('id') id: string,
     @AuthenticatedUser() user: KeycloakTokenParsed,
   ) {
-    return await this.stripeService.cancelSubscription(id, user)
+    return await this.recurringDonationService.cancel(id, user)
   }
 
   @Patch(':id')
