@@ -509,6 +509,7 @@ export class AuthService {
   async deleteUser(keycloakId: string) {
     const user = await this.personService.findOneByKeycloakId(keycloakId)
 
+    if (!user) throw new NotFoundException('User not found')
     //Check and throw if user is a beneficiary, organizer or corporate profile
     if ((!!user && user.beneficiaries.length > 0) || user?.organizer || user?.companyId) {
       throw new InternalServerErrorException(
@@ -516,9 +517,15 @@ export class AuthService {
       )
     }
 
+    if (user.recurringDonations?.length) {
+      throw new ForbiddenException(
+        `Account cannot be deleted due to active recurring payments. Please cancel all recurring payments before deleting this account`,
+      )
+    }
+
     return this.authenticateAdmin()
       .then(() => this.admin.users.del({ id: keycloakId }))
-      .then(() => this.prismaService.person.delete({ where: { keycloakId } }))
+      .then(() => this.personService.softDelete(user.id))
       .then(() => Logger.log(`User with keycloak id ${keycloakId} was successfully deleted!`))
       .catch((err) => {
         const errorMessage = `Deleting user fails with reason: ${err.message ?? 'server error!'}`
