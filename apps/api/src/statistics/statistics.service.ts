@@ -32,7 +32,7 @@ export class StatisticsService {
         : Prisma.sql`GROUP BY DATE_TRUNC('DAY', d.created_at)`
 
     return this.prisma.$queryRaw`
-    SELECT SUM(d.amount)::BIGINT as sum, COUNT(d.id)::INTEGER as count, ${date}
+    SELECT COALESCE(SUM(d.amount), 0)::NUMERIC as sum, COUNT(d.id)::INTEGER as count, ${date}
     FROM api.donations d
     INNER JOIN api.payments p ON p.id = d.payment_id
     WHERE p.status::text = 'succeeded'
