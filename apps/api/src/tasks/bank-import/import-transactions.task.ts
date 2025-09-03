@@ -519,6 +519,7 @@ export class IrisTasks {
       donations: {
         create: {
           amount: bankTransaction.amount,
+          createdAt: new Date(bankTransaction.transactionDate),
           personId: null,
           targetVaultId: vault.id,
           type: DonationType.donation,
