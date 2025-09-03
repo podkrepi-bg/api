@@ -433,7 +433,13 @@ describe('ImportTransactionsTask', () => {
           createdAt: new Date('2023-03-14T00:00:00.000Z'),
           currency: 'BGN',
           donations: {
-            create: { personId: null, amount: 5000, targetVaultId: 'vault-id', type: 'donation' },
+            create: {
+              personId: null,
+              amount: 5000,
+              createdAt: new Date('2023-03-14T00:00:00.000Z'),
+              targetVaultId: 'vault-id',
+              type: 'donation'
+            },
           },
           extCustomerId: 'BG77UNCR92900016740920',
           extPaymentIntentId:
