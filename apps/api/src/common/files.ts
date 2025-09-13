@@ -1,5 +1,4 @@
 import path from 'path'
-import { FileValidationException } from './exception/file-validation.exception'
 
 interface File {
   fieldname: string
@@ -14,11 +13,9 @@ interface File {
 }
 
 /**
- * The function is used to validate the type of file using the file extension and MIME type
+ * The function is used to validate the type of a file using the file extension and MIME type
  * @param file object that represent file
  * @param cb callback function which indicates whether file is accepted or not
- *
- * @throws FileValidationException if the file does not pass validation
  */
 export function validateFileType(
   file: File,
@@ -36,27 +33,21 @@ export function validateFileType(
     'application/vnd.ms-excel',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   ]
-
-  let filename = file.originalname
-  let extension = path.extname(filename).toLowerCase()
-  if (extension == '') {
-    filename = file.filename
-    // for the expense files, the original filename is encoded in base64
-    extension = path.extname(filename).toLowerCase()
-  }
-
   if (!mimeAllowlist.includes(file.mimetype)) {
-    return cb(new FileValidationException('File mime type is not allowed', filename), false)
+    return cb(new Error('File mime type is not allowed'), false)
   }
 
   const allowedExtensions = /txt|json|pdf|jpeg|jpg|png|xml|xlsx|xls|docx/
 
-  const isExtensionSupported = allowedExtensions.test(extension)
+  const filename = file.originalname
+  let ext = path.extname(filename).toLowerCase()
+  if (ext == '') {
+    // for the expense files, the original filename is encoded in base64
+    ext = path.extname(file.filename).toLowerCase()
+  }
+  const isExtensionSupported = allowedExtensions.test(ext)
   if (!isExtensionSupported) {
-    return cb(
-      new FileValidationException('File extension is not allowed: ' + filename, filename),
-      false,
-    )
+    return cb(new Error('File extension is not allowed: ' + file.filename), false)
   }
 
   cb(null, true)
