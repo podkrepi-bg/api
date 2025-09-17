@@ -81,7 +81,6 @@ export class CampaignService {
 
   async listAllCampaigns(): Promise<AdminCampaignListItem[]> {
     const campaigns = await this.prisma.campaign.findMany({
-      where: { NOT: { state: { in: [CampaignState.draft] } } },
       orderBy: {
         updatedAt: 'desc',
       },
