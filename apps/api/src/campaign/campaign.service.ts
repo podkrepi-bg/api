@@ -67,7 +67,7 @@ export class CampaignService {
       orderBy: {
         endDate: 'asc',
       },
-      where: { state: { in: [CampaignState.active, CampaignState.complete] } },
+      where: { NOT: { state: { in: [CampaignState.draft, CampaignState.deleted] } } },
       ...CampaignListItemSelect,
     })
     const campaignSums = await this.getCampaignSums()
@@ -81,7 +81,6 @@ export class CampaignService {
 
   async listAllCampaigns(): Promise<AdminCampaignListItem[]> {
     const campaigns = await this.prisma.campaign.findMany({
-      where: { NOT: { state: { in: [CampaignState.deleted] } } },
       orderBy: {
         updatedAt: 'desc',
       },
@@ -110,16 +109,16 @@ export class CampaignService {
     v.campaign_id as id
     FROM api.vaults v
     LEFT JOIN (
-        SELECT 
+        SELECT
         target_vault_id,
         COUNT(d.id) FILTER (WHERE d.payment_id = p.id AND p.status::text = 'succeeded' OR p.status::text = 'guaranteed') AS donors,
         sum(d.amount) FILTER (WHERE d.payment_id = p.id AND p.status::text = 'succeeded') as reached,
         sum(d.amount) FILTER (WHERE d.payment_id = p.id AND p.status::text = 'guaranteed') as guaranteed
         FROM api.donations d
-        INNER JOIN payments as p ON p.id = d.payment_id
+        INNER JOIN api.payments as p ON p.id = d.payment_id
         GROUP BY target_vault_id
       ) as d
-      ON d.target_vault_id = v.id 
+      ON d.target_vault_id = v.id
     LEFT JOIN (
       SELECT source_vault_id, sum(amount) as "withdrawnAmount"
         FROM api.withdrawals w
@@ -611,7 +610,7 @@ export class CampaignService {
   }
 
   async canAcceptDonations(campaign: Campaign): Promise<boolean> {
-    const validStates: CampaignState[] = [CampaignState.active, CampaignState.approved]
+    const validStates: CampaignState[] = [CampaignState.active]
     if (campaign.allowDonationOnComplete) {
       validStates.push(CampaignState.complete)
     }

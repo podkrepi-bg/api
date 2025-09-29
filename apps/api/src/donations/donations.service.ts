@@ -689,7 +689,7 @@ export class DonationsService {
   async getDonorsCount() {
     const donorsCount = await this.prisma.$queryRaw<{
       count: number
-    }>`SELECT COUNT (*)::INTEGER FROM (SELECT DISTINCT billing_name FROM payments WHERE status::text=${PaymentStatus.succeeded}) AS unique_donors`
+    }>`SELECT COUNT (*)::INTEGER FROM (SELECT DISTINCT billing_name FROM api.payments WHERE status::text=${PaymentStatus.succeeded}) AS unique_donors`
 
     return { count: donorsCount[0].count }
   }

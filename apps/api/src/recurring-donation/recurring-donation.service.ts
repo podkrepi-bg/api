@@ -1,13 +1,16 @@
-import { Injectable, NotFoundException, Logger, BadRequestException } from '@nestjs/common'
+import { Injectable, NotFoundException, Logger, BadRequestException, ForbiddenException } from '@nestjs/common'
 import { Prisma, RecurringDonation } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateRecurringDonationDto } from './dto/create-recurring-donation.dto'
 import { UpdateRecurringDonationDto } from './dto/update-recurring-donation.dto'
 import { RecurringDonationStatus } from '@prisma/client'
+import { KeycloakTokenParsed } from '../auth/keycloak'
+import { RealmViewSupporters } from '@podkrepi-bg/podkrepi-types'
+import { StripeService } from '../stripe/stripe.service'
 
 @Injectable()
 export class RecurringDonationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private readonly stripeService:StripeService) {}
 
   async create(CreateRecurringDonationDto: CreateRecurringDonationDto): Promise<RecurringDonation> {
     return await this.prisma.recurringDonation.create({
@@ -132,7 +135,25 @@ export class RecurringDonationService {
     return result
   }
 
-  async cancel(id: string): Promise<RecurringDonation | null> {
+  async cancel(id: string, user: KeycloakTokenParsed): Promise<RecurringDonation | null> {
+    const recurringDonation = await this.findOne(id)
+    if (!recurringDonation) {
+      throw new NotFoundException(`Recurring donation with id ${id} not found`)
+    }
+
+    
+    const isAdmin = user.realm_access?.roles.includes(RealmViewSupporters.role)
+    const belongsTo = await this.donationBelongsTo(recurringDonation.id, user.sub)
+    if (!isAdmin && !belongsTo) {
+      throw new ForbiddenException(`User ${user.sub} is not allowed to cancel recurring donation with id ${recurringDonation.id} of person: ${recurringDonation.personId}`,
+      )
+    }
+    
+    const subscription = await this.stripeService.cancelSubscription(recurringDonation.extSubscriptionId)
+    if (subscription?.status === 'canceled') {
+      Logger.log(`Subscription cancel attempt failed with status of ${subscription.id}: ${subscription.status}`)
+      return null
+    }
     return await this.updateStatus(id, RecurringDonationStatus.canceled)
   }
 
