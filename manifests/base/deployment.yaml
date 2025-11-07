@@ -245,3 +245,5 @@ spec:
               value: '60000'
             - name: CORPORATE_DONORS_EMAIL
               value: csr@podkrepi.bg
+            - name: CAMPAIGN_COORDINATOR_EMAIL
+              value: campaign_coordinators@podkrepi.bg
