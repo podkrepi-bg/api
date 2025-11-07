@@ -51,6 +51,8 @@ export default () => ({
   mail: {
     billingAdminEmail: process.env.BILLING_ADMIN_MAIL,
     campaignAdminEmail: process.env.CAMPAIGN_ADMIN_MAIL,
+    corporateDonorsEmail: process.env.CORPORATE_DONORS_EMAIL,
+    campaignCoordinatorEmail: process.env.CAMPAIGN_COORDINATOR_EMAIL,
   },
   tasks: {
     import_transactions: { interval: process.env.IMPORT_TRX_TASK_INTERVAL_MINUTES },

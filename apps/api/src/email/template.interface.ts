@@ -13,6 +13,7 @@ export enum TemplateType {
   expiringIrisConsent = 'expiring-iris-consent',
   confirmConsent = 'confirm-notifications-consent',
   campaignNewsDraft = 'campaign-news-draft',
+  campaignNewsEdited = 'campaign-news-edited',
   refundDonation = 'refund-donation',
   createCampaignApplicationAdmin = 'create-campaign-application-admin',
   createCampaignApplicationOrganizer = 'create-campaign-application-organizer',
@@ -93,6 +94,15 @@ export class CampaignNewsDraftEmailDto extends EmailTemplate<{
   campaignNewsTitle: string
 }> {
   name = TemplateType.campaignNewsDraft
+}
+
+export class CampaignNewsEditedEmailDto extends EmailTemplate<{
+  campaignLink: string
+  campaignName: string
+  newsLink: string
+  campaignNewsTitle: string
+}> {
+  name = TemplateType.campaignNewsEdited
 }
 
 export class RefundDonationEmailDto extends EmailTemplate<{
