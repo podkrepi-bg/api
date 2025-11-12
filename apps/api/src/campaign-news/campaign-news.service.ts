@@ -2,7 +2,7 @@ import { Injectable, Logger, BadRequestException, NotFoundException } from '@nes
 import { CreateCampaignNewsDto } from './dto/create-campaign-news.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { UpdateCampaignNewsDto } from './dto/update-campaign-news.dto'
-import { CampaignNewsState } from '@prisma/client'
+import { CampaignFileRole, CampaignNewsState } from '@prisma/client'
 import { CampaignNews } from '../domain/generated/campaignNews/entities'
 import { SendGridParams } from '../notifications/providers/notifications.sendgrid.types'
 import { DateTime } from 'luxon'
@@ -194,12 +194,14 @@ export class CampaignNewsService {
           slug: true,
           author: true,
           publishedAt: true,
-          description: true,
           newsFiles: true,
           campaign: {
             select: {
               title: true,
               state: true,
+              slug: true,
+              campaignFiles: { where: { role: CampaignFileRole.campaignListPhoto } },
+              campaignType: { select: { category: true } },
             },
           },
         },
@@ -282,7 +284,24 @@ export class CampaignNewsService {
 
   async findArticleBySlug(slug: string) {
     return await this.prisma.campaignNews
-      .findFirst({ where: { slug: slug }, include: { newsFiles: true } })
+      .findFirst({
+        where: { slug: slug },
+        include: {
+          newsFiles: true,
+          campaign: {
+            select: {
+              id: true,
+              title: true,
+              targetAmount: true,
+              campaignType: { select: { category: true } },
+              state: true,
+              allowDonationOnComplete: true,
+              slug: true,
+              campaignFiles: { where: { role: CampaignFileRole.campaignListPhoto } },
+            },
+          },
+        },
+      })
       .catch((error) => Logger.warn(error))
   }
 

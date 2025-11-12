@@ -71,6 +71,19 @@ export class CampaignController {
     return this.campaignNewsService.listPublishedNewsWithPagination(page)
   }
 
+  @Get('news/:articleSlug')
+  @Public()
+  async viewSingleCampaignArticle(@Param('articleSlug') articleSlug: string) {
+    const article = await this.campaignNewsService.findArticleBySlug(articleSlug)
+    if (!article) throw new NotFoundException(`Article with slug ${articleSlug} not found`)
+    const campaignSummary = await this.campaignService.getCampaignSums([article.campaignId])
+    article.campaign['summary'] = this.campaignService.getVaultAndDonationSummaries(
+      article.campaign.id,
+      campaignSummary,
+    )
+    return article
+  }
+
   @Get(':slug')
   @Public()
   async viewBySlug(@Param('slug') slug: string): Promise<{ campaign: Campaign | null }> {
