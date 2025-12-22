@@ -99,7 +99,7 @@ describe('StripePaymentService', () => {
     extPaymentMethodId: 'card',
     amount: 0, //amount is 0 on donation created from payment-intent
     chargedAmount: 0,
-    currency: 'BGN',
+    currency: 'EUR',
     createdAt: new Date(),
     updatedAt: new Date(),
     billingName: 'Test test',

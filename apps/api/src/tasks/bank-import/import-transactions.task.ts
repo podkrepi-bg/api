@@ -301,15 +301,6 @@ export class IrisTasks {
     return response.transactions
   }
 
-  private extractAmountFromTransactionId(transactionId, transactionValueDate): number {
-    const formattedDate = DateTime.fromISO(transactionValueDate).toFormat('yyyyMMdd')
-    const matchAmountRegex = new RegExp(`${formattedDate}(?<amount>[0-9.]+)_${formattedDate}`)
-
-    const amount = Number(transactionId.match(matchAmountRegex)?.groups?.amount)
-
-    return amount
-  }
-
   // Only prepares the data, without inserting it in the DB
   private prepareBankTransactionRecords(
     transactions: IrisTransactionInfo[],
@@ -343,18 +334,6 @@ export class IrisTasks {
         currency: trx.transactionAmount?.currency,
       }
       const id = trx.transactionId?.trim() || ''
-
-      // If we receive a transaction with Currency different than BGN - try parsing from the transaction id the amount in BGN
-      if (trx.transactionAmount?.currency !== Currency.BGN && trx.transactionAmount?.amount > 0) {
-        const amount = this.extractAmountFromTransactionId(id, trx.valueDate)
-        if (amount) {
-          transactionAmount.amount = amount
-          transactionAmount.currency = Currency.BGN
-        } else {
-          // mark as unrecognized
-          matchedRef = null
-        }
-      }
 
       filteredTransactions.push({
         id: id,

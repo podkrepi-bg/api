@@ -53,7 +53,7 @@ describe('StripeController', () => {
 
   stripeMock.setupIntents.retrieve.mockResolvedValue({
     payment_intent: 'unique-intent',
-    metadata: { campaignId: 'unique-campaign', amount: 100, currency: 'BGN' },
+    metadata: { campaignId: 'unique-campaign', amount: 100, currency: 'EUR' },
     payment_method: {
       billing_details: {
         email: 'test@podkrepi.bg',
@@ -75,12 +75,10 @@ describe('StripeController', () => {
   beforeEach(async () => {
     jest.clearAllMocks()
 
-      Object.values(prismaMock).forEach(
-    modelMock => Object.values(modelMock).forEach(
-      methodMock => (methodMock as any).mockReset?.()
+    Object.values(prismaMock).forEach((modelMock) =>
+      Object.values(modelMock).forEach((methodMock) => (methodMock as any).mockReset?.()),
     )
-      );
-    
+
     const stripeSecret = 'wh_123'
     const moduleConfig: StripeModuleConfig = {
       apiKey: stripeSecret,
@@ -94,7 +92,7 @@ describe('StripeController', () => {
       },
     }
 
-    jest.clearAllMocks();
+    jest.clearAllMocks()
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
@@ -102,7 +100,8 @@ describe('StripeController', () => {
           useFactory: () => moduleConfig,
         }),
         MarketingNotificationsModule,
-        NotificationModule,      ],
+        NotificationModule,
+      ],
       controllers: [StripeController],
       providers: [
         EmailService,
@@ -239,7 +238,6 @@ describe('StripeController', () => {
       title: 'active-campaign',
     } as Campaign)
     try {
-      
       await expect(controller.setupIntentToSubscription('123')).toResolve()
       expect(stripeMock.setupIntents.retrieve).toHaveBeenCalledWith('123', {
         expand: ['payment_method'],
