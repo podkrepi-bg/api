@@ -100,24 +100,29 @@ export function getInvoiceData(invoice: Stripe.Invoice, charge: Stripe.Charge): 
     }
   })
 
+  const netAmount =
+    lines.length === 0
+      ? 0
+      : Math.round(
+          charge.amount -
+            stripeFeeCalculator(
+              charge.amount,
+              getCountryRegion(charge?.payment_method_details?.card?.country as string),
+            ),
+        )
+
+  // Extract payment_intent ID - it might be a string or an expanded object
+  const paymentIntentId = (charge?.payment_intent as string) || invoice.id
+
   return {
     paymentProvider: PaymentProvider.stripe,
-    paymentIntentId: invoice.payment_intent as string,
+    paymentIntentId,
     //netAmount is 0 until we receive a payment_intent.successful event where charges array contains the card country
-    netAmount:
-      lines.length === 0
-        ? 0
-        : Math.round(
-            charge.amount -
-              stripeFeeCalculator(
-                charge.amount,
-                getCountryRegion(charge?.payment_method_details?.card?.country as string),
-              ),
-          ),
+    netAmount,
     chargedAmount: invoice.amount_paid,
     currency: invoice.currency.toUpperCase(),
-    billingName: invoice.account_name ?? undefined,
-    billingEmail: invoice.customer_email ?? undefined,
+    billingName: charge.billing_details?.name ?? invoice.account_name ?? undefined,
+    billingEmail: charge.billing_details?.email ?? invoice.customer_email ?? undefined,
     paymentMethodId: invoice.collection_method,
     stripeCustomerId: invoice.customer as string,
     personId,

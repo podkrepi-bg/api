@@ -16,14 +16,14 @@ import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
   imports: [
-    StripeModule.forRootAsync(StripeModule, {
+    StripeModule.forRootAsync({
       inject: [ConfigService],
       useFactory: StripeConfigFactory.useFactory,
     }),
     NotificationModule,
     MarketingNotificationsModule,
     PrismaModule,
-    ConfigModule
+    ConfigModule,
   ],
   controllers: [BankTransactionsFileController],
   providers: [

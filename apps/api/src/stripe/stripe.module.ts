@@ -15,7 +15,7 @@ import { TemplateService } from '../email/template.service'
 
 @Module({
   imports: [
-    StripeClientModule.forRootAsync(StripeClientModule, {
+    StripeClientModule.forRootAsync({
       inject: [ConfigService],
       useFactory: StripeConfigFactory.useFactory,
     }),
@@ -27,6 +27,6 @@ import { TemplateService } from '../email/template.service'
   ],
   providers: [StripeService, StripePaymentService, EmailService, TemplateService],
   controllers: [StripeController],
-  exports: [StripeService]
+  exports: [StripeService],
 })
 export class StripeModule {}

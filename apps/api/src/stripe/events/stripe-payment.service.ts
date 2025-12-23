@@ -330,7 +330,11 @@ export class StripePaymentService {
 
   @StripeWebhookHandler('invoice.paid')
   async handleInvoicePaid(event: Stripe.Event) {
-    const invoice: Stripe.Invoice = event.data.object as Stripe.Invoice
+    const invoiceFromEvent: Stripe.Invoice = event.data.object as Stripe.Invoice
+
+    // Retrieve the invoice with expanded charge and payment_intent fields
+    // This is necessary because webhook events don't automatically expand related objects
+    const invoice = await this.stripeService.retrieveInvoice(invoiceFromEvent.id)
 
     Logger.log('[ handleInvoicePaid ]', invoice)
     let metadata: StripeMetadata = {
@@ -341,11 +345,15 @@ export class StripePaymentService {
       wish: null,
     }
 
-    invoice.lines.data.forEach((line: Stripe.InvoiceLineItem) => {
-      if (line.type === 'subscription') {
-        metadata = line.metadata as StripeMetadata
-      }
-    })
+    // In newer API versions (2025-12-15+), subscription metadata is in invoice.parent.subscription_details
+    // In older API versions, we need to fetch the subscription or check line items
+    if (!invoice.parent?.type || !invoice.parent.subscription_details?.metadata) {
+      // New API version: metadata is directly in parent.subscription_details
+      throw new BadRequestException(
+        'Invoice parent does not contain subscription_details. Invoice id is:  ' + invoice.id,
+      )
+    }
+    metadata = invoice.parent.subscription_details.metadata as StripeMetadata
 
     if (!metadata.campaignId) {
       throw new BadRequestException(
@@ -364,7 +372,19 @@ export class StripePaymentService {
       )
     }
 
-    const charge = await this.stripeService.findChargeById(invoice.charge as string)
+    // The invoice was retrieved with expanded charge and payment_intent fields
+    // Extract the charge object if it's expanded (not just an ID string)
+    const charge =
+      typeof invoice.charge === 'object' && invoice.charge !== null
+        ? (invoice.charge as Stripe.Charge)
+        : undefined
+
+    if (!charge) {
+      throw new BadRequestException(
+        `Unable to retrieve charge for invoice ${invoice.id}. The charge may not be available yet.`,
+      )
+    }
+
     const paymentData = getInvoiceData(invoice, charge)
 
     await this.donationService.updateDonationPayment(campaign, paymentData, PaymentStatus.succeeded)
