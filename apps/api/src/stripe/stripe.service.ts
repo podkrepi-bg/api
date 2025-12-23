@@ -120,7 +120,10 @@ export class StripeService {
    */
   async createSetupIntent(): Promise<Stripe.Response<Stripe.SetupIntent>> {
     const idempotencyKey = crypto.randomUUID()
-    return await this.stripeClient.setupIntents.create({automatic_payment_methods: {enabled: true, allow_redirects: 'never'}}, { idempotencyKey })
+    return await this.stripeClient.setupIntents.create(
+      { automatic_payment_methods: { enabled: true, allow_redirects: 'never' } },
+      { idempotencyKey },
+    )
   }
 
   async setupIntentToSubscription(setupIntentId: string): Promise<Stripe.PaymentIntent | Error> {
@@ -440,7 +443,7 @@ export class StripeService {
     return await this.stripeClient.paymentIntents.retrieve(paymentIntentId)
   }
 
-  async retrieveInvoice(invoiceId: string): Promise<Stripe.Invoice> {
+  async retrieveInvoice(invoiceId: string) {
     return await this.stripeClient.invoices.retrieve(invoiceId, {
       expand: ['charge', 'payment_intent'],
     })

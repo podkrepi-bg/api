@@ -334,7 +334,9 @@ export class StripePaymentService {
 
     // Retrieve the invoice with expanded charge and payment_intent fields
     // This is necessary because webhook events don't automatically expand related objects
-    const invoice = await this.stripeService.retrieveInvoice(invoiceFromEvent.id)
+    const invoice = (await this.stripeService.retrieveInvoice(
+      invoiceFromEvent.id,
+    )) as Stripe.Invoice
 
     Logger.log('[ handleInvoicePaid ]', invoice)
     let metadata: StripeMetadata = {
@@ -374,9 +376,12 @@ export class StripePaymentService {
 
     // The invoice was retrieved with expanded charge and payment_intent fields
     // Extract the charge object if it's expanded (not just an ID string)
+    const invoiceWithCharge = invoice as Stripe.Invoice & {
+      charge?: string | Stripe.Charge | null
+    }
     const charge =
-      typeof invoice.charge === 'object' && invoice.charge !== null
-        ? (invoice.charge as Stripe.Charge)
+      typeof invoiceWithCharge.charge === 'object' && invoiceWithCharge.charge !== null
+        ? (invoiceWithCharge.charge as Stripe.Charge)
         : undefined
 
     if (!charge) {
