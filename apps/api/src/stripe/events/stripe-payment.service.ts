@@ -332,13 +332,14 @@ export class StripePaymentService {
   async handleInvoicePaid(event: Stripe.Event) {
     const invoiceFromEvent: Stripe.Invoice = event.data.object as Stripe.Invoice
 
-    // Retrieve the invoice with expanded charge and payment_intent fields
-    // This is necessary because webhook events don't automatically expand related objects
+    // Retrieve the invoice with expanded payments array
+    // In Stripe API version 2025-03-31 (Basil) and later, invoices have a 'payments' array
+    // instead of direct 'charge' and 'payment_intent' fields
     const invoice = (await this.stripeService.retrieveInvoice(
       invoiceFromEvent.id,
     )) as Stripe.Invoice
 
-    Logger.log('[ handleInvoicePaid ]', invoice)
+    Logger.log('[ handleInvoicePaid ] invoice body', invoice)
     let metadata: StripeMetadata = {
       type: null,
       campaignId: null,
@@ -347,15 +348,15 @@ export class StripePaymentService {
       wish: null,
     }
 
-    // In newer API versions (2025-12-15+), subscription metadata is in invoice.parent.subscription_details
-    // In older API versions, we need to fetch the subscription or check line items
-    if (!invoice.parent?.type || !invoice.parent.subscription_details?.metadata) {
-      // New API version: metadata is directly in parent.subscription_details
+    Logger.log('[ handleInvoicePaid ] invoice.parent', invoice.parent)
+
+    if (!invoice?.parent?.subscription_details?.metadata) {
       throw new BadRequestException(
         'Invoice parent does not contain subscription_details. Invoice id is:  ' + invoice.id,
       )
     }
     metadata = invoice.parent.subscription_details.metadata as StripeMetadata
+    Logger.log('[ handleInvoicePaid ] metadata', metadata)
 
     if (!metadata.campaignId) {
       throw new BadRequestException(
@@ -374,15 +375,47 @@ export class StripePaymentService {
       )
     }
 
-    // The invoice was retrieved with expanded charge and payment_intent fields
-    // Extract the charge object if it's expanded (not just an ID string)
-    const invoiceWithCharge = invoice as Stripe.Invoice & {
-      charge?: string | Stripe.Charge | null
+    // Extract payment and charge from the new payments structure
+    // In API version 2025-03-31+, invoices have a 'payments' array instead of direct charge/payment_intent fields
+    type InvoiceWithPayments = Stripe.Invoice & {
+      payments?: {
+        data: Array<{
+          payment?: {
+            payment_intent?: Stripe.PaymentIntent
+          }
+        }>
+      }
     }
-    const charge =
-      typeof invoiceWithCharge.charge === 'object' && invoiceWithCharge.charge !== null
-        ? (invoiceWithCharge.charge as Stripe.Charge)
-        : undefined
+
+    const invoiceWithPayments = invoice as InvoiceWithPayments
+
+    if (!invoiceWithPayments.payments?.data || invoiceWithPayments.payments.data.length === 0) {
+      throw new BadRequestException(
+        `No payments found for invoice ${invoice.id}. The invoice may not have been paid yet.`,
+      )
+    }
+
+    // Get the first payment (for recurring subscriptions, there should typically be one payment per invoice)
+    const firstPayment = invoiceWithPayments.payments.data[0]
+    const paymentIntent = firstPayment?.payment?.payment_intent
+
+    if (!paymentIntent) {
+      throw new BadRequestException(
+        `Unable to retrieve payment intent for invoice ${invoice.id}. The payment data may not be available yet.`,
+      )
+    }
+
+    // Extract the charge from the payment intent's latest_charge field
+    const latestCharge = paymentIntent.latest_charge
+    let charge: Stripe.Charge | undefined
+
+    if (typeof latestCharge === 'string') {
+      // If latest_charge is just an ID, we need to retrieve it
+      charge = await this.stripeService.findChargeById(latestCharge)
+    } else if (latestCharge && typeof latestCharge === 'object') {
+      // If latest_charge is already expanded, use it directly
+      charge = latestCharge as Stripe.Charge
+    }
 
     if (!charge) {
       throw new BadRequestException(

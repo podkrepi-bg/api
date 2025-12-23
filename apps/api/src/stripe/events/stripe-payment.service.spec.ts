@@ -625,11 +625,22 @@ describe('StripePaymentService', () => {
     const recurring = app.get<RecurringDonationService>(RecurringDonationService)
 
     // Mock retrieveInvoice to avoid real API calls
-    // The mock should return an invoice with expanded charge and payment_intent
+    // In Stripe API version 2025-03-31 (Basil) and later, invoices have a 'payments' array
+    // instead of direct 'charge' and 'payment_intent' fields
     jest.spyOn(stripeService, 'retrieveInvoice').mockResolvedValue({
       ...(mockInvoicePaidEvent.data.object as Stripe.Invoice),
-      charge: mockCharge,
-    } as Stripe.Invoice)
+      payments: {
+        data: [
+          {
+            payment: {
+              payment_intent: {
+                latest_charge: mockCharge,
+              } as Stripe.PaymentIntent,
+            },
+          },
+        ],
+      },
+    } as any)
 
     const stripeChargeRetrieveMock = jest
       .spyOn(stripeService, 'findChargeById')
