@@ -586,12 +586,25 @@ describe('StripePaymentService', () => {
       .spyOn(campaignService, 'getCampaignById')
       .mockImplementation(() => Promise.resolve(mockedCampaign))
 
-    // Mock retrieveInvoice to avoid real API calls
-    // The mock should return an invoice with expanded charge and payment_intent
     jest.spyOn(stripeService, 'retrieveInvoice').mockResolvedValue({
       ...(mockInvoicePaidEvent.data.object as Stripe.Invoice),
-      charge: mockCharge,
-    } as Stripe.Invoice)
+      payments: {
+        data: [
+          {
+            payment: {
+              payment_intent: {
+                latest_charge: mockCharge.id,
+              } as Stripe.PaymentIntent,
+            },
+          },
+        ],
+      },
+    } as any)
+
+    // Mock findChargeById since latest_charge is not expanded
+    const mockedFindChargeById = jest
+      .spyOn(stripeService, 'findChargeById')
+      .mockResolvedValue(mockCharge)
 
     const mockedUpdateDonationPayment = jest
       .spyOn(donationService, 'updateDonationPayment')
@@ -609,6 +622,7 @@ describe('StripePaymentService', () => {
           (mockInvoicePaidEvent.data.object as Stripe.Invoice).parent.subscription_details.metadata
             .campaignId,
         ) //campaignId from the Stripe Event
+        expect(mockedFindChargeById).toHaveBeenCalledWith(mockCharge.id)
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
       })
   })
@@ -626,7 +640,7 @@ describe('StripePaymentService', () => {
 
     // Mock retrieveInvoice to avoid real API calls
     // In Stripe API version 2025-03-31 (Basil) and later, invoices have a 'payments' array
-    // instead of direct 'charge' and 'payment_intent' fields
+    // Due to the 4-level expansion limit, latest_charge will be a string ID, not an expanded object
     jest.spyOn(stripeService, 'retrieveInvoice').mockResolvedValue({
       ...(mockInvoicePaidEvent.data.object as Stripe.Invoice),
       payments: {
@@ -634,7 +648,7 @@ describe('StripePaymentService', () => {
           {
             payment: {
               payment_intent: {
-                latest_charge: mockCharge,
+                latest_charge: mockCharge.id, // String ID due to 4-level expansion limit
               } as Stripe.PaymentIntent,
             },
           },
@@ -642,6 +656,7 @@ describe('StripePaymentService', () => {
       },
     } as any)
 
+    // Mock findChargeById since latest_charge is not expanded
     const stripeChargeRetrieveMock = jest
       .spyOn(stripeService, 'findChargeById')
       .mockResolvedValue(mockCharge)
@@ -674,7 +689,8 @@ describe('StripePaymentService', () => {
           (mockInvoicePaidEvent.data.object as Stripe.Invoice).parent.subscription_details.metadata
             .campaignId,
         ) //campaignId from the Stripe Event
-        // stripeChargeRetrieveMock is not called because charge is expanded in the invoice
+        // stripeChargeRetrieveMock IS called because latest_charge is a string ID (not expanded)
+        expect(stripeChargeRetrieveMock).toHaveBeenCalledWith(mockCharge.id)
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
         expect(mockCancelSubscription).toHaveBeenCalledWith(
           mockedRecurringDonation.extSubscriptionId,
