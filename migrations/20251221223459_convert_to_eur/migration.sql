@@ -24,6 +24,11 @@ BEGIN
     currency = 'EUR'
   WHERE currency = 'BGN';
 
+  -- Update donations: convert amount (no currency field on donations)
+  UPDATE donations
+  SET amount = ROUND(amount / bgn_to_eur_rate)
+  WHERE payment_id IN (SELECT id FROM payments WHERE currency = 'BGN');
+  
   -- Update payments: convert charged_amount, amount and currency
   UPDATE payments
   SET
@@ -31,11 +36,6 @@ BEGIN
     amount = ROUND(amount / bgn_to_eur_rate),
     currency = 'EUR'
   WHERE currency = 'BGN';
-
-  -- Update donations: convert amount (no currency field on donations)
-  UPDATE donations
-  SET amount = ROUND(amount / bgn_to_eur_rate)
-  WHERE payment_id IN (SELECT id FROM payments WHERE currency = 'BGN');
 
   -- Update recurring_donations: convert amount and currency
   UPDATE recurring_donations
