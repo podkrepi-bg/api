@@ -61,6 +61,12 @@ const exportableData = {
             style: { numFmt: '#,##0.00' },
           },
           { header: 'Currency', key: 'currency', width: donationsDefaultCellWidth },
+          {
+            header: 'Amount (BGN)',
+            key: 'amountBGN',
+            width: donationsDefaultCellWidth,
+            style: { numFmt: '#,##0.00' },
+          },
           { header: 'Person', key: 'person', width: donationsDefaultCellWidth },
           { header: 'Email', key: 'email', width: donationsDefaultCellWidth },
           { header: 'BillingName', key: 'billingName', width: donationsDefaultCellWidth },
@@ -93,7 +99,18 @@ const exportableData = {
           { header: 'Sender IBAN', key: 'senderIban', width: donationsDefaultCellWidth },
           { header: 'Recipient Name', key: 'recipientName', width: donationsDefaultCellWidth },
           { header: 'Recipient IBAN', key: 'recipientIban', width: donationsDefaultCellWidth },
-          { header: 'Amount', key: 'amount', width: donationsDefaultCellWidth },
+          {
+            header: 'Amount',
+            key: 'amount',
+            width: donationsDefaultCellWidth,
+            style: { numFmt: '#,##0.00' },
+          },
+          {
+            header: 'Amount (BGN)',
+            key: 'amountBGN',
+            width: donationsDefaultCellWidth,
+            style: { numFmt: '#,##0.00' },
+          },
           { header: 'Currency', key: 'currency', width: donationsDefaultCellWidth },
           { header: 'Description', key: 'description', width: donationsDefaultCellWidth + 20 },
           {

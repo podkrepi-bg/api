@@ -24,7 +24,7 @@ import {
 } from './dto/response.dto'
 
 import { DateTime } from 'luxon'
-import { toMoney } from '../../common/money'
+import { toMoney, BGN_TO_EUR_RATE } from '../../common/money'
 import { DonationsService } from '../../donations/donations.service'
 import { CreateBankPaymentDto } from '../../donations/dto/create-bank-payment.dto'
 import { EmailService } from '../../email/email.service'
@@ -306,7 +306,6 @@ export class IrisTasks {
     transactions: IrisTransactionInfo[],
     ibanAccount: IrisIbanAccountInfo,
   ) {
-    const BGN_TO_EUR_RATE = 1.95583
     const filteredTransactions: filteredTransaction[] = []
     let matchedRef: string | null
     for (const trx of transactions) {
