@@ -27,7 +27,6 @@ import { RecurringDonationService } from '../recurring-donation/recurring-donati
 describe('StripeService', () => {
   let service: StripeService
 
-
   const mockRecurring = {
     id: '1',
     vaultId: '1',
@@ -41,7 +40,7 @@ describe('StripeService', () => {
     campaignId: '1',
     status: RecurringDonationStatus.active,
   } as RecurringDonation
-  
+
   const stripeMock = {
     checkout: { sessions: { create: jest.fn() } },
     paymentIntents: { retrieve: jest.fn() },
@@ -70,11 +69,11 @@ describe('StripeService', () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        GoLevelUpStripeModule.forRootAsync(GoLevelUpStripeModule, {
+        GoLevelUpStripeModule.forRootAsync({
           useFactory: () => moduleConfig,
         }),
         MarketingNotificationsModule,
-        NotificationModule
+        NotificationModule,
       ],
       controllers: [StripeController],
       providers: [

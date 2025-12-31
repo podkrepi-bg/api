@@ -48,7 +48,18 @@ describe('StripeController', () => {
   })
   stripeMock.products.search.mockResolvedValue({ data: [{ id: 1 }] })
   stripeMock.subscriptions.create.mockResolvedValue({
-    latest_invoice: { payment_intent: 'unique_intent' },
+    id: 'sub_test123',
+    latest_invoice: {
+      payments: {
+        data: [
+          {
+            payment: {
+              payment_intent: 'pi_test123',
+            },
+          },
+        ],
+      },
+    },
   })
 
   stripeMock.setupIntents.retrieve.mockResolvedValue({
@@ -96,7 +107,7 @@ describe('StripeController', () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        GoLevelUpStripeModule.forRootAsync(GoLevelUpStripeModule, {
+        GoLevelUpStripeModule.forRootAsync({
           useFactory: () => moduleConfig,
         }),
         MarketingNotificationsModule,
