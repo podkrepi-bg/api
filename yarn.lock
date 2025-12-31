@@ -3182,24 +3182,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/common@npm:^9.3.12":
-  version: 9.3.12
-  resolution: "@nestjs/common@npm:9.3.12"
+"@nestjs/common@npm:^10.4.16":
+  version: 10.4.19
+  resolution: "@nestjs/common@npm:10.4.19"
   dependencies:
+    file-type: 20.4.1
     iterare: 1.2.1
-    tslib: 2.5.0
-    uid: 2.0.1
+    tslib: 2.8.1
+    uid: 2.0.2
   peerDependencies:
     class-transformer: "*"
     class-validator: "*"
-    reflect-metadata: ^0.1.12
+    reflect-metadata: ^0.1.12 || ^0.2.0
     rxjs: ^7.1.0
   peerDependenciesMeta:
     class-transformer:
       optional: true
     class-validator:
       optional: true
-  checksum: c31a3bc16362cc537865c5285161b92113118f0e952d95390525b19f3c999a76ad952ead9db969735afd22ca2cc085b40e1a258fde3351e2b5028d9fdbbf9967
+  checksum: 16615a5c56b51b872ee3edb60b7f06061b2b1800fbc819a4c859119635c3cfb90007139e1bbede8f5c5c8f05b2ee0e2e317ea7bb40fda514f19401f0e3fe21cc
   languageName: node
   linkType: hard
 
@@ -4959,6 +4960,24 @@ __metadata:
   version: 8.0.1
   resolution: "@timsuchanek/sleep-promise@npm:8.0.1"
   checksum: 46b37d3111c643f2c60d6a073f52f3af7c8283c395b93c6bca5dd96f981163537a6517ad082da120264893f86e6d65b13c027e43eabf32a62688014d967e46a5
+  languageName: node
+  linkType: hard
+
+"@tokenizer/inflate@npm:^0.2.6":
+  version: 0.2.7
+  resolution: "@tokenizer/inflate@npm:0.2.7"
+  dependencies:
+    debug: ^4.4.0
+    fflate: ^0.8.2
+    token-types: ^6.0.0
+  checksum: 0c77759d453501aa0509f6c60a3f2ec2ff6db9e33f196d077af719be6c2cc5a6b2c686e425610ed25d6416ddcb7f495a5e9ef689c8df225a80703b03e83aa956
+  languageName: node
+  linkType: hard
+
+"@tokenizer/token@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@tokenizer/token@npm:0.3.0"
+  checksum: 1d575d02d2a9f0c5a4ca5180635ebd2ad59e0f18b42a65f3d04844148b49b3db35cf00b6012a1af2d59c2ab3caca59451c5689f747ba8667ee586ad717ee58e1
   languageName: node
   linkType: hard
 
@@ -7839,6 +7858,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"debug@npm:^4.4.0":
+  version: 4.4.1
+  resolution: "debug@npm:4.4.1"
+  dependencies:
+    ms: ^2.1.3
+  peerDependenciesMeta:
+    supports-color:
+      optional: true
+  checksum: a43826a01cda685ee4cec00fb2d3322eaa90ccadbef60d9287debc2a886be3e835d9199c80070ede75a409ee57828c4c6cd80e4b154f2843f0dc95a570dc0729
+  languageName: node
+  linkType: hard
+
 "debug@npm:~3.1.0":
   version: 3.1.0
   resolution: "debug@npm:3.1.0"
@@ -8893,6 +8924,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fflate@npm:^0.8.2":
+  version: 0.8.2
+  resolution: "fflate@npm:0.8.2"
+  checksum: 29470337b85d3831826758e78f370e15cda3169c5cd4477c9b5eea2402261a74b2975bae816afabe1c15d21d98591e0d30a574f7103aa117bff60756fa3035d4
+  languageName: node
+  linkType: hard
+
 "figures@npm:3.2.0, figures@npm:^3.0.0":
   version: 3.2.0
   resolution: "figures@npm:3.2.0"
@@ -8920,6 +8958,18 @@ __metadata:
   peerDependencies:
     webpack: ^4.0.0 || ^5.0.0
   checksum: faf43eecf233f4897b0150aaa874eeeac214e4f9de49738a9e0ef734a30b5260059e85b7edadf852b98e415f875bd5f12587768a93fd52aaf2e479ecf95fab20
+  languageName: node
+  linkType: hard
+
+"file-type@npm:20.4.1":
+  version: 20.4.1
+  resolution: "file-type@npm:20.4.1"
+  dependencies:
+    "@tokenizer/inflate": ^0.2.6
+    strtok3: ^10.2.0
+    token-types: ^6.0.0
+    uint8array-extras: ^1.4.0
+  checksum: 672504dff2a15aaebaf32457be3a89fa8b09a15b0da96d82411bab9474bc18aae740a90863f3777e1493a34093994e69cfd19b5be801fdc0f7a7646d19138b40
   languageName: node
   linkType: hard
 
@@ -9901,7 +9951,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ieee754@npm:^1.1.13, ieee754@npm:^1.1.4":
+"ieee754@npm:^1.1.13, ieee754@npm:^1.1.4, ieee754@npm:^1.2.1":
   version: 1.2.1
   resolution: "ieee754@npm:1.2.1"
   checksum: 5144c0c9815e54ada181d80a0b810221a253562422e7c6c3a60b1901154184f49326ec239d618c416c1c5945a2e197107aee8d986a3dd836b53dffefd99b5e7e
@@ -12779,7 +12829,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ms@npm:2.1.3, ms@npm:^2.0.0, ms@npm:^2.1.1":
+"ms@npm:2.1.3, ms@npm:^2.0.0, ms@npm:^2.1.1, ms@npm:^2.1.3":
   version: 2.1.3
   resolution: "ms@npm:2.1.3"
   checksum: aa92de608021b242401676e35cfa5aa42dd70cbdc082b916da7fb925c542173e36bce97ea3e804923fe92c0ad991434e4a38327e15a1b5b5f945d66df615ae6d
@@ -13603,7 +13653,7 @@ __metadata:
     "@nestjs/axios": ^2.0.0
     "@nestjs/cache-manager": ^2.0.1
     "@nestjs/cli": ^9.3.0
-    "@nestjs/common": ^9.3.12
+    "@nestjs/common": ^10.4.16
     "@nestjs/config": ^2.3.1
     "@nestjs/core": ^9.3.12
     "@nestjs/jwt": ^10.0.3
@@ -15507,6 +15557,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"strtok3@npm:^10.2.0":
+  version: 10.3.1
+  resolution: "strtok3@npm:10.3.1"
+  dependencies:
+    "@tokenizer/token": ^0.3.0
+  checksum: 1d0d7817bdbbc385cc8363026825c10737975f4478dcaf99e299c7209df8fc5814c894b1e8b050111b0c3d8489bd1c2059e8e1cbd410bf625c64603884779f10
+  languageName: node
+  linkType: hard
+
 "style-loader@npm:^3.3.0":
   version: 3.3.1
   resolution: "style-loader@npm:3.3.1"
@@ -15927,6 +15986,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"token-types@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "token-types@npm:6.0.0"
+  dependencies:
+    "@tokenizer/token": ^0.3.0
+    ieee754: ^1.2.1
+  checksum: 9d4fb5fad76bb968687a03aaae37f7eb606cca54c35b840ec438bbbc9b696ad0fbbd72760248b4eed16cbb3c87ab61590c287fc6bd973583944626b7c772f47b
+  languageName: node
+  linkType: hard
+
 "tr46@npm:~0.0.3":
   version: 0.0.3
   resolution: "tr46@npm:0.0.3"
@@ -16099,6 +16168,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tslib@npm:2.8.1":
+  version: 2.8.1
+  resolution: "tslib@npm:2.8.1"
+  checksum: e4aba30e632b8c8902b47587fd13345e2827fa639e7c3121074d5ee0880723282411a8838f830b55100cbe4517672f84a2472667d355b81e8af165a55dc6203a
+  languageName: node
+  linkType: hard
+
 "tslib@npm:^1.11.1, tslib@npm:^1.8.1, tslib@npm:^1.9.0":
   version: 1.14.1
   resolution: "tslib@npm:1.14.1"
@@ -16234,6 +16310,22 @@ __metadata:
   dependencies:
     "@lukeed/csprng": ^1.0.0
   checksum: 0a3c697d8dd1f3b647afa35c411b11fd8fa2fb6dbd8a49fe109a4aa5214068c2c58781aa6e4516dfd16f0fc524fb7bba0833e9c1dc1ed3f1965b520349be9ad5
+  languageName: node
+  linkType: hard
+
+"uid@npm:2.0.2":
+  version: 2.0.2
+  resolution: "uid@npm:2.0.2"
+  dependencies:
+    "@lukeed/csprng": ^1.0.0
+  checksum: 98aabddcd6fe46f9b331b0378a93ee9cc51474348ada02006df9d10b4abc783ed596748ed9f20d7f6c5ff395dbcd1e764a65a68db6f39a31c95ae85ef13fe979
+  languageName: node
+  linkType: hard
+
+"uint8array-extras@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "uint8array-extras@npm:1.4.0"
+  checksum: 791c07e1f632cb6b4d5c0275dcac2efa4689be523f021cc78b66377872e500dbe5b4c56749367cc97892f6952bc5bccd34cf9147a2a16ccb253f3b7f94588398
   languageName: node
   linkType: hard
 
