@@ -20,6 +20,7 @@ import {
 } from '@prisma/client'
 import { Response } from 'express'
 import { getTemplateByTable } from '../export/helpers/exportableData'
+import { eurToBgn } from '../common/money'
 
 import { CampaignService } from '../campaign/campaign.service'
 import { PrismaService } from '../prisma/prisma.service'
@@ -715,6 +716,7 @@ export class DonationsService {
     const donationsMappedForExport = items.map((donation) => ({
       ...donation,
       amount: donation.amount / 100,
+      amountBGN: eurToBgn(donation.amount, true),
       person: donation.person
         ? `${donation.person.firstName} ${donation.person.lastName}`
         : 'Anonymous Donor',

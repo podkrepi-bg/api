@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.369.0",
-    "@golevelup/nestjs-stripe": "^0.7.0",
+    "@golevelup/nestjs-stripe": "1.1.1",
     "@golevelup/nestjs-webhooks": "0.2.14",
     "@keycloak/keycloak-admin-client": "18.0.0",
     "@nestjs/axios": "^2.0.0",
@@ -63,7 +63,7 @@
     "nest-keycloak-connect": "^1.9.1",
     "reflect-metadata": "0.1.13",
     "rxjs": "7.5.5",
-    "stripe": "11.14.0",
+    "stripe": "^20.1.0",
     "swagger-ui-express": "4.5.0",
     "tslib": "2.4.0",
     "xml2js": "^0.5.0"

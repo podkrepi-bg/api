@@ -103,6 +103,7 @@ export class StripeService {
         currency: metadata.currency,
         customer: customer.id,
         payment_method: paymentMethod.id,
+        automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
         confirm: true,
         metadata: {
           ...setupIntent.metadata,
@@ -119,7 +120,10 @@ export class StripeService {
    */
   async createSetupIntent(): Promise<Stripe.Response<Stripe.SetupIntent>> {
     const idempotencyKey = crypto.randomUUID()
-    return await this.stripeClient.setupIntents.create({}, { idempotencyKey })
+    return await this.stripeClient.setupIntents.create(
+      { automatic_payment_methods: { enabled: true, allow_redirects: 'never' } },
+      { idempotencyKey },
+    )
   }
 
   async setupIntentToSubscription(setupIntentId: string): Promise<Stripe.PaymentIntent | Error> {
@@ -259,13 +263,48 @@ export class StripeService {
           campaignId: metadata.campaignId,
           personId: metadata.personId,
         },
-        expand: ['latest_invoice.payment_intent'],
+        // Stripe has a 4-level expansion limit. We expand to 4 levels:
+        // 1. latest_invoice, 2. payments, 3. data, 4. payment
+        // Then we'll access payment_intent without expansion (it will be a string ID)
+        expand: ['latest_invoice.payments.data.payment'],
       },
       { idempotencyKey: `${idempotencyKey}--subscription` },
     )
     //include metadata in payment-intent
-    const invoice = subscription.latest_invoice as Stripe.Invoice
-    const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent
+    // In API version 2025-03-31+, invoices have a 'payments' array instead of direct payment_intent field
+    type InvoiceWithPayments = Stripe.Invoice & {
+      payments?: {
+        data: Array<{
+          payment?: {
+            payment_intent?: string | Stripe.PaymentIntent
+          }
+        }>
+      }
+    }
+
+    const invoice = subscription.latest_invoice as InvoiceWithPayments
+
+    if (!invoice?.payments?.data || invoice.payments.data.length === 0) {
+      throw new BadRequestException(
+        `No payments found for subscription ${subscription.id}. The invoice may not have been created yet.`,
+      )
+    }
+
+    const paymentIntentIdOrObject = invoice.payments.data[0]?.payment?.payment_intent
+
+    if (!paymentIntentIdOrObject) {
+      throw new BadRequestException(
+        `Unable to retrieve payment intent for subscription ${subscription.id}. The payment data may not be available yet.`,
+      )
+    }
+
+    // If payment_intent is a string ID, retrieve the full object
+    // If it's already an object (shouldn't happen with 4-level expansion), use it directly
+    const paymentIntent =
+      typeof paymentIntentIdOrObject === 'string'
+        ? await this.stripeClient.paymentIntents.retrieve(paymentIntentIdOrObject)
+        : paymentIntentIdOrObject
+
     return paymentIntent
   }
 
@@ -378,7 +417,10 @@ export class StripeService {
   async createPaymentIntent(
     inputDto: Stripe.PaymentIntentCreateParams,
   ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
-    return await this.stripeClient.paymentIntents.create(inputDto)
+    return await this.stripeClient.paymentIntents.create({
+      ...inputDto,
+      automatic_payment_methods: { allow_redirects: 'never', enabled: true },
+    })
   }
 
   /**
@@ -426,5 +468,25 @@ export class StripeService {
 
   async findChargeById(chargeId: string): Promise<Stripe.Charge> {
     return await this.stripeClient.charges.retrieve(chargeId)
+  }
+
+  async retrieveSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
+    return await this.stripeClient.subscriptions.retrieve(subscriptionId)
+  }
+
+  async retrievePaymentIntent(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
+    return await this.stripeClient.paymentIntents.retrieve(paymentIntentId)
+  }
+
+  async retrieveInvoice(invoiceId: string) {
+    // In Stripe API version 2025-03-31 (Basil) and later, the charge and payment_intent
+    // fields were removed from the Invoice object. Instead, invoices now have a 'payments'
+    // array to support multiple partial payments.
+    // Stripe has a 4-level expansion limit. We expand to 4 levels:
+    // 1. payments, 2. data, 3. payment, 4. payment_intent
+    // Then we'll access latest_charge without expansion (it will be a string ID)
+    return await this.stripeClient.invoices.retrieve(invoiceId, {
+      expand: ['payments.data.payment.payment_intent'],
+    })
   }
 }

@@ -2438,27 +2438,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@golevelup/nestjs-common@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@golevelup/nestjs-common@npm:2.0.0"
-  dependencies:
-    lodash: ^4.17.21
-    nanoid: ^3.3.6
-  peerDependencies:
-    "@nestjs/common": ^10.x
-  checksum: 3e114dcd981749c12411ae525b734a95ea6a6ab2a556841996cf3d5a1e3e5be437eb13d894d6e08f784a5e024fa44398baaadb49c909cbd58ff96b893ec3ab2c
-  languageName: node
-  linkType: hard
-
-"@golevelup/nestjs-discovery@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "@golevelup/nestjs-discovery@npm:4.0.1"
+"@golevelup/nestjs-discovery@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "@golevelup/nestjs-discovery@npm:6.1.1"
   dependencies:
     lodash: ^4.17.21
   peerDependencies:
-    "@nestjs/common": ^10.x
-    "@nestjs/core": ^10.x
-  checksum: 778bd1418869c0e85d7c41ff166c9bc62f99dc6d2303c15195de1be9e80fdac25a4b5913bda040fad1a2980d0825b8d3fd945b714a6ad1794df939e4052a0d95
+    "@nestjs/common": ^11.1.9
+    "@nestjs/core": ^11.1.9
+  checksum: 3e7938f9f7368dc348f25ae002eea1a360ca0b7262792e4311788a8e6798c1f0ffefe9b81cc96c381cffd01ee329f0385a3d3f24624b39eda27178c081d45ac2
   languageName: node
   linkType: hard
 
@@ -2474,28 +2462,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@golevelup/nestjs-modules@npm:^0.7.1":
-  version: 0.7.1
-  resolution: "@golevelup/nestjs-modules@npm:0.7.1"
+"@golevelup/nestjs-stripe@npm:1.1.1":
+  version: 1.1.1
+  resolution: "@golevelup/nestjs-stripe@npm:1.1.1"
   dependencies:
-    lodash: ^4.17.21
+    "@golevelup/nestjs-discovery": ^6.1.1
   peerDependencies:
-    "@nestjs/common": ^10.x
-    rxjs: ^7.x
-  checksum: 170707d7daa495656f9604a69720882d1f87188f14a1ef48a217dfd393bff3258f8fc49bfc3ff359435271c27d01bc8b81f067e0f0f962c00d7515a52aefdafe
-  languageName: node
-  linkType: hard
-
-"@golevelup/nestjs-stripe@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@golevelup/nestjs-stripe@npm:0.7.0"
-  dependencies:
-    "@golevelup/nestjs-common": ^2.0.0
-    "@golevelup/nestjs-discovery": ^4.0.1
-    "@golevelup/nestjs-modules": ^0.7.1
-  peerDependencies:
-    stripe: ^14.19.0
-  checksum: af8a304b54e9600f1b6a419e239cb4fcfd7c5e1423f9d4e397988ace01d67ab7410aa0541785f4f41ff632c501c58fa4a7722d9c6668d90b17d58227844fcad3
+    stripe: ^20.1.0
+  checksum: 16808ffb2a99019d73704e90c79893582067bdd1a123c9b9d73e0ebfab3f4d78a374ae397141490e015073028e6515aec93e6efb147db9672b42a73be82cc5ec
   languageName: node
   linkType: hard
 
@@ -5344,7 +5318,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:>=10.0.0, @types/node@npm:>=8.1.0":
+"@types/node@npm:*, @types/node@npm:>=10.0.0":
   version: 18.15.1
   resolution: "@types/node@npm:18.15.1"
   checksum: c63a40786919ef77c1dd26f60ffb1ed76c8b608fb156942e4d600d4536e06c19d09463a66cd76e6415f90cd281d7a1a4683e7cfd9a6f0927491853c56ffa17bf
@@ -13623,7 +13597,7 @@ __metadata:
   dependencies:
     "@aws-sdk/client-s3": ^3.369.0
     "@faker-js/faker": 7.6.0
-    "@golevelup/nestjs-stripe": ^0.7.0
+    "@golevelup/nestjs-stripe": 1.1.1
     "@golevelup/nestjs-webhooks": 0.2.14
     "@keycloak/keycloak-admin-client": 18.0.0
     "@nestjs/axios": ^2.0.0
@@ -13694,7 +13668,7 @@ __metadata:
     prisma-dbml-generator: ^0.10.0
     reflect-metadata: 0.1.13
     rxjs: 7.5.5
-    stripe: 11.14.0
+    stripe: ^20.1.0
     supertest: ^6.3.3
     swagger-ui-express: 4.5.0
     ts-jest: ^29.0.5
@@ -15499,13 +15473,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stripe@npm:11.14.0":
-  version: 11.14.0
-  resolution: "stripe@npm:11.14.0"
+"stripe@npm:^20.1.0":
+  version: 20.1.0
+  resolution: "stripe@npm:20.1.0"
   dependencies:
-    "@types/node": ">=8.1.0"
     qs: ^6.11.0
-  checksum: daaee9f33e84d04d81d90ce86fd810d0b77b0700265b30e92fe86e4cf643d4281b3322be608896570a26d7231fe78d71c5e25c4122daf5c3f5eebe87dfd33952
+  peerDependencies:
+    "@types/node": ">=16"
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+  checksum: 6177f41cf5cbc0f9a44f1f5d85ff10963111e5455e82203b93a0b814aca0cfc85774ddf9df12b7fb6e608b4980fad6e278a3e3e89b26a0e2857000de530a47d0
   languageName: node
   linkType: hard
 

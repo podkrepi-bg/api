@@ -12,6 +12,7 @@ import {
 } from '@prisma/client'
 import { ExportService } from '../export/export.service'
 import { getTemplateByTable } from '../export/helpers/exportableData'
+import { eurToBgn } from '../common/money'
 import { Prisma } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { Response } from 'express'
@@ -116,6 +117,7 @@ export class BankTransactionsService {
     const bankTransactionsMappedForExport = items.map((trx) => ({
       ...trx,
       amount: trx.amount / 100,
+      amountBGN: eurToBgn(trx.amount, true),
     }))
     const bankTransactionsExcelTemplate = getTemplateByTable('bankTransactions')
 

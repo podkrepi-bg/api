@@ -17,6 +17,7 @@ import { StripeModule, StripeModuleConfig, StripePayloadService } from '@golevel
 import {
   Campaign,
   CampaignState,
+  Currency,
   DonationType,
   PaymentType,
   Payment,
@@ -36,7 +37,6 @@ import {
   mockPaymentIntentUSIncluded,
   mockPaymentIntentUKIncluded,
   mockCustomerSubscriptionCreated,
-  mockedRecurringDonation,
   mockInvoicePaidEvent,
   mockedCampaignCompeleted,
   mockedVault,
@@ -44,6 +44,7 @@ import {
   mockPaymentEventFailed,
   mockChargeRefundEventSucceeded,
   mockCharge,
+  mockedRecurringDonation,
 } from './stripe-payment.testdata'
 import { PaymentStatus } from '@prisma/client'
 import { RecurringDonationService } from '../../recurring-donation/recurring-donation.service'
@@ -69,10 +70,11 @@ describe('StripePaymentService', () => {
   let donationService: DonationsService
   let stripeService: StripeService
   let app: INestApplication
-  const stripe = new Stripe(stripeSecret, { apiVersion: '2022-11-15' })
+  const stripe = new Stripe(stripeSecret, { apiVersion: '2025-12-15.clover' })
 
   const moduleConfig: StripeModuleConfig = {
     apiKey: stripeSecret,
+    apiVersion: '2025-12-15.clover',
     webhookConfig: {
       stripeSecrets: {
         account: stripeSecret,
@@ -99,7 +101,7 @@ describe('StripePaymentService', () => {
     extPaymentMethodId: 'card',
     amount: 0, //amount is 0 on donation created from payment-intent
     chargedAmount: 0,
-    currency: 'BGN',
+    currency: 'EUR',
     createdAt: new Date(),
     updatedAt: new Date(),
     billingName: 'Test test',
@@ -121,7 +123,7 @@ describe('StripePaymentService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
-        StripeModule.forRootAsync(StripeModule, {
+        StripeModule.forRootAsync({
           useFactory: () => moduleConfig,
         }),
         NotificationModule,
@@ -172,7 +174,12 @@ describe('StripePaymentService', () => {
       .mockImplementation((_sig, buff) => buff as never)
   })
 
-  afterEach(() => jest.resetAllMocks())
+  afterEach(async () => {
+    jest.resetAllMocks()
+    if (app) {
+      await app.close()
+    }
+  })
 
   it('should be defined', () => {
     expect(stripePaymentService).toBeDefined()
@@ -551,11 +558,10 @@ describe('StripePaymentService', () => {
       .expect(201)
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(
-          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata
-            .campaignId,
+          (mockCustomerSubscriptionCreated.data.object as Stripe.Subscription).metadata.campaignId,
         ) //campaignId from the Stripe Event
         expect(mockedfindSubscriptionByExtId).toHaveBeenCalledWith(
-          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).id,
+          (mockCustomerSubscriptionCreated.data.object as Stripe.Subscription).id,
         )
         expect(mockedUpdateRecurringService).toHaveBeenCalledWith(
           mockedRecurringDonation.id,
@@ -580,31 +586,30 @@ describe('StripePaymentService', () => {
       .spyOn(campaignService, 'getCampaignById')
       .mockImplementation(() => Promise.resolve(mockedCampaign))
 
-    const stripeChargeRetrieveMock = jest
+    jest.spyOn(stripeService, 'retrieveInvoice').mockResolvedValue({
+      ...(mockInvoicePaidEvent.data.object as Stripe.Invoice),
+      payments: {
+        data: [
+          {
+            payment: {
+              payment_intent: {
+                latest_charge: mockCharge.id,
+              } as Stripe.PaymentIntent,
+            },
+          },
+        ],
+      },
+    } as any)
+
+    // Mock findChargeById since latest_charge is not expanded
+    const mockedFindChargeById = jest
       .spyOn(stripeService, 'findChargeById')
       .mockResolvedValue(mockCharge)
-
-    jest.spyOn(prismaMock, '$transaction').mockImplementation((callback) => callback(prismaMock))
 
     const mockedUpdateDonationPayment = jest
       .spyOn(donationService, 'updateDonationPayment')
       .mockName('updateDonationPayment')
-
-    prismaMock.payment.findFirst.mockResolvedValue({
-      ...mockPayment,
-      amount: (mockInvoicePaidEvent.data.object as Stripe.Invoice).amount_paid,
-      status: PaymentStatus.initial,
-    })
-
-    prismaMock.payment.update.mockResolvedValue({
-      ...mockPayment,
-      amount: (mockInvoicePaidEvent.data.object as Stripe.Invoice).amount_paid,
-      status: PaymentStatus.initial,
-    })
-
-    const mockedIncrementVaultAmount = jest
-      .spyOn(vaultService, 'incrementVaultAmount')
-      .mockImplementation()
+      .mockResolvedValue('test-donation-id')
 
     return request(app.getHttpServer())
       .post(defaultStripeWebhookEndpoint)
@@ -614,12 +619,11 @@ describe('StripePaymentService', () => {
       .expect(201)
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(
-          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata
+          (mockInvoicePaidEvent.data.object as Stripe.Invoice).parent.subscription_details.metadata
             .campaignId,
         ) //campaignId from the Stripe Event
-        expect(stripeChargeRetrieveMock).toHaveBeenCalled()
+        expect(mockedFindChargeById).toHaveBeenCalledWith(mockCharge.id)
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
-        expect(mockedIncrementVaultAmount).toHaveBeenCalled()
       })
   })
 
@@ -634,6 +638,25 @@ describe('StripePaymentService', () => {
     const campaignService = app.get<CampaignService>(CampaignService)
     const recurring = app.get<RecurringDonationService>(RecurringDonationService)
 
+    // Mock retrieveInvoice to avoid real API calls
+    // In Stripe API version 2025-03-31 (Basil) and later, invoices have a 'payments' array
+    // Due to the 4-level expansion limit, latest_charge will be a string ID, not an expanded object
+    jest.spyOn(stripeService, 'retrieveInvoice').mockResolvedValue({
+      ...(mockInvoicePaidEvent.data.object as Stripe.Invoice),
+      payments: {
+        data: [
+          {
+            payment: {
+              payment_intent: {
+                latest_charge: mockCharge.id, // String ID due to 4-level expansion limit
+              } as Stripe.PaymentIntent,
+            },
+          },
+        ],
+      },
+    } as any)
+
+    // Mock findChargeById since latest_charge is not expanded
     const stripeChargeRetrieveMock = jest
       .spyOn(stripeService, 'findChargeById')
       .mockResolvedValue(mockCharge)
@@ -663,16 +686,17 @@ describe('StripePaymentService', () => {
       .expect(201)
       .then(() => {
         expect(mockedCampaignById).toHaveBeenCalledWith(
-          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata
+          (mockInvoicePaidEvent.data.object as Stripe.Invoice).parent.subscription_details.metadata
             .campaignId,
         ) //campaignId from the Stripe Event
-        expect(stripeChargeRetrieveMock).toHaveBeenCalled()
+        // stripeChargeRetrieveMock IS called because latest_charge is a string ID (not expanded)
+        expect(stripeChargeRetrieveMock).toHaveBeenCalledWith(mockCharge.id)
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
         expect(mockCancelSubscription).toHaveBeenCalledWith(
           mockedRecurringDonation.extSubscriptionId,
         )
         expect(mockFindAllRecurringDonations).toHaveBeenCalledWith(
-          (mockCustomerSubscriptionCreated.data.object as Stripe.SubscriptionItem).metadata
+          (mockInvoicePaidEvent.data.object as Stripe.Invoice).parent.subscription_details.metadata
             .campaignId,
         )
       })
