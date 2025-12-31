@@ -306,6 +306,7 @@ export class IrisTasks {
     transactions: IrisTransactionInfo[],
     ibanAccount: IrisIbanAccountInfo,
   ) {
+    const BGN_TO_EUR_RATE = 1.95583
     const filteredTransactions: filteredTransaction[] = []
     let matchedRef: string | null
     for (const trx of transactions) {
@@ -335,6 +336,20 @@ export class IrisTasks {
       }
       const id = trx.transactionId?.trim() || ''
 
+      // Convert BGN to EUR, keep other currencies as-is
+      let amount: number
+      let currency: Currency
+      if (transactionAmount.currency === 'BGN') {
+        // Convert BGN to EUR: divide by the fixed rate
+        const eurAmount = Number(transactionAmount.amount) / BGN_TO_EUR_RATE
+        amount = toMoney(eurAmount)
+        currency = Currency.EUR
+      } else {
+        // Keep original currency and amount
+        amount = toMoney(transactionAmount.amount)
+        currency = transactionAmount.currency as Currency
+      }
+
       filteredTransactions.push({
         id: id,
         ibanNumber: ibanAccount.iban,
@@ -346,8 +361,8 @@ export class IrisTasks {
         senderIban: trx.debtorAccount?.iban?.trim(),
         recipientIban: trx.creditorAccount?.iban?.trim(),
         type: trx.creditDebitIndicator === 'CREDIT' ? 'credit' : 'debit',
-        amount: toMoney(transactionAmount.amount),
-        currency: transactionAmount.currency,
+        amount: amount,
+        currency: currency,
         description: trx.remittanceInformationUnstructured?.trim(),
         // Not saved in the DB, it's added only for convinience and efficiency
         matchedRef: matchedRef ? matchedRef : null,

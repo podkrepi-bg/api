@@ -76,7 +76,7 @@ describe('ImportTransactionsTask', () => {
         id: 'payment-id',
         type: 'single',
         status: 'guaranteed',
-        amount: 5000,
+        amount: 2556, // BGN 50 / 1.95583 = EUR 25.56 = 2556 cents
         affiliateId: 'affiliate-id',
         extCustomerId: '',
         extPaymentIntentId: '123456',
@@ -84,7 +84,7 @@ describe('ImportTransactionsTask', () => {
         billingEmail: 'test@podkrepi.bg',
         billingName: 'John doe',
         chargedAmount: 0,
-        currency: 'BGN',
+        currency: 'EUR',
         createdAt: new Date('2023-03-14T00:00:00.000Z'),
         updatedAt: new Date('2023-03-14T00:00:00.000Z'),
         provider: 'bank',
@@ -92,7 +92,7 @@ describe('ImportTransactionsTask', () => {
           {
             type: DonationType.donation,
             id: '123',
-            amount: 50,
+            amount: 2556,
             targetVaultId: '1',
             paymentId: 'payment-id',
             createdAt: new Date('2023-03-14T00:00:00.000Z'),
@@ -367,15 +367,22 @@ describe('ImportTransactionsTask', () => {
       expect(processDonationsSpy).toHaveBeenCalledWith(
         // Outgoing and Stripe payments should have been filtered
         expect.arrayContaining(
-          filteredIrisTransactions.map((trx) =>
-            expect.objectContaining({
+          filteredIrisTransactions.map((trx) => {
+            // Calculate expected amount: BGN is converted to EUR, others stay as-is
+            const BGN_TO_EUR_RATE = 1.95583
+            const expectedAmount =
+              trx.transactionAmount.currency === 'BGN'
+                ? Math.round((Number(trx.transactionAmount.amount) / BGN_TO_EUR_RATE) * 100)
+                : toMoney(trx.transactionAmount.amount)
+
+            return expect.objectContaining({
               id: trx.transactionId,
               description: trx.remittanceInformationUnstructured,
-              amount: toMoney(trx.transactionAmount.amount),
+              amount: expectedAmount,
               transactionDate: new Date(trx.valueDate),
               type: trx.creditDebitIndicator.toLowerCase(),
-            }),
-          ),
+            })
+          }),
         ),
       )
       expect(prismaMock.campaign.findMany).toHaveBeenCalledWith(
@@ -426,16 +433,18 @@ describe('ImportTransactionsTask', () => {
         }),
       )
 
+      // BGN 50 / 1.95583 = EUR 25.56 = 2556 cents
+      const expectedAmount = 2556
       expect(donationSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          amount: 5000,
+          amount: expectedAmount,
           billingName: 'JOHN DOE',
           createdAt: new Date('2023-03-14T00:00:00.000Z'),
-          currency: 'BGN',
+          currency: 'EUR',
           donations: {
             create: {
               personId: null,
-              amount: 5000,
+              amount: expectedAmount,
               createdAt: new Date('2023-03-14T00:00:00.000Z'),
               targetVaultId: 'vault-id',
               type: 'donation',
@@ -455,15 +464,22 @@ describe('ImportTransactionsTask', () => {
       expect(saveTrxSpy).toHaveBeenCalledWith(
         // Outgoing and Stripe payments should have been filtered
         expect.arrayContaining(
-          filteredIrisTransactions.map((trx) =>
-            expect.objectContaining({
+          filteredIrisTransactions.map((trx) => {
+            // Calculate expected amount: BGN is converted to EUR, others stay as-is
+            const BGN_TO_EUR_RATE = 1.95583
+            const expectedAmount =
+              trx.transactionAmount.currency === 'BGN'
+                ? Math.round((Number(trx.transactionAmount.amount) / BGN_TO_EUR_RATE) * 100)
+                : toMoney(trx.transactionAmount.amount)
+
+            return expect.objectContaining({
               id: trx.transactionId,
               description: trx.remittanceInformationUnstructured,
-              amount: toMoney(trx.transactionAmount.amount),
+              amount: expectedAmount,
               transactionDate: new Date(trx.valueDate),
               type: trx.creditDebitIndicator.toLowerCase(),
-            }),
-          ),
+            })
+          }),
         ),
       )
 
@@ -487,15 +503,22 @@ describe('ImportTransactionsTask', () => {
       expect(notifyUnrecognizedSpy).toHaveBeenCalledWith(
         // Outgoing and Stripe payments should have been filtered
         expect.arrayContaining(
-          filteredIrisTransactions.map((trx) =>
-            expect.objectContaining({
+          filteredIrisTransactions.map((trx) => {
+            // Calculate expected amount: BGN is converted to EUR, others stay as-is
+            const BGN_TO_EUR_RATE = 1.95583
+            const expectedAmount =
+              trx.transactionAmount.currency === 'BGN'
+                ? Math.round((Number(trx.transactionAmount.amount) / BGN_TO_EUR_RATE) * 100)
+                : toMoney(trx.transactionAmount.amount)
+
+            return expect.objectContaining({
               id: trx.transactionId,
               description: trx.remittanceInformationUnstructured,
-              amount: toMoney(trx.transactionAmount.amount),
+              amount: expectedAmount,
               transactionDate: new Date(trx.valueDate),
               type: trx.creditDebitIndicator.toLowerCase(),
-            }),
-          ),
+            })
+          }),
         ),
       )
 
@@ -641,6 +664,59 @@ describe('ImportTransactionsTask', () => {
         type: 'credit',
         amount: 3056,
         currency: 'USD',
+        description: '98XF-SZ50-RC8H',
+        matchedRef: '98XF-SZ50-RC8H',
+      }
+
+      expect(actual).toEqual(expected)
+    })
+
+    it('should convert BGN currency to EUR', () => {
+      const bgnTransaction: IrisTransactionInfo = {
+        transactionId: 'Booked_6516347588_70001524349032963FTRO23184809601C2023010361.12_20230103',
+        bookingDate: '2023-01-03',
+        creditorAccount: {
+          iban: 'BG66UNCR70001524349032',
+        },
+        creditorName: 'СДРУЖЕНИЕ ПОДКРЕПИ БГ',
+        debtorAccount: {
+          iban: 'BG21UNCR111111111111',
+        },
+        debtorName: 'Name not relevant for the example',
+        remittanceInformationUnstructured: '98XF-SZ50-RC8H',
+        transactionAmount: {
+          amount: 100.0,
+          currency: 'BGN',
+        },
+        exchangeRate: null,
+        valueDate: '2023-01-03',
+        creditDebitIndicator: 'CREDIT',
+      }
+
+      // eslint-disable-next-line
+      // @ts-ignore
+      const preparedTransactions = irisTasks.prepareBankTransactionRecords(
+        [bgnTransaction],
+        irisIBANAccountMock,
+      )
+
+      expect(preparedTransactions.length).toEqual(1)
+      const actual = preparedTransactions[0]
+
+      // We expect BGN transactions to be converted to EUR
+      // 100 BGN / 1.95583 = 51.13 EUR = 5113 cents
+      const expected = {
+        id: 'Booked_6516347588_70001524349032963FTRO23184809601C2023010361.12_20230103',
+        ibanNumber: 'BG66UNCR70009994349032',
+        bankName: 'UniCredit',
+        transactionDate: new Date('2023-01-03T00:00:00.000Z'),
+        senderName: 'Name not relevant for the example',
+        recipientName: 'СДРУЖЕНИЕ ПОДКРЕПИ БГ',
+        senderIban: 'BG21UNCR111111111111',
+        recipientIban: 'BG66UNCR70001524349032',
+        type: 'credit',
+        amount: 5113,
+        currency: 'EUR',
         description: '98XF-SZ50-RC8H',
         matchedRef: '98XF-SZ50-RC8H',
       }

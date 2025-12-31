@@ -7,5 +7,5 @@
  */
 export function toMoney(amount: number | string): number {
   const value = Number(amount)
-  return Math.round((value + Number.EPSILON) * 100 * 100) / 100
+  return Math.round((value + Number.EPSILON) * 100)
 }
