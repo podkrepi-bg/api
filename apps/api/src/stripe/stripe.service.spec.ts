@@ -64,7 +64,13 @@ describe('StripeService', () => {
     checkout: { sessions: { create: jest.fn() } },
     paymentIntents: { retrieve: jest.fn() },
     refunds: { create: jest.fn() },
-    subscriptions: { cancel: jest.fn(), retrieve: jest.fn(), update: jest.fn(), list: jest.fn() },
+    subscriptions: {
+      cancel: jest.fn(),
+      retrieve: jest.fn(),
+      update: jest.fn(),
+      list: jest.fn(),
+      create: jest.fn(),
+    },
   }
   stripeMock.checkout.sessions.create.mockResolvedValue({ payment_intent: 'unique-intent' })
   stripeMock.paymentIntents.retrieve.mockResolvedValue({
@@ -144,17 +150,42 @@ describe('StripeService', () => {
   })
 
   describe('convertSingleSubscriptionCurrency', () => {
+    // Mock subscription with all required fields for currency conversion
     const mockBgnSubscription = {
       id: 'sub_bgn_123',
+      customer: 'cus_123',
       metadata: { campaignId: 'campaign-123' },
       items: {
         data: [
           {
             id: 'si_123',
+            current_period_end: Math.floor(Date.now() / 1000) + 86400 * 15, // 15 days from now
             price: {
               id: 'price_123',
               currency: 'bgn',
               unit_amount: 1956, // 19.56 BGN
+              product: 'prod_123',
+              recurring: { interval: 'month', interval_count: 1 },
+            },
+          },
+        ],
+      },
+    }
+
+    // Mock for the new subscription created after conversion
+    const mockNewSubscription = {
+      id: 'sub_eur_456',
+      customer: 'cus_123',
+      metadata: { campaignId: 'campaign-123' },
+      items: {
+        data: [
+          {
+            id: 'si_456',
+            current_period_end: Math.floor(Date.now() / 1000) + 86400 * 15,
+            price: {
+              id: 'price_456',
+              currency: 'eur',
+              unit_amount: 1000,
               product: 'prod_123',
               recurring: { interval: 'month', interval_count: 1 },
             },
@@ -192,6 +223,8 @@ describe('StripeService', () => {
     it('should convert BGN subscription to EUR and update Stripe', async () => {
       stripeMock.subscriptions.retrieve.mockResolvedValue(mockBgnSubscription)
       stripeMock.subscriptions.update.mockResolvedValue({ id: 'sub_bgn_123' })
+      stripeMock.subscriptions.cancel.mockResolvedValue({ id: 'sub_bgn_123' })
+      stripeMock.subscriptions.create.mockResolvedValue(mockNewSubscription)
       prismaMock.recurringDonation.findFirst.mockResolvedValue(mockBgnRecurring)
       prismaMock.recurringDonation.update.mockResolvedValue(mockBgnRecurring)
 
@@ -203,9 +236,34 @@ describe('StripeService', () => {
       const result = await service.convertSingleSubscriptionCurrency('sub_bgn_123', dto)
 
       expect(result.success).toBe(true)
+      // Should update old subscription metadata with cancelReason, cancel it, create new subscription
       expect(stripeMock.subscriptions.update).toHaveBeenCalledWith(
         'sub_bgn_123',
-        expect.any(Object),
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            cancelReason: 'currency_conversion',
+          }),
+        }),
+      )
+      expect(stripeMock.subscriptions.cancel).toHaveBeenCalledWith('sub_bgn_123', {
+        prorate: false,
+      })
+      // New subscription is created with inline price_data (not a separate price)
+      expect(stripeMock.subscriptions.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customer: 'cus_123',
+          items: expect.arrayContaining([
+            expect.objectContaining({
+              price_data: expect.objectContaining({
+                currency: 'eur', // lowercase as sent to Stripe
+                unit_amount: expect.any(Number),
+              }),
+            }),
+          ]),
+          metadata: expect.objectContaining({
+            originalSubscriptionId: 'sub_bgn_123',
+          }),
+        }),
       )
       expect(prismaMock.recurringDonation.update).toHaveBeenCalled()
     })
@@ -277,12 +335,15 @@ describe('StripeService', () => {
   })
 
   describe('convertSubscriptionsCurrency', () => {
+    // Empty response for when there are no subscriptions
+    const emptySubscriptions = { data: [], has_more: false }
+
     beforeEach(() => {
       jest.clearAllMocks()
     })
 
     it('should convert all BGN subscriptions to EUR in bulk', async () => {
-      const mockSubscriptions = {
+      const mockActiveSubscriptions = {
         data: [
           {
             id: 'sub_1',
@@ -321,7 +382,10 @@ describe('StripeService', () => {
         ],
         has_more: false,
       }
-      stripeMock.subscriptions.list.mockResolvedValue(mockSubscriptions)
+      // Mock returns active subscriptions on first call, empty for trialing
+      stripeMock.subscriptions.list
+        .mockResolvedValueOnce(mockActiveSubscriptions)
+        .mockResolvedValueOnce(emptySubscriptions)
 
       const dto: ConvertSubscriptionsCurrencyDto = {
         sourceCurrency: Currency.BGN,
@@ -363,7 +427,10 @@ describe('StripeService', () => {
         ],
         has_more: false,
       }
-      stripeMock.subscriptions.list.mockResolvedValue(mockSubscriptions)
+      // Mock returns EUR subscription for active, empty for trialing
+      stripeMock.subscriptions.list
+        .mockResolvedValueOnce(mockSubscriptions)
+        .mockResolvedValueOnce(emptySubscriptions)
 
       const dto: ConvertSubscriptionsCurrencyDto = {
         sourceCurrency: Currency.BGN,
@@ -434,7 +501,11 @@ describe('StripeService', () => {
         ],
         has_more: false,
       }
-      stripeMock.subscriptions.list.mockResolvedValueOnce(page1).mockResolvedValueOnce(page2)
+      // page1 (has_more) -> page2 (no more) for active, then empty for trialing
+      stripeMock.subscriptions.list
+        .mockResolvedValueOnce(page1)
+        .mockResolvedValueOnce(page2)
+        .mockResolvedValueOnce(emptySubscriptions)
 
       const dto: ConvertSubscriptionsCurrencyDto = {
         sourceCurrency: Currency.BGN,
@@ -446,7 +517,8 @@ describe('StripeService', () => {
       const result = await service.convertSubscriptionsCurrency(dto)
 
       expect(result.totalFound).toBe(2)
-      expect(stripeMock.subscriptions.list).toHaveBeenCalledTimes(2)
+      // Called 3 times: 2 for active (pagination), 1 for trialing (empty)
+      expect(stripeMock.subscriptions.list).toHaveBeenCalledTimes(3)
     })
   })
 

@@ -16,7 +16,7 @@ import {
   RecurringDonationStatus,
 } from '@prisma/client'
 import { ConfigService } from '@nestjs/config'
-import { StripeMetadata } from './stripe-metadata.interface'
+import { InvoiceWithPayments, StripeMetadata } from './stripe-metadata.interface'
 import { CreateStripePaymentDto } from '../donations/dto/create-stripe-payment.dto'
 import { RecurringDonationService } from '../recurring-donation/recurring-donation.service'
 import * as crypto from 'crypto'
@@ -148,7 +148,6 @@ export class StripeService {
     const email = paymentMethod.billing_details.email as string
     const name = paymentMethod.billing_details.name as string
     const metadata = setupIntent.metadata as Stripe.Metadata
-    Logger.log('Currency is ' + metadata.currency)
 
     const customer = await this.createCustomer(email, name, paymentMethod)
     await this.attachPaymentMethodToCustomer(paymentMethod, customer)
@@ -255,7 +254,6 @@ export class StripeService {
     paymentMethod: Stripe.PaymentMethod,
   ) {
     const idempotencyKey = crypto.randomUUID()
-    Logger.log('Currency is ' + metadata.currency)
 
     const subscription = await this.stripeClient.subscriptions.create(
       {
@@ -289,16 +287,6 @@ export class StripeService {
     )
     //include metadata in payment-intent
     // In API version 2025-03-31+, invoices have a 'payments' array instead of direct payment_intent field
-    type InvoiceWithPayments = Stripe.Invoice & {
-      payments?: {
-        data: Array<{
-          payment?: {
-            payment_intent?: string | Stripe.PaymentIntent
-          }
-        }>
-      }
-    }
-
     const invoice = subscription.latest_invoice as InvoiceWithPayments
 
     if (!invoice?.payments?.data || invoice.payments.data.length === 0) {
@@ -689,54 +677,76 @@ export class StripeService {
     let failedCount = 0
     let skippedCount = 0
 
+    // Rate limiting: delay between API calls to avoid hitting Stripe rate limits
+    // Stripe allows ~100 requests/second in live mode, ~25/second in test mode
+    const delayBetweenConversions = dto.delayMs ?? 100 // milliseconds between each conversion
+
     Logger.log(
       `[Stripe] Starting bulk currency conversion: ${dto.sourceCurrency} -> ${dto.targetCurrency} ` +
-        `(rate: ${exchangeRate}, dryRun: ${dto.dryRun ?? false})`,
+        `(rate: ${exchangeRate}, dryRun: ${
+          dto.dryRun ?? false
+        }, delay: ${delayBetweenConversions}ms)`,
     )
 
+    // Helper function to add delay
+    const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
     try {
-      // Fetch all subscriptions with pagination
-      let hasMore = true
-      let startingAfter: string | undefined = undefined
+      // Fetch subscriptions with pagination
+      // Include both 'active' and 'trialing' statuses as both represent valid recurring donations
+      const statusesToConvert: Stripe.SubscriptionListParams['status'][] = ['active', 'trialing']
 
-      while (hasMore) {
-        const listParams: Stripe.SubscriptionListParams = {
-          limit: batchSize,
-          status: 'active',
-          expand: ['data.items.data.price'],
-          ...(startingAfter && { starting_after: startingAfter }),
-        }
+      for (const status of statusesToConvert) {
+        let hasMore = true
+        let startingAfter: string | undefined = undefined
 
-        const subscriptions = await this.listSubscriptions(listParams)
+        Logger.debug(`[Stripe] Fetching subscriptions with status: ${status}`)
 
-        for (const subscription of subscriptions.data) {
-          const result = await this.processSubscriptionConversion(
-            subscription,
-            dto.sourceCurrency,
-            dto.targetCurrency,
-            exchangeRate,
-            dto.dryRun ?? false,
-          )
-
-          results.push(result)
-          totalFound++
-
-          if (result.success) {
-            if (result.originalCurrency !== dto.sourceCurrency) {
-              skippedCount++ // Not matching source currency
-            } else if (result.originalCurrency === dto.targetCurrency) {
-              skippedCount++ // Already in target currency
-            } else {
-              successCount++
-            }
-          } else {
-            failedCount++
+        while (hasMore) {
+          const listParams: Stripe.SubscriptionListParams = {
+            limit: batchSize,
+            status,
+            expand: ['data.items.data.price'],
+            ...(startingAfter && { starting_after: startingAfter }),
           }
-        }
 
-        hasMore = subscriptions.has_more
-        if (subscriptions.data.length > 0) {
-          startingAfter = subscriptions.data[subscriptions.data.length - 1].id
+          const subscriptions = await this.listSubscriptions(listParams)
+
+          for (const subscription of subscriptions.data) {
+            const result = await this.processSubscriptionConversion(
+              subscription,
+              dto.sourceCurrency,
+              dto.targetCurrency,
+              exchangeRate,
+              dto.dryRun ?? false,
+            )
+
+            results.push(result)
+            totalFound++
+
+            if (result.success) {
+              if (result.originalCurrency !== dto.sourceCurrency) {
+                skippedCount++ // Not matching source currency
+              } else if (result.originalCurrency === dto.targetCurrency) {
+                skippedCount++ // Already in target currency
+              } else {
+                successCount++
+              }
+            } else {
+              failedCount++
+            }
+
+            // Add delay between conversions to respect Stripe rate limits
+            // Only delay for actual conversions (not dry runs and not skipped)
+            if (!dto.dryRun && result.success && result.originalCurrency === dto.sourceCurrency) {
+              await delay(delayBetweenConversions)
+            }
+          }
+
+          hasMore = subscriptions.has_more
+          if (subscriptions.data.length > 0) {
+            startingAfter = subscriptions.data[subscriptions.data.length - 1].id
+          }
         }
       }
     } catch (error) {

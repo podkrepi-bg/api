@@ -44,6 +44,17 @@ export class ConvertSubscriptionsCurrencyDto {
   @IsNumber()
   @IsOptional()
   batchSize?: number
+
+  @ApiPropertyOptional({
+    description:
+      'Delay in milliseconds between each conversion to respect Stripe rate limits. ' +
+      'Stripe allows ~100 requests/second in live mode, ~25/second in test mode.',
+    default: 100,
+  })
+  @Expose()
+  @IsNumber()
+  @IsOptional()
+  delayMs?: number
 }
 
 /**
