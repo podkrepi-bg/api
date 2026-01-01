@@ -7,7 +7,12 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { StripeController } from './stripe.controller'
 import { StripeService } from './stripe.service'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
-import { Campaign, CampaignState } from '@prisma/client'
+import { PrismaService } from '../prisma/prisma.service'
+import { Campaign, CampaignState, Currency } from '@prisma/client'
+import {
+  ConvertSubscriptionsCurrencyDto,
+  ConvertSingleSubscriptionCurrencyDto,
+} from './dto/currency-conversion.dto'
 import { CreateSessionDto } from '../donations/dto/create-session.dto'
 import { forwardRef, NotAcceptableException } from '@nestjs/common'
 import { PersonService } from '../person/person.service'
@@ -31,6 +36,7 @@ import { PrismaModule } from '../prisma/prisma.module'
 import { RecurringDonationService } from '../recurring-donation/recurring-donation.service'
 describe('StripeController', () => {
   let controller: StripeController
+  let stripeService: StripeService
   const stripeMock = {
     checkout: { sessions: { create: jest.fn() } },
     paymentIntents: { retrieve: jest.fn() },
@@ -39,7 +45,7 @@ describe('StripeController', () => {
     customers: { create: jest.fn(), list: jest.fn() },
     paymentMethods: { attach: jest.fn() },
     products: { search: jest.fn(), create: jest.fn() },
-    subscriptions: { create: jest.fn() },
+    subscriptions: { create: jest.fn(), retrieve: jest.fn(), update: jest.fn(), list: jest.fn() },
   }
   stripeMock.checkout.sessions.create.mockResolvedValue({ payment_intent: 'unique-intent' })
   stripeMock.paymentIntents.retrieve.mockResolvedValue({
@@ -130,9 +136,13 @@ describe('StripeController', () => {
           useValue: stripeMock,
         },
       ],
-    }).compile()
+    })
+      .overrideProvider(PrismaService)
+      .useValue(prismaMock)
+      .compile()
 
     controller = module.get<StripeController>(StripeController)
+    stripeService = module.get<StripeService>(StripeService)
   })
 
   it('should be defined', () => {
@@ -258,5 +268,177 @@ describe('StripeController', () => {
     } catch (err) {
       throw new Error(JSON.stringify(err))
     }
+  })
+
+  describe('currency conversion endpoints', () => {
+    const mockBgnSubscription = {
+      id: 'sub_bgn_123',
+      metadata: { campaignId: 'campaign-123' },
+      items: {
+        data: [
+          {
+            id: 'si_123',
+            price: {
+              id: 'price_123',
+              currency: 'bgn',
+              unit_amount: 1956,
+              product: 'prod_123',
+              recurring: { interval: 'month', interval_count: 1 },
+            },
+          },
+        ],
+      },
+    }
+
+    describe('convertSubscriptionsCurrency', () => {
+      it('should call service to convert all subscriptions', async () => {
+        const mockResponse = {
+          totalFound: 2,
+          successCount: 2,
+          failedCount: 0,
+          skippedCount: 0,
+          exchangeRate: 0.5113,
+          sourceCurrency: Currency.BGN,
+          targetCurrency: Currency.EUR,
+          dryRun: true,
+          results: [],
+          startedAt: new Date(),
+          completedAt: new Date(),
+        }
+
+        const convertSpy = jest
+          .spyOn(stripeService, 'convertSubscriptionsCurrency')
+          .mockResolvedValue(mockResponse)
+
+        const dto: ConvertSubscriptionsCurrencyDto = {
+          sourceCurrency: Currency.BGN,
+          targetCurrency: Currency.EUR,
+          dryRun: true,
+        }
+
+        const result = await controller.convertSubscriptionsCurrency(dto)
+
+        expect(convertSpy).toHaveBeenCalledWith(dto)
+        expect(result.totalFound).toBe(2)
+        expect(result.successCount).toBe(2)
+        expect(result.dryRun).toBe(true)
+      })
+
+      it('should pass custom exchange rate to service', async () => {
+        const mockResponse = {
+          totalFound: 1,
+          successCount: 1,
+          failedCount: 0,
+          skippedCount: 0,
+          exchangeRate: 0.5,
+          sourceCurrency: Currency.BGN,
+          targetCurrency: Currency.EUR,
+          dryRun: false,
+          results: [],
+          startedAt: new Date(),
+          completedAt: new Date(),
+        }
+
+        const convertSpy = jest
+          .spyOn(stripeService, 'convertSubscriptionsCurrency')
+          .mockResolvedValue(mockResponse)
+
+        const dto: ConvertSubscriptionsCurrencyDto = {
+          sourceCurrency: Currency.BGN,
+          targetCurrency: Currency.EUR,
+          exchangeRate: 0.5,
+          batchSize: 50,
+        }
+
+        await controller.convertSubscriptionsCurrency(dto)
+
+        expect(convertSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            exchangeRate: 0.5,
+            batchSize: 50,
+          }),
+        )
+      })
+    })
+
+    describe('convertSingleSubscriptionCurrency', () => {
+      it('should call service to convert single subscription', async () => {
+        const mockResult = {
+          subscriptionId: 'sub_bgn_123',
+          originalAmount: 1956,
+          convertedAmount: 1000,
+          originalCurrency: 'BGN',
+          targetCurrency: Currency.EUR,
+          success: true,
+          campaignId: 'campaign-123',
+        }
+
+        const convertSpy = jest
+          .spyOn(stripeService, 'convertSingleSubscriptionCurrency')
+          .mockResolvedValue(mockResult)
+
+        const dto: ConvertSingleSubscriptionCurrencyDto = {
+          targetCurrency: Currency.EUR,
+          dryRun: true,
+        }
+
+        const result = await controller.convertSingleSubscriptionCurrency('sub_bgn_123', dto)
+
+        expect(convertSpy).toHaveBeenCalledWith('sub_bgn_123', dto)
+        expect(result.success).toBe(true)
+        expect(result.subscriptionId).toBe('sub_bgn_123')
+        expect(result.convertedAmount).toBe(1000)
+      })
+
+      it('should pass custom exchange rate to service', async () => {
+        const mockResult = {
+          subscriptionId: 'sub_bgn_123',
+          originalAmount: 1956,
+          convertedAmount: 978,
+          originalCurrency: 'BGN',
+          targetCurrency: Currency.EUR,
+          success: true,
+        }
+
+        const convertSpy = jest
+          .spyOn(stripeService, 'convertSingleSubscriptionCurrency')
+          .mockResolvedValue(mockResult)
+
+        const dto: ConvertSingleSubscriptionCurrencyDto = {
+          targetCurrency: Currency.EUR,
+          exchangeRate: 0.5,
+        }
+
+        await controller.convertSingleSubscriptionCurrency('sub_123', dto)
+
+        expect(convertSpy).toHaveBeenCalledWith(
+          'sub_123',
+          expect.objectContaining({ exchangeRate: 0.5 }),
+        )
+      })
+
+      it('should return error result when conversion fails', async () => {
+        const mockResult = {
+          subscriptionId: 'sub_123',
+          originalAmount: 0,
+          convertedAmount: 0,
+          originalCurrency: 'USD',
+          targetCurrency: Currency.EUR,
+          success: false,
+          errorMessage: 'No exchange rate available for USD to EUR',
+        }
+
+        jest.spyOn(stripeService, 'convertSingleSubscriptionCurrency').mockResolvedValue(mockResult)
+
+        const dto: ConvertSingleSubscriptionCurrencyDto = {
+          targetCurrency: Currency.EUR,
+        }
+
+        const result = await controller.convertSingleSubscriptionCurrency('sub_123', dto)
+
+        expect(result.success).toBe(false)
+        expect(result.errorMessage).toContain('No exchange rate available')
+      })
+    })
   })
 })

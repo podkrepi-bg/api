@@ -8,13 +8,27 @@ import { CampaignService } from '../campaign/campaign.service'
 import { PersonService } from '../person/person.service'
 import { DonationsService } from '../donations/donations.service'
 import { CreateSessionDto } from '../donations/dto/create-session.dto'
-import { Campaign, DonationMetadata, Payment } from '@prisma/client'
+import {
+  Campaign,
+  Currency,
+  DonationMetadata,
+  Payment,
+  RecurringDonationStatus,
+} from '@prisma/client'
 import { ConfigService } from '@nestjs/config'
-import { StripeMetadata } from './stripe-metadata.interface'
+import { InvoiceWithPayments, StripeMetadata } from './stripe-metadata.interface'
 import { CreateStripePaymentDto } from '../donations/dto/create-stripe-payment.dto'
 import { RecurringDonationService } from '../recurring-donation/recurring-donation.service'
 import * as crypto from 'crypto'
 import { RealmViewSupporters } from '@podkrepi-bg/podkrepi-types'
+import { PrismaService } from '../prisma/prisma.service'
+import { getFixedExchangeRate } from '../common/money'
+import {
+  ConvertSubscriptionsCurrencyDto,
+  ConvertSubscriptionsCurrencyResponseDto,
+  ConvertSingleSubscriptionCurrencyDto,
+  SubscriptionConversionResultDto,
+} from './dto/currency-conversion.dto'
 
 @Injectable()
 export class StripeService {
@@ -23,6 +37,7 @@ export class StripeService {
     private campaignService: CampaignService,
     private donationService: DonationsService,
     private configService: ConfigService,
+    private prisma: PrismaService,
   ) {}
 
   /**
@@ -272,16 +287,6 @@ export class StripeService {
     )
     //include metadata in payment-intent
     // In API version 2025-03-31+, invoices have a 'payments' array instead of direct payment_intent field
-    type InvoiceWithPayments = Stripe.Invoice & {
-      payments?: {
-        data: Array<{
-          payment?: {
-            payment_intent?: string | Stripe.PaymentIntent
-          }
-        }>
-      }
-    }
-
     const invoice = subscription.latest_invoice as InvoiceWithPayments
 
     if (!invoice?.payments?.data || invoice.payments.data.length === 0) {
@@ -474,6 +479,18 @@ export class StripeService {
     return await this.stripeClient.subscriptions.retrieve(subscriptionId)
   }
 
+  /**
+   * List Stripe subscriptions with optional filters
+   *
+   * @param params - Stripe subscription list parameters (price, customer, status, etc.)
+   * @returns Paginated list of subscriptions
+   */
+  async listSubscriptions(
+    params?: Stripe.SubscriptionListParams,
+  ): Promise<Stripe.ApiList<Stripe.Subscription>> {
+    return await this.stripeClient.subscriptions.list(params)
+  }
+
   async retrievePaymentIntent(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
     return await this.stripeClient.paymentIntents.retrieve(paymentIntentId)
   }
@@ -488,5 +505,527 @@ export class StripeService {
     return await this.stripeClient.invoices.retrieve(invoiceId, {
       expand: ['payments.data.payment.payment_intent'],
     })
+  }
+
+  /**
+   * Convert a single Stripe subscription from its current currency to a target currency
+   *
+   * @param subscriptionId - The Stripe subscription ID to convert
+   * @param dto - Conversion parameters including target currency and options
+   * @returns Conversion result with details
+   */
+  async convertSingleSubscriptionCurrency(
+    subscriptionId: string,
+    dto: ConvertSingleSubscriptionCurrencyDto,
+  ): Promise<SubscriptionConversionResultDto> {
+    Logger.log(
+      `[Stripe] Converting single subscription ${subscriptionId} to ${dto.targetCurrency} ` +
+        `(dryRun: ${dto.dryRun ?? false})`,
+    )
+
+    try {
+      // Retrieve the subscription with expanded price data
+      const subscription = await this.stripeClient.subscriptions.retrieve(subscriptionId, {
+        expand: ['items.data.price'],
+      })
+
+      if (!subscription) {
+        throw new NotFoundException(`Subscription ${subscriptionId} not found`)
+      }
+
+      // Get the subscription item and price
+      const subscriptionItem = subscription.items.data[0]
+      if (!subscriptionItem?.price) {
+        return {
+          subscriptionId,
+          originalAmount: 0,
+          convertedAmount: 0,
+          originalCurrency: 'UNKNOWN',
+          targetCurrency: dto.targetCurrency,
+          success: false,
+          errorMessage: 'No price data found for subscription',
+          campaignId: subscription.metadata?.campaignId,
+        }
+      }
+
+      const price = subscriptionItem.price
+      const originalCurrency = price.currency.toUpperCase()
+      const originalAmount = price.unit_amount ?? 0
+
+      // Skip if already in target currency
+      if (originalCurrency === dto.targetCurrency) {
+        return {
+          subscriptionId,
+          originalAmount,
+          convertedAmount: originalAmount,
+          originalCurrency,
+          targetCurrency: dto.targetCurrency,
+          success: true,
+          campaignId: subscription.metadata?.campaignId,
+        }
+      }
+
+      // Determine exchange rate
+      const exchangeRate =
+        dto.exchangeRate ?? getFixedExchangeRate(originalCurrency, dto.targetCurrency)
+
+      if (!exchangeRate) {
+        return {
+          subscriptionId,
+          originalAmount,
+          convertedAmount: 0,
+          originalCurrency,
+          targetCurrency: dto.targetCurrency,
+          success: false,
+          errorMessage: `No exchange rate available for ${originalCurrency} to ${dto.targetCurrency}. Please provide a custom exchangeRate.`,
+          campaignId: subscription.metadata?.campaignId,
+        }
+      }
+
+      // Convert amount (amounts are in cents)
+      const convertedAmount = Math.round(originalAmount * exchangeRate)
+
+      if (!dto.dryRun) {
+        // Update the subscription in Stripe (returns new subscription ID)
+        const newSubscriptionId = await this.updateSubscriptionCurrency(
+          subscription,
+          subscriptionItem,
+          dto.targetCurrency.toLowerCase(),
+          convertedAmount,
+        )
+
+        // Update local recurring donation record with new subscription ID
+        await this.updateLocalRecurringDonation(
+          subscriptionId,
+          newSubscriptionId,
+          dto.targetCurrency,
+          convertedAmount,
+        )
+      }
+
+      Logger.log(
+        `[Stripe] Successfully converted subscription ${subscriptionId}: ` +
+          `${originalCurrency} ${originalAmount} -> ${dto.targetCurrency} ${convertedAmount}`,
+      )
+
+      return {
+        subscriptionId,
+        originalAmount,
+        convertedAmount,
+        originalCurrency,
+        targetCurrency: dto.targetCurrency,
+        success: true,
+        campaignId: subscription.metadata?.campaignId,
+      }
+    } catch (error) {
+      Logger.error(
+        `[Stripe] Failed to convert subscription ${subscriptionId}: ${error.message}`,
+        error.stack,
+      )
+
+      if (error instanceof NotFoundException) {
+        throw error
+      }
+
+      return {
+        subscriptionId,
+        originalAmount: 0,
+        convertedAmount: 0,
+        originalCurrency: 'UNKNOWN',
+        targetCurrency: dto.targetCurrency,
+        success: false,
+        errorMessage: error.message,
+      }
+    }
+  }
+
+  /**
+   * Convert all Stripe subscriptions from one currency to another
+   * Designed for Bulgaria's 2026 EUR adoption (BGN to EUR migration)
+   *
+   * This method:
+   * 1. Fetches all active subscriptions from Stripe (paginated)
+   * 2. Filters to those matching the source currency
+   * 3. Converts the amount using the provided or fixed exchange rate
+   * 4. Updates each subscription in Stripe with the new currency and amount
+   * 5. Updates the corresponding local RecurringDonation records
+   * 6. Returns detailed statistics and results
+   *
+   * @param dto - Conversion parameters including source/target currencies and options
+   * @returns Conversion results with statistics
+   */
+  async convertSubscriptionsCurrency(
+    dto: ConvertSubscriptionsCurrencyDto,
+  ): Promise<ConvertSubscriptionsCurrencyResponseDto> {
+    const startedAt = new Date()
+    const results: SubscriptionConversionResultDto[] = []
+
+    // Determine exchange rate
+    const exchangeRate =
+      dto.exchangeRate ?? getFixedExchangeRate(dto.sourceCurrency, dto.targetCurrency)
+
+    if (!exchangeRate) {
+      throw new BadRequestException(
+        `No exchange rate available for ${dto.sourceCurrency} to ${dto.targetCurrency}. ` +
+          `Please provide a custom exchangeRate.`,
+      )
+    }
+
+    const batchSize = dto.batchSize ?? 100
+    let totalFound = 0
+    let successCount = 0
+    let failedCount = 0
+    let skippedCount = 0
+
+    // Rate limiting: delay between API calls to avoid hitting Stripe rate limits
+    // Stripe allows ~100 requests/second in live mode, ~25/second in test mode
+    const delayBetweenConversions = dto.delayMs ?? 100 // milliseconds between each conversion
+
+    Logger.log(
+      `[Stripe] Starting bulk currency conversion: ${dto.sourceCurrency} -> ${dto.targetCurrency} ` +
+        `(rate: ${exchangeRate}, dryRun: ${
+          dto.dryRun ?? false
+        }, delay: ${delayBetweenConversions}ms)`,
+    )
+
+    // Helper function to add delay
+    const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+    try {
+      // Fetch subscriptions with pagination
+      // Include both 'active' and 'trialing' statuses as both represent valid recurring donations
+      const statusesToConvert: Stripe.SubscriptionListParams['status'][] = ['active', 'trialing']
+
+      for (const status of statusesToConvert) {
+        let hasMore = true
+        let startingAfter: string | undefined = undefined
+
+        Logger.debug(`[Stripe] Fetching subscriptions with status: ${status}`)
+
+        while (hasMore) {
+          const listParams: Stripe.SubscriptionListParams = {
+            limit: batchSize,
+            status,
+            expand: ['data.items.data.price'],
+            ...(startingAfter && { starting_after: startingAfter }),
+          }
+
+          const subscriptions = await this.listSubscriptions(listParams)
+
+          for (const subscription of subscriptions.data) {
+            const result = await this.processSubscriptionConversion(
+              subscription,
+              dto.sourceCurrency,
+              dto.targetCurrency,
+              exchangeRate,
+              dto.dryRun ?? false,
+            )
+
+            results.push(result)
+            totalFound++
+
+            if (result.success) {
+              if (result.originalCurrency !== dto.sourceCurrency) {
+                skippedCount++ // Not matching source currency
+              } else if (result.originalCurrency === dto.targetCurrency) {
+                skippedCount++ // Already in target currency
+              } else {
+                successCount++
+              }
+            } else {
+              failedCount++
+            }
+
+            // Add delay between conversions to respect Stripe rate limits
+            // Only delay for actual conversions (not dry runs and not skipped)
+            if (!dto.dryRun && result.success && result.originalCurrency === dto.sourceCurrency) {
+              await delay(delayBetweenConversions)
+            }
+          }
+
+          hasMore = subscriptions.has_more
+          if (subscriptions.data.length > 0) {
+            startingAfter = subscriptions.data[subscriptions.data.length - 1].id
+          }
+        }
+      }
+    } catch (error) {
+      Logger.error(`[Stripe] Currency conversion failed: ${error.message}`, error.stack)
+      throw new BadRequestException(`Currency conversion failed: ${error.message}`)
+    }
+
+    const completedAt = new Date()
+
+    Logger.log(
+      `[Stripe] Bulk currency conversion completed. ` +
+        `Total: ${totalFound}, Success: ${successCount}, Failed: ${failedCount}, Skipped: ${skippedCount}`,
+    )
+
+    return {
+      totalFound,
+      successCount,
+      failedCount,
+      skippedCount,
+      exchangeRate,
+      sourceCurrency: dto.sourceCurrency,
+      targetCurrency: dto.targetCurrency,
+      dryRun: dto.dryRun ?? false,
+      results,
+      startedAt,
+      completedAt,
+    }
+  }
+
+  /**
+   * Process a single subscription conversion (used internally by bulk conversion)
+   */
+  private async processSubscriptionConversion(
+    subscription: Stripe.Subscription,
+    sourceCurrency: Currency,
+    targetCurrency: Currency,
+    exchangeRate: number,
+    dryRun: boolean,
+  ): Promise<SubscriptionConversionResultDto> {
+    const subscriptionId = subscription.id
+    const campaignId = subscription.metadata?.campaignId
+
+    try {
+      // Get the subscription item and price
+      const subscriptionItem = subscription.items.data[0]
+      if (!subscriptionItem?.price) {
+        return {
+          subscriptionId,
+          originalAmount: 0,
+          convertedAmount: 0,
+          originalCurrency: sourceCurrency,
+          targetCurrency,
+          success: false,
+          errorMessage: 'No price data found for subscription',
+          campaignId,
+        }
+      }
+
+      const price = subscriptionItem.price
+      const originalCurrency = price.currency.toUpperCase()
+      const originalAmount = price.unit_amount ?? 0
+
+      // Skip if not in source currency
+      if (originalCurrency !== sourceCurrency) {
+        return {
+          subscriptionId,
+          originalAmount,
+          convertedAmount: originalAmount,
+          originalCurrency,
+          targetCurrency,
+          success: true, // Not an error, just not applicable
+          campaignId,
+        }
+      }
+
+      // Skip if already in target currency
+      if (originalCurrency === targetCurrency) {
+        return {
+          subscriptionId,
+          originalAmount,
+          convertedAmount: originalAmount,
+          originalCurrency,
+          targetCurrency,
+          success: true,
+          campaignId,
+        }
+      }
+
+      // Convert amount (amounts are in cents)
+      const convertedAmount = Math.round(originalAmount * exchangeRate)
+
+      if (!dryRun) {
+        // Update the subscription in Stripe (returns new subscription ID)
+        const newSubscriptionId = await this.updateSubscriptionCurrency(
+          subscription,
+          subscriptionItem,
+          targetCurrency.toLowerCase(),
+          convertedAmount,
+        )
+
+        // Update local recurring donation record with new subscription ID
+        await this.updateLocalRecurringDonation(
+          subscriptionId,
+          newSubscriptionId,
+          targetCurrency,
+          convertedAmount,
+        )
+      }
+
+      return {
+        subscriptionId,
+        originalAmount,
+        convertedAmount,
+        originalCurrency,
+        targetCurrency,
+        success: true,
+        campaignId,
+      }
+    } catch (error) {
+      Logger.error(
+        `[Stripe] Failed to convert subscription ${subscriptionId}: ${error.message}`,
+        error.stack,
+      )
+      return {
+        subscriptionId,
+        originalAmount: 0,
+        convertedAmount: 0,
+        originalCurrency: sourceCurrency,
+        targetCurrency,
+        success: false,
+        errorMessage: error.message,
+        campaignId,
+      }
+    }
+  }
+
+  /**
+   * Convert subscription to new currency by canceling immediately and creating a new one.
+   *
+   * Stripe subscriptions have an immutable currency field, so we cannot update in-place.
+   * Additionally, Stripe doesn't allow customers to have active subscriptions in multiple
+   * currencies simultaneously.
+   *
+   * Instead, we:
+   * 1. Cancel the old subscription immediately
+   * 2. Create a new subscription in the target currency with a trial period
+   *    that covers the remaining time from the old subscription (so customer
+   *    doesn't lose any paid time)
+   *
+   * This maintains the billing cycle alignment and ensures the customer gets
+   * the full value of their current period.
+   *
+   * @returns The new subscription ID
+   */
+  private async updateSubscriptionCurrency(
+    subscription: Stripe.Subscription,
+    subscriptionItem: Stripe.SubscriptionItem,
+    newCurrency: string,
+    newAmount: number,
+  ): Promise<string> {
+    const price = subscriptionItem.price
+    const customerId =
+      typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
+    const productId = typeof price.product === 'string' ? price.product : price.product.id
+
+    // Get the period end timestamp for the billing cycle alignment
+    // In Stripe API v20+, current_period_end is on the SubscriptionItem, not the Subscription
+    const periodEnd = subscriptionItem.current_period_end
+
+    // Store conversion metadata for audit trail
+    const conversionMetadata = {
+      ...subscription.metadata,
+      currencyConvertedFrom: price.currency.toUpperCase(),
+      currencyConvertedTo: newCurrency.toUpperCase(),
+      currencyConvertedAt: new Date().toISOString(),
+      originalAmount: String(price.unit_amount),
+      originalSubscriptionId: subscription.id,
+      originalPeriodEnd: new Date(periodEnd * 1000).toISOString(),
+    }
+
+    // Step 1: Mark the old subscription for currency conversion before canceling
+    // This allows the webhook handler to skip status updates for this subscription
+    await this.stripeClient.subscriptions.update(subscription.id, {
+      metadata: {
+        ...subscription.metadata,
+        cancelReason: 'currency_conversion',
+        currencyConvertedTo: newCurrency,
+        currencyConvertedAt: new Date().toISOString(),
+      },
+    })
+
+    // Step 2: Cancel the old subscription immediately
+    // We need to cancel immediately because Stripe doesn't allow customers to have
+    // active subscriptions in multiple currencies at the same time
+    await this.stripeClient.subscriptions.cancel(subscription.id, {
+      prorate: false, // Don't create prorated credit, we'll use trial instead
+    })
+
+    Logger.debug(
+      `[Stripe] Canceled subscription ${subscription.id} immediately for currency conversion. ` +
+        `Original period end was ${new Date(periodEnd * 1000).toISOString()}`,
+    )
+
+    // Step 2: Create new subscription in target currency
+    // Use trial_end set to the original period end to compensate for remaining time
+    // This way the customer doesn't lose any paid time from the old subscription
+    const newSubscription = await this.stripeClient.subscriptions.create({
+      customer: customerId,
+      items: [
+        {
+          price_data: {
+            currency: newCurrency,
+            product: productId,
+            unit_amount: newAmount,
+            recurring: {
+              interval: price.recurring?.interval ?? 'month',
+              interval_count: price.recurring?.interval_count ?? 1,
+            },
+          },
+        },
+      ],
+      metadata: conversionMetadata,
+      // Trial until the original period end - customer gets remaining time for free
+      trial_end: periodEnd,
+      proration_behavior: 'none',
+      // Copy payment settings from old subscription if available
+      ...(subscription.default_payment_method && {
+        default_payment_method:
+          typeof subscription.default_payment_method === 'string'
+            ? subscription.default_payment_method
+            : subscription.default_payment_method.id,
+      }),
+    })
+
+    Logger.log(
+      `[Stripe] Currency conversion complete: ${subscription.id} -> ${newSubscription.id}. ` +
+        `${price.currency.toUpperCase()} ${price.unit_amount} -> ` +
+        `${newCurrency.toUpperCase()} ${newAmount}. ` +
+        `New subscription in trial until ${new Date(periodEnd * 1000).toISOString()} ` +
+        `(compensating for remaining time on old subscription)`,
+    )
+
+    return newSubscription.id
+  }
+
+  /**
+   * Update the local RecurringDonation record to match the converted subscription
+   */
+  private async updateLocalRecurringDonation(
+    oldSubscriptionId: string,
+    newSubscriptionId: string,
+    newCurrency: Currency,
+    newAmount: number,
+  ): Promise<void> {
+    const recurringDonation = await this.prisma.recurringDonation.findFirst({
+      where: { extSubscriptionId: oldSubscriptionId },
+    })
+
+    if (recurringDonation) {
+      await this.prisma.recurringDonation.update({
+        where: { id: recurringDonation.id },
+        data: {
+          extSubscriptionId: newSubscriptionId,
+          currency: newCurrency,
+          amount: newAmount,
+          // Set status to active - the Stripe "trial" is just a technical mechanism
+          // to preserve the billing cycle, not an actual trial period
+          status: RecurringDonationStatus.active,
+        },
+      })
+      Logger.debug(
+        `[Stripe] Updated local recurring donation ${recurringDonation.id}: ` +
+          `subscription ${oldSubscriptionId} -> ${newSubscriptionId}, ` +
+          `currency -> ${newCurrency}, amount -> ${newAmount}, status -> active`,
+      )
+    } else {
+      Logger.warn(
+        `[Stripe] No local recurring donation found for subscription ${oldSubscriptionId}`,
+      )
+    }
   }
 }
