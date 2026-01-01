@@ -182,9 +182,11 @@ export class IrisTasks {
     try {
       const account = await this.getIrisUserIBANaccount()
 
-      if (!account) return Logger.error(`no consent granted for IBAN: ${this.IBAN}`)
-      if (account.consents.consents[0].status !== 'valid')
-        return Logger.error(`consent expired for IBAN: ${this.IBAN}`)
+      // if (!account) return Logger.error(`no consent granted for IBAN: ${this.IBAN}`)
+      if (!account || account.consents.consents[0].status !== 'valid') {
+        await this.notifyForExpiringIrisConsentTASK()
+        return Logger.error(`consent expired or not found for IBAN: ${this.IBAN}`)
+      }
 
       ibanAccount = account
     } catch (e) {
