@@ -8,7 +8,13 @@ import { CampaignService } from '../campaign/campaign.service'
 import { PersonService } from '../person/person.service'
 import { DonationsService } from '../donations/donations.service'
 import { CreateSessionDto } from '../donations/dto/create-session.dto'
-import { Campaign, Currency, DonationMetadata, Payment } from '@prisma/client'
+import {
+  Campaign,
+  Currency,
+  DonationMetadata,
+  Payment,
+  RecurringDonationStatus,
+} from '@prisma/client'
 import { ConfigService } from '@nestjs/config'
 import { StripeMetadata } from './stripe-metadata.interface'
 import { CreateStripePaymentDto } from '../donations/dto/create-stripe-payment.dto'
@@ -142,6 +148,7 @@ export class StripeService {
     const email = paymentMethod.billing_details.email as string
     const name = paymentMethod.billing_details.name as string
     const metadata = setupIntent.metadata as Stripe.Metadata
+    Logger.log('Currency is ' + metadata.currency)
 
     const customer = await this.createCustomer(email, name, paymentMethod)
     await this.attachPaymentMethodToCustomer(paymentMethod, customer)
@@ -248,6 +255,7 @@ export class StripeService {
     paymentMethod: Stripe.PaymentMethod,
   ) {
     const idempotencyKey = crypto.randomUUID()
+    Logger.log('Currency is ' + metadata.currency)
 
     const subscription = await this.stripeClient.subscriptions.create(
       {
@@ -590,16 +598,21 @@ export class StripeService {
       const convertedAmount = Math.round(originalAmount * exchangeRate)
 
       if (!dto.dryRun) {
-        // Update the subscription in Stripe
-        await this.updateSubscriptionCurrency(
+        // Update the subscription in Stripe (returns new subscription ID)
+        const newSubscriptionId = await this.updateSubscriptionCurrency(
           subscription,
           subscriptionItem,
           dto.targetCurrency.toLowerCase(),
           convertedAmount,
         )
 
-        // Update local recurring donation record
-        await this.updateLocalRecurringDonation(subscriptionId, dto.targetCurrency, convertedAmount)
+        // Update local recurring donation record with new subscription ID
+        await this.updateLocalRecurringDonation(
+          subscriptionId,
+          newSubscriptionId,
+          dto.targetCurrency,
+          convertedAmount,
+        )
       }
 
       Logger.log(
@@ -816,16 +829,21 @@ export class StripeService {
       const convertedAmount = Math.round(originalAmount * exchangeRate)
 
       if (!dryRun) {
-        // Update the subscription in Stripe
-        await this.updateSubscriptionCurrency(
+        // Update the subscription in Stripe (returns new subscription ID)
+        const newSubscriptionId = await this.updateSubscriptionCurrency(
           subscription,
           subscriptionItem,
           targetCurrency.toLowerCase(),
           convertedAmount,
         )
 
-        // Update local recurring donation record
-        await this.updateLocalRecurringDonation(subscriptionId, targetCurrency, convertedAmount)
+        // Update local recurring donation record with new subscription ID
+        await this.updateLocalRecurringDonation(
+          subscriptionId,
+          newSubscriptionId,
+          targetCurrency,
+          convertedAmount,
+        )
       }
 
       return {
@@ -856,16 +874,37 @@ export class StripeService {
   }
 
   /**
-   * Update the subscription with new currency using Stripe's subscription update API
-   * This creates a new price with the target currency and updates the subscription item
+   * Convert subscription to new currency by canceling immediately and creating a new one.
+   *
+   * Stripe subscriptions have an immutable currency field, so we cannot update in-place.
+   * Additionally, Stripe doesn't allow customers to have active subscriptions in multiple
+   * currencies simultaneously.
+   *
+   * Instead, we:
+   * 1. Cancel the old subscription immediately
+   * 2. Create a new subscription in the target currency with a trial period
+   *    that covers the remaining time from the old subscription (so customer
+   *    doesn't lose any paid time)
+   *
+   * This maintains the billing cycle alignment and ensures the customer gets
+   * the full value of their current period.
+   *
+   * @returns The new subscription ID
    */
   private async updateSubscriptionCurrency(
     subscription: Stripe.Subscription,
     subscriptionItem: Stripe.SubscriptionItem,
     newCurrency: string,
     newAmount: number,
-  ): Promise<void> {
+  ): Promise<string> {
     const price = subscriptionItem.price
+    const customerId =
+      typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
+    const productId = typeof price.product === 'string' ? price.product : price.product.id
+
+    // Get the period end timestamp for the billing cycle alignment
+    // In Stripe API v20+, current_period_end is on the SubscriptionItem, not the Subscription
+    const periodEnd = subscriptionItem.current_period_end
 
     // Store conversion metadata for audit trail
     const conversionMetadata = {
@@ -874,17 +913,43 @@ export class StripeService {
       currencyConvertedTo: newCurrency.toUpperCase(),
       currencyConvertedAt: new Date().toISOString(),
       originalAmount: String(price.unit_amount),
+      originalSubscriptionId: subscription.id,
+      originalPeriodEnd: new Date(periodEnd * 1000).toISOString(),
     }
 
-    // Update subscription with new price data
-    // Using price_data to create an inline price with the new currency
+    // Step 1: Mark the old subscription for currency conversion before canceling
+    // This allows the webhook handler to skip status updates for this subscription
     await this.stripeClient.subscriptions.update(subscription.id, {
+      metadata: {
+        ...subscription.metadata,
+        cancelReason: 'currency_conversion',
+        currencyConvertedTo: newCurrency,
+        currencyConvertedAt: new Date().toISOString(),
+      },
+    })
+
+    // Step 2: Cancel the old subscription immediately
+    // We need to cancel immediately because Stripe doesn't allow customers to have
+    // active subscriptions in multiple currencies at the same time
+    await this.stripeClient.subscriptions.cancel(subscription.id, {
+      prorate: false, // Don't create prorated credit, we'll use trial instead
+    })
+
+    Logger.debug(
+      `[Stripe] Canceled subscription ${subscription.id} immediately for currency conversion. ` +
+        `Original period end was ${new Date(periodEnd * 1000).toISOString()}`,
+    )
+
+    // Step 2: Create new subscription in target currency
+    // Use trial_end set to the original period end to compensate for remaining time
+    // This way the customer doesn't lose any paid time from the old subscription
+    const newSubscription = await this.stripeClient.subscriptions.create({
+      customer: customerId,
       items: [
         {
-          id: subscriptionItem.id,
           price_data: {
             currency: newCurrency,
-            product: typeof price.product === 'string' ? price.product : price.product.id,
+            product: productId,
             unit_amount: newAmount,
             recurring: {
               interval: price.recurring?.interval ?? 'month',
@@ -894,42 +959,62 @@ export class StripeService {
         },
       ],
       metadata: conversionMetadata,
-      proration_behavior: 'none', // Don't prorate - just change going forward
+      // Trial until the original period end - customer gets remaining time for free
+      trial_end: periodEnd,
+      proration_behavior: 'none',
+      // Copy payment settings from old subscription if available
+      ...(subscription.default_payment_method && {
+        default_payment_method:
+          typeof subscription.default_payment_method === 'string'
+            ? subscription.default_payment_method
+            : subscription.default_payment_method.id,
+      }),
     })
 
-    Logger.debug(
-      `[Stripe] Updated subscription ${subscription.id}: ` +
-        `${price.currency} ${price.unit_amount} -> ${newCurrency} ${newAmount}`,
+    Logger.log(
+      `[Stripe] Currency conversion complete: ${subscription.id} -> ${newSubscription.id}. ` +
+        `${price.currency.toUpperCase()} ${price.unit_amount} -> ` +
+        `${newCurrency.toUpperCase()} ${newAmount}. ` +
+        `New subscription in trial until ${new Date(periodEnd * 1000).toISOString()} ` +
+        `(compensating for remaining time on old subscription)`,
     )
+
+    return newSubscription.id
   }
 
   /**
    * Update the local RecurringDonation record to match the converted subscription
    */
   private async updateLocalRecurringDonation(
-    extSubscriptionId: string,
+    oldSubscriptionId: string,
+    newSubscriptionId: string,
     newCurrency: Currency,
     newAmount: number,
   ): Promise<void> {
     const recurringDonation = await this.prisma.recurringDonation.findFirst({
-      where: { extSubscriptionId },
+      where: { extSubscriptionId: oldSubscriptionId },
     })
 
     if (recurringDonation) {
       await this.prisma.recurringDonation.update({
         where: { id: recurringDonation.id },
         data: {
+          extSubscriptionId: newSubscriptionId,
           currency: newCurrency,
           amount: newAmount,
+          // Set status to active - the Stripe "trial" is just a technical mechanism
+          // to preserve the billing cycle, not an actual trial period
+          status: RecurringDonationStatus.active,
         },
       })
       Logger.debug(
-        `[Stripe] Updated local recurring donation ${recurringDonation.id} ` +
-          `to ${newCurrency} ${newAmount}`,
+        `[Stripe] Updated local recurring donation ${recurringDonation.id}: ` +
+          `subscription ${oldSubscriptionId} -> ${newSubscriptionId}, ` +
+          `currency -> ${newCurrency}, amount -> ${newAmount}, status -> active`,
       )
     } else {
       Logger.warn(
-        `[Stripe] No local recurring donation found for subscription ${extSubscriptionId}`,
+        `[Stripe] No local recurring donation found for subscription ${oldSubscriptionId}`,
       )
     }
   }

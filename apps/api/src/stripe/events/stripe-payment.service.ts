@@ -209,9 +209,22 @@ export class StripePaymentService {
       return
     }
 
+    // Check if this is a currency conversion subscription
+    // These are already handled by updateLocalRecurringDonation in stripe.service.ts
+    const metadata = subscription.metadata as StripeMetadata & {
+      originalSubscriptionId?: string
+    }
+    if (metadata.originalSubscriptionId) {
+      Logger.log(
+        `[ handleSubscriptionCreated ] Subscription ${subscription.id} is a currency conversion ` +
+          `from ${metadata.originalSubscriptionId}. Already handled by conversion endpoint.`,
+      )
+      return
+    }
+
     Logger.log('[ handleSubscriptionCreated ]', subscription)
 
-    const metadata: StripeMetadata = subscription.metadata as StripeMetadata
+    // metadata is already defined above with the extended type
     if (!metadata.campaignId) {
       throw new BadRequestException(
         'Subscription metadata does not contain target campaignId. Subscription id: ' +
@@ -304,7 +317,21 @@ export class StripePaymentService {
     const subscription: Stripe.Subscription = event.data.object as Stripe.Subscription
     Logger.log('[ handleSubscriptionDeleted ]', subscription)
 
-    const metadata: StripeMetadata = subscription.metadata as StripeMetadata
+    const metadata = subscription.metadata as StripeMetadata & {
+      cancelReason?: string
+      currencyConvertedTo?: string
+    }
+
+    // Skip processing if this subscription was canceled for currency conversion
+    // The recurring donation will be updated with the new subscription ID, not marked as canceled
+    if (metadata.cancelReason === 'currency_conversion') {
+      Logger.log(
+        `[ handleSubscriptionDeleted ] Subscription ${subscription.id} was canceled for currency ` +
+          `conversion to ${metadata.currencyConvertedTo}. Skipping status update.`,
+      )
+      return
+    }
+
     if (!metadata.campaignId) {
       throw new BadRequestException(
         'Subscription metadata does not contain target campaignId. Subscription is: ' +
@@ -363,6 +390,15 @@ export class StripePaymentService {
         'Invoice intent metadata does not contain target campaignId. Probably wrong session initiation. Invoice id is:  ' +
           invoice.id,
       )
+    }
+
+    // Skip processing for zero-amount invoices (e.g., trial invoices from currency conversion)
+    // These don't represent actual payments and should not create donation records
+    if (invoice.amount_due === 0 && invoice.amount_paid === 0) {
+      Logger.log(
+        `[ handleInvoicePaid ] Skipping zero-amount invoice ${invoice.id} (likely a trial from currency conversion)`,
+      )
+      return
     }
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
