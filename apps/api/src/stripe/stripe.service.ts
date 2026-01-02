@@ -839,6 +839,10 @@ export class StripeService {
       const convertedAmount = Math.round(originalAmount * exchangeRate)
 
       if (!dryRun) {
+        // Mark the local recurring donation as pending conversion BEFORE canceling
+        // This prevents the webhook from marking it as canceled when the old subscription is deleted
+        await this.markRecurringDonationForConversion(subscriptionId)
+
         // Update the subscription in Stripe (returns new subscription ID)
         const newSubscriptionId = await this.updateSubscriptionCurrency(
           subscription,
@@ -927,59 +931,89 @@ export class StripeService {
       originalPeriodEnd: new Date(periodEnd * 1000).toISOString(),
     }
 
-    // Step 1: Mark the old subscription for currency conversion before canceling
-    // This allows the webhook handler to skip status updates for this subscription
-    await this.stripeClient.subscriptions.update(subscription.id, {
-      metadata: {
-        ...subscription.metadata,
-        cancelReason: 'currency_conversion',
-        currencyConvertedTo: newCurrency,
-        currencyConvertedAt: new Date().toISOString(),
-      },
-    })
+    // Step 1: Try to mark the old subscription for currency conversion
+    // This helps the webhook handler skip status updates for this subscription
+    // If this fails (e.g., subscription already canceled or currency not supported), we continue anyway
+    try {
+      await this.stripeClient.subscriptions.update(subscription.id, {
+        metadata: {
+          ...subscription.metadata,
+          cancelReason: 'currency_conversion',
+          currencyConvertedTo: newCurrency.toUpperCase(),
+          currencyConvertedAt: new Date().toISOString(),
+        },
+      })
+    } catch (error) {
+      Logger.warn(
+        `[Stripe] Could not update subscription metadata for ${subscription.id}: ${error.message}. ` +
+          `Continuing with conversion anyway.`,
+      )
+    }
 
     // Step 2: Cancel the old subscription immediately
     // We need to cancel immediately because Stripe doesn't allow customers to have
     // active subscriptions in multiple currencies at the same time
-    await this.stripeClient.subscriptions.cancel(subscription.id, {
-      prorate: false, // Don't create prorated credit, we'll use trial instead
-    })
+    try {
+      await this.stripeClient.subscriptions.cancel(subscription.id, {
+        prorate: false, // Don't create prorated credit, we'll use trial instead
+      })
+    } catch (error) {
+      // If the subscription is already canceled, that's fine - continue with creating the new one
+      if (error.code === 'resource_missing' || error.message?.includes('already been canceled')) {
+        Logger.warn(
+          `[Stripe] Subscription ${subscription.id} was already canceled. Continuing with new subscription creation.`,
+        )
+      } else {
+        Logger.error(`[Stripe] Failed to cancel subscription ${subscription.id}: ${error.message}`)
+        throw new Error(`Failed to cancel subscription: ${error.message}`)
+      }
+    }
 
     Logger.debug(
       `[Stripe] Canceled subscription ${subscription.id} immediately for currency conversion. ` +
         `Original period end was ${new Date(periodEnd * 1000).toISOString()}`,
     )
 
-    // Step 2: Create new subscription in target currency
+    // Step 3: Create new subscription in target currency
     // Use trial_end set to the original period end to compensate for remaining time
     // This way the customer doesn't lose any paid time from the old subscription
-    const newSubscription = await this.stripeClient.subscriptions.create({
-      customer: customerId,
-      items: [
-        {
-          price_data: {
-            currency: newCurrency,
-            product: productId,
-            unit_amount: newAmount,
-            recurring: {
-              interval: price.recurring?.interval ?? 'month',
-              interval_count: price.recurring?.interval_count ?? 1,
+    let newSubscription: Stripe.Subscription
+    try {
+      newSubscription = await this.stripeClient.subscriptions.create({
+        customer: customerId,
+        items: [
+          {
+            price_data: {
+              currency: newCurrency,
+              product: productId,
+              unit_amount: newAmount,
+              recurring: {
+                interval: price.recurring?.interval ?? 'month',
+                interval_count: price.recurring?.interval_count ?? 1,
+              },
             },
           },
-        },
-      ],
-      metadata: conversionMetadata,
-      // Trial until the original period end - customer gets remaining time for free
-      trial_end: periodEnd,
-      proration_behavior: 'none',
-      // Copy payment settings from old subscription if available
-      ...(subscription.default_payment_method && {
-        default_payment_method:
-          typeof subscription.default_payment_method === 'string'
-            ? subscription.default_payment_method
-            : subscription.default_payment_method.id,
-      }),
-    })
+        ],
+        metadata: conversionMetadata,
+        // Trial until the original period end - customer gets remaining time for free
+        trial_end: periodEnd,
+        proration_behavior: 'none',
+        // Copy payment settings from old subscription if available
+        ...(subscription.default_payment_method && {
+          default_payment_method:
+            typeof subscription.default_payment_method === 'string'
+              ? subscription.default_payment_method
+              : subscription.default_payment_method.id,
+        }),
+      })
+    } catch (error) {
+      Logger.error(
+        `[Stripe] Failed to create new subscription for customer ${customerId}: ${error.message}`,
+      )
+      throw new Error(
+        `Failed to create new subscription in ${newCurrency.toUpperCase()}: ${error.message}`,
+      )
+    }
 
     Logger.log(
       `[Stripe] Currency conversion complete: ${subscription.id} -> ${newSubscription.id}. ` +
@@ -1023,8 +1057,70 @@ export class StripeService {
           `currency -> ${newCurrency}, amount -> ${newAmount}, status -> active`,
       )
     } else {
+      // Check if it was marked for conversion (extSubscriptionId prefixed with 'converting:')
+      const convertingRecord = await this.prisma.recurringDonation.findFirst({
+        where: { extSubscriptionId: `converting:${oldSubscriptionId}` },
+      })
+      if (convertingRecord) {
+        await this.prisma.recurringDonation.update({
+          where: { id: convertingRecord.id },
+          data: {
+            extSubscriptionId: newSubscriptionId,
+            currency: newCurrency,
+            amount: newAmount,
+            status: RecurringDonationStatus.active,
+          },
+        })
+        Logger.debug(
+          `[Stripe] Updated converting recurring donation ${convertingRecord.id}: ` +
+            `subscription converting:${oldSubscriptionId} -> ${newSubscriptionId}`,
+        )
+      } else {
+        Logger.warn(
+          `[Stripe] No local recurring donation found for subscription ${oldSubscriptionId}`,
+        )
+      }
+    }
+  }
+
+  /**
+   * Mark a recurring donation as pending currency conversion.
+   * This is done BEFORE canceling the subscription in Stripe, so that when the
+   * webhook fires for the deleted subscription, we know to skip the status update.
+   */
+  private async markRecurringDonationForConversion(subscriptionId: string): Promise<void> {
+    // First check if it's already marked for conversion (from a previous attempt)
+    const alreadyConverting = await this.prisma.recurringDonation.findFirst({
+      where: { extSubscriptionId: `converting:${subscriptionId}` },
+    })
+
+    if (alreadyConverting) {
+      Logger.debug(
+        `[Stripe] Recurring donation ${alreadyConverting.id} already marked for conversion ` +
+          `(subscription ${subscriptionId})`,
+      )
+      return
+    }
+
+    const recurringDonation = await this.prisma.recurringDonation.findFirst({
+      where: { extSubscriptionId: subscriptionId },
+    })
+
+    if (recurringDonation) {
+      await this.prisma.recurringDonation.update({
+        where: { id: recurringDonation.id },
+        data: {
+          // Prefix with 'converting:' to mark as pending conversion
+          extSubscriptionId: `converting:${subscriptionId}`,
+        },
+      })
+      Logger.debug(
+        `[Stripe] Marked recurring donation ${recurringDonation.id} for currency conversion ` +
+          `(subscription ${subscriptionId})`,
+      )
+    } else {
       Logger.warn(
-        `[Stripe] No local recurring donation found for subscription ${oldSubscriptionId}`,
+        `[Stripe] No recurring donation found to mark for conversion (subscription ${subscriptionId})`,
       )
     }
   }

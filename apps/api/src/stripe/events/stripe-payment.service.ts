@@ -343,6 +343,18 @@ export class StripePaymentService {
       subscription.id,
     )
     if (!recurringDonation) {
+      // Check if this subscription is being converted to a new currency
+      // In that case, the extSubscriptionId has been prefixed with 'converting:'
+      const convertingDonation = await this.recurringDonationService.findSubscriptionByExtId(
+        `converting:${subscription.id}`,
+      )
+      if (convertingDonation) {
+        Logger.log(
+          `[ handleSubscriptionDeleted ] Subscription ${subscription.id} is being converted. ` +
+            `Skipping status update.`,
+        )
+        return
+      }
       Logger.debug('Received a notification about unknown subscription: ' + subscription.id)
       return
     }
