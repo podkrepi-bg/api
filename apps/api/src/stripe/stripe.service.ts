@@ -931,31 +931,15 @@ export class StripeService {
       originalPeriodEnd: new Date(periodEnd * 1000).toISOString(),
     }
 
-    // Step 1: Try to mark the old subscription for currency conversion
-    // This helps the webhook handler skip status updates for this subscription
-    // If this fails (e.g., subscription already canceled or currency not supported), we continue anyway
-    try {
-      await this.stripeClient.subscriptions.update(subscription.id, {
-        metadata: {
-          ...subscription.metadata,
-          cancelReason: 'currency_conversion',
-          currencyConvertedTo: newCurrency.toUpperCase(),
-          currencyConvertedAt: new Date().toISOString(),
-        },
-      })
-    } catch (error) {
-      Logger.warn(
-        `[Stripe] Could not update subscription metadata for ${subscription.id}: ${error.message}. ` +
-          `Continuing with conversion anyway.`,
-      )
-    }
-
-    // Step 2: Cancel the old subscription immediately
+    // Cancel the old subscription immediately
     // We need to cancel immediately because Stripe doesn't allow customers to have
     // active subscriptions in multiple currencies at the same time
     try {
       await this.stripeClient.subscriptions.cancel(subscription.id, {
         prorate: false, // Don't create prorated credit, we'll use trial instead
+        cancellation_details: {
+          comment: `currency_conversion:${newCurrency.toUpperCase()}`,
+        },
       })
     } catch (error) {
       // If the subscription is already canceled, that's fine - continue with creating the new one
@@ -1035,6 +1019,33 @@ export class StripeService {
     newCurrency: Currency,
     newAmount: number,
   ): Promise<void> {
+    // First check for the 'converting:' prefix since that's what markRecurringDonationForConversion sets
+    const convertingRecord = await this.prisma.recurringDonation.findFirst({
+      where: { extSubscriptionId: `converting:${oldSubscriptionId}` },
+    })
+
+    if (convertingRecord) {
+      await this.prisma.recurringDonation.update({
+        where: { id: convertingRecord.id },
+        data: {
+          extSubscriptionId: newSubscriptionId,
+          currency: newCurrency,
+          amount: newAmount,
+          // Set status to active - the Stripe "trial" is just a technical mechanism
+          // to preserve the billing cycle, not an actual trial period
+          status: RecurringDonationStatus.active,
+        },
+      })
+      Logger.debug(
+        `[Stripe] Updated recurring donation ${convertingRecord.id}: ` +
+          `subscription converting:${oldSubscriptionId} -> ${newSubscriptionId}, ` +
+          `currency -> ${newCurrency}, amount -> ${newAmount}, status -> active`,
+      )
+      return
+    }
+
+    // Fallback: check for old subscription ID directly (in case markRecurringDonationForConversion
+    // was skipped or failed)
     const recurringDonation = await this.prisma.recurringDonation.findFirst({
       where: { extSubscriptionId: oldSubscriptionId },
     })
@@ -1046,41 +1057,21 @@ export class StripeService {
           extSubscriptionId: newSubscriptionId,
           currency: newCurrency,
           amount: newAmount,
-          // Set status to active - the Stripe "trial" is just a technical mechanism
-          // to preserve the billing cycle, not an actual trial period
           status: RecurringDonationStatus.active,
         },
       })
       Logger.debug(
-        `[Stripe] Updated local recurring donation ${recurringDonation.id}: ` +
+        `[Stripe] Updated recurring donation ${recurringDonation.id}: ` +
           `subscription ${oldSubscriptionId} -> ${newSubscriptionId}, ` +
           `currency -> ${newCurrency}, amount -> ${newAmount}, status -> active`,
       )
-    } else {
-      // Check if it was marked for conversion (extSubscriptionId prefixed with 'converting:')
-      const convertingRecord = await this.prisma.recurringDonation.findFirst({
-        where: { extSubscriptionId: `converting:${oldSubscriptionId}` },
-      })
-      if (convertingRecord) {
-        await this.prisma.recurringDonation.update({
-          where: { id: convertingRecord.id },
-          data: {
-            extSubscriptionId: newSubscriptionId,
-            currency: newCurrency,
-            amount: newAmount,
-            status: RecurringDonationStatus.active,
-          },
-        })
-        Logger.debug(
-          `[Stripe] Updated converting recurring donation ${convertingRecord.id}: ` +
-            `subscription converting:${oldSubscriptionId} -> ${newSubscriptionId}`,
-        )
-      } else {
-        Logger.warn(
-          `[Stripe] No local recurring donation found for subscription ${oldSubscriptionId}`,
-        )
-      }
+      return
     }
+
+    Logger.warn(
+      `[Stripe] No local recurring donation found for subscription ${oldSubscriptionId} ` +
+        `(checked both 'converting:${oldSubscriptionId}' and '${oldSubscriptionId}')`,
+    )
   }
 
   /**

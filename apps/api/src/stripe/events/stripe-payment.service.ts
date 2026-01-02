@@ -317,20 +317,19 @@ export class StripePaymentService {
     const subscription: Stripe.Subscription = event.data.object as Stripe.Subscription
     Logger.log('[ handleSubscriptionDeleted ]', subscription)
 
-    const metadata = subscription.metadata as StripeMetadata & {
-      cancelReason?: string
-      currencyConvertedTo?: string
-    }
-
-    // Skip processing if this subscription was canceled for currency conversion
+    // Check if this subscription was canceled for currency conversion
     // The recurring donation will be updated with the new subscription ID, not marked as canceled
-    if (metadata.cancelReason === 'currency_conversion') {
+    const cancellationComment = subscription.cancellation_details?.comment
+    if (cancellationComment?.startsWith('currency_conversion:')) {
+      const targetCurrency = cancellationComment.split(':')[1]
       Logger.log(
         `[ handleSubscriptionDeleted ] Subscription ${subscription.id} was canceled for currency ` +
-          `conversion to ${metadata.currencyConvertedTo}. Skipping status update.`,
+          `conversion to ${targetCurrency}. Skipping status update.`,
       )
       return
     }
+
+    const metadata = subscription.metadata as StripeMetadata
 
     if (!metadata.campaignId) {
       throw new BadRequestException(
