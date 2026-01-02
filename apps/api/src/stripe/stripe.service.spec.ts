@@ -236,17 +236,12 @@ describe('StripeService', () => {
       const result = await service.convertSingleSubscriptionCurrency('sub_bgn_123', dto)
 
       expect(result.success).toBe(true)
-      // Should update old subscription metadata with cancelReason, cancel it, create new subscription
-      expect(stripeMock.subscriptions.update).toHaveBeenCalledWith(
-        'sub_bgn_123',
-        expect.objectContaining({
-          metadata: expect.objectContaining({
-            cancelReason: 'currency_conversion',
-          }),
-        }),
-      )
+      // Should cancel old subscription with cancellation_details comment, then create new subscription
       expect(stripeMock.subscriptions.cancel).toHaveBeenCalledWith('sub_bgn_123', {
         prorate: false,
+        cancellation_details: {
+          comment: 'currency_conversion:EUR',
+        },
       })
       // New subscription is created with inline price_data (not a separate price)
       expect(stripeMock.subscriptions.create).toHaveBeenCalledWith(
