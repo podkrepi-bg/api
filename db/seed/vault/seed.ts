@@ -21,7 +21,7 @@ export async function vaultSeed() {
       vaults.push(
         vaultFactory.build(
           {
-            currency: Currency.BGN,
+            currency: Currency.EUR,
             amount: 0, // Initializing with 0 and fill the correct amount after donations have been seeded
           },
           {
