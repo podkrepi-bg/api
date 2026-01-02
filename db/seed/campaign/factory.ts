@@ -19,7 +19,7 @@ export const campaignFactory = Factory.define<Campaign>(({ associations }) => ({
   organizerId: associations.organizerId ?? null,
   companyId: associations.companyId ?? null,
   approvedById: associations.approvedById || null,
-  currency: Currency.BGN,
+  currency: Currency.EUR,
   targetAmount: parseInt(faker.finance.amount(2000, 200000)),
   allowDonationOnComplete: faker.datatype.boolean(),
   paymentReference: getPaymentReference(),
