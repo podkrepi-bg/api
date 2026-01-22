@@ -271,7 +271,6 @@ export class StripeService {
         default_payment_method: paymentMethod.id,
         payment_settings: {
           save_default_payment_method: 'on_subscription',
-          payment_method_types: ['card'],
         },
         metadata: {
           type: metadata.type,
