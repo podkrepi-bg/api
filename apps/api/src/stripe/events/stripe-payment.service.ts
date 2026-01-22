@@ -470,7 +470,7 @@ export class StripePaymentService {
       )
     }
 
-    const paymentData = getInvoiceData(invoice, charge)
+    const paymentData = getInvoiceData(invoice, charge, metadata)
 
     await this.donationService.updateDonationPayment(campaign, paymentData, PaymentStatus.succeeded)
 
