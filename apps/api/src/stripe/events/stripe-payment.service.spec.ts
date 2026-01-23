@@ -627,6 +627,80 @@ describe('StripePaymentService', () => {
       })
   })
 
+  it('should handle invoice.paid for anonymous subscription with personId undefined', () => {
+    // Create anonymous version of the event
+    const mockAnonymousInvoicePaidEvent = {
+      ...mockInvoicePaidEvent,
+      data: {
+        object: {
+          ...mockInvoicePaidEvent.data.object,
+          parent: {
+            ...(mockInvoicePaidEvent.data.object as Stripe.Invoice).parent,
+            subscription_details: {
+              ...(mockInvoicePaidEvent.data.object as Stripe.Invoice).parent.subscription_details,
+              metadata: {
+                ...(mockInvoicePaidEvent.data.object as Stripe.Invoice).parent.subscription_details
+                  .metadata,
+                isAnonymous: 'true',
+              },
+            },
+          },
+        } as Stripe.Invoice,
+      },
+    }
+
+    const payloadString = JSON.stringify(mockAnonymousInvoicePaidEvent, null, 2)
+
+    const header = stripe.webhooks.generateTestHeaderString({
+      payload: payloadString,
+      secret: stripeSecret,
+    })
+
+    const campaignService = app.get<CampaignService>(CampaignService)
+
+    jest
+      .spyOn(campaignService, 'getCampaignById')
+      .mockImplementation(() => Promise.resolve(mockedCampaign))
+
+    jest.spyOn(stripeService, 'retrieveInvoice').mockResolvedValue({
+      ...(mockAnonymousInvoicePaidEvent.data.object as Stripe.Invoice),
+      payments: {
+        data: [
+          {
+            payment: {
+              payment_intent: {
+                latest_charge: mockCharge.id,
+              } as Stripe.PaymentIntent,
+            },
+          },
+        ],
+      },
+    } as any)
+
+    jest.spyOn(stripeService, 'findChargeById').mockResolvedValue(mockCharge)
+
+    const mockedUpdateDonationPayment = jest
+      .spyOn(donationService, 'updateDonationPayment')
+      .mockName('updateDonationPayment')
+      .mockResolvedValue('test-donation-id')
+
+    return request(app.getHttpServer())
+      .post(defaultStripeWebhookEndpoint)
+      .set('stripe-signature', header)
+      .type('json')
+      .send(payloadString)
+      .expect(201)
+      .then(() => {
+        expect(mockedUpdateDonationPayment).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            personId: undefined,
+          }),
+          expect.anything(),
+        )
+      })
+  })
+
   it('should cancel all active subscriptions if the campaign is completed', () => {
     const payloadString = JSON.stringify(mockInvoicePaidEvent, null, 2)
 

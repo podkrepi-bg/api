@@ -276,6 +276,7 @@ export class StripeService {
           type: metadata.type,
           campaignId: metadata.campaignId,
           personId: metadata.personId,
+          isAnonymous: metadata.isAnonymous,
         },
         // Stripe has a 4-level expansion limit. We expand to 4 levels:
         // 1. latest_invoice, 2. payments, 3. data, 4. payment
