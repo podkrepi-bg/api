@@ -161,6 +161,8 @@ export class DonationsService {
    * @param status (Optional) Filter by campaign status
    * @param pageIndex (Optional)
    * @param pageSize (Optional)
+   * @param sortBy (Optional) Field to sort by: 'createdAt' | 'amount'
+   * @param sortOrder (Optional) Sort order: 'asc' | 'desc'
    * @param type (Optional) Filter by type
    */
 
@@ -169,14 +171,23 @@ export class DonationsService {
     status?: PaymentStatus,
     pageIndex?: number,
     pageSize?: number,
+    sortBy?: string,
+    sortOrder?: string,
   ) {
+    // Build orderBy based on sortBy parameter
+    const validSortFields = ['createdAt', 'amount']
+    const validSortOrders = ['asc', 'desc']
+    const orderField = validSortFields.includes(sortBy || '') ? sortBy : 'createdAt'
+    const orderDirection = validSortOrders.includes(sortOrder || '') ? sortOrder : 'desc'
+    const orderBy = { [orderField as string]: orderDirection }
+
     const [data, count] = await this.prisma.$transaction([
       this.prisma.donation.findMany({
         where: {
           OR: [{ payment: { status: status } }, { payment: { status: PaymentStatus.guaranteed } }],
           targetVault: { campaignId },
         },
-        orderBy: [{ createdAt: 'desc' }],
+        orderBy: [orderBy],
         select: {
           id: true,
           type: true,
