@@ -1,4 +1,4 @@
-import { Beneficiary, Person } from '@prisma/client'
+import { Beneficiary, Person, Prisma } from '@prisma/client'
 import { mockDeep } from 'jest-mock-extended'
 import { ConfigService } from '@nestjs/config'
 import { HttpService } from '@nestjs/axios'
@@ -448,7 +448,7 @@ describe('AuthService', () => {
         // Don't subscribe to marketing list
         newsletter: false,
       })
-      
+
       jest.spyOn(prismaMock.person, 'upsert').mockResolvedValue(person)
       jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
       const marketingSpy = jest
@@ -463,7 +463,7 @@ describe('AuthService', () => {
   })
 
   describe('deleteUser', () => {
-    const corporatePerson: any = {
+    const corporatePerson: Awaited<ReturnType<PersonService['findOneByKeycloakId']>> = {
       id: 'e43348aa-be33-4c12-80bf-2adfbf8736cd',
       firstName: 'Admin',
       lastName: 'Dev',
@@ -483,6 +483,10 @@ describe('AuthService', () => {
       profileEnabled: false,
       beneficiaries: [],
       organizer: null,
+      deletedAt: null,
+      helpUsImprove: true,
+      company: null,
+      recurringDonations: [],
     }
 
     it('should delete user successfully', async () => {
@@ -497,7 +501,9 @@ describe('AuthService', () => {
         .mockResolvedValueOnce('')
 
       const adminDeleteSpy = jest.spyOn(admin.users, 'del').mockResolvedValueOnce()
-      const prismaDeleteSpy = jest.spyOn(prismaMock.person, 'delete').mockResolvedValueOnce(person)
+      const prismaDeleteSpy = jest
+        .spyOn(personService, 'softDelete')
+        .mockResolvedValueOnce(corporatePerson)
       const loggerLogSpy = jest.spyOn(Logger, 'log')
 
       await expect(service.deleteUser(keycloakId)).resolves.not.toThrow()
@@ -505,7 +511,7 @@ describe('AuthService', () => {
       expect(personSpy).toHaveBeenCalledOnce()
       expect(authenticateAdminSpy).toHaveBeenCalledTimes(1)
       expect(adminDeleteSpy).toHaveBeenCalledWith({ id: keycloakId })
-      expect(prismaDeleteSpy).toHaveBeenCalledWith({ where: { keycloakId } })
+      expect(prismaDeleteSpy).toHaveBeenCalledWith(corporatePerson.id)
       expect(loggerLogSpy).toHaveBeenCalledWith(
         `User with keycloak id ${keycloakId} was successfully deleted!`,
       )
@@ -551,7 +557,7 @@ describe('AuthService', () => {
       const adminDeleteSpy = jest.spyOn(admin.users, 'del').mockResolvedValueOnce()
 
       const prismaDeleteSpy = jest
-        .spyOn(prismaMock.person, 'delete')
+        .spyOn(personService, 'softDelete')
         .mockRejectedValueOnce(new Error('Prisma Rejection!'))
 
       const loggerLogSpy = jest.spyOn(Logger, 'error')
@@ -561,7 +567,7 @@ describe('AuthService', () => {
       expect(personSpy).toHaveBeenCalledOnce()
       expect(authenticateAdminSpy).toHaveBeenCalledTimes(1)
       expect(adminDeleteSpy).toHaveBeenCalledWith({ id: keycloakId })
-      expect(prismaDeleteSpy).toHaveBeenCalledWith({ where: { keycloakId } })
+      expect(prismaDeleteSpy).toHaveBeenCalledWith(corporatePerson.id)
       expect(loggerLogSpy).toHaveBeenCalledWith(
         `Deleting user fails with reason: Prisma Rejection!`,
       )
