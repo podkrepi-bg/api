@@ -594,6 +594,18 @@ export class DonationsService {
     }
   }
 
+  async updateDonationType(donationId: string, type: DonationType): Promise<Donation> {
+    try {
+      return await this.prisma.donation.update({
+        where: { id: donationId },
+        data: { type },
+      })
+    } catch (err) {
+      Logger.warn(err.message || err)
+      throw new NotFoundException(`Update failed. No donation found with ID: ${donationId}`)
+    }
+  }
+
   async softDelete(ids: string[]): Promise<Prisma.BatchPayload> {
     try {
       return await this.prisma.payment.updateMany({
