@@ -84,12 +84,40 @@ export class StripeService {
     return setupIntent
   }
 
-  async attachPaymentMethodToCustomer(
+  /**
+   * Find an existing payment method on the customer that matches the given card fingerprint,
+   * or attach the new payment method if no match is found.
+   * This avoids accumulating duplicate payment methods on the customer and hitting
+   * Stripe's 500 payment method limit.
+   */
+  async findOrAttachPaymentMethod(
     paymentMethod: Stripe.PaymentMethod,
     customer: Stripe.Customer,
-  ) {
-    const idempotencyKey = crypto.randomUUID()
+  ): Promise<Stripe.PaymentMethod> {
+    const fingerprint = paymentMethod.card?.fingerprint
 
+    if (fingerprint) {
+      // Check if the customer already has a payment method with the same card fingerprint
+      const existingMethods = await this.stripeClient.paymentMethods.list({
+        customer: customer.id,
+        type: 'card',
+      })
+
+      const existingMatch = existingMethods.data.find(
+        (pm) => pm.card?.fingerprint === fingerprint,
+      )
+
+      if (existingMatch) {
+        Logger.debug(
+          `[Stripe] Reusing existing payment method ${existingMatch.id} for customer ${customer.id} ` +
+            `(same card fingerprint: ${fingerprint})`,
+        )
+        return existingMatch
+      }
+    }
+
+    // No existing match found — attach the new payment method
+    const idempotencyKey = crypto.randomUUID()
     return await this.stripeClient.paymentMethods.attach(
       paymentMethod.id,
       {
@@ -98,6 +126,7 @@ export class StripeService {
       { idempotencyKey: `${idempotencyKey}--pm` },
     )
   }
+
   async setupIntentToPaymentIntent(setupIntentId: string): Promise<Stripe.PaymentIntent> {
     const setupIntent = await this.findSetupIntentById(setupIntentId)
 
@@ -109,7 +138,7 @@ export class StripeService {
 
     const customer = await this.createCustomer(email, name, paymentMethod)
 
-    await this.attachPaymentMethodToCustomer(paymentMethod, customer)
+    const activePaymentMethod = await this.findOrAttachPaymentMethod(paymentMethod, customer)
     const idempotencyKey = crypto.randomUUID()
 
     const paymentIntent = await this.stripeClient.paymentIntents.create(
@@ -117,7 +146,7 @@ export class StripeService {
         amount: Math.round(Number(metadata.amount)),
         currency: metadata.currency,
         customer: customer.id,
-        payment_method: paymentMethod.id,
+        payment_method: activePaymentMethod.id,
         automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
         confirm: true,
         metadata: {
@@ -150,10 +179,10 @@ export class StripeService {
     const metadata = setupIntent.metadata as Stripe.Metadata
 
     const customer = await this.createCustomer(email, name, paymentMethod)
-    await this.attachPaymentMethodToCustomer(paymentMethod, customer)
+    const activePaymentMethod = await this.findOrAttachPaymentMethod(paymentMethod, customer)
 
     const product = await this.createProduct(metadata.campaignId)
-    return await this.createSubscription(metadata, customer, product, paymentMethod)
+    return await this.createSubscription(metadata, customer, product, activePaymentMethod)
   }
 
   /**
