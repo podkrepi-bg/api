@@ -43,7 +43,7 @@ describe('StripeController', () => {
     refunds: { create: jest.fn() },
     setupIntents: { retrieve: jest.fn(), update: jest.fn() },
     customers: { create: jest.fn(), list: jest.fn() },
-    paymentMethods: { attach: jest.fn() },
+    paymentMethods: { attach: jest.fn(), list: jest.fn() },
     products: { search: jest.fn(), create: jest.fn() },
     subscriptions: { create: jest.fn(), retrieve: jest.fn(), update: jest.fn(), list: jest.fn() },
   }
@@ -79,6 +79,8 @@ describe('StripeController', () => {
   })
 
   stripeMock.customers.list.mockResolvedValue({ data: [{ id: 1 }] })
+  stripeMock.paymentMethods.list.mockResolvedValue({ data: [] })
+  stripeMock.paymentMethods.attach.mockResolvedValue({ id: 'pm_attached' })
 
   const mockSession = {
     mode: 'payment',

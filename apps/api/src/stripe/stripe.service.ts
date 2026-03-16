@@ -103,9 +103,7 @@ export class StripeService {
         type: 'card',
       })
 
-      const existingMatch = existingMethods.data.find(
-        (pm) => pm.card?.fingerprint === fingerprint,
-      )
+      const existingMatch = existingMethods.data.find((pm) => pm.card?.fingerprint === fingerprint)
 
       if (existingMatch) {
         Logger.debug(
