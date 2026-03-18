@@ -20,6 +20,7 @@ import {
 } from '@prisma/client'
 import { Response } from 'express'
 import { getTemplateByTable } from '../export/helpers/exportableData'
+import { eurToBgn } from '../common/money'
 
 import { CampaignService } from '../campaign/campaign.service'
 import { PrismaService } from '../prisma/prisma.service'
@@ -160,6 +161,8 @@ export class DonationsService {
    * @param status (Optional) Filter by campaign status
    * @param pageIndex (Optional)
    * @param pageSize (Optional)
+   * @param sortBy (Optional) Field to sort by: 'createdAt' | 'amount'
+   * @param sortOrder (Optional) Sort order: 'asc' | 'desc'
    * @param type (Optional) Filter by type
    */
 
@@ -168,14 +171,23 @@ export class DonationsService {
     status?: PaymentStatus,
     pageIndex?: number,
     pageSize?: number,
+    sortBy?: string,
+    sortOrder?: string,
   ) {
+    // Build orderBy based on sortBy parameter
+    const validSortFields = ['createdAt', 'amount']
+    const validSortOrders = ['asc', 'desc']
+    const orderField = validSortFields.includes(sortBy || '') ? sortBy : 'createdAt'
+    const orderDirection = validSortOrders.includes(sortOrder || '') ? sortOrder : 'desc'
+    const orderBy = { [orderField as string]: orderDirection }
+
     const [data, count] = await this.prisma.$transaction([
       this.prisma.donation.findMany({
         where: {
           OR: [{ payment: { status: status } }, { payment: { status: PaymentStatus.guaranteed } }],
           targetVault: { campaignId },
         },
-        orderBy: [{ createdAt: 'desc' }],
+        orderBy: [orderBy],
         select: {
           id: true,
           type: true,
@@ -582,6 +594,18 @@ export class DonationsService {
     }
   }
 
+  async updateDonationType(donationId: string, type: DonationType): Promise<Donation> {
+    try {
+      return await this.prisma.donation.update({
+        where: { id: donationId },
+        data: { type },
+      })
+    } catch (err) {
+      Logger.warn(err.message || err)
+      throw new NotFoundException(`Update failed. No donation found with ID: ${donationId}`)
+    }
+  }
+
   async softDelete(ids: string[]): Promise<Prisma.BatchPayload> {
     try {
       return await this.prisma.payment.updateMany({
@@ -715,6 +739,7 @@ export class DonationsService {
     const donationsMappedForExport = items.map((donation) => ({
       ...donation,
       amount: donation.amount / 100,
+      amountBGN: eurToBgn(donation.amount, true),
       person: donation.person
         ? `${donation.person.firstName} ${donation.person.lastName}`
         : 'Anonymous Donor',

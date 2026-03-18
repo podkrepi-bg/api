@@ -209,9 +209,22 @@ export class StripePaymentService {
       return
     }
 
+    // Check if this is a currency conversion subscription
+    // These are already handled by updateLocalRecurringDonation in stripe.service.ts
+    const metadata = subscription.metadata as StripeMetadata & {
+      originalSubscriptionId?: string
+    }
+    if (metadata.originalSubscriptionId) {
+      Logger.log(
+        `[ handleSubscriptionCreated ] Subscription ${subscription.id} is a currency conversion ` +
+          `from ${metadata.originalSubscriptionId}. Already handled by conversion endpoint.`,
+      )
+      return
+    }
+
     Logger.log('[ handleSubscriptionCreated ]', subscription)
 
-    const metadata: StripeMetadata = subscription.metadata as StripeMetadata
+    // metadata is already defined above with the extended type
     if (!metadata.campaignId) {
       throw new BadRequestException(
         'Subscription metadata does not contain target campaignId. Subscription id: ' +
@@ -304,7 +317,20 @@ export class StripePaymentService {
     const subscription: Stripe.Subscription = event.data.object as Stripe.Subscription
     Logger.log('[ handleSubscriptionDeleted ]', subscription)
 
-    const metadata: StripeMetadata = subscription.metadata as StripeMetadata
+    // Check if this subscription was canceled for currency conversion
+    // The recurring donation will be updated with the new subscription ID, not marked as canceled
+    const cancellationComment = subscription.cancellation_details?.comment
+    if (cancellationComment?.startsWith('currency_conversion:')) {
+      const targetCurrency = cancellationComment.split(':')[1]
+      Logger.log(
+        `[ handleSubscriptionDeleted ] Subscription ${subscription.id} was canceled for currency ` +
+          `conversion to ${targetCurrency}. Skipping status update.`,
+      )
+      return
+    }
+
+    const metadata = subscription.metadata as StripeMetadata
+
     if (!metadata.campaignId) {
       throw new BadRequestException(
         'Subscription metadata does not contain target campaignId. Subscription is: ' +
@@ -316,6 +342,18 @@ export class StripePaymentService {
       subscription.id,
     )
     if (!recurringDonation) {
+      // Check if this subscription is being converted to a new currency
+      // In that case, the extSubscriptionId has been prefixed with 'converting:'
+      const convertingDonation = await this.recurringDonationService.findSubscriptionByExtId(
+        `converting:${subscription.id}`,
+      )
+      if (convertingDonation) {
+        Logger.log(
+          `[ handleSubscriptionDeleted ] Subscription ${subscription.id} is being converted. ` +
+            `Skipping status update.`,
+        )
+        return
+      }
       Logger.debug('Received a notification about unknown subscription: ' + subscription.id)
       return
     }
@@ -330,9 +368,16 @@ export class StripePaymentService {
 
   @StripeWebhookHandler('invoice.paid')
   async handleInvoicePaid(event: Stripe.Event) {
-    const invoice: Stripe.Invoice = event.data.object as Stripe.Invoice
+    const invoiceFromEvent: Stripe.Invoice = event.data.object as Stripe.Invoice
 
-    Logger.log('[ handleInvoicePaid ]', invoice)
+    // Retrieve the invoice with expanded payments array
+    // In Stripe API version 2025-03-31 (Basil) and later, invoices have a 'payments' array
+    // instead of direct 'charge' and 'payment_intent' fields
+    const invoice = (await this.stripeService.retrieveInvoice(
+      invoiceFromEvent.id,
+    )) as Stripe.Invoice
+
+    Logger.log('[ handleInvoicePaid ] invoice body', invoice)
     let metadata: StripeMetadata = {
       type: null,
       campaignId: null,
@@ -341,17 +386,30 @@ export class StripePaymentService {
       wish: null,
     }
 
-    invoice.lines.data.forEach((line: Stripe.InvoiceLineItem) => {
-      if (line.type === 'subscription') {
-        metadata = line.metadata as StripeMetadata
-      }
-    })
+    Logger.log('[ handleInvoicePaid ] invoice.parent', invoice.parent)
+
+    if (!invoice?.parent?.subscription_details?.metadata) {
+      throw new BadRequestException(
+        'Invoice parent does not contain subscription_details. Invoice id is:  ' + invoice.id,
+      )
+    }
+    metadata = invoice.parent.subscription_details.metadata as StripeMetadata
+    Logger.log('[ handleInvoicePaid ] metadata', metadata)
 
     if (!metadata.campaignId) {
       throw new BadRequestException(
         'Invoice intent metadata does not contain target campaignId. Probably wrong session initiation. Invoice id is:  ' +
           invoice.id,
       )
+    }
+
+    // Skip processing for zero-amount invoices (e.g., trial invoices from currency conversion)
+    // These don't represent actual payments and should not create donation records
+    if (invoice.amount_due === 0 && invoice.amount_paid === 0) {
+      Logger.log(
+        `[ handleInvoicePaid ] Skipping zero-amount invoice ${invoice.id} (likely a trial from currency conversion)`,
+      )
+      return
     }
 
     const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
@@ -364,8 +422,55 @@ export class StripePaymentService {
       )
     }
 
-    const charge = await this.stripeService.findChargeById(invoice.charge as string)
-    const paymentData = getInvoiceData(invoice, charge)
+    // Extract payment and charge from the new payments structure
+    // In API version 2025-03-31+, invoices have a 'payments' array instead of direct charge/payment_intent fields
+    type InvoiceWithPayments = Stripe.Invoice & {
+      payments?: {
+        data: Array<{
+          payment?: {
+            payment_intent?: Stripe.PaymentIntent
+          }
+        }>
+      }
+    }
+
+    const invoiceWithPayments = invoice as InvoiceWithPayments
+
+    if (!invoiceWithPayments.payments?.data || invoiceWithPayments.payments.data.length === 0) {
+      throw new BadRequestException(
+        `No payments found for invoice ${invoice.id}. The invoice may not have been paid yet.`,
+      )
+    }
+
+    // Get the first payment (for recurring subscriptions, there should typically be one payment per invoice)
+    const firstPayment = invoiceWithPayments.payments.data[0]
+    const paymentIntent = firstPayment?.payment?.payment_intent
+
+    if (!paymentIntent) {
+      throw new BadRequestException(
+        `Unable to retrieve payment intent for invoice ${invoice.id}. The payment data may not be available yet.`,
+      )
+    }
+
+    // Extract the charge from the payment intent's latest_charge field
+    const latestCharge = paymentIntent.latest_charge
+    let charge: Stripe.Charge | undefined
+
+    if (typeof latestCharge === 'string') {
+      // If latest_charge is just an ID, we need to retrieve it
+      charge = await this.stripeService.findChargeById(latestCharge)
+    } else if (latestCharge && typeof latestCharge === 'object') {
+      // If latest_charge is already expanded, use it directly
+      charge = latestCharge as Stripe.Charge
+    }
+
+    if (!charge) {
+      throw new BadRequestException(
+        `Unable to retrieve charge for invoice ${invoice.id}. The charge may not be available yet.`,
+      )
+    }
+
+    const paymentData = getInvoiceData(invoice, charge, metadata)
 
     await this.donationService.updateDonationPayment(campaign, paymentData, PaymentStatus.succeeded)
 

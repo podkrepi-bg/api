@@ -9,7 +9,7 @@ import {
   Post,
   UnauthorizedException,
 } from '@nestjs/common'
-import { ApiBody, ApiTags } from '@nestjs/swagger'
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { AuthenticatedUser, Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto'
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto'
@@ -20,6 +20,12 @@ import { EditFinancialsRequests } from '@podkrepi-bg/podkrepi-types'
 import { CreateSessionDto } from '../donations/dto/create-session.dto'
 import { PersonService } from '../person/person.service'
 import { KeycloakTokenParsed } from '../auth/keycloak'
+import {
+  ConvertSubscriptionsCurrencyDto,
+  ConvertSubscriptionsCurrencyResponseDto,
+  ConvertSingleSubscriptionCurrencyDto,
+  SubscriptionConversionResultDto,
+} from './dto/currency-conversion.dto'
 
 @Controller('stripe')
 @ApiTags('stripe')
@@ -144,10 +150,76 @@ export class StripeController {
     return this.stripeService.listPrices('one_time')
   }
 
-
   @Get('prices/recurring')
   @Public()
   findRecurringPrices() {
     return this.stripeService.listPrices('recurring')
+  }
+
+  @Post('subscriptions/convert-currency')
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  @ApiOperation({
+    summary: 'Convert all subscriptions from one currency to another',
+    description:
+      'Administrative endpoint for bulk converting Stripe subscriptions currency. ' +
+      "Designed for Bulgaria's 2026 EUR adoption (BGN to EUR migration). " +
+      'Requires EditFinancialsRequests role. Use dryRun=true to preview changes.',
+  })
+  @ApiBody({ type: ConvertSubscriptionsCurrencyDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Conversion completed successfully',
+    type: ConvertSubscriptionsCurrencyResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - invalid parameters or conversion failed',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
+  convertSubscriptionsCurrency(
+    @Body() dto: ConvertSubscriptionsCurrencyDto,
+  ): Promise<ConvertSubscriptionsCurrencyResponseDto> {
+    Logger.log(
+      `[Stripe] Bulk currency conversion requested: ${dto.sourceCurrency} -> ${dto.targetCurrency}`,
+    )
+    return this.stripeService.convertSubscriptionsCurrency(dto)
+  }
+
+  @Post('subscriptions/:id/convert-currency')
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  @ApiOperation({
+    summary: 'Convert a single subscription to a different currency',
+    description:
+      'Administrative endpoint for converting a single Stripe subscription currency. ' +
+      'Requires EditFinancialsRequests role. Use dryRun=true to preview changes.',
+  })
+  @ApiBody({ type: ConvertSingleSubscriptionCurrencyDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Conversion completed successfully',
+    type: SubscriptionConversionResultDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - invalid parameters or conversion failed',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
+  @ApiResponse({ status: 404, description: 'Subscription not found' })
+  convertSingleSubscriptionCurrency(
+    @Param('id') subscriptionId: string,
+    @Body() dto: ConvertSingleSubscriptionCurrencyDto,
+  ): Promise<SubscriptionConversionResultDto> {
+    Logger.log(
+      `[Stripe] Single subscription currency conversion requested: ${subscriptionId} -> ${dto.targetCurrency}`,
+    )
+    return this.stripeService.convertSingleSubscriptionCurrency(subscriptionId, dto)
   }
 }

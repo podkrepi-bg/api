@@ -4,7 +4,6 @@ import { mockDeep } from 'jest-mock-extended'
 import { RecurringDonationService } from './recurring-donation.service'
 import { ConfigService } from '@nestjs/config'
 import { HttpService } from '@nestjs/axios'
-import Stripe from 'stripe'
 import { STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
 import { INestApplication } from '@nestjs/common'
 import { RecurringDonationStatus } from '@prisma/client'
@@ -14,7 +13,6 @@ import { StripeService } from '../stripe/stripe.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { DonationsService } from '../donations/donations.service'
 import { RealmViewSupporters } from '@podkrepi-bg/podkrepi-types'
-
 
 const mockCreateRecurring = new CreateRecurringDonationDto()
 mockCreateRecurring.amount = 1
@@ -58,7 +56,7 @@ describe('RecurringDonationService', () => {
         ConfigService,
         {
           provide: StripeService,
-          useValue: mockDeep<StripeService>()
+          useValue: mockDeep<StripeService>(),
         },
         {
           provide: HttpService,
@@ -72,7 +70,6 @@ describe('RecurringDonationService', () => {
           provide: DonationsService,
           useValue: mockDeep<DonationsService>(),
         },
-        Stripe,
         {
           provide: STRIPE_CLIENT_TOKEN,
           useValue: stripeMock,
@@ -105,31 +102,33 @@ describe('RecurringDonationService', () => {
   })
 
   it('should cancel a subscription in db if admin', async () => {
-        prismaMock.recurringDonation.update.mockResolvedValueOnce(mockRecurring)
+    prismaMock.recurringDonation.update.mockResolvedValueOnce(mockRecurring)
     prismaMock.recurringDonation.findUnique.mockResolvedValueOnce(mockRecurring)
     const updateDbSpy = jest.spyOn(service, 'updateStatus')
     const stripeSpy = jest.spyOn(stripeService, 'cancelSubscription')
     const donationBelongsToSpy = jest.spyOn(service, 'donationBelongsTo')
     donationBelongsToSpy.mockResolvedValue(false)
-    stripeSpy.mockResolvedValue({status: 'active'} as any)
-    await service.cancel('1', { sub: '1', realm_access: {roles: [RealmViewSupporters.role]} } as any)
+    stripeSpy.mockResolvedValue({ status: 'active' } as any)
+    await service.cancel('1', {
+      sub: '1',
+      realm_access: { roles: [RealmViewSupporters.role] },
+    } as any)
     expect(stripeSpy).toHaveBeenCalledWith(mockRecurring.extSubscriptionId)
     expect(updateDbSpy).toHaveBeenCalledWith(mockRecurring.id, RecurringDonationStatus.canceled)
   })
 
   it('should cancel a subscription in db if regular user and own donation', async () => {
-        // prismaMock.recurringDonation.update.mockResolvedValueOnce(mockRecurring)
+    // prismaMock.recurringDonation.update.mockResolvedValueOnce(mockRecurring)
     const findOneSpy = jest.spyOn(service, 'findOne').mockResolvedValue(mockRecurring)
     const donationBelongsToSpy = jest.spyOn(service, 'donationBelongsTo')
     donationBelongsToSpy.mockResolvedValue(true)
     const updateDbSpy = jest.spyOn(service, 'updateStatus')
     const stripeSpy = jest.spyOn(stripeService, 'cancelSubscription')
     updateDbSpy.mockResolvedValue(mockRecurring)
-    stripeSpy.mockResolvedValue({status: 'active'} as any)
-    await service.cancel(mockRecurring.id, { sub: '1', realm_access: {roles: []} } as any)
+    stripeSpy.mockResolvedValue({ status: 'active' } as any)
+    await service.cancel(mockRecurring.id, { sub: '1', realm_access: { roles: [] } } as any)
     expect(stripeSpy).toHaveBeenCalledWith(mockRecurring.extSubscriptionId)
     expect(updateDbSpy).toHaveBeenCalledWith(mockRecurring.id, RecurringDonationStatus.canceled)
-    
   })
 
   it('should not allow to cancel a subscription in db if regular user and not own donation', async () => {
@@ -139,7 +138,9 @@ describe('RecurringDonationService', () => {
     donationBelongsToSpy.mockResolvedValue(false)
     const updateDbSpy = jest.spyOn(prismaMock.recurringDonation, 'update')
     const stripeSpy = jest.spyOn(stripeService, 'cancelSubscription')
-    expect(service.cancel(mockRecurring.id, { sub: '1', realm_access: {roles: []} } as any)).rejects.toThrow()
+    expect(
+      service.cancel(mockRecurring.id, { sub: '1', realm_access: { roles: [] } } as any),
+    ).rejects.toThrow()
     expect(stripeSpy).not.toHaveBeenCalledWith(mockRecurring.extSubscriptionId)
     expect(updateStatusSpy).not.toHaveBeenCalledWith({
       where: { id: '1' },
@@ -148,7 +149,7 @@ describe('RecurringDonationService', () => {
       },
     })
   })
-  
+
   it('should create  a subscription in db', async () => {
     prismaMock.recurringDonation.create.mockResolvedValueOnce(mockRecurring)
 
@@ -175,7 +176,7 @@ describe('RecurringDonationService', () => {
     })
   })
 
- it('should update a recurring donation', async () => {
-  expect(true).toBeTruthy()
+  it('should update a recurring donation', async () => {
+    expect(true).toBeTruthy()
   })
 })

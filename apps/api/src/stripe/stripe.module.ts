@@ -12,10 +12,11 @@ import { RecurringDonationModule } from '../recurring-donation/recurring-donatio
 import { StripePaymentService } from './events/stripe-payment.service'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
+import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
   imports: [
-    StripeClientModule.forRootAsync(StripeClientModule, {
+    StripeClientModule.forRootAsync({
       inject: [ConfigService],
       useFactory: StripeConfigFactory.useFactory,
     }),
@@ -24,9 +25,10 @@ import { TemplateService } from '../email/template.service'
     PersonModule,
     DonationsModule,
     forwardRef(() => RecurringDonationModule),
+    PrismaModule,
   ],
   providers: [StripeService, StripePaymentService, EmailService, TemplateService],
   controllers: [StripeController],
-  exports: [StripeService]
+  exports: [StripeService],
 })
 export class StripeModule {}
