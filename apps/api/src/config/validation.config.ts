@@ -51,11 +51,14 @@ export const validationSchema = Joi.object({
 
   // Stripe
   STRIPE_SECRET_KEY: Joi.string().required(),
-  STRIPE_WEBHOOK_SECRET: Joi.string().required(),
+  STRIPE_WEBHOOK_SECRET: Joi.string().allow('').optional(),
 
   //Paypal
   PAYPAL_URL: Joi.string().required(),
   PAYPAL_CLIENT_ID: Joi.string().required(),
   PAYPAL_CLIENT_SECRET: Joi.string().required(),
   PAYPAL_WEBHOOK_ID: Joi.string().required(),
+
+  // Iris Pay
+  PAYMENT_SESSION_SECRET: Joi.string().required(),
 })

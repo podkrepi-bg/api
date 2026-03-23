@@ -108,7 +108,7 @@ describe('IrisPayService', () => {
           netAmount: 1000,
           chargedAmount: 1000,
           currency: 'bgn',
-          paymentProvider: PaymentProvider.none,
+          paymentProvider: PaymentProvider.irispay,
           billingName: 'John Doe',
           billingEmail: 'john.doe@example.com',
           personId: 'person-123',

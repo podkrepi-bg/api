@@ -172,7 +172,7 @@ export class IrisPayService {
     return await this.donationsService.updateDonationPayment(campaign, paymentData, paymentStatus)
   }
 
-  private mapStatusToPaymentStatus(status: string): PaymentStatus {
+  mapStatusToPaymentStatus(status: string): PaymentStatus {
     switch (status.toUpperCase()) {
       case 'CONFIRMED':
         return PaymentStatus.succeeded
