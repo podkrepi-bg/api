@@ -300,13 +300,13 @@ export class StripePaymentService {
       subscription.id,
     )
     if (!recurringDonation) {
-      this.handleSubscriptionCreated(event)
+      await this.handleSubscriptionCreated(event)
       return
     }
 
     Logger.debug('Updating recurring donation by id ' + recurringDonation.id)
 
-    this.recurringDonationService.updateStatus(
+    await this.recurringDonationService.updateStatus(
       recurringDonation.id,
       string2RecurringDonationStatus(subscription.status),
     )
@@ -360,7 +360,7 @@ export class StripePaymentService {
 
     Logger.debug('Deleting recurring donation by id ' + recurringDonation.id)
 
-    this.recurringDonationService.updateStatus(
+    await this.recurringDonationService.updateStatus(
       recurringDonation.id,
       string2RecurringDonationStatus(subscription.status),
     )
