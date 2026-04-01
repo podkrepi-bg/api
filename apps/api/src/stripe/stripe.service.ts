@@ -493,9 +493,20 @@ export class StripeService {
     })
   }
 
-  async cancelSubscription(stripeSubscriptionId: string) {
-    const result = await this.stripeClient.subscriptions.cancel(stripeSubscriptionId)
-    return result
+  async cancelSubscription(stripeSubscriptionId: string): Promise<Stripe.Subscription> {
+    try {
+      return await this.stripeClient.subscriptions.cancel(stripeSubscriptionId)
+    } catch (e) {
+      if (e instanceof Stripe.errors.StripeInvalidRequestError && e.code === 'resource_missing') {
+        // Stripe returns resource_missing when canceling an already-canceled subscription,
+        // but the subscription can still be retrieved
+        const subscription = await this.stripeClient.subscriptions.retrieve(stripeSubscriptionId)
+        if (subscription.status === 'canceled') {
+          return subscription
+        }
+      }
+      throw e
+    }
   }
 
   async findChargeById(chargeId: string): Promise<Stripe.Charge> {
