@@ -1,10 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
+import { randomUUID } from 'crypto'
 import { Request, Response } from 'express'
 
 export interface PaymentSessionPayload {
   step: 'initialSession' | 'paymentSessionCreated'
+  jti?: string
   hookHash?: string
   userHash?: string
 }
@@ -19,12 +23,13 @@ export class PaymentSessionService {
   constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {
     this.secret = this.configService.get<string>('iris.paymentSessionSecret', '')
   }
 
   createInitialSession(res: Response): void {
-    const payload: PaymentSessionPayload = { step: 'initialSession' }
+    const payload: PaymentSessionPayload = { step: 'initialSession', jti: randomUUID() }
     const token = this.jwtService.sign(payload, {
       secret: this.secret,
       expiresIn: SESSION_TTL_SECONDS,
@@ -56,9 +61,24 @@ export class PaymentSessionService {
     return payload
   }
 
+  async consumeSession(payload: PaymentSessionPayload): Promise<void> {
+    if (!payload.jti) {
+      throw new UnauthorizedException('Invalid payment session: missing jti')
+    }
+
+    const cacheKey = `iris-pay:jti:${payload.jti}`
+    const consumed = await this.cacheManager.get(cacheKey)
+    if (consumed) {
+      throw new UnauthorizedException('Payment session already used')
+    }
+
+    await this.cacheManager.set(cacheKey, true, SESSION_TTL_SECONDS * 1000)
+  }
+
   upgradeSession(res: Response, data: { hookHash: string; userHash: string }): void {
     const payload: PaymentSessionPayload = {
       step: 'paymentSessionCreated',
+      jti: randomUUID(),
       hookHash: data.hookHash,
       userHash: data.userHash,
     }

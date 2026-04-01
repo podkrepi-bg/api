@@ -5,7 +5,6 @@ import {
   Body,
   Req,
   Res,
-  RawBodyRequest,
   Query,
   HttpCode,
   UseGuards,
@@ -44,8 +43,10 @@ export class IrisPayController {
   @PaymentStep('initialSession')
   async createIRISCheckoutSession(
     @Body() irisCreateCustomerDto: IRISCreateCheckoutSessionDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ hookHash: string; userHash: string }> {
+    await this.paymentSessionService.consumeSession((req as any).paymentSession)
     const result = await this.irisPayService.createCheckout(irisCreateCustomerDto)
     this.paymentSessionService.upgradeSession(res, {
       hookHash: result.hookHash,
@@ -66,6 +67,7 @@ export class IrisPayController {
   ): Promise<{ donationId?: string; status: string }> {
     // Extract hookHash from the validated JWT session (tamper-proof)
     const session = (req as any).paymentSession
+    await this.paymentSessionService.consumeSession(session)
     const hookHash: string = session.hookHash
 
     Logger.debug('Completing payment from session', { hookHash })
@@ -97,7 +99,8 @@ export class IrisPayController {
 
   @Get('webhook')
   @Public()
-  async webhookEndpoint(@Req() req: RawBodyRequest<Request>, @Query('state') state: string) {
-    console.log(`Webhook ${state} executed`)
+  async webhookEndpoint(@Query('state') state: string) {
+    Logger.debug('Iris webhook received', { state })
+    return { status: 'ok' }
   }
 }
