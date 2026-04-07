@@ -13,7 +13,8 @@ import {
 } from '@nestjs/common'
 
 import { FilesInterceptor } from '@nestjs/platform-express'
-import { UseInterceptors, UploadedFiles } from '@nestjs/common'
+import { UseInterceptors } from '@nestjs/common'
+import { UploadedFiles } from '../common/uploaded-file.decorator'
 import { Roles, RoleMatchingMode, Public } from 'nest-keycloak-connect'
 
 import { PersonService } from '../person/person.service'
