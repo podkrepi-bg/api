@@ -12,25 +12,34 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common'
 
 type AnyFile = { originalname?: string } & Record<string, unknown>
 
-const fixOriginalName = <T extends AnyFile>(file: T): T => {
-  if (file && typeof file.originalname === 'string') {
-    file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8')
+/**
+ * Returns a shallow copy of `file` with `originalname` re-decoded from
+ * latin1 to UTF-8. We deliberately do NOT mutate the original Multer file
+ * object, so the request stays pristine for any other consumer (guards,
+ * interceptors, exception filters) and so this conversion stays idempotent
+ * — running it twice on the same input always yields the same result.
+ */
+const withDecodedFilename = <T extends AnyFile>(file: T): T => {
+  if (!file || typeof file.originalname !== 'string') return file
+  return {
+    ...file,
+    originalname: Buffer.from(file.originalname, 'latin1').toString('utf8'),
   }
-  return file
 }
 
 export const UploadedFile = createParamDecorator((_data: unknown, ctx: ExecutionContext) => {
-  const req = ctx.switchToHttp().getRequest()
-  return req.file ? fixOriginalName(req.file) : req.file
+  const file = ctx.switchToHttp().getRequest().file
+  return file ? withDecodedFilename(file) : file
 })
 
 export const UploadedFiles = createParamDecorator((_data: unknown, ctx: ExecutionContext) => {
   const files = ctx.switchToHttp().getRequest().files
   if (!files) return files
-  if (Array.isArray(files)) return files.map(fixOriginalName)
+  if (Array.isArray(files)) return files.map(withDecodedFilename)
   // FileFieldsInterceptor: { [field]: Express.Multer.File[] }
+  const result: Record<string, AnyFile[]> = {}
   for (const key of Object.keys(files)) {
-    files[key] = files[key].map(fixOriginalName)
+    result[key] = files[key].map(withDecodedFilename)
   }
-  return files
+  return result
 })
