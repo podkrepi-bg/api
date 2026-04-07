@@ -1,6 +1,7 @@
 import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import Stripe from 'stripe'
+import { StripeApiClient } from './stripe-api-client'
 import { UpdateSetupIntentDto } from './dto/update-setup-intent.dto'
 import { KeycloakTokenParsed } from '../auth/keycloak'
 import { CreateSubscriptionPaymentDto } from './dto/create-subscription-payment.dto'
@@ -34,6 +35,7 @@ import {
 export class StripeService {
   constructor(
     @InjectStripeClient() private stripeClient: Stripe,
+    private api: StripeApiClient,
     private campaignService: CampaignService,
     private donationService: DonationsService,
     private configService: ConfigService,
@@ -53,7 +55,7 @@ export class StripeService {
       throw new BadRequestException('campaignId is missing from metadata')
     await this.campaignService.validateCampaignId(inputDto.metadata.campaignId as string)
     const idempotencyKey = crypto.randomUUID()
-    return await this.stripeClient.setupIntents.update(id, inputDto, { idempotencyKey })
+    return await this.api.updateSetupIntent(id, inputDto, { idempotencyKey })
   }
   /**
    * Create a payment intent for a donation
@@ -63,10 +65,10 @@ export class StripeService {
    */
 
   async cancelSetupIntent(id: string) {
-    return await this.stripeClient.setupIntents.cancel(id)
+    return await this.api.cancelSetupIntent(id)
   }
   async findSetupIntentById(setupIntentId: string): Promise<Stripe.SetupIntent | Error> {
-    const setupIntent = await this.stripeClient.setupIntents.retrieve(setupIntentId, {
+    const setupIntent = await this.api.retrieveSetupIntent(setupIntentId, {
       expand: ['payment_method'],
     })
 
@@ -162,7 +164,7 @@ export class StripeService {
    */
   async createSetupIntent(): Promise<Stripe.Response<Stripe.SetupIntent>> {
     const idempotencyKey = crypto.randomUUID()
-    return await this.stripeClient.setupIntents.create(
+    return await this.api.createSetupIntent(
       { automatic_payment_methods: { enabled: true, allow_redirects: 'never' } },
       { idempotencyKey },
     )
@@ -193,7 +195,7 @@ export class StripeService {
     id: string,
     inputDto: Stripe.PaymentIntentUpdateParams,
   ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
-    return this.stripeClient.paymentIntents.update(id, inputDto)
+    return this.api.updatePaymentIntent(id, inputDto)
   }
 
   /**
@@ -206,7 +208,7 @@ export class StripeService {
     id: string,
     inputDto: Stripe.PaymentIntentCancelParams,
   ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
-    return this.stripeClient.paymentIntents.cancel(id, inputDto)
+    return this.api.cancelPaymentIntent(id, inputDto)
   }
 
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
@@ -510,11 +512,11 @@ export class StripeService {
   }
 
   async findChargeById(chargeId: string): Promise<Stripe.Charge> {
-    return await this.stripeClient.charges.retrieve(chargeId)
+    return await this.api.retrieveCharge(chargeId)
   }
 
   async retrieveSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
-    return await this.stripeClient.subscriptions.retrieve(subscriptionId)
+    return await this.api.retrieveSubscription(subscriptionId)
   }
 
   /**
@@ -526,11 +528,11 @@ export class StripeService {
   async listSubscriptions(
     params?: Stripe.SubscriptionListParams,
   ): Promise<Stripe.ApiList<Stripe.Subscription>> {
-    return await this.stripeClient.subscriptions.list(params)
+    return await this.api.listSubscriptions(params)
   }
 
   async retrievePaymentIntent(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
-    return await this.stripeClient.paymentIntents.retrieve(paymentIntentId)
+    return await this.api.retrievePaymentIntent(paymentIntentId)
   }
 
   async retrieveInvoice(invoiceId: string) {
@@ -540,7 +542,7 @@ export class StripeService {
     // Stripe has a 4-level expansion limit. We expand to 4 levels:
     // 1. payments, 2. data, 3. payment, 4. payment_intent
     // Then we'll access latest_charge without expansion (it will be a string ID)
-    return await this.stripeClient.invoices.retrieve(invoiceId, {
+    return await this.api.retrieveInvoice(invoiceId, {
       expand: ['payments.data.payment.payment_intent'],
     })
   }
