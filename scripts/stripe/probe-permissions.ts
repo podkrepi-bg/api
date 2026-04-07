@@ -266,8 +266,8 @@ async function main() {
       scopeToCallers.set(p.requiresScope, callers)
     }
     console.error(
-      `\nThis app uses ${scopeToCallers.size} Stripe permission(s). Enable all of them ` +
-        `on your restricted key at:\n`,
+      `\nThis app uses ${scopeToCallers.size} unique Stripe permission(s) across ${probes.length} ` +
+        `gateway methods. Enable all ${scopeToCallers.size} on your restricted key at:\n`,
     )
     console.error('  https://dashboard.stripe.com/test/apikeys\n')
     renderRows(scopeToCallers)

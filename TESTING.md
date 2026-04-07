@@ -54,7 +54,7 @@ derived from the `StripeApiClient` gateway in
 safe to run before you've put anything in `.env.local`. Output looks like:
 
 ```
-This app uses 17 Stripe permission(s). Enable all of them on your restricted key at:
+This app uses 17 unique Stripe permission(s) across 23 gateway methods. Enable all 17 on your restricted key at:
 
   https://dashboard.stripe.com/test/apikeys
 
