@@ -28,44 +28,21 @@
  * STRIPE_SECRET_KEY is read from .env.local automatically (or from process.env
  * in CI). No shell preamble required.
  */
-import * as fs from 'fs'
 import * as path from 'path'
+import * as dotenv from 'dotenv'
 import Stripe from 'stripe'
 import { StripeApiClient } from '../../apps/api/src/stripe/stripe-api-client'
 
 /**
  * Load .env.local from the repo root as a fallback for STRIPE_SECRET_KEY.
  *
- * Process env always wins — this only fills in keys that aren't already set,
+ * Process env always wins — dotenv only fills in keys that aren't already set,
  * so a CI run with `STRIPE_SECRET_KEY` injected from GitHub secrets is never
- * overridden by a stray local file. In dev, this lets `yarn stripe:probe`
+ * overridden by a stray local file. In dev, this lets `yarn stripe:check-permissions`
  * work with no shell setup as long as the key is in .env.local.
- *
- * Intentionally minimal: handles `KEY=VALUE` lines, ignores blanks and `#`
- * comments, strips wrapping single/double quotes, does not handle multi-line
- * values or escaped characters. If you need more, install dotenv.
  */
 function loadEnvLocalFallback(): void {
-  const envPath = path.resolve(__dirname, '../../.env.local')
-  if (!fs.existsSync(envPath)) return
-  const contents = fs.readFileSync(envPath, 'utf8')
-  for (const rawLine of contents.split('\n')) {
-    const line = rawLine.trim()
-    if (!line || line.startsWith('#')) continue
-    const eq = line.indexOf('=')
-    if (eq === -1) continue
-    const key = line.slice(0, eq).trim()
-    let value = line.slice(eq + 1).trim()
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1)
-    }
-    if (process.env[key] === undefined) {
-      process.env[key] = value
-    }
-  }
+  dotenv.config({ path: path.resolve(__dirname, '../../.env.local') })
 }
 
 const RAK_RE = /Having the '(rak_[a-z_]+)' permission/
