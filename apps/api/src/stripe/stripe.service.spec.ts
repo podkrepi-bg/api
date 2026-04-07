@@ -148,7 +148,7 @@ describe('StripeService', () => {
     prismaMock.recurringDonation.update.mockResolvedValue(mockRecurring)
 
     await service.cancelSubscription('sub1')
-    expect(cancelSubscriptionSpy).toHaveBeenCalledWith('sub1', undefined)
+    expect(cancelSubscriptionSpy).toHaveBeenCalledWith('sub1', undefined, undefined)
   })
 
   describe('convertSingleSubscriptionCurrency', () => {
@@ -239,12 +239,16 @@ describe('StripeService', () => {
 
       expect(result.success).toBe(true)
       // Should cancel old subscription with cancellation_details comment, then create new subscription
-      expect(stripeMock.subscriptions.cancel).toHaveBeenCalledWith('sub_bgn_123', {
-        prorate: false,
-        cancellation_details: {
-          comment: 'currency_conversion:EUR',
+      expect(stripeMock.subscriptions.cancel).toHaveBeenCalledWith(
+        'sub_bgn_123',
+        {
+          prorate: false,
+          cancellation_details: {
+            comment: 'currency_conversion:EUR',
+          },
         },
-      })
+        undefined,
+      )
       // New subscription is created with inline price_data (not a separate price)
       expect(stripeMock.subscriptions.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -539,7 +543,7 @@ describe('StripeService', () => {
 
       const result = await service.listSubscriptions()
 
-      expect(stripeMock.subscriptions.list).toHaveBeenCalledWith(undefined)
+      expect(stripeMock.subscriptions.list).toHaveBeenCalledWith(undefined, undefined)
       expect(result.data).toHaveLength(2)
       expect(result.data[0].id).toBe('sub_1')
     })
@@ -558,10 +562,13 @@ describe('StripeService', () => {
         status: 'active',
       })
 
-      expect(stripeMock.subscriptions.list).toHaveBeenCalledWith({
-        price: 'price_abc123',
-        status: 'active',
-      })
+      expect(stripeMock.subscriptions.list).toHaveBeenCalledWith(
+        {
+          price: 'price_abc123',
+          status: 'active',
+        },
+        undefined,
+      )
       expect(result.data).toHaveLength(1)
       expect(result.data[0].id).toBe('sub_price_match')
     })
@@ -579,9 +586,12 @@ describe('StripeService', () => {
         customer: 'cus_123',
       })
 
-      expect(stripeMock.subscriptions.list).toHaveBeenCalledWith({
-        customer: 'cus_123',
-      })
+      expect(stripeMock.subscriptions.list).toHaveBeenCalledWith(
+        {
+          customer: 'cus_123',
+        },
+        undefined,
+      )
       expect(result.data).toHaveLength(1)
     })
 
@@ -599,10 +609,13 @@ describe('StripeService', () => {
         starting_after: 'sub_previous',
       })
 
-      expect(stripeMock.subscriptions.list).toHaveBeenCalledWith({
-        limit: 10,
-        starting_after: 'sub_previous',
-      })
+      expect(stripeMock.subscriptions.list).toHaveBeenCalledWith(
+        {
+          limit: 10,
+          starting_after: 'sub_previous',
+        },
+        undefined,
+      )
       expect(result.has_more).toBe(true)
     })
 
@@ -625,9 +638,12 @@ describe('StripeService', () => {
         expand: ['data.items.data.price'],
       })
 
-      expect(stripeMock.subscriptions.list).toHaveBeenCalledWith({
-        expand: ['data.items.data.price'],
-      })
+      expect(stripeMock.subscriptions.list).toHaveBeenCalledWith(
+        {
+          expand: ['data.items.data.price'],
+        },
+        undefined,
+      )
       expect(result.data[0].items.data[0].price.id).toBe('price_123')
     })
 
@@ -644,9 +660,12 @@ describe('StripeService', () => {
         status: 'canceled',
       })
 
-      expect(stripeMock.subscriptions.list).toHaveBeenCalledWith({
-        status: 'canceled',
-      })
+      expect(stripeMock.subscriptions.list).toHaveBeenCalledWith(
+        {
+          status: 'canceled',
+        },
+        undefined,
+      )
       expect(result.data[0].status).toBe('canceled')
     })
   })
