@@ -70,6 +70,57 @@ function loadEnvLocalFallback(): void {
 
 const RAK_RE = /Having the '(rak_[a-z_]+)' permission/
 
+/**
+ * Map from `rak_*` slug → human-readable dashboard label.
+ *
+ * Stripe's dashboard groups permissions by resource (a section header) and
+ * action (a "Read" or "Write" checkbox), but the API only returns raw slugs.
+ * This table translates so the script's output matches what a developer
+ * actually sees in https://dashboard.stripe.com/test/apikeys when ticking
+ * checkboxes on a restricted key.
+ *
+ * Notable mismatches between slug and label that you can't derive mechanically:
+ *   - rak_plan_*  → "Prices" section (Stripe renamed Plans to Prices but kept
+ *                   the legacy slug for backwards compatibility)
+ *   - rak_credit_note_*  → may appear under "Invoices" depending on dashboard
+ *                          version; verify if you don't see "Credit Notes" as
+ *                          its own section.
+ *
+ * Add new entries here when the probe surfaces a slug not in this table.
+ * Unmapped slugs degrade gracefully — the script prints them raw with a note.
+ */
+const PERMISSION_LABELS: Record<string, { section: string; action: 'Read' | 'Write' }> = {
+  // Core resources
+  rak_charge_read: { section: 'Charges', action: 'Read' },
+  rak_charge_write: { section: 'Charges', action: 'Write' },
+  rak_customer_read: { section: 'Customers', action: 'Read' },
+  rak_customer_write: { section: 'Customers', action: 'Write' },
+  rak_payment_intent_read: { section: 'Payment Intents', action: 'Read' },
+  rak_payment_intent_write: { section: 'Payment Intents', action: 'Write' },
+  rak_payment_method_read: { section: 'Payment Methods', action: 'Read' },
+  rak_payment_method_write: { section: 'Payment Methods', action: 'Write' },
+  rak_setup_intent_read: { section: 'Setup Intents', action: 'Read' },
+  rak_setup_intent_write: { section: 'Setup Intents', action: 'Write' },
+  rak_refund_read: { section: 'Refunds', action: 'Read' },
+  rak_refund_write: { section: 'Refunds', action: 'Write' },
+  rak_product_read: { section: 'Products', action: 'Read' },
+  rak_product_write: { section: 'Products', action: 'Write' },
+  rak_invoice_read: { section: 'Invoices', action: 'Read' },
+  rak_invoice_write: { section: 'Invoices', action: 'Write' },
+  rak_credit_note_read: { section: 'Invoices', action: 'Read' }, // verified in dashboard — credit notes live under Invoices
+  rak_credit_note_write: { section: 'Invoices', action: 'Write' },
+
+  // Billing
+  rak_subscription_read: { section: 'Subscriptions', action: 'Read' },
+  rak_subscription_write: { section: 'Subscriptions', action: 'Write' },
+  rak_plan_read: { section: 'Prices', action: 'Read' }, // legacy slug — section is now "Prices"
+  rak_plan_write: { section: 'Prices', action: 'Write' },
+
+  // Checkout
+  rak_checkout_session_read: { section: 'Checkout Sessions', action: 'Read' },
+  rak_checkout_session_write: { section: 'Checkout Sessions', action: 'Write' },
+}
+
 type Probe = { method: string; run: () => Promise<unknown> }
 
 /**
@@ -236,15 +287,41 @@ async function main() {
     process.exit(0)
   }
 
-  console.error(`\nMissing ${missing.size} Stripe permission(s) on the configured key:\n`)
-  for (const [scope, callers] of [...missing.entries()].sort()) {
-    console.error(`  ${scope}`)
+  // Build three-column rows: dashboard label | gateway function | raw slug.
+  // The function name is the load-bearing column — if the label is wrong (the
+  // mapping table can drift from Stripe's dashboard wording), the dev can fall
+  // back to "I see createCustomer in the function column, so this is the
+  // customer write scope, find that in the dashboard." The slug is the third
+  // fallback for grep / escalation.
+  type Row = { label: string; func: string; slug: string }
+  const rows: Row[] = []
+  for (const [scope, callers] of missing.entries()) {
+    const mapped = PERMISSION_LABELS[scope]
+    const label = mapped ? `${mapped.section} → ${mapped.action}` : '(unmapped — find in dashboard)'
+    // Multi-caller scopes get one row per caller so the function column is
+    // always populated; the label and slug repeat, which is what we want
+    // visually (each line is independently actionable).
     for (const caller of callers) {
-      console.error(`    used by: StripeApiClient.${caller}`)
+      rows.push({ label, func: `StripeApiClient.${caller}`, slug: scope })
     }
   }
-  console.error('\nFix: open https://dashboard.stripe.com/apikeys, edit the restricted key,')
-  console.error('     enable each scope above, save, and re-run this probe.')
+
+  // Stable sort: by label first (groups read+write of same section), then by func.
+  rows.sort((a, b) => a.label.localeCompare(b.label) || a.func.localeCompare(b.func))
+
+  const labelW = Math.max(...rows.map((r) => r.label.length))
+  const funcW = Math.max(...rows.map((r) => r.func.length))
+
+  console.error(
+    `\nMissing ${missing.size} Stripe permission(s). ` +
+      `Enable in https://dashboard.stripe.com/test/apikeys :\n`,
+  )
+  for (const r of rows) {
+    console.error(
+      `  ${r.label.padEnd(labelW)}   ${r.func.padEnd(funcW)}   (${r.slug})`,
+    )
+  }
+  console.error('\nClick your restricted key, tick the boxes above, save, and re-run.')
   process.exit(1)
 }
 
