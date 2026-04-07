@@ -5,6 +5,7 @@ import {
 } from '@golevelup/nestjs-stripe'
 import { Test, TestingModule } from '@nestjs/testing'
 import { StripeService } from './stripe.service'
+import { StripeApiClient } from './stripe-api-client'
 import { PersonService } from '../person/person.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { ConfigModule, ConfigService } from '@nestjs/config'
@@ -118,6 +119,7 @@ describe('StripeService', () => {
           },
         },
         StripeService,
+        StripeApiClient,
         MockPrismaService,
         {
           provide: STRIPE_CLIENT_TOKEN,
@@ -146,7 +148,7 @@ describe('StripeService', () => {
     prismaMock.recurringDonation.update.mockResolvedValue(mockRecurring)
 
     await service.cancelSubscription('sub1')
-    expect(cancelSubscriptionSpy).toHaveBeenCalledWith('sub1')
+    expect(cancelSubscriptionSpy).toHaveBeenCalledWith('sub1', undefined)
   })
 
   describe('convertSingleSubscriptionCurrency', () => {
@@ -259,6 +261,7 @@ describe('StripeService', () => {
             originalSubscriptionId: 'sub_bgn_123',
           }),
         }),
+        undefined,
       )
       expect(prismaMock.recurringDonation.update).toHaveBeenCalled()
     })

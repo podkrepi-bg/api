@@ -1,4 +1,3 @@
-import { InjectStripeClient } from '@golevelup/nestjs-stripe'
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import Stripe from 'stripe'
 import { StripeApiClient } from './stripe-api-client'
@@ -34,7 +33,6 @@ import {
 @Injectable()
 export class StripeService {
   constructor(
-    @InjectStripeClient() private stripeClient: Stripe,
     private api: StripeApiClient,
     private campaignService: CampaignService,
     private donationService: DonationsService,
@@ -100,7 +98,7 @@ export class StripeService {
 
     if (fingerprint) {
       // Check if the customer already has a payment method with the same card fingerprint
-      const existingMethods = await this.stripeClient.paymentMethods.list({
+      const existingMethods = await this.api.listPaymentMethods({
         customer: customer.id,
         type: 'card',
       })
@@ -118,7 +116,7 @@ export class StripeService {
 
     // No existing match found — attach the new payment method
     const idempotencyKey = crypto.randomUUID()
-    return await this.stripeClient.paymentMethods.attach(
+    return await this.api.attachPaymentMethod(
       paymentMethod.id,
       {
         customer: customer.id,
@@ -141,7 +139,7 @@ export class StripeService {
     const activePaymentMethod = await this.findOrAttachPaymentMethod(paymentMethod, customer)
     const idempotencyKey = crypto.randomUUID()
 
-    const paymentIntent = await this.stripeClient.paymentIntents.create(
+    const paymentIntent = await this.api.createPaymentIntent(
       {
         amount: Math.round(Number(metadata.amount)),
         currency: metadata.currency,
@@ -212,38 +210,34 @@ export class StripeService {
   }
 
   async listPrices(type?: Stripe.PriceListParams.Type, active?: boolean): Promise<Stripe.Price[]> {
-    const listResponse = await this.stripeClient.prices.list({ active, type, limit: 100 }).then(
-      function (list) {
-        Logger.debug('[Stripe] Prices received: ' + list.data.length)
-        return { list }
-      },
-      function (error) {
-        if (error instanceof Stripe.errors.StripeError)
-          Logger.error(
-            '[Stripe] Error while getting price list. Error type: ' +
-              error.type +
-              ' message: ' +
-              error.message +
-              ' full error: ' +
-              JSON.stringify(error),
-          )
-      },
-    )
-
-    if (listResponse) {
-      return listResponse.list.data.filter((price) => price.active)
-    } else return new Array<Stripe.Price>()
+    try {
+      const list = await this.api.listPrices({ active, type, limit: 100 })
+      Logger.debug('[Stripe] Prices received: ' + list.data.length)
+      return list.data.filter((price) => price.active)
+    } catch (error) {
+      if (error instanceof Stripe.errors.StripeError) {
+        Logger.error(
+          '[Stripe] Error while getting price list. Error type: ' +
+            error.type +
+            ' message: ' +
+            error.message +
+            ' full error: ' +
+            JSON.stringify(error),
+        )
+      }
+      throw error
+    }
   }
 
   async createCustomer(email: string, name: string, paymentMethod: Stripe.PaymentMethod) {
-    const customerLookup = await this.stripeClient.customers.list({
+    const customerLookup = await this.api.listCustomers({
       email,
     })
     const idempotencyKey = crypto.randomUUID()
     const customer = customerLookup.data[0]
     //Customer not found. Create new onw
     if (!customer)
-      return await this.stripeClient.customers.create(
+      return await this.api.createCustomer(
         {
           email,
           name,
@@ -260,12 +254,12 @@ export class StripeService {
     const idempotencyKey = crypto.randomUUID()
     if (!campaign) throw new Error(`Campaign with id ${campaignId} not found`)
 
-    const productLookup = await this.stripeClient.products.search({
+    const productLookup = await this.api.searchProducts({
       query: `metadata["campaignId"]:"${campaign.id}"`,
     })
 
     if (productLookup.data.length) return productLookup.data[0]
-    return await this.stripeClient.products.create(
+    return await this.api.createProduct(
       {
         name: campaign.title,
         description: `Donate to ${campaign.title}`,
@@ -284,7 +278,7 @@ export class StripeService {
   ) {
     const idempotencyKey = crypto.randomUUID()
 
-    const subscription = await this.stripeClient.subscriptions.create(
+    const subscription = await this.api.createSubscription(
       {
         customer: customer.id,
         items: [
@@ -336,7 +330,7 @@ export class StripeService {
     // If it's already an object (shouldn't happen with 4-level expansion), use it directly
     const paymentIntent =
       typeof paymentIntentIdOrObject === 'string'
-        ? await this.stripeClient.paymentIntents.retrieve(paymentIntentIdOrObject)
+        ? await this.api.retrievePaymentIntent(paymentIntentIdOrObject)
         : paymentIntentIdOrObject
 
     return paymentIntent
@@ -370,35 +364,31 @@ export class StripeService {
       tax_id_collection: { enabled: true },
     }
 
-    const sessionResponse = await this.stripeClient.checkout.sessions
-      .create(createSessionRequest)
-      .then(
-        function (session) {
-          Logger.debug('[Stripe] Checkout session created.')
-          return { session }
-        },
-        function (error) {
-          if (error instanceof Stripe.errors.StripeError)
-            Logger.error(
-              '[Stripe] Error while creating checkout session. Error type: ' +
-                error.type +
-                ' message: ' +
-                error.message +
-                ' full error: ' +
-                JSON.stringify(error),
-            )
-        },
-      )
-
-    if (sessionResponse) {
-      this.donationService.createInitialDonationFromSession(
-        campaign,
-        sessionDto,
-        (sessionResponse.session.payment_intent as string) ?? sessionResponse.session.id,
-      )
+    let session: Stripe.Checkout.Session
+    try {
+      session = await this.api.createCheckoutSession(createSessionRequest)
+      Logger.debug('[Stripe] Checkout session created.')
+    } catch (error) {
+      if (error instanceof Stripe.errors.StripeError) {
+        Logger.error(
+          '[Stripe] Error while creating checkout session. Error type: ' +
+            error.type +
+            ' message: ' +
+            error.message +
+            ' full error: ' +
+            JSON.stringify(error),
+        )
+      }
+      throw error
     }
 
-    return sessionResponse
+    this.donationService.createInitialDonationFromSession(
+      campaign,
+      sessionDto,
+      (session.payment_intent as string) ?? session.id,
+    )
+
+    return { session }
   }
 
   private async prepareSessionItems(
@@ -451,7 +441,7 @@ export class StripeService {
   async createPaymentIntent(
     inputDto: Stripe.PaymentIntentCreateParams,
   ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
-    return await this.stripeClient.paymentIntents.create({
+    return await this.api.createPaymentIntent({
       ...inputDto,
       automatic_payment_methods: { allow_redirects: 'never', enabled: true },
     })
@@ -464,7 +454,7 @@ export class StripeService {
    * @returns {Promise<Stripe.Response<Stripe.PaymentIntent>>}
    */
   async createStripePayment(inputDto: CreateStripePaymentDto): Promise<Payment> {
-    const intent = await this.stripeClient.paymentIntents.retrieve(inputDto.paymentIntentId)
+    const intent = await this.api.retrievePaymentIntent(inputDto.paymentIntentId)
     if (!intent.metadata.campaignId) {
       throw new BadRequestException('Campaign id is missing from payment intent metadata')
     }
@@ -480,7 +470,7 @@ export class StripeService {
    * @returns {Promise<Stripe.Response<Stripe.Refund>>}
    */
   async refundStripePayment(paymentIntentId: string): Promise<Stripe.Response<Stripe.Refund>> {
-    const intent = await this.stripeClient.paymentIntents.retrieve(paymentIntentId)
+    const intent = await this.api.retrievePaymentIntent(paymentIntentId)
     if (!intent) {
       throw new BadRequestException('Payment Intent is missing from stripe')
     }
@@ -489,7 +479,7 @@ export class StripeService {
       throw new BadRequestException('Campaign id is missing from payment intent metadata')
     }
 
-    return await this.stripeClient.refunds.create({
+    return await this.api.createRefund({
       payment_intent: paymentIntentId,
       reason: 'requested_by_customer',
     })
@@ -497,12 +487,12 @@ export class StripeService {
 
   async cancelSubscription(stripeSubscriptionId: string): Promise<Stripe.Subscription> {
     try {
-      return await this.stripeClient.subscriptions.cancel(stripeSubscriptionId)
+      return await this.api.cancelSubscription(stripeSubscriptionId)
     } catch (e) {
       if (e instanceof Stripe.errors.StripeInvalidRequestError && e.code === 'resource_missing') {
         // Stripe returns resource_missing when canceling an already-canceled subscription,
         // but the subscription can still be retrieved
-        const subscription = await this.stripeClient.subscriptions.retrieve(stripeSubscriptionId)
+        const subscription = await this.api.retrieveSubscription(stripeSubscriptionId)
         if (subscription.status === 'canceled') {
           return subscription
         }
@@ -565,7 +555,7 @@ export class StripeService {
 
     try {
       // Retrieve the subscription with expanded price data
-      const subscription = await this.stripeClient.subscriptions.retrieve(subscriptionId, {
+      const subscription = await this.api.retrieveSubscription(subscriptionId, {
         expand: ['items.data.price'],
       })
 
@@ -975,7 +965,7 @@ export class StripeService {
     // We need to cancel immediately because Stripe doesn't allow customers to have
     // active subscriptions in multiple currencies at the same time
     try {
-      await this.stripeClient.subscriptions.cancel(subscription.id, {
+      await this.api.cancelSubscription(subscription.id, {
         prorate: false, // Don't create prorated credit, we'll use trial instead
         cancellation_details: {
           comment: `currency_conversion:${newCurrency.toUpperCase()}`,
@@ -1003,7 +993,7 @@ export class StripeService {
     // This way the customer doesn't lose any paid time from the old subscription
     let newSubscription: Stripe.Subscription
     try {
-      newSubscription = await this.stripeClient.subscriptions.create({
+      newSubscription = await this.api.createSubscription({
         customer: customerId,
         items: [
           {

@@ -6,6 +6,7 @@ import {
 import { Test, TestingModule } from '@nestjs/testing'
 import { StripeController } from './stripe.controller'
 import { StripeService } from './stripe.service'
+import { StripeApiClient } from './stripe-api-client'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { PrismaService } from '../prisma/prisma.service'
 import { Campaign, CampaignState, Currency } from '@prisma/client'
@@ -131,6 +132,7 @@ describe('StripeController', () => {
         CampaignService,
         PersonService,
         StripeService,
+        StripeApiClient,
         RecurringDonationService,
         MockPrismaService,
         {

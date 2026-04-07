@@ -8,6 +8,7 @@ import { mockDeep } from 'jest-mock-extended'
 import { STRIPE_CLIENT_TOKEN } from '@golevelup/nestjs-stripe'
 
 import { StripeService } from '../stripe/stripe.service'
+import { StripeApiClient } from '../stripe/stripe-api-client'
 import { PersonService } from '../person/person.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { DonationsService } from '../donations/donations.service'
@@ -33,6 +34,7 @@ describe('RecurringDonationController', () => {
           useValue: mockDeep<HttpService>(),
         },
         StripeService,
+        StripeApiClient,
         PersonService,
         { provide: CampaignService, useValue: {} },
         DonationsService,

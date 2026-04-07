@@ -59,6 +59,7 @@ import { TemplateService } from '../../email/template.service'
 import type { PaymentWithDonation } from '../../donations/types/donation'
 import { DonationsService } from '../../donations/donations.service'
 import { StripeService } from '../stripe.service'
+import { StripeApiClient } from '../stripe-api-client'
 import { ExportService } from '../../export/export.service'
 
 const defaultStripeWebhookEndpoint = '/stripe/webhook'
@@ -146,6 +147,7 @@ describe('StripePaymentService', () => {
         PersonService,
         RecurringDonationService,
         StripeService,
+        StripeApiClient,
         DonationsService,
         ExportService,
         {

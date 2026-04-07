@@ -40,10 +40,7 @@ export class StripeApiClient {
   }
 
   // PaymentIntents
-  createPaymentIntent(
-    params: Stripe.PaymentIntentCreateParams,
-    options?: Stripe.RequestOptions,
-  ) {
+  createPaymentIntent(params: Stripe.PaymentIntentCreateParams, options?: Stripe.RequestOptions) {
     return this.stripe.paymentIntents.create(params, options)
   }
   updatePaymentIntent(id: string, params: Stripe.PaymentIntentUpdateParams) {
