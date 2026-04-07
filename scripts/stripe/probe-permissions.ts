@@ -121,7 +121,18 @@ const PERMISSION_LABELS: Record<string, { section: string; action: 'Read' | 'Wri
   rak_checkout_session_write: { section: 'Checkout Sessions', action: 'Write' },
 }
 
-type Probe = { method: string; run: () => Promise<unknown> }
+type Probe = {
+  method: string
+  /**
+   * The `rak_*` slug this method requires. Used by `--list-all` to print the
+   * complete permission inventory without needing a key, and cross-validated
+   * against Stripe's actual error message on every probe run — if Stripe says
+   * a different slug is missing than what's declared here, the script warns
+   * loudly so the declaration can be corrected.
+   */
+  requiresScope: string
+  run: () => Promise<unknown>
+}
 
 /**
  * One probe per StripeApiClient method. Each call is shaped to pass the SDK's
@@ -135,47 +146,52 @@ type Probe = { method: string; run: () => Promise<unknown> }
 function buildProbes(c: StripeApiClient): Probe[] {
   return [
     // SetupIntents
-    { method: 'createSetupIntent', run: () => c.createSetupIntent({}) },
-    { method: 'updateSetupIntent', run: () => c.updateSetupIntent('seti_x', {}) },
-    { method: 'cancelSetupIntent', run: () => c.cancelSetupIntent('seti_x') },
-    { method: 'retrieveSetupIntent', run: () => c.retrieveSetupIntent('seti_x') },
+    { method: 'createSetupIntent', requiresScope: 'rak_setup_intent_write', run: () => c.createSetupIntent({}) },
+    { method: 'updateSetupIntent', requiresScope: 'rak_setup_intent_write', run: () => c.updateSetupIntent('seti_x', {}) },
+    { method: 'cancelSetupIntent', requiresScope: 'rak_setup_intent_write', run: () => c.cancelSetupIntent('seti_x') },
+    { method: 'retrieveSetupIntent', requiresScope: 'rak_setup_intent_read', run: () => c.retrieveSetupIntent('seti_x') },
 
     // PaymentIntents
     {
       method: 'createPaymentIntent',
-      run: () => c.createPaymentIntent({ amount: 1, currency: 'usd' }),
+      requiresScope: 'rak_payment_intent_write',
+      // amount must be ≥ 50 cents, otherwise Stripe rejects with an
+      // InvalidRequestError BEFORE the permission check, leaving the probe blind.
+      run: () => c.createPaymentIntent({ amount: 100, currency: 'usd' }),
     },
-    { method: 'updatePaymentIntent', run: () => c.updatePaymentIntent('pi_x', {}) },
-    { method: 'cancelPaymentIntent', run: () => c.cancelPaymentIntent('pi_x', {}) },
-    { method: 'retrievePaymentIntent', run: () => c.retrievePaymentIntent('pi_x') },
+    { method: 'updatePaymentIntent', requiresScope: 'rak_payment_intent_write', run: () => c.updatePaymentIntent('pi_x', {}) },
+    { method: 'cancelPaymentIntent', requiresScope: 'rak_payment_intent_write', run: () => c.cancelPaymentIntent('pi_x', {}) },
+    { method: 'retrievePaymentIntent', requiresScope: 'rak_payment_intent_read', run: () => c.retrievePaymentIntent('pi_x') },
 
     // PaymentMethods
-    { method: 'listPaymentMethods', run: () => c.listPaymentMethods({ customer: 'cus_x' }) },
+    { method: 'listPaymentMethods', requiresScope: 'rak_payment_method_read', run: () => c.listPaymentMethods({ customer: 'cus_x' }) },
     {
       method: 'attachPaymentMethod',
+      requiresScope: 'rak_payment_method_write',
       run: () => c.attachPaymentMethod('pm_x', { customer: 'cus_x' }),
     },
 
     // Customers
-    { method: 'listCustomers', run: () => c.listCustomers({}) },
-    { method: 'createCustomer', run: () => c.createCustomer({}) },
+    { method: 'listCustomers', requiresScope: 'rak_customer_read', run: () => c.listCustomers({}) },
+    { method: 'createCustomer', requiresScope: 'rak_customer_write', run: () => c.createCustomer({}) },
 
     // Products
-    { method: 'searchProducts', run: () => c.searchProducts({ query: 'name:"x"' }) },
-    { method: 'createProduct', run: () => c.createProduct({ name: 'x' }) },
+    { method: 'searchProducts', requiresScope: 'rak_product_read', run: () => c.searchProducts({ query: 'name:"x"' }) },
+    { method: 'createProduct', requiresScope: 'rak_product_write', run: () => c.createProduct({ name: 'x' }) },
 
     // Subscriptions
-    { method: 'createSubscription', run: () => c.createSubscription({ customer: 'cus_x' }) },
-    { method: 'cancelSubscription', run: () => c.cancelSubscription('sub_x') },
-    { method: 'retrieveSubscription', run: () => c.retrieveSubscription('sub_x') },
-    { method: 'listSubscriptions', run: () => c.listSubscriptions() },
+    { method: 'createSubscription', requiresScope: 'rak_subscription_write', run: () => c.createSubscription({ customer: 'cus_x' }) },
+    { method: 'cancelSubscription', requiresScope: 'rak_subscription_write', run: () => c.cancelSubscription('sub_x') },
+    { method: 'retrieveSubscription', requiresScope: 'rak_subscription_read', run: () => c.retrieveSubscription('sub_x') },
+    { method: 'listSubscriptions', requiresScope: 'rak_subscription_read', run: () => c.listSubscriptions() },
 
     // Prices
-    { method: 'listPrices', run: () => c.listPrices({}) },
+    { method: 'listPrices', requiresScope: 'rak_plan_read', run: () => c.listPrices({}) },
 
     // Checkout
     {
       method: 'createCheckoutSession',
+      requiresScope: 'rak_checkout_session_write',
       run: () =>
         c.createCheckoutSession({
           mode: 'payment',
@@ -191,13 +207,17 @@ function buildProbes(c: StripeApiClient): Probe[] {
     },
 
     // Refunds
-    { method: 'createRefund', run: () => c.createRefund({ payment_intent: 'pi_x' }) },
+    { method: 'createRefund', requiresScope: 'rak_refund_write', run: () => c.createRefund({ payment_intent: 'pi_x' }) },
 
     // Charges
-    { method: 'retrieveCharge', run: () => c.retrieveCharge('ch_x') },
+    { method: 'retrieveCharge', requiresScope: 'rak_charge_read', run: () => c.retrieveCharge('ch_x') },
 
     // Invoices
-    { method: 'retrieveInvoice', run: () => c.retrieveInvoice('in_x') },
+    // Note: declares rak_credit_note_read (not rak_invoice_read) because the
+    // expand=['payments.data.payment.payment_intent'] arg used by callers
+    // pulls credit-note-related fields, and Stripe enforces that scope on the
+    // expanded path. Verified empirically by the cross-validation check.
+    { method: 'retrieveInvoice', requiresScope: 'rak_credit_note_read', run: () => c.retrieveInvoice('in_x') },
   ]
 }
 
@@ -225,8 +245,61 @@ async function runProbe(p: Probe): Promise<ProbeOutcome> {
   }
 }
 
+/**
+ * Render a sorted, three-column "label | function | slug" table from a set
+ * of {slug → callers} entries. Shared between the missing-permissions report
+ * and `--list-all`.
+ */
+function renderRows(scopeToCallers: Map<string, string[]>): void {
+  type Row = { label: string; func: string; slug: string }
+  const rows: Row[] = []
+  for (const [scope, callers] of scopeToCallers.entries()) {
+    const mapped = PERMISSION_LABELS[scope]
+    const label = mapped ? `${mapped.section} → ${mapped.action}` : '(unmapped — find in dashboard)'
+    for (const caller of callers) {
+      rows.push({ label, func: `StripeApiClient.${caller}`, slug: scope })
+    }
+  }
+  rows.sort((a, b) => a.label.localeCompare(b.label) || a.func.localeCompare(b.func))
+  const labelW = Math.max(...rows.map((r) => r.label.length))
+  const funcW = Math.max(...rows.map((r) => r.func.length))
+  for (const r of rows) {
+    console.error(`  ${r.label.padEnd(labelW)}   ${r.func.padEnd(funcW)}   (${r.slug})`)
+  }
+}
+
 async function main() {
   loadEnvLocalFallback()
+  const args = new Set(process.argv.slice(2))
+  const listAll = args.has('--list-all')
+
+  // --list-all is a documentation/onboarding mode: print every permission the
+  // codebase needs based on the declared `requiresScope` on each probe, without
+  // making any network calls. Used by `yarn stripe:check-permissions --list-all`
+  // for first-time setup ("here are the boxes to tick before you run the real
+  // check"). Doesn't need a STRIPE_SECRET_KEY.
+  if (listAll) {
+    // Pass a dummy stripe instance — buildProbes only uses it to construct the
+    // run() closures, which never get called in --list-all mode.
+    const probes = buildProbes(new StripeApiClient(new Stripe('sk_test_dummy_for_list_all')))
+    const scopeToCallers = new Map<string, string[]>()
+    for (const p of probes) {
+      const callers = scopeToCallers.get(p.requiresScope) ?? []
+      callers.push(p.method)
+      scopeToCallers.set(p.requiresScope, callers)
+    }
+    console.error(
+      `\nThis app uses ${scopeToCallers.size} Stripe permission(s). Enable all of them ` +
+        `on your restricted key at:\n`,
+    )
+    console.error('  https://dashboard.stripe.com/test/apikeys\n')
+    renderRows(scopeToCallers)
+    console.error(
+      '\nThen run `yarn stripe:check-permissions` (no flag) to verify your key has them all.',
+    )
+    process.exit(0)
+  }
+
   const key = process.env.STRIPE_SECRET_KEY
   if (!key) {
     console.error('STRIPE_SECRET_KEY is required')
@@ -273,6 +346,72 @@ async function main() {
   }
 
 
+  // Cross-validation 1 — wrong-slug detection.
+  // Every probe declares a `requiresScope`, and Stripe tells us empirically
+  // which scope was actually missing. If they disagree, the declaration in
+  // buildProbes() is wrong and should be fixed.
+  const probeByMethod = new Map(probes.map((p) => [p.method, p]))
+  const resultByMethod = new Map(results.map((r) => [r.method, r]))
+  const mismatches: { method: string; declared: string; actual: string }[] = []
+  for (const r of results) {
+    if (!r.missingScope) continue
+    const declared = probeByMethod.get(r.method)?.requiresScope
+    if (declared && declared !== r.missingScope) {
+      mismatches.push({ method: r.method, declared, actual: r.missingScope })
+    }
+  }
+  if (mismatches.length > 0) {
+    console.error(
+      `\nWARNING: ${mismatches.length} probe(s) have a wrong requiresScope declaration. ` +
+        `Update buildProbes() in this file:`,
+    )
+    for (const m of mismatches) {
+      console.error(`  ${m.method}: declared ${m.declared}, actual ${m.actual}`)
+    }
+    console.error(
+      "  (--list-all uses the declared values, so it'll be wrong until these are corrected.)",
+    )
+  }
+
+  // Cross-validation 2 — blind-probe detection.
+  // For each scope confirmed missing by at least one probe, check whether *every*
+  // other probe declaring the same scope also surfaced the missing-permission
+  // error. If one didn't, its arguments are probably tripping Stripe's input
+  // validation BEFORE the permission check — meaning the probe is blind and
+  // would silently pass even if the scope were missing in CI.
+  const confirmedMissing = new Set(
+    results.filter((r) => r.missingScope).map((r) => r.missingScope as string),
+  )
+  const blindProbes: { method: string; expectedScope: string; actualError: string }[] = []
+  for (const p of probes) {
+    if (!confirmedMissing.has(p.requiresScope)) continue
+    const r = resultByMethod.get(p.method)
+    if (r && r.missingScope === null) {
+      blindProbes.push({
+        method: p.method,
+        expectedScope: p.requiresScope,
+        actualError: r.rawError ?? '(no error)',
+      })
+    }
+  }
+  if (blindProbes.length > 0) {
+    console.error(
+      `\nWARNING: ${blindProbes.length} probe(s) appear to be BLIND — they declare a scope that ` +
+        `is confirmed missing by other probes, but did not surface a permission error themselves.\n` +
+        `This usually means the probe args are tripping Stripe's input validation BEFORE the\n` +
+        `permission check, so the probe would silently pass even if the scope were missing.\n` +
+        `Fix the probe args in buildProbes() so the call reaches the permission check:\n`,
+    )
+    for (const b of blindProbes) {
+      console.error(`  ${b.method} (expected to fail with ${b.expectedScope})`)
+      console.error(`    instead got: ${b.actualError.slice(0, 140)}`)
+    }
+    console.error(
+      "\n  (If many scopes are missing at once, Stripe may return a different error format\n" +
+        "   instead of naming a single rak_*. Re-enabling some scopes usually clears this.)",
+    )
+  }
+
   const missing = new Map<string, string[]>()
   for (const r of results) {
     if (r.missingScope) {
@@ -287,40 +426,11 @@ async function main() {
     process.exit(0)
   }
 
-  // Build three-column rows: dashboard label | gateway function | raw slug.
-  // The function name is the load-bearing column — if the label is wrong (the
-  // mapping table can drift from Stripe's dashboard wording), the dev can fall
-  // back to "I see createCustomer in the function column, so this is the
-  // customer write scope, find that in the dashboard." The slug is the third
-  // fallback for grep / escalation.
-  type Row = { label: string; func: string; slug: string }
-  const rows: Row[] = []
-  for (const [scope, callers] of missing.entries()) {
-    const mapped = PERMISSION_LABELS[scope]
-    const label = mapped ? `${mapped.section} → ${mapped.action}` : '(unmapped — find in dashboard)'
-    // Multi-caller scopes get one row per caller so the function column is
-    // always populated; the label and slug repeat, which is what we want
-    // visually (each line is independently actionable).
-    for (const caller of callers) {
-      rows.push({ label, func: `StripeApiClient.${caller}`, slug: scope })
-    }
-  }
-
-  // Stable sort: by label first (groups read+write of same section), then by func.
-  rows.sort((a, b) => a.label.localeCompare(b.label) || a.func.localeCompare(b.func))
-
-  const labelW = Math.max(...rows.map((r) => r.label.length))
-  const funcW = Math.max(...rows.map((r) => r.func.length))
-
   console.error(
     `\nMissing ${missing.size} Stripe permission(s). ` +
       `Enable in https://dashboard.stripe.com/test/apikeys :\n`,
   )
-  for (const r of rows) {
-    console.error(
-      `  ${r.label.padEnd(labelW)}   ${r.func.padEnd(funcW)}   (${r.slug})`,
-    )
-  }
+  renderRows(missing)
   console.error('\nClick your restricted key, tick the boxes above, save, and re-run.')
   process.exit(1)
 }
