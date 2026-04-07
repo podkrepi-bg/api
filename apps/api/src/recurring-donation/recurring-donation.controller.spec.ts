@@ -34,7 +34,7 @@ describe('RecurringDonationController', () => {
           useValue: mockDeep<HttpService>(),
         },
         StripeService,
-        StripeApiClient,
+        { provide: StripeApiClient, useValue: mockDeep<StripeApiClient>() },
         PersonService,
         { provide: CampaignService, useValue: {} },
         DonationsService,

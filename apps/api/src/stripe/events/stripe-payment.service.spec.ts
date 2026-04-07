@@ -147,7 +147,7 @@ describe('StripePaymentService', () => {
         PersonService,
         RecurringDonationService,
         StripeService,
-        StripeApiClient,
+        { provide: StripeApiClient, useValue: mockDeep<StripeApiClient>() },
         DonationsService,
         ExportService,
         {
