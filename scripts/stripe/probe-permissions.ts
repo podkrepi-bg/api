@@ -45,7 +45,25 @@ function loadEnvLocalFallback(): void {
   dotenv.config({ path: path.resolve(__dirname, '../../.env.local') })
 }
 
-const RAK_RE = /Having the '(rak_[a-z_]+)' permission/
+/**
+ * Stripe returns missing-permission errors in (at least) two shapes:
+ *
+ * 1. Singular: "Having the 'rak_setup_intent_write' permission would allow this request to continue."
+ * 2. Plural:   "Having the 'rak_confirmation_token_client_read', 'rak_setup_intent_read' permissions would allow this request to continue."
+ *
+ * In the plural case, Stripe lists EVERY scope that could satisfy the request,
+ * not the minimum set — so a probe for retrieveSetupIntent might see both
+ * `rak_setup_intent_read` (the one we actually need) and
+ * `rak_confirmation_token_client_read` (an unrelated alternative path that
+ * happens to also unlock the endpoint). We can't blindly take the first match
+ * or report all of them; we have to intersect against the declared scope for
+ * the probe.
+ *
+ * This regex extracts the contents of the quote list. The caller then splits
+ * out individual `rak_*` slugs and decides which one to attribute to the probe.
+ */
+const RAK_LIST_RE = /Having the ((?:'rak_[a-z0-9_]+',?\s*)+)permissions? would allow/
+const RAK_SLUG_RE = /rak_[a-z0-9_]+/g
 
 /**
  * Map from `rak_*` slug → human-readable dashboard label.
@@ -67,9 +85,11 @@ const RAK_RE = /Having the '(rak_[a-z_]+)' permission/
  * Unmapped slugs degrade gracefully — the script prints them raw with a note.
  */
 const PERMISSION_LABELS: Record<string, { section: string; action: 'Read' | 'Write' }> = {
-  // Core resources
-  rak_charge_read: { section: 'Charges', action: 'Read' },
-  rak_charge_write: { section: 'Charges', action: 'Write' },
+  // Core resources — top-level rows in the dashboard's main permission list
+  rak_charge_read: { section: 'Charges and Refunds', action: 'Read' }, // dashboard groups Charges + Refunds into a single row
+  rak_charge_write: { section: 'Charges and Refunds', action: 'Write' },
+  rak_refund_read: { section: 'Charges and Refunds', action: 'Read' }, // same row as charges
+  rak_refund_write: { section: 'Charges and Refunds', action: 'Write' },
   rak_customer_read: { section: 'Customers', action: 'Read' },
   rak_customer_write: { section: 'Customers', action: 'Write' },
   rak_payment_intent_read: { section: 'Payment Intents', action: 'Read' },
@@ -78,24 +98,27 @@ const PERMISSION_LABELS: Record<string, { section: string; action: 'Read' | 'Wri
   rak_payment_method_write: { section: 'Payment Methods', action: 'Write' },
   rak_setup_intent_read: { section: 'Setup Intents', action: 'Read' },
   rak_setup_intent_write: { section: 'Setup Intents', action: 'Write' },
-  rak_refund_read: { section: 'Refunds', action: 'Read' },
-  rak_refund_write: { section: 'Refunds', action: 'Write' },
   rak_product_read: { section: 'Products', action: 'Read' },
   rak_product_write: { section: 'Products', action: 'Write' },
-  rak_invoice_read: { section: 'Invoices', action: 'Read' },
-  rak_invoice_write: { section: 'Invoices', action: 'Write' },
-  rak_credit_note_read: { section: 'Invoices', action: 'Read' }, // verified in dashboard — credit notes live under Invoices
-  rak_credit_note_write: { section: 'Invoices', action: 'Write' },
 
-  // Billing
-  rak_subscription_read: { section: 'Subscriptions', action: 'Read' },
-  rak_subscription_write: { section: 'Subscriptions', action: 'Write' },
-  rak_plan_read: { section: 'Prices', action: 'Read' }, // legacy slug — section is now "Prices"
-  rak_plan_write: { section: 'Prices', action: 'Write' },
+  // Billing section — sub-rows under the "Billing" group header in the dashboard
+  rak_invoice_read: { section: 'Billing › Invoices', action: 'Read' },
+  rak_invoice_write: { section: 'Billing › Invoices', action: 'Write' },
+  // Credit notes is its own row under Billing (NOT under Invoices). Enabling
+  // Credit notes (Read) also implicitly grants Invoices (Read) per the Stripe
+  // dashboard's "implies" hint, which is why retrieveInvoice with the
+  // payments.data.payment.payment_intent expand surfaces this slug instead of
+  // rak_invoice_read.
+  rak_credit_note_read: { section: 'Billing › Credit notes', action: 'Read' },
+  rak_credit_note_write: { section: 'Billing › Credit notes', action: 'Write' },
+  rak_subscription_read: { section: 'Billing › Subscriptions', action: 'Read' },
+  rak_subscription_write: { section: 'Billing › Subscriptions', action: 'Write' },
+  rak_plan_read: { section: 'Billing › Prices', action: 'Read' }, // legacy slug — Stripe renamed Plans to Prices
+  rak_plan_write: { section: 'Billing › Prices', action: 'Write' },
 
-  // Checkout
-  rak_checkout_session_read: { section: 'Checkout Sessions', action: 'Read' },
-  rak_checkout_session_write: { section: 'Checkout Sessions', action: 'Write' },
+  // Checkout section
+  rak_checkout_session_read: { section: 'Checkout › Checkout Sessions', action: 'Read' },
+  rak_checkout_session_write: { section: 'Checkout › Checkout Sessions', action: 'Write' },
 }
 
 type Probe = {
@@ -136,7 +159,15 @@ function buildProbes(c: StripeApiClient): Probe[] {
       // InvalidRequestError BEFORE the permission check, leaving the probe blind.
       run: () => c.createPaymentIntent({ amount: 100, currency: 'usd' }),
     },
-    { method: 'updatePaymentIntent', requiresScope: 'rak_payment_intent_write', run: () => c.updatePaymentIntent('pi_x', {}) },
+    {
+      method: 'updatePaymentIntent',
+      requiresScope: 'rak_payment_intent_write',
+      // Must include at least one real field. An empty `{}` body trips an SDK
+      // code path that returns "This API call cannot be made with a publishable
+      // API key" — a misleading false-positive that has nothing to do with the
+      // actual key type. A no-op metadata update reaches Stripe cleanly.
+      run: () => c.updatePaymentIntent('pi_x', { metadata: { probe: 'true' } }),
+    },
     { method: 'cancelPaymentIntent', requiresScope: 'rak_payment_intent_write', run: () => c.cancelPaymentIntent('pi_x', {}) },
     { method: 'retrievePaymentIntent', requiresScope: 'rak_payment_intent_read', run: () => c.retrievePaymentIntent('pi_x') },
 
@@ -213,35 +244,126 @@ async function runProbe(p: Probe): Promise<ProbeOutcome> {
       (err as { raw?: { message?: string }; message?: string })?.raw?.message ??
       (err as { message?: string })?.message ??
       String(err)
-    const match = message.match(RAK_RE)
+
+    // Parse all `rak_*` slugs Stripe mentions in the "Having the ... permission(s)
+    // would allow this request to continue" clause. There may be 1 (singular form)
+    // or many (plural form, listing alternative scopes that would each unlock the
+    // endpoint). We then attribute the failure to the probe's *declared* scope if
+    // it's in the list — otherwise we fall back to the first slug Stripe mentioned.
+    const listMatch = message.match(RAK_LIST_RE)
+    let missingScope: string | null = null
+    if (listMatch) {
+      const slugs: string[] = Array.from(listMatch[1].matchAll(RAK_SLUG_RE), (m) => m[0])
+      if (slugs.includes(p.requiresScope)) {
+        missingScope = p.requiresScope
+      }
+      // If the declared scope is NOT in Stripe's list, the declared scope is
+      // present on the key — Stripe is complaining about a different,
+      // unrelated scope that the response would also need (e.g. expansions
+      // pulling in confirmation_token data). Treat as OK; we don't care
+      // about scopes the probe doesn't claim to need.
+    } else if (
+      /The provided key '[^']+' does not have the required permissions for this endpoint/.test(
+        message,
+      )
+    ) {
+      // Generic permission-denied variant with no `rak_*` slug. Stripe sometimes
+      // returns this instead of naming a scope — common when many scopes are
+      // missing at once, or for endpoints where Stripe doesn't enumerate
+      // alternatives. We have no way to know which slug is at fault, so we
+      // attribute it to the probe's declared scope. This is a conservative
+      // best-effort: if the declaration is wrong, cross-validation #1 won't
+      // catch it for these probes — the only signal is the user enabling the
+      // declared scope and the error persisting.
+      missingScope = p.requiresScope
+    }
     return {
       method: p.method,
-      missingScope: match ? match[1] : null,
+      missingScope,
       rawError: message,
     }
   }
 }
 
 /**
- * Render a sorted, three-column "label | function | slug" table from a set
+ * Render a sorted, three-column "toggle | callers | slugs" table from a set
  * of {slug → callers} entries. Shared between the missing-permissions report
  * and `--list-all`.
+ *
+ * Stripe's dashboard toggles are tristate (None / Read / Write) and **Write
+ * implies Read**, so a section that needs both `rak_foo_read` and
+ * `rak_foo_write` is really one toggle the user sets to "Write". We collapse
+ * Read+Write entries into a single row per section showing the highest
+ * required action — otherwise the report tells users to flip the same toggle
+ * twice, which is confusing and looks like a script bug.
  */
 function renderRows(scopeToCallers: Map<string, string[]>): void {
-  type Row = { label: string; func: string; slug: string }
-  const rows: Row[] = []
+  type Group = {
+    label: string
+    callers: Set<string>
+    slugs: Set<string>
+    hasWrite: boolean
+  }
+  const groups = new Map<string, Group>()
+
   for (const [scope, callers] of scopeToCallers.entries()) {
     const mapped = PERMISSION_LABELS[scope]
-    const label = mapped ? `${mapped.section} → ${mapped.action}` : '(unmapped — find in dashboard)'
-    for (const caller of callers) {
-      rows.push({ label, func: `StripeApiClient.${caller}`, slug: scope })
+    // Group by section (so Read + Write collapse). Unmapped slugs each get
+    // their own group keyed by the slug itself, since we can't tell which
+    // dashboard row they belong to.
+    const groupKey = mapped ? mapped.section : `__unmapped__${scope}`
+    let group = groups.get(groupKey)
+    if (!group) {
+      group = {
+        label: mapped ? mapped.section : '(unmapped — find in dashboard)',
+        callers: new Set(),
+        slugs: new Set(),
+        hasWrite: false,
+      }
+      groups.set(groupKey, group)
     }
+    if (mapped?.action === 'Write') group.hasWrite = true
+    for (const caller of callers) group.callers.add(caller)
+    group.slugs.add(scope)
   }
-  rows.sort((a, b) => a.label.localeCompare(b.label) || a.func.localeCompare(b.func))
-  const labelW = Math.max(...rows.map((r) => r.label.length))
-  const funcW = Math.max(...rows.map((r) => r.func.length))
+
+  type Row = { toggle: string; callers: string[]; slugs: string }
+  const rows: Row[] = []
+  for (const g of groups.values()) {
+    const action = g.hasWrite ? 'Write' : 'Read'
+    const toggle = g.label.startsWith('(unmapped') ? g.label : `${g.label} → ${action}`
+    rows.push({
+      toggle,
+      callers: Array.from(g.callers)
+        .sort()
+        .map((c) => `StripeApiClient.${c}`),
+      slugs: Array.from(g.slugs).sort().join(', '),
+    })
+  }
+  rows.sort((a, b) => a.toggle.localeCompare(b.toggle))
+
+  // Vertical, table-style layout: one row per toggle, callers stacked one
+  // per line in the second column. Wide method lists no longer push the
+  // line off the right edge of the terminal.
+  const toggleW = Math.max('Permission'.length, ...rows.map((r) => r.toggle.length))
+  const callerW = Math.max(
+    'Function'.length,
+    ...rows.flatMap((r) => r.callers.map((c) => c.length)),
+  )
+
+  const sep = `  ${'─'.repeat(toggleW)}   ${'─'.repeat(callerW)}`
+  console.error(`  ${'Permission'.padEnd(toggleW)}   ${'Function'.padEnd(callerW)}`)
+  console.error(sep)
   for (const r of rows) {
-    console.error(`  ${r.label.padEnd(labelW)}   ${r.func.padEnd(funcW)}   (${r.slug})`)
+    const [first, ...rest] = r.callers
+    console.error(`  ${r.toggle.padEnd(toggleW)}   ${(first ?? '').padEnd(callerW)}`)
+    for (const c of rest) {
+      console.error(`  ${' '.repeat(toggleW)}   ${c}`)
+    }
+    // Slugs on their own indented line — useful for grep / escalation but
+    // visually de-emphasised so they don't compete with the toggle name.
+    console.error(`  ${' '.repeat(toggleW)}   (${r.slugs})`)
+    console.error(sep)
   }
 }
 
@@ -249,6 +371,7 @@ async function main() {
   loadEnvLocalFallback()
   const args = new Set(process.argv.slice(2))
   const listAll = args.has('--list-all')
+  const verbose = args.has('--verbose') || args.has('-v')
 
   // --list-all is a documentation/onboarding mode: print every permission the
   // codebase needs based on the declared `requiresScope` on each probe, without
@@ -322,6 +445,25 @@ async function main() {
     }
   }
 
+  // Verbose mode — print every probe's raw outcome. Useful when diagnosing
+  // blind probes or understanding why a method isn't surfacing a missing
+  // permission you expect (e.g. SDK validation tripping before Stripe sees
+  // the request, or "no such resource" errors that confirm the scope passed).
+  if (verbose) {
+    console.error('\n--- Verbose probe outcomes ---')
+    for (const r of results) {
+      if (r.missingScope) {
+        console.error(`  [MISSING ${r.missingScope}] ${r.method}`)
+        if (r.rawError) console.error(`      ${r.rawError}`)
+      } else if (r.rawError) {
+        console.error(`  [OK] ${r.method}`)
+        console.error(`      ${r.rawError}`)
+      } else {
+        console.error(`  [OK — call succeeded] ${r.method}`)
+      }
+    }
+    console.error('--- End verbose ---\n')
+  }
 
   // Cross-validation 1 — wrong-slug detection.
   // Every probe declares a `requiresScope`, and Stripe tells us empirically
