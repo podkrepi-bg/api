@@ -109,7 +109,8 @@ services:
       - 'host.docker.internal:host-gateway'
     env_file:
       - .env
-      - .env.local
+      - path: .env.local
+        required: false
     volumes:
       - .:/app
     entrypoint: ['/bin/sh', '-c']
