@@ -32,33 +32,43 @@ mode works on a fresh account out of the box.
 
 That's enough to get the API talking to Stripe locally.
 
-### 3. Get the webhook signing secret
+### 3. Start the Stripe webhook listener
 
-Install `stripe-cli` from <https://stripe.com/docs/stripe-cli> if you haven't
-already, then in one shell forward Stripe webhook events to the locally
-running API:
-
-```shell
-yarn stripe:listen-webhook
-```
-
-When the listener starts it prints a signing secret `whsec_...`. Place it in
-`.env.local`:
+The easiest way to receive Stripe webhook events locally is via the
+`stripe-webhook` Docker service. It runs the Stripe CLI, forwards events to
+your locally running API, and **automatically writes the webhook signing
+secret** (`STRIPE_WEBHOOK_SECRET`) into `.env.local` on first start — no
+manual copy-paste needed.
 
 ```shell
-STRIPE_WEBHOOK_SECRET=whsec_...
+docker compose up stripe-webhook -d
 ```
 
-Your `.env.local` should now contain both:
+That's it. Once the container starts you should see `Webhook secret written
+to .env.local` in the logs:
+
+```shell
+docker compose logs stripe-webhook
+```
+
+Your `.env.local` will now contain both keys:
 
 ```shell
 STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_WEBHOOK_SECRET=whsec_...       # auto-populated by the container
 ```
 
-Leave `yarn stripe:listen-webhook` running in its terminal whenever you're
-working on Stripe-related features — it forwards real Stripe events to your
-local API.
+Leave the container running while you work on Stripe-related features — it
+forwards real Stripe events to `http://host.docker.internal:5010`.
+
+> **Alternative (without Docker):** install `stripe-cli` from
+> <https://stripe.com/docs/stripe-cli> and run:
+>
+> ```shell
+> yarn stripe:listen-webhook
+> ```
+>
+> Copy the `whsec_...` secret it prints on startup into `.env.local` manually.
 
 ## Testing Stripe
 
