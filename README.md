@@ -108,6 +108,12 @@ cp .env.example .env
 
 **Note:** _To avoid modifying the original file, you can create `.env.local` and add overrides for the variables that are specific to your local environment. This approach allows you to keep your customizations separate from the default values._
 
+### Configure Stripe (optional)
+
+If you'll be working on payment-related features, follow the
+[Stripe setup guide in TESTING.md](TESTING.md#stripe--first-time-setup) to
+configure your Stripe keys and webhook listener.
+
 ### Run the tests
 
 Testing the initialization is done correctly.
