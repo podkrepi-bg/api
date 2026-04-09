@@ -105,14 +105,28 @@ services:
   stripe-webhook:
     image: stripe/stripe-cli:latest
     restart: always
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    env_file:
+      - .env
+      - .env.local
+    volumes:
+      - .:/app
+    entrypoint: ['/bin/sh', '-c']
     command:
-      [
-        'listen',
-        '--api-key',
-        '${STRIPE_SECRET_KEY}',
-        '--forward-to',
-        'localhost:5010/api/v1/stripe/webhook',
-      ]
+      - |
+        stripe listen --api-key $$STRIPE_SECRET_KEY --forward-to host.docker.internal:5010/api/v1/stripe/webhook 2>&1 | while IFS= read -r line; do
+          printf '%s\n' "$$line"
+          whsec=$$(printf '%s' "$$line" | grep -oE 'whsec_[a-zA-Z0-9_]+')
+          if [ -n "$$whsec" ]; then
+            if [ -f /app/.env.local ] && grep -q STRIPE_WEBHOOK_SECRET /app/.env.local; then
+              sed -i "s|STRIPE_WEBHOOK_SECRET=.*|STRIPE_WEBHOOK_SECRET=$$whsec|" /app/.env.local
+            else
+              echo "STRIPE_WEBHOOK_SECRET=$$whsec" >> /app/.env.local
+            fi
+            echo "Webhook secret written to .env.local"
+          fi
+        done
 
   ########################################
   ## LOCAL IDENTITY PROVIDER - KEYCLOAK ##
