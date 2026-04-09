@@ -4,8 +4,10 @@ import {
   StripeModuleConfig,
 } from '@golevelup/nestjs-stripe'
 import { Test, TestingModule } from '@nestjs/testing'
+import { DeepMockProxy, mockDeep } from 'jest-mock-extended'
 import { StripeController } from './stripe.controller'
 import { StripeService } from './stripe.service'
+import { StripeApiClient } from './stripe-api-client'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { PrismaService } from '../prisma/prisma.service'
 import { Campaign, CampaignState, Currency } from '@prisma/client'
@@ -37,50 +39,10 @@ import { RecurringDonationService } from '../recurring-donation/recurring-donati
 describe('StripeController', () => {
   let controller: StripeController
   let stripeService: StripeService
-  const stripeMock = {
-    checkout: { sessions: { create: jest.fn() } },
-    paymentIntents: { retrieve: jest.fn() },
-    refunds: { create: jest.fn() },
-    setupIntents: { retrieve: jest.fn(), update: jest.fn() },
-    customers: { create: jest.fn(), list: jest.fn() },
-    paymentMethods: { attach: jest.fn(), list: jest.fn() },
-    products: { search: jest.fn(), create: jest.fn() },
-    subscriptions: { create: jest.fn(), retrieve: jest.fn(), update: jest.fn(), list: jest.fn() },
-  }
-  stripeMock.checkout.sessions.create.mockResolvedValue({ payment_intent: 'unique-intent' })
-  stripeMock.paymentIntents.retrieve.mockResolvedValue({
-    payment_intent: 'unique-intent',
-    metadata: { campaignId: 'unique-campaign' },
-  })
-  stripeMock.products.search.mockResolvedValue({ data: [{ id: 1 }] })
-  stripeMock.subscriptions.create.mockResolvedValue({
-    id: 'sub_test123',
-    latest_invoice: {
-      payments: {
-        data: [
-          {
-            payment: {
-              payment_intent: 'pi_test123',
-            },
-          },
-        ],
-      },
-    },
-  })
-
-  stripeMock.setupIntents.retrieve.mockResolvedValue({
-    payment_intent: 'unique-intent',
-    metadata: { campaignId: 'unique-campaign', amount: 100, currency: 'EUR' },
-    payment_method: {
-      billing_details: {
-        email: 'test@podkrepi.bg',
-      },
-    },
-  })
-
-  stripeMock.customers.list.mockResolvedValue({ data: [{ id: 1 }] })
-  stripeMock.paymentMethods.list.mockResolvedValue({ data: [] })
-  stripeMock.paymentMethods.attach.mockResolvedValue({ id: 'pm_attached' })
+  let apiMock: DeepMockProxy<StripeApiClient>
+  // Minimal stub for STRIPE_CLIENT_TOKEN — required by @golevelup/nestjs-stripe
+  // module wiring, but no longer used by StripeService (which goes through apiMock).
+  const stripeClientStub = {}
 
   const mockSession = {
     mode: 'payment',
@@ -97,6 +59,35 @@ describe('StripeController', () => {
     Object.values(prismaMock).forEach((modelMock) =>
       Object.values(modelMock).forEach((methodMock) => (methodMock as any).mockReset?.()),
     )
+
+    apiMock = mockDeep<StripeApiClient>()
+    // Default return values used by multiple tests
+    apiMock.createCheckoutSession.mockResolvedValue({
+      payment_intent: 'unique-intent',
+    } as any)
+    apiMock.retrievePaymentIntent.mockResolvedValue({
+      payment_intent: 'unique-intent',
+      metadata: { campaignId: 'unique-campaign' },
+    } as any)
+    apiMock.searchProducts.mockResolvedValue({ data: [{ id: 1 }] } as any)
+    apiMock.retrieveSetupIntent.mockResolvedValue({
+      payment_intent: 'unique-intent',
+      metadata: { campaignId: 'unique-campaign', amount: 100, currency: 'EUR' },
+      payment_method: {
+        billing_details: { email: 'test@podkrepi.bg' },
+      },
+    } as any)
+    apiMock.listCustomers.mockResolvedValue({ data: [{ id: 1 }] } as any)
+    apiMock.listPaymentMethods.mockResolvedValue({ data: [] } as any)
+    apiMock.attachPaymentMethod.mockResolvedValue({ id: 'pm_attached' } as any)
+    apiMock.createSubscription.mockResolvedValue({
+      id: 'sub_test123',
+      latest_invoice: {
+        payments: {
+          data: [{ payment: { payment_intent: 'pi_test123' } }],
+        },
+      },
+    } as any)
 
     const stripeSecret = 'wh_123'
     const moduleConfig: StripeModuleConfig = {
@@ -131,11 +122,12 @@ describe('StripeController', () => {
         CampaignService,
         PersonService,
         StripeService,
+        { provide: StripeApiClient, useValue: apiMock },
         RecurringDonationService,
         MockPrismaService,
         {
           provide: STRIPE_CLIENT_TOKEN,
-          useValue: stripeMock,
+          useValue: stripeClientStub,
         },
       ],
     })
@@ -162,7 +154,7 @@ describe('StripeController', () => {
 
     await expect(controller.createCheckoutSession(mockSession)).resolves.toBeObject()
     expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
-    expect(stripeMock.checkout.sessions.create).toHaveBeenCalledWith({
+    expect(apiMock.createCheckoutSession).toHaveBeenCalledWith({
       mode: mockSession.mode,
       line_items: [
         {
@@ -207,7 +199,7 @@ describe('StripeController', () => {
     )
 
     expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
-    expect(stripeMock.checkout.sessions.create).not.toHaveBeenCalled()
+    expect(apiMock.createCheckoutSession).not.toHaveBeenCalled()
   })
 
   it('createCheckoutSession should create stripe session for completed campaign if allowed', async () => {
@@ -219,14 +211,14 @@ describe('StripeController', () => {
 
     await expect(controller.createCheckoutSession(mockSession)).resolves.toBeObject()
     expect(prismaMock.campaign.findFirst).toHaveBeenCalled()
-    expect(stripeMock.checkout.sessions.create).toHaveBeenCalled()
+    expect(apiMock.createCheckoutSession).toHaveBeenCalled()
   })
 
   it('should request refund for donation', async () => {
     await controller.refundStripePaymet('unique-intent')
 
-    expect(stripeMock.paymentIntents.retrieve).toHaveBeenCalledWith('unique-intent')
-    expect(stripeMock.refunds.create).toHaveBeenCalledWith({
+    expect(apiMock.retrievePaymentIntent).toHaveBeenCalledWith('unique-intent')
+    expect(apiMock.createRefund).toHaveBeenCalledWith({
       payment_intent: 'unique-intent',
       reason: 'requested_by_customer',
     })
@@ -262,11 +254,11 @@ describe('StripeController', () => {
     } as Campaign)
     try {
       await expect(controller.setupIntentToSubscription('123')).toResolve()
-      expect(stripeMock.setupIntents.retrieve).toHaveBeenCalledWith('123', {
+      expect(apiMock.retrieveSetupIntent).toHaveBeenCalledWith('123', {
         expand: ['payment_method'],
       })
-      expect(stripeMock.customers.create).not.toHaveBeenCalled()
-      expect(stripeMock.products.create).not.toHaveBeenCalled()
+      expect(apiMock.createCustomer).not.toHaveBeenCalled()
+      expect(apiMock.createProduct).not.toHaveBeenCalled()
     } catch (err) {
       throw new Error(JSON.stringify(err))
     }
