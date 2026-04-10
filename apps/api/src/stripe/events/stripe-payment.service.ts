@@ -18,7 +18,6 @@ import {
 import { PaymentStatus, CampaignState } from '@prisma/client'
 import { EmailService } from '../../email/email.service'
 import { RefundDonationEmailDto } from '../../email/template.interface'
-import { PrismaService } from '../../prisma/prisma.service'
 import { StripeService } from '../stripe.service'
 import { DonationsService } from '../../donations/donations.service'
 
@@ -162,16 +161,19 @@ export class StripePaymentService {
       chargePaymentIntent.metadata as StripeMetadata,
     )
 
-    const metadata: StripeMetadata = chargePaymentIntent.metadata as StripeMetadata
+    const paymentIntentId = chargePaymentIntent.payment_intent as string
 
-    if (!metadata.campaignId) {
-      Logger.debug('[ handleRefundCreated ] No campaignId in metadata ' + chargePaymentIntent.id)
+    const donation = await this.donationService.getDonationByPaymentIntent(paymentIntentId)
+    const campaign = donation?.targetVault?.campaign
+
+    if (!campaign) {
+      Logger.warn(
+        '[ handleRefundCreated ] No donation/campaign found for payment intent ' + paymentIntentId,
+      )
       return
     }
 
     const billingData = getPaymentDataFromCharge(chargePaymentIntent)
-
-    const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
 
     await this.donationService.updateDonationPayment(campaign, billingData, PaymentStatus.refund)
 
