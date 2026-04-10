@@ -400,12 +400,19 @@ export class DonationsService {
     }
   }
 
-  async getDonationByPaymentIntent(id: string): Promise<{ id: string } | null> {
+  async getDonationByPaymentIntent(id: string): Promise<{
+    id: string
+    targetVault: { campaign: Campaign } | null
+  } | null> {
     return await this.prisma.donation.findFirst({
       where: { payment: { extPaymentIntentId: id } },
-      select: { id: true },
+      select: {
+        id: true,
+        targetVault: { include: { campaign: true } },
+      },
     })
   }
+
   async getAffiliateDonationById(donationId: string, affiliateCode: string) {
     try {
       const donation = await this.prisma.payment.findFirstOrThrow({
