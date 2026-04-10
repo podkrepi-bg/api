@@ -308,7 +308,6 @@ export class StripeService {
       },
       { idempotencyKey: `${idempotencyKey}--subscription` },
     )
-    //include metadata in payment-intent
     // In API version 2025-03-31+, invoices have a 'payments' array instead of direct payment_intent field
     const invoice = subscription.latest_invoice as InvoiceWithPayments
 
@@ -473,10 +472,6 @@ export class StripeService {
     const intent = await this.api.retrievePaymentIntent(paymentIntentId)
     if (!intent) {
       throw new BadRequestException('Payment Intent is missing from stripe')
-    }
-
-    if (!intent.metadata.campaignId) {
-      throw new BadRequestException('Campaign id is missing from payment intent metadata')
     }
 
     return await this.api.createRefund({
