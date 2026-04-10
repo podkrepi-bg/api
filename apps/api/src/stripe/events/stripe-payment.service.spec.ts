@@ -449,12 +449,14 @@ describe('StripePaymentService', () => {
       secret: stripeSecret,
     })
 
-    const campaignService = app.get<CampaignService>(CampaignService)
     const vaultService = app.get<VaultService>(VaultService)
 
-    const mockedCampaignById = jest
-      .spyOn(campaignService, 'getCampaignById')
-      .mockImplementation(() => Promise.resolve(mockedCampaign))
+    const mockedGetDonationByPaymentIntent = jest
+      .spyOn(donationService, 'getDonationByPaymentIntent')
+      .mockResolvedValue({
+        id: 'test-donation-id',
+        targetVault: { campaign: mockedCampaign },
+      })
 
     const paymentData = getPaymentDataFromCharge(
       mockChargeEventSucceeded.data.object as Stripe.Charge,
@@ -491,7 +493,9 @@ describe('StripePaymentService', () => {
       .send(payloadString)
       .expect(201)
       .then(() => {
-        expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
+        expect(mockedGetDonationByPaymentIntent).toHaveBeenCalledWith(
+          'pi_3MmYVtKApGjVGa9t1BtdkBrz',
+        )
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
         expect(prismaMock.payment.findUnique).toHaveBeenCalled()
         expect(prismaMock.payment.create).not.toHaveBeenCalled()
