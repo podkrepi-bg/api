@@ -168,8 +168,7 @@ export class StripePaymentService {
 
     if (!campaign) {
       Logger.warn(
-        '[ handleRefundCreated ] No donation/campaign found for payment intent ' +
-          paymentIntentId,
+        '[ handleRefundCreated ] No donation/campaign found for payment intent ' + paymentIntentId,
       )
       return
     }
