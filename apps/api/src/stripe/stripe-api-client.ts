@@ -155,6 +155,14 @@ export class StripeApiClient {
     return this.stripe.charges.retrieve(id, params, options)
   }
 
+  // Webhook Endpoints
+  listWebhookEndpoints(
+    params?: Stripe.WebhookEndpointListParams,
+    options?: Stripe.RequestOptions,
+  ) {
+    return this.stripe.webhookEndpoints.list(params, options)
+  }
+
   // Invoices
   retrieveInvoice(
     id: string,

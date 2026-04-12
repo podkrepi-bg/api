@@ -229,6 +229,16 @@ export class StripeService {
     }
   }
 
+  async listWebhookEndpoints() {
+    const list = await this.api.listWebhookEndpoints({ limit: 100 })
+    return list.data.map((ep) => ({
+      id: ep.id,
+      url: ep.url,
+      status: ep.status,
+      enabled_events: ep.enabled_events,
+    }))
+  }
+
   async createCustomer(email: string, name: string, paymentMethod: Stripe.PaymentMethod) {
     const customerLookup = await this.api.listCustomers({
       email,
