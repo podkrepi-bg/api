@@ -490,18 +490,20 @@ export class StripeService {
       reason: 'requested_by_customer',
     })
 
-    if (refund.status === 'succeeded') {
-      const donation = await this.donationService.getDonationByPaymentIntent(paymentIntentId)
-      const campaign = donation?.targetVault?.campaign
+    if (refund.status !== 'succeeded') {
+      throw new BadRequestException(`Refund failed with status: ${refund.status}. Reason: ${refund.failure_reason}`)
+    }
 
-      if (campaign) {
-        const charge = intent.latest_charge as Stripe.Charge | string
-        const chargeObj =
-          typeof charge === 'string' ? await this.api.retrieveCharge(charge) : charge
+    const donation = await this.donationService.getDonationByPaymentIntent(paymentIntentId)
+    const campaign = donation?.targetVault?.campaign
 
-        const billingData = getPaymentDataFromCharge(chargeObj)
-        return await this.donationService.updateDonationPayment(campaign, billingData, PaymentStatus.refund)
-      }
+    if (campaign) {
+      const charge = intent.latest_charge as Stripe.Charge | string
+      const chargeObj =
+        typeof charge === 'string' ? await this.api.retrieveCharge(charge) : charge
+
+      const billingData = getPaymentDataFromCharge(chargeObj)
+      return await this.donationService.updateDonationPayment(campaign, billingData, PaymentStatus.refund)
     }
   }
 
