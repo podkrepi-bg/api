@@ -155,42 +155,59 @@ export class StripePaymentService {
   @StripeWebhookHandler('charge.refunded')
   async handleRefundCreated(event: Stripe.Event) {
     const chargePaymentIntent: Stripe.Charge = event.data.object as Stripe.Charge
-    Logger.log(
-      '[ handleRefundCreated ]',
-      chargePaymentIntent,
-      chargePaymentIntent.metadata as StripeMetadata,
-    )
-
     const paymentIntentId = chargePaymentIntent.payment_intent as string
 
-    const donation = await this.donationService.getDonationByPaymentIntent(paymentIntentId)
-    const campaign = donation?.targetVault?.campaign
+    Logger.log(
+      '[ handleRefundCreated ] Processing refund for charge ' +
+        chargePaymentIntent.id +
+        ' paymentIntent ' +
+        paymentIntentId,
+    )
 
-    if (!campaign) {
-      Logger.warn(
-        '[ handleRefundCreated ] No donation/campaign found for payment intent ' + paymentIntentId,
+    try {
+      const donation = await this.donationService.getDonationByPaymentIntent(paymentIntentId)
+      const campaign = donation?.targetVault?.campaign
+
+      if (!campaign) {
+        Logger.error(
+          '[ handleRefundCreated ] No donation/campaign found for payment intent ' +
+            paymentIntentId,
+        )
+        return
+      }
+
+      const billingData = getPaymentDataFromCharge(chargePaymentIntent)
+
+      await this.donationService.updateDonationPayment(campaign, billingData, PaymentStatus.refund)
+
+      Logger.log(
+        '[ handleRefundCreated ] Successfully processed refund for payment intent ' +
+          paymentIntentId,
       )
-      return
-    }
 
-    const billingData = getPaymentDataFromCharge(chargePaymentIntent)
+      if (billingData.billingEmail !== undefined) {
+        const recepient = { to: [billingData.billingEmail] }
+        const mail = new RefundDonationEmailDto({
+          campaignName: campaign.title,
+          currency: billingData.currency.toUpperCase(),
+          netAmount: billingData.netAmount / 100,
+          taxAmount: (billingData.chargedAmount - billingData.netAmount) / 100,
+        })
+        // Send Notification
 
-    await this.donationService.updateDonationPayment(campaign, billingData, PaymentStatus.refund)
-
-    if (billingData.billingEmail !== undefined) {
-      const recepient = { to: [billingData.billingEmail] }
-      const mail = new RefundDonationEmailDto({
-        campaignName: campaign.title,
-        currency: billingData.currency.toUpperCase(),
-        netAmount: billingData.netAmount / 100,
-        taxAmount: (billingData.chargedAmount - billingData.netAmount) / 100,
-      })
-      // Send Notification
-
-      await this.sendEmail.sendFromTemplate(mail, recepient, {
-        //Allow users to receive the mail, regardles of unsubscribes
-        bypassUnsubscribeManagement: { enable: true },
-      })
+        await this.sendEmail.sendFromTemplate(mail, recepient, {
+          //Allow users to receive the mail, regardles of unsubscribes
+          bypassUnsubscribeManagement: { enable: true },
+        })
+      }
+    } catch (error) {
+      Logger.error(
+        '[ handleRefundCreated ] Failed to process refund for payment intent ' +
+          paymentIntentId +
+          ': ' +
+          error,
+      )
+      throw error
     }
   }
 
