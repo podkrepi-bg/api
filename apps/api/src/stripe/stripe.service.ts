@@ -13,10 +13,12 @@ import {
   Currency,
   DonationMetadata,
   Payment,
+  PaymentStatus,
   RecurringDonationStatus,
 } from '@prisma/client'
 import { ConfigService } from '@nestjs/config'
 import { InvoiceWithPayments, StripeMetadata } from './stripe-metadata.interface'
+import { getPaymentDataFromCharge } from '../donations/helpers/payment-intent-helpers'
 import { CreateStripePaymentDto } from '../donations/dto/create-stripe-payment.dto'
 import { RecurringDonationService } from '../recurring-donation/recurring-donation.service'
 import * as crypto from 'crypto'
@@ -475,19 +477,34 @@ export class StripeService {
   /**
    * Refund a stipe payment donation
    * https://stripe.com/docs/api/refunds/create
-   * @param inputDto Refund-stripe params
-   * @returns {Promise<Stripe.Response<Stripe.Refund>>}
+   * @param paymentIntentId Stripe payment intent id
    */
-  async refundStripePayment(paymentIntentId: string): Promise<Stripe.Response<Stripe.Refund>> {
+  async refundStripePayment(paymentIntentId: string): Promise<{ id: string; status: PaymentStatus } | undefined> {
     const intent = await this.api.retrievePaymentIntent(paymentIntentId)
     if (!intent) {
       throw new BadRequestException('Payment Intent is missing from stripe')
     }
 
-    return await this.api.createRefund({
+    const refund = await this.api.createRefund({
       payment_intent: paymentIntentId,
       reason: 'requested_by_customer',
     })
+
+    if (refund.status !== 'succeeded') {
+      throw new BadRequestException(`Refund failed with status: ${refund.status}. Reason: ${refund.failure_reason}`)
+    }
+
+    const donation = await this.donationService.getDonationByPaymentIntent(paymentIntentId)
+    const campaign = donation?.targetVault?.campaign
+
+    if (campaign) {
+      const charge = intent.latest_charge as Stripe.Charge | string
+      const chargeObj =
+        typeof charge === 'string' ? await this.api.retrieveCharge(charge) : charge
+
+      const billingData = getPaymentDataFromCharge(chargeObj)
+      return await this.donationService.updateDonationPayment(campaign, billingData, PaymentStatus.refund)
+    }
   }
 
   async cancelSubscription(stripeSubscriptionId: string): Promise<Stripe.Subscription> {

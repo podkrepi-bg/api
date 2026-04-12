@@ -795,7 +795,7 @@ export class DonationsService {
     campaign: Campaign,
     paymentData: PaymentData,
     newDonationStatus: PaymentStatus,
-  ): Promise<string | undefined> {
+  ): Promise<{ id: string; status: PaymentStatus } | undefined> {
     const campaignId = campaign.id
     Logger.debug('Update donation to status: ' + newDonationStatus, {
       campaignId,
@@ -806,7 +806,6 @@ export class DonationsService {
     //also increments the vault amount and marks campaign as completed
     //if target amount is reached
     return await this.prisma.$transaction(async (tx) => {
-      let donationId
       // Find donation by extPaymentIntentId
       const existingDonation = await this.findExistingDonation(tx, paymentData)
 
@@ -818,7 +817,7 @@ export class DonationsService {
           newDonationStatus,
           campaign,
         )
-        donationId = newDonation.id
+        return { id: newDonation.id, status: newDonationStatus }
       }
       //donation exists, so check if it is safe to update it
       else {
@@ -828,10 +827,10 @@ export class DonationsService {
           newDonationStatus,
           paymentData,
         )
-        donationId = updatedDonation?.id
+        if (updatedDonation) {
+          return { id: updatedDonation.id, status: newDonationStatus }
+        }
       }
-
-      return donationId
     }) //end of the transaction scope
   }
 

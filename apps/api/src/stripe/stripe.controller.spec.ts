@@ -16,7 +16,7 @@ import {
   ConvertSingleSubscriptionCurrencyDto,
 } from './dto/currency-conversion.dto'
 import { CreateSessionDto } from '../donations/dto/create-session.dto'
-import { forwardRef, NotAcceptableException } from '@nestjs/common'
+import { BadRequestException, forwardRef, NotAcceptableException } from '@nestjs/common'
 import { PersonService } from '../person/person.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
@@ -215,6 +215,8 @@ describe('StripeController', () => {
   })
 
   it('should request refund for donation', async () => {
+    apiMock.createRefund.mockResolvedValue({ status: 'succeeded' } as any)
+
     await controller.refundStripePaymet('unique-intent')
 
     expect(apiMock.retrievePaymentIntent).toHaveBeenCalledWith('unique-intent')
@@ -222,6 +224,17 @@ describe('StripeController', () => {
       payment_intent: 'unique-intent',
       reason: 'requested_by_customer',
     })
+  })
+
+  it('should throw error when refund fails', async () => {
+    apiMock.createRefund.mockResolvedValue({
+      status: 'failed',
+      failure_reason: 'expired_or_canceled_card',
+    } as any)
+
+    await expect(controller.refundStripePaymet('unique-intent')).rejects.toThrow(
+      BadRequestException,
+    )
   })
   it(`should not call setupintents.update if no campaignId is provided`, async () => {
     prismaMock.campaign.findFirst.mockResolvedValue({

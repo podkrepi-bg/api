@@ -138,7 +138,7 @@ export class StripePaymentService {
 
     const billingData = getPaymentDataFromCharge(charge)
 
-    const donationId = await this.donationService.updateDonationPayment(
+    const result = await this.donationService.updateDonationPayment(
       campaign,
       billingData,
       PaymentStatus.succeeded,
@@ -147,8 +147,8 @@ export class StripePaymentService {
     await this.cancelSubscriptionsIfCompletedCampaign(metadata.campaignId)
 
     //and finally save the donation wish
-    if (donationId && metadata?.wish) {
-      await this.campaignService.createDonationWish(metadata.wish, donationId, campaign.id)
+    if (result?.id && metadata?.wish) {
+      await this.campaignService.createDonationWish(metadata.wish, result.id, campaign.id)
     }
   }
 
