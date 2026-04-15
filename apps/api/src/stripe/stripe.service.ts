@@ -304,9 +304,6 @@ export class StripeService {
           },
         ],
         default_payment_method: paymentMethod.id,
-        payment_settings: {
-          save_default_payment_method: 'on_subscription',
-        },
         metadata: {
           type: metadata.type,
           campaignId: metadata.campaignId,
