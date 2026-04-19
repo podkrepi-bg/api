@@ -73,7 +73,7 @@ export class IrisPayService {
   ): Promise<string> {
     const APP_URL = this.config.get<string>('APP_URL')
     const data: RegisterWebhookReq = {
-      url: `${APP_URL}/iris-pay/webhook`,
+      url: `${APP_URL}/api/v1/iris-pay/webhook`,
       agentHash: this.agentHash,
       state: paymentId,
       successUrl: irisRegisterWebhookDto?.successUrl,
