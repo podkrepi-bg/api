@@ -9,12 +9,14 @@ import {
   HttpCode,
   UseGuards,
   Logger,
+  NotFoundException,
+  ConflictException,
+  ServiceUnavailableException,
 } from '@nestjs/common'
 import { Request, Response } from 'express'
 import { IrisPayService } from './iris-pay.service'
 import { IRISCreateCheckoutSessionDto } from './dto/create-iris-pay.dto'
 import { CompletePaymentDto } from './dto/complete-payment.dto'
-import { FinishPaymentDto } from './dto/finish-payment.dto'
 import { Public } from 'nest-keycloak-connect'
 import { PaymentSessionGuard } from './guards/payment-session.guard'
 import { PaymentStep } from './decorators/payment-step.decorator'
@@ -45,62 +47,82 @@ export class IrisPayController {
     @Body() irisCreateCustomerDto: IRISCreateCheckoutSessionDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ hookHash: string; userHash: string }> {
+  ): Promise<{ paymentId: string; hookHash: string; userHash: string }> {
     await this.paymentSessionService.consumeSession((req as any).paymentSession)
     const result = await this.irisPayService.createCheckout(irisCreateCustomerDto)
-    this.paymentSessionService.upgradeSession(res, {
-      hookHash: result.hookHash,
-      userHash: result.userHash,
-    })
+    this.paymentSessionService.upgradeSession(res, { paymentId: result.paymentId })
     return result
+  }
+
+  @Post('finalize')
+  @HttpCode(200)
+  @Public()
+  @UseGuards(PaymentSessionGuard)
+  @PaymentStep('paymentSessionCreated')
+  async finalize(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<
+    | { status: string; donationId?: string; reason?: string }
+    | { error: string; reason?: string }
+  > {
+    const session = (req as any).paymentSession
+    const paymentId: string | undefined = session?.paymentId
+    if (!paymentId) {
+      this.paymentSessionService.clearSession(res)
+      throw new NotFoundException({ error: 'unknown_payment' })
+    }
+
+    Logger.debug('Finalizing IRIS payment', { paymentId })
+
+    try {
+      const result = await this.irisPayService.finalizePayment(paymentId)
+      this.paymentSessionService.clearSession(res)
+      return {
+        status: result.status,
+        donationId: result.donationId,
+        reason: result.reason,
+      }
+    } catch (err) {
+      if (err instanceof ServiceUnavailableException) {
+        // Keep session — FE falls back to pending, webhook reconciles.
+        throw err
+      }
+      this.paymentSessionService.clearSession(res)
+      if (err instanceof NotFoundException || err instanceof ConflictException) {
+        throw err
+      }
+      Logger.error(`Unexpected /finalize error for paymentId=${paymentId}: ${err}`)
+      throw err
+    }
   }
 
   @Post('complete')
   @HttpCode(200)
   @Public()
-  @UseGuards(PaymentSessionGuard)
-  @PaymentStep('paymentSessionCreated')
   async completePayment(
     @Body() completePaymentDto: CompletePaymentDto,
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<{ donationId?: string; status: string }> {
-    // Extract hookHash from the validated JWT session (tamper-proof)
-    const session = (req as any).paymentSession
-    await this.paymentSessionService.consumeSession(session)
-    const hookHash: string = session.hookHash
-
-    Logger.debug('Completing payment from session', { hookHash })
-
-    // Verify payment status with Iris API
-    const verifyResult = await this.irisPayService.verifyPayment({ hookHash })
-
-    // Build the finish DTO using hookHash from JWT and remaining data from request body
-    const finishDto: FinishPaymentDto = Object.assign(new FinishPaymentDto(), {
-      hookHash,
-      status: verifyResult?.status || completePaymentDto.status,
-      amount: completePaymentDto.amount,
-      billingName: completePaymentDto.billingName,
-      billingEmail: completePaymentDto.billingEmail,
-      metadata: completePaymentDto.metadata,
+  ): Promise<{ status: string }> {
+    // Deprecated: superseded by /finalize. Kept as a no-op so older
+    // deployed frontends don't break during rollout. Remove in a follow-up PR.
+    Logger.warn('Deprecated /iris-pay/complete endpoint called', {
+      hookHash: (completePaymentDto as unknown as { hookHash?: string })?.hookHash,
     })
-
-    const donationId = await this.irisPayService.finishPaymentSession(finishDto)
-
-    // Clear the session cookie -- payment is complete
-    this.paymentSessionService.clearSession(res)
-
-    // Map Iris status (CONFIRMED/FAILED/WAITING) to unified PaymentStatus (succeeded/declined/waiting)
-    const irisStatus = verifyResult?.status || completePaymentDto.status
-    const unifiedStatus = this.irisPayService.mapStatusToPaymentStatus(irisStatus)
-
-    return { donationId, status: unifiedStatus }
+    return { status: 'deprecated' }
   }
 
   @Get('webhook')
   @Public()
   async webhookEndpoint(@Query('state') state: string) {
     Logger.debug('Iris webhook received', { state })
-    return { status: 'ok' }
+    if (!state) {
+      return { ok: true }
+    }
+    try {
+      await this.irisPayService.finalizePayment(state)
+    } catch (error) {
+      Logger.warn(`Iris webhook finalize failed for state=${state}: ${error}`)
+    }
+    return { ok: true }
   }
 }

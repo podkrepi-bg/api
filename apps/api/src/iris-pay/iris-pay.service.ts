@@ -1,9 +1,12 @@
 import {
-  ForbiddenException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common'
+import { randomUUID } from 'crypto'
 import { IRISCreateCheckoutSessionDto } from './dto/create-iris-pay.dto'
 
 import {
@@ -18,7 +21,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { DonationsService } from '../donations/donations.service'
 import { FinishPaymentDto } from './dto/finish-payment.dto'
-import { PaymentProvider, PaymentStatus, DonationType } from '@prisma/client'
+import { PaymentProvider, PaymentStatus, PaymentType, Prisma } from '@prisma/client'
 import { PaymentData } from '../donations/helpers/payment-intent-helpers'
 
 export interface IrisHookHash {
@@ -43,6 +46,12 @@ export interface PayeBank {
   country: string
 }
 
+export interface FinalizeResult {
+  status: PaymentStatus
+  donationId?: string
+  reason?: string
+}
+
 @Injectable()
 export class IrisPayService {
   agentHash: string
@@ -58,11 +67,15 @@ export class IrisPayService {
     this.irisEndpoint = this.config.get<string>('IRIS_API_URL', '')
   }
 
-  async createWebhook(irisRegisterWebhookDto?: IRISCreateCheckoutSessionDto) {
+  async createWebhook(
+    paymentId: string,
+    irisRegisterWebhookDto?: IRISCreateCheckoutSessionDto,
+  ): Promise<string> {
     const APP_URL = this.config.get<string>('APP_URL')
     const data: RegisterWebhookReq = {
       url: `${APP_URL}/iris-pay/webhook`,
       agentHash: this.agentHash,
+      state: paymentId,
       successUrl: irisRegisterWebhookDto?.successUrl,
       errorUrl: irisRegisterWebhookDto?.errorUrl,
     }
@@ -114,24 +127,188 @@ export class IrisPayService {
   async createCheckout(irisCreateCheckoutDto: IRISCreateCheckoutSessionDto) {
     const campaign = await this.campaignService.getCampaignById(irisCreateCheckoutDto.campaignId)
     await this.campaignService.validateCampaign(campaign)
+
+    const paymentId = randomUUID()
+
     const userObj: IrisCreateCustomerDto = {
       email: irisCreateCheckoutDto.email,
       name: irisCreateCheckoutDto.name,
       family: irisCreateCheckoutDto.family,
     }
-    const userHashRes = this.createCustomer(userObj)
-    const webhookRes = this.createWebhook(irisCreateCheckoutDto)
-    const [userHash, webhook] = await Promise.allSettled([userHashRes, webhookRes])
-    if (userHash.status !== 'fulfilled' || webhook.status !== 'fulfilled') {
+    const [userHashRes, webhookRes] = await Promise.allSettled([
+      this.createCustomer(userObj),
+      this.createWebhook(paymentId, irisCreateCheckoutDto),
+    ])
+
+    if (userHashRes.status !== 'fulfilled' || webhookRes.status !== 'fulfilled') {
       throw new InternalServerErrorException(
         "Couldn't initiate IRIS checkout at this time.\n Please try again later",
       )
     }
+    const userHash = userHashRes.value
+    const hookHash = webhookRes.value
+
+    await this.prismaService.$transaction(async (tx) => {
+      const vault = await tx.vault.findFirstOrThrow({ where: { campaignId: campaign.id } })
+
+      await tx.payment.create({
+        data: {
+          id: paymentId,
+          extPaymentIntentId: hookHash,
+          extCustomerId: userHash,
+          extPaymentMethodId: '',
+          provider: PaymentProvider.irispay,
+          type: PaymentType.single,
+          status: PaymentStatus.initial,
+          currency: campaign.currency,
+          amount: irisCreateCheckoutDto.amount,
+          chargedAmount: irisCreateCheckoutDto.amount,
+          billingName: irisCreateCheckoutDto.billingName,
+          billingEmail: irisCreateCheckoutDto.billingEmail,
+          donations: {
+            create: {
+              amount: irisCreateCheckoutDto.amount,
+              type: irisCreateCheckoutDto.type,
+              targetVault: { connect: { id: vault.id } },
+              person:
+                irisCreateCheckoutDto.isAnonymous || !irisCreateCheckoutDto.personId
+                  ? {}
+                  : { connect: { id: irisCreateCheckoutDto.personId } },
+            },
+          },
+        },
+      })
+    })
 
     return {
-      hookHash: webhook.value,
-      userHash: userHash.value,
+      paymentId,
+      hookHash,
+      userHash,
     }
+  }
+
+  async finalizePayment(paymentId: string): Promise<FinalizeResult> {
+    const payment = await this.prismaService.payment.findUnique({
+      where: { id: paymentId },
+      include: {
+        donations: {
+          include: {
+            targetVault: { include: { campaign: true } },
+            metadata: true,
+          },
+        },
+      },
+    })
+
+    if (!payment || payment.donations.length === 0) {
+      throw new NotFoundException('unknown_payment')
+    }
+
+    const hookHash = payment.extPaymentIntentId
+    const donation = payment.donations[0]
+    const campaign = donation.targetVault.campaign
+
+    let irisResult: IrisHookHash
+    try {
+      irisResult = await this.verifyPayment({ hookHash })
+    } catch (error) {
+      Logger.warn(`IRIS verifyPayment failed for paymentId=${paymentId}: ${error}`)
+      throw new ServiceUnavailableException('iris_unavailable')
+    }
+
+    if (!irisResult) {
+      throw new ServiceUnavailableException('iris_unavailable')
+    }
+
+    if (
+      irisResult.currency &&
+      campaign.currency &&
+      irisResult.currency.toLowerCase() !== campaign.currency.toLowerCase()
+    ) {
+      Logger.error(
+        `IRIS/campaign currency mismatch: iris=${irisResult.currency} campaign=${campaign.currency} paymentId=${paymentId}`,
+      )
+      throw new ConflictException('currency_mismatch')
+    }
+
+    const irisAmount = this.parseIrisSum(irisResult.sum)
+    if (irisAmount !== payment.amount) {
+      Logger.warn(
+        `IRIS/DB amount mismatch: iris=${irisAmount} db=${payment.amount} paymentId=${paymentId}. Using IRIS amount.`,
+      )
+    }
+
+    const status = this.mapStatusToPaymentStatus(irisResult.status)
+
+    const paymentData: PaymentData = {
+      paymentIntentId: hookHash,
+      netAmount: irisAmount,
+      chargedAmount: irisAmount,
+      currency: campaign.currency.toLowerCase(),
+      paymentProvider: PaymentProvider.irispay,
+      billingName: payment.billingName ?? undefined,
+      billingEmail: payment.billingEmail ?? undefined,
+      personId: donation.personId ?? undefined,
+      type: donation.type,
+    }
+
+    const donationId = await this.donationsService.updateDonationPayment(
+      campaign,
+      paymentData,
+      status,
+    )
+
+    await this.storeIrisMetadata(donation.id, irisResult)
+
+    return {
+      status,
+      donationId,
+      reason: irisResult.reasonForFail,
+    }
+  }
+
+  private async storeIrisMetadata(donationId: string, irisResult: IrisHookHash): Promise<void> {
+    const irisExtra = {
+      iris: {
+        payerName: irisResult.payerName,
+        payerIban: irisResult.payerIban,
+        payerBank: irisResult.payerBank,
+        payeeName: irisResult.payeeName,
+        payeeIban: irisResult.payeeIban,
+        payeeBank: irisResult.payeeBank,
+        reasonForFail: irisResult.reasonForFail,
+        irisTransactionId: irisResult.id,
+        verifiedAt: new Date().toISOString(),
+      },
+    }
+
+    try {
+      await this.prismaService.donationMetadata.upsert({
+        where: { donationId },
+        update: { extraData: irisExtra as unknown as Prisma.InputJsonValue },
+        create: {
+          donationId,
+          extraData: irisExtra as unknown as Prisma.InputJsonValue,
+        },
+      })
+    } catch (error) {
+      Logger.warn(`Failed to persist IRIS metadata for donation=${donationId}: ${error}`)
+    }
+  }
+
+  parseIrisSum(sum: string): number {
+    if (sum === undefined || sum === null) {
+      throw new Error(`Invalid IRIS sum: ${sum}`)
+    }
+    const normalized = String(sum).trim().replace(',', '.')
+    if (normalized === '' || !/^\d+(\.\d+)?$/.test(normalized)) {
+      throw new Error(`Invalid IRIS sum: "${sum}"`)
+    }
+    const asFloat = parseFloat(normalized)
+    if (Number.isNaN(asFloat) || asFloat < 0) {
+      throw new Error(`Invalid IRIS sum: "${sum}"`)
+    }
+    return Math.round(asFloat * 100)
   }
 
   async finishPaymentSession(finishPaymentDto: FinishPaymentDto): Promise<string | undefined> {

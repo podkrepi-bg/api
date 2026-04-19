@@ -9,8 +9,7 @@ import { Request, Response } from 'express'
 export interface PaymentSessionPayload {
   step: 'initialSession' | 'paymentSessionCreated'
   jti?: string
-  hookHash?: string
-  userHash?: string
+  paymentId?: string
 }
 
 const COOKIE_NAME = 'payment_jwt'
@@ -75,12 +74,11 @@ export class PaymentSessionService {
     await this.cacheManager.set(cacheKey, true, SESSION_TTL_SECONDS * 1000)
   }
 
-  upgradeSession(res: Response, data: { hookHash: string; userHash: string }): void {
+  upgradeSession(res: Response, data: { paymentId: string }): void {
     const payload: PaymentSessionPayload = {
       step: 'paymentSessionCreated',
       jti: randomUUID(),
-      hookHash: data.hookHash,
-      userHash: data.userHash,
+      paymentId: data.paymentId,
     }
     const token = this.jwtService.sign(payload, {
       secret: this.secret,
