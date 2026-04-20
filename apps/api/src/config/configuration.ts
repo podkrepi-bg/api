@@ -61,6 +61,7 @@ export default () => ({
     transactionsEndPoint: process.env.IRIS_API_URL + '/transactions',
     payloadSecret: process.env.PG_PAYLOAD_SECRET,
     paymentSessionSecret: process.env.PAYMENT_SESSION_SECRET,
+    irisWebhookSecret: process.env.IRIS_WEBHOOK_SECRET,
   },
   mail: {
     billingAdminEmail: process.env.BILLING_ADMIN_MAIL,

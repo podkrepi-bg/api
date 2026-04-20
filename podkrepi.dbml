@@ -355,7 +355,7 @@ Table countries {
 
 Table iris_customers {
   userHash String [pk]
-  email String [not null]
+  email String [unique, not null]
 }
 
 Table vaults {

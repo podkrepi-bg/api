@@ -7,4 +7,4 @@ CREATE TABLE "iris_customers" (
 );
 
 -- CreateIndex
-CREATE INDEX "iris_customers_email_idx" ON "iris_customers"("email");
+CREATE UNIQUE INDEX "iris_customers_email_key" ON "iris_customers"("email");

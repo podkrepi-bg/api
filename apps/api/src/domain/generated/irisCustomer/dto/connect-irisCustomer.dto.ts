@@ -1,3 +1,4 @@
 export class ConnectIrisCustomerDto {
-  userHash: string
+  userHash?: string
+  email?: string
 }

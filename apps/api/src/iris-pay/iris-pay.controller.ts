@@ -6,17 +6,18 @@ import {
   Req,
   Res,
   Query,
+  Header,
   HttpCode,
   UseGuards,
   Logger,
   NotFoundException,
   ConflictException,
   ServiceUnavailableException,
+  UnauthorizedException,
 } from '@nestjs/common'
 import { Request, Response } from 'express'
 import { IrisPayService } from './iris-pay.service'
 import { IRISCreateCheckoutSessionDto } from './dto/create-iris-pay.dto'
-import { CompletePaymentDto } from './dto/complete-payment.dto'
 import { Public } from 'nest-keycloak-connect'
 import { PaymentSessionGuard } from './guards/payment-session.guard'
 import { PaymentStep } from './decorators/payment-step.decorator'
@@ -63,8 +64,7 @@ export class IrisPayController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<
-    | { status: string; donationId?: string; reason?: string }
-    | { error: string; reason?: string }
+    { status: string; donationId?: string; reason?: string } | { error: string; reason?: string }
   > {
     const session = (req as any).paymentSession
     const paymentId: string | undefined = session?.paymentId
@@ -97,31 +97,31 @@ export class IrisPayController {
     }
   }
 
-  @Post('complete')
-  @HttpCode(200)
-  @Public()
-  async completePayment(
-    @Body() completePaymentDto: CompletePaymentDto,
-  ): Promise<{ status: string }> {
-    // Deprecated: superseded by /finalize. Kept as a no-op so older
-    // deployed frontends don't break during rollout. Remove in a follow-up PR.
-    Logger.warn('Deprecated /iris-pay/complete endpoint called', {
-      hookHash: (completePaymentDto as unknown as { hookHash?: string })?.hookHash,
-    })
-    return { status: 'deprecated' }
-  }
-
   @Get('webhook')
   @Public()
+  @Header('Cache-Control', 'no-store')
   async webhookEndpoint(@Query('state') state: string) {
-    Logger.debug('Iris webhook received', { state })
+    Logger.debug('Iris webhook received')
     if (!state) {
       return { ok: true }
     }
+    let paymentId: string
     try {
-      await this.irisPayService.finalizePayment(state)
+      paymentId = this.irisPayService.verifySignedState(state)
     } catch (error) {
-      Logger.warn(`Iris webhook finalize failed for state=${state}: ${error}`)
+      // Always 200 so IRIS doesn't retry, but log distinctly so legitimate
+      // failures are separable from forged/replayed probes.
+      if (error instanceof UnauthorizedException) {
+        Logger.warn('Iris webhook rejected: invalid signature')
+      } else {
+        Logger.warn(`Iris webhook rejected: ${error}`)
+      }
+      return { ok: true }
+    }
+    try {
+      await this.irisPayService.finalizePayment(paymentId)
+    } catch (error) {
+      Logger.warn(`Iris webhook finalize failed for paymentId=${paymentId}: ${error}`)
     }
     return { ok: true }
   }

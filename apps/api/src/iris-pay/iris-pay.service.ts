@@ -1,12 +1,14 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
   ServiceUnavailableException,
+  UnauthorizedException,
 } from '@nestjs/common'
-import { randomUUID } from 'crypto'
+import { createHmac, randomUUID, timingSafeEqual } from 'crypto'
 import { IRISCreateCheckoutSessionDto } from './dto/create-iris-pay.dto'
 
 import {
@@ -23,6 +25,7 @@ import { DonationsService } from '../donations/donations.service'
 import { FinishPaymentDto } from './dto/finish-payment.dto'
 import { PaymentProvider, PaymentStatus, PaymentType, Prisma } from '@prisma/client'
 import { PaymentData } from '../donations/helpers/payment-intent-helpers'
+import { isFinal } from '../donations/helpers/donation-status-updates'
 
 export interface IrisHookHash {
   date: Date
@@ -56,6 +59,7 @@ export interface FinalizeResult {
 export class IrisPayService {
   agentHash: string
   irisEndpoint: string
+  private readonly irisWebhookSecret: string
   constructor(
     private config: ConfigService,
     private httpService: HttpService,
@@ -65,6 +69,71 @@ export class IrisPayService {
   ) {
     this.agentHash = this.config.get<string>('IRIS_AGENT_HASH', '')
     this.irisEndpoint = this.config.get<string>('IRIS_API_URL', '')
+    this.irisWebhookSecret = this.config.get<string>('iris.irisWebhookSecret', '')
+  }
+
+  // Signs a paymentId so the value we hand to IRIS (and that IRIS echoes back
+  // on its webhook) can be authenticated server-side. Format is
+  // `<paymentId>.<hmac>` — paymentId stays readable, the HMAC proves the pair
+  // was produced by us and wasn't tampered with in transit.
+  signPaymentId(paymentId: string): string {
+    const mac = this.toUrlSafe(
+      createHmac('sha256', this.irisWebhookSecret).update(paymentId).digest('base64'),
+    )
+    return `${paymentId}.${mac}`
+  }
+
+  // Reverses `signPaymentId` and rejects any state the attacker didn't get
+  // from us. Throws UnauthorizedException on malformed or mismatched input.
+  verifySignedState(state: string): string {
+    const dotIndex = state.indexOf('.')
+    if (dotIndex === -1) {
+      throw new UnauthorizedException('Invalid webhook state format')
+    }
+    const paymentId = state.slice(0, dotIndex)
+    const mac = state.slice(dotIndex + 1)
+    const expected = this.toUrlSafe(
+      createHmac('sha256', this.irisWebhookSecret).update(paymentId).digest('base64'),
+    )
+    const macBuf = new Uint8Array(Buffer.from(mac))
+    const expectedBuf = new Uint8Array(Buffer.from(expected))
+    if (macBuf.length !== expectedBuf.length || !timingSafeEqual(macBuf, expectedBuf)) {
+      throw new UnauthorizedException('Invalid webhook signature')
+    }
+    return paymentId
+  }
+
+  // Older @types/node don't expose 'base64url' on BinaryToTextEncoding, so
+  // produce base64 then strip padding and swap the URL-unsafe characters —
+  // equivalent output, same tamper resistance.
+  private toUrlSafe(b64: string): string {
+    return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  }
+
+  // Rejects any redirect URL whose origin doesn't match APP_URL. IRIS forwards
+  // the user here after payment, so an attacker-supplied host would be a free
+  // phishing vector. Using origin (scheme + host + port) keeps dev-on-http
+  // working when APP_URL itself is http://localhost:<port>, while prod stays
+  // strict because APP_URL is https.
+  private validateRedirectUrl(url: string | undefined, field: 'successUrl' | 'errorUrl'): void {
+    if (url === undefined) return
+    const appUrl = this.config.get<string>('APP_URL', '')
+    let allowed: URL
+    try {
+      allowed = new URL(appUrl)
+    } catch {
+      Logger.error(`APP_URL is not a valid URL: ${appUrl}`)
+      throw new InternalServerErrorException('Server misconfigured')
+    }
+    let parsed: URL
+    try {
+      parsed = new URL(url)
+    } catch {
+      throw new BadRequestException(`Invalid ${field}`)
+    }
+    if (parsed.protocol !== allowed.protocol || parsed.host !== allowed.host) {
+      throw new BadRequestException(`${field} origin not allowed`)
+    }
   }
 
   async createWebhook(
@@ -75,7 +144,9 @@ export class IrisPayService {
     const data: RegisterWebhookReq = {
       url: `${APP_URL}/api/v1/iris-pay/webhook`,
       agentHash: this.agentHash,
-      state: paymentId,
+      // Signed so the webhook can authenticate IRIS's callback without trusting
+      // the raw paymentId — anyone with the UUID alone can't forge this.
+      state: this.signPaymentId(paymentId),
       successUrl: irisRegisterWebhookDto?.successUrl,
       errorUrl: irisRegisterWebhookDto?.errorUrl,
     }
@@ -98,13 +169,14 @@ export class IrisPayService {
   }
 
   async createCustomer(irisCreateCustomerDto: IrisCreateCustomerDto) {
-    const irisCustomer = await this.prismaService.irisCustomer.findFirst({
+    const existing = await this.prismaService.irisCustomer.findUnique({
       where: { email: irisCreateCustomerDto.email },
     })
-    if (irisCustomer) {
+    if (existing) {
       Logger.debug('Customer with email found')
-      return irisCustomer.userHash
+      return existing.userHash
     }
+
     const data: CreateCustomerReq = {
       agentHash: this.agentHash,
       ...irisCreateCustomerDto,
@@ -116,15 +188,42 @@ export class IrisPayService {
       createCustomerUrl,
       data,
     )
-    if (irisCreateCustomer?.data?.userHash) {
-      await this.prismaService.irisCustomer.create({
-        data: { email: irisCreateCustomerDto.email, userHash: irisCreateCustomer.data.userHash },
-      })
+    const userHash = irisCreateCustomer?.data?.userHash
+    if (!userHash) {
+      return irisCreateCustomer.data.userHash
     }
-    return irisCreateCustomer.data.userHash
+
+    try {
+      await this.prismaService.irisCustomer.create({
+        data: { email: irisCreateCustomerDto.email, userHash },
+      })
+      return userHash
+    } catch (err) {
+      // A parallel request won the race and inserted first. The unique index
+      // on `email` guarantees our DB row is the winner; return that userHash
+      // so both requests converge. Our just-created IRIS customer is orphaned
+      // on their side (they don't dedupe by email) — acceptable leak vs. a
+      // duplicate local row.
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        Logger.warn(
+          `IRIS customer race on email=${irisCreateCustomerDto.email}; using winning row. Orphaned IRIS userHash=${userHash}`,
+        )
+        const winner = await this.prismaService.irisCustomer.findUniqueOrThrow({
+          where: { email: irisCreateCustomerDto.email },
+        })
+        return winner.userHash
+      }
+      throw err
+    }
   }
 
   async createCheckout(irisCreateCheckoutDto: IRISCreateCheckoutSessionDto) {
+    // Reject off-host redirect URLs before we hand them to IRIS. IRIS forwards
+    // the user there after payment, so an attacker-supplied host turns this
+    // into a free phishing redirect.
+    this.validateRedirectUrl(irisCreateCheckoutDto.successUrl, 'successUrl')
+    this.validateRedirectUrl(irisCreateCheckoutDto.errorUrl, 'errorUrl')
+
     const campaign = await this.campaignService.getCampaignById(irisCreateCheckoutDto.campaignId)
     await this.campaignService.validateCampaign(campaign)
 
@@ -204,8 +303,23 @@ export class IrisPayService {
       throw new NotFoundException('unknown_payment')
     }
 
-    const hookHash = payment.extPaymentIntentId
     const donation = payment.donations[0]
+
+    // Idempotency: once the payment is in a final state (see the repo's
+    // central status policy in `donation-status-updates.ts`), re-polling IRIS
+    // and re-writing would repeat work — `shouldAllowStatusChange` inside
+    // `updateDonationPayment` would reject the write anyway. Short-circuit
+    // before the external call so webhook replays and duplicate /finalize
+    // calls are cheap.
+    if (isFinal(payment.status)) {
+      return {
+        status: payment.status,
+        donationId: donation.id,
+        reason: this.extractIrisReasonForFail(donation.metadata),
+      }
+    }
+
+    const hookHash = payment.extPaymentIntentId
     const campaign = donation.targetVault.campaign
 
     let irisResult: IrisHookHash
@@ -265,6 +379,16 @@ export class IrisPayService {
       donationId,
       reason: irisResult.reasonForFail,
     }
+  }
+
+  // Reads the most recent `reasonForFail` we persisted for this donation.
+  // Used on the final-state idempotency short-circuit so the client gets
+  // the same `reason` it would have received from a full finalize call.
+  private extractIrisReasonForFail(
+    metadata: { extraData: Prisma.JsonValue } | null,
+  ): string | undefined {
+    const extra = metadata?.extraData as { iris?: { reasonForFail?: string } } | null | undefined
+    return extra?.iris?.reasonForFail
   }
 
   private async storeIrisMetadata(donationId: string, irisResult: IrisHookHash): Promise<void> {

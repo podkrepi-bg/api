@@ -61,4 +61,5 @@ export const validationSchema = Joi.object({
 
   // Iris Pay
   PAYMENT_SESSION_SECRET: Joi.string().required(),
+  IRIS_WEBHOOK_SECRET: Joi.string().required(),
 })

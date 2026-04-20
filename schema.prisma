@@ -431,11 +431,10 @@ model Country {
 }
 
 model IrisCustomer {
-  userHash String @id  @map("user_hash") @db.Uuid 
-  email String @db.VarChar 
+  userHash String @id  @map("user_hash") @db.Uuid
+  email String @unique @db.VarChar
 
   @@map("iris_customers")
-  @@index([email])
 }
 
 model Vault {

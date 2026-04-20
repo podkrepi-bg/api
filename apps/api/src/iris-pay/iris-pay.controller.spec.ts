@@ -12,6 +12,7 @@ import {
   ConflictException,
   NotFoundException,
   ServiceUnavailableException,
+  UnauthorizedException,
 } from '@nestjs/common'
 
 describe('IrisPayController', () => {
@@ -22,6 +23,7 @@ describe('IrisPayController', () => {
     verifyPayment: jest.fn(),
     finishPaymentSession: jest.fn(),
     finalizePayment: jest.fn(),
+    verifySignedState: jest.fn(),
   }
 
   const mockPaymentSessionService = {
@@ -112,33 +114,39 @@ describe('IrisPayController', () => {
   })
 
   describe('/webhook', () => {
-    it('returns 200 and calls finalizePayment with state', async () => {
+    it('verifies the signed state and calls finalizePayment with the decoded paymentId', async () => {
+      mockIrisPayService.verifySignedState.mockReturnValue('payment-id-1')
       mockIrisPayService.finalizePayment.mockResolvedValue({
         status: PaymentStatus.succeeded,
         donationId: 'don-1',
       })
-      const result = await controller.webhookEndpoint('payment-id-1')
+      const result = await controller.webhookEndpoint('payment-id-1.signature')
+      expect(mockIrisPayService.verifySignedState).toHaveBeenCalledWith('payment-id-1.signature')
       expect(mockIrisPayService.finalizePayment).toHaveBeenCalledWith('payment-id-1')
       expect(result).toEqual({ ok: true })
     })
 
-    it('swallows errors and still returns 200 so IRIS does not spam retries', async () => {
-      mockIrisPayService.finalizePayment.mockRejectedValue(new Error('boom'))
-      const result = await controller.webhookEndpoint('payment-id-2')
-      expect(result).toEqual({ ok: true })
-    })
-
-    it('does not call finalizePayment when state is missing', async () => {
-      const result = await controller.webhookEndpoint('')
+    it('returns 200 without finalizing when the signature is invalid', async () => {
+      mockIrisPayService.verifySignedState.mockImplementation(() => {
+        throw new UnauthorizedException('Invalid webhook signature')
+      })
+      const result = await controller.webhookEndpoint('payment-id-1.wrong-sig')
       expect(mockIrisPayService.finalizePayment).not.toHaveBeenCalled()
       expect(result).toEqual({ ok: true })
     })
-  })
 
-  describe('/complete (deprecated)', () => {
-    it('returns deprecated status', async () => {
-      const result = await controller.completePayment({} as any)
-      expect(result).toEqual({ status: 'deprecated' })
+    it('swallows finalize errors and still returns 200 so IRIS does not spam retries', async () => {
+      mockIrisPayService.verifySignedState.mockReturnValue('payment-id-2')
+      mockIrisPayService.finalizePayment.mockRejectedValue(new Error('boom'))
+      const result = await controller.webhookEndpoint('payment-id-2.signature')
+      expect(result).toEqual({ ok: true })
+    })
+
+    it('does not verify or finalize when state is missing', async () => {
+      const result = await controller.webhookEndpoint('')
+      expect(mockIrisPayService.verifySignedState).not.toHaveBeenCalled()
+      expect(mockIrisPayService.finalizePayment).not.toHaveBeenCalled()
+      expect(result).toEqual({ ok: true })
     })
   })
 })
