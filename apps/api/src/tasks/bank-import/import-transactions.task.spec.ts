@@ -189,6 +189,27 @@ describe('ImportTransactionsTask', () => {
       valueDate: '2023-03-01',
       creditDebitIndicator: 'DEBIT',
     },
+    // IRIS PAY settlement — should be skipped
+    {
+      transactionId: 'Booked_9991234567_00001234567890123IRISPAY2023091401_20230914',
+      bookingDate: '2023-09-14',
+      creditorAccount: {
+        iban: 'BG66UNCR70001524349032',
+      },
+      creditorName: 'СДРУЖЕНИЕ ПОДКРЕПИ БГ',
+      debtorAccount: {
+        iban: 'BG77UNCR92900016740920',
+      },
+      debtorName: 'JOHN DOE',
+      remittanceInformationUnstructured: 'IRISPAY Save the animals - Donation',
+      transactionAmount: {
+        amount: 75,
+        currency: 'BGN',
+      },
+      exchangeRate: null,
+      valueDate: '2023-09-14',
+      creditDebitIndicator: 'CREDIT',
+    },
     //Affiliate donation
     {
       transactionId: 'Booked_5954782144_70123543493054963FTRO23073A58G01C2023345440_20230914',
@@ -348,6 +369,7 @@ describe('ImportTransactionsTask', () => {
       const filteredIrisTransactions = mockIrisTransactions.filter(
         (trx) =>
           trx.remittanceInformationUnstructured !== 'STRIPE' &&
+          !trx.remittanceInformationUnstructured?.startsWith('IRISPAY') &&
           trx.creditDebitIndicator !== 'DEBIT',
       )
 
