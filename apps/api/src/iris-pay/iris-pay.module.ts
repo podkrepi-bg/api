@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { IrisPayService } from './iris-pay.service'
+import { IrisPayApiClient } from './iris-pay-api-client'
 import { IrisPayController } from './iris-pay.controller'
 import { ConfigModule } from '@nestjs/config'
 import { HttpModule } from '@nestjs/axios'
@@ -20,6 +21,6 @@ import { PaymentSessionGuard } from './guards/payment-session.guard'
     DonationsModule,
   ],
   controllers: [IrisPayController],
-  providers: [IrisPayService, PaymentSessionService, PaymentSessionGuard],
+  providers: [IrisPayService, IrisPayApiClient, PaymentSessionService, PaymentSessionGuard],
 })
 export class IrisPayModule {}

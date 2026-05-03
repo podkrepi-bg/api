@@ -114,13 +114,24 @@ describe('IrisPayController', () => {
   })
 
   describe('/webhook', () => {
+    const makeReq = () =>
+      ({
+        method: 'GET',
+        originalUrl: '/api/v1/iris-pay/webhook',
+        body: {},
+      } as unknown as any)
+
     it('verifies the signed state and calls finalizePayment with the decoded paymentId', async () => {
       mockIrisPayService.verifySignedState.mockReturnValue('payment-id-1')
       mockIrisPayService.finalizePayment.mockResolvedValue({
         status: PaymentStatus.succeeded,
         donationId: 'don-1',
       })
-      const result = await controller.webhookEndpoint('payment-id-1.signature')
+      const result = await controller.webhookEndpoint(
+        { state: 'payment-id-1.signature' },
+        { 'x-iris-event-type': 'PAYMENT_STARTED' },
+        makeReq(),
+      )
       expect(mockIrisPayService.verifySignedState).toHaveBeenCalledWith('payment-id-1.signature')
       expect(mockIrisPayService.finalizePayment).toHaveBeenCalledWith('payment-id-1')
       expect(result).toEqual({ ok: true })
@@ -130,7 +141,11 @@ describe('IrisPayController', () => {
       mockIrisPayService.verifySignedState.mockImplementation(() => {
         throw new UnauthorizedException('Invalid webhook signature')
       })
-      const result = await controller.webhookEndpoint('payment-id-1.wrong-sig')
+      const result = await controller.webhookEndpoint(
+        { state: 'payment-id-1.wrong-sig' },
+        {},
+        makeReq(),
+      )
       expect(mockIrisPayService.finalizePayment).not.toHaveBeenCalled()
       expect(result).toEqual({ ok: true })
     })
@@ -138,12 +153,16 @@ describe('IrisPayController', () => {
     it('swallows finalize errors and still returns 200 so IRIS does not spam retries', async () => {
       mockIrisPayService.verifySignedState.mockReturnValue('payment-id-2')
       mockIrisPayService.finalizePayment.mockRejectedValue(new Error('boom'))
-      const result = await controller.webhookEndpoint('payment-id-2.signature')
+      const result = await controller.webhookEndpoint(
+        { state: 'payment-id-2.signature' },
+        {},
+        makeReq(),
+      )
       expect(result).toEqual({ ok: true })
     })
 
     it('does not verify or finalize when state is missing', async () => {
-      const result = await controller.webhookEndpoint('')
+      const result = await controller.webhookEndpoint({}, {}, makeReq())
       expect(mockIrisPayService.verifySignedState).not.toHaveBeenCalled()
       expect(mockIrisPayService.finalizePayment).not.toHaveBeenCalled()
       expect(result).toEqual({ ok: true })

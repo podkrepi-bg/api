@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { IrisPayService } from './iris-pay.service'
+import { IrisPayApiClient } from './iris-pay-api-client'
 import { ConfigService } from '@nestjs/config'
-import { HttpService } from '@nestjs/axios'
 import { PrismaService } from '../prisma/prisma.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { DonationsService } from '../donations/donations.service'
@@ -26,11 +26,11 @@ describe('IrisPayService', () => {
     }),
   }
 
-  const mockHttpService = {
-    axiosRef: {
-      post: jest.fn(),
-      get: jest.fn(),
-    },
+  const mockIrisApi = {
+    createHook: jest.fn(),
+    findCustomer: jest.fn(),
+    signupCustomer: jest.fn(),
+    getPaymentStatus: jest.fn(),
   }
 
   const mockPrismaService = {
@@ -58,7 +58,7 @@ describe('IrisPayService', () => {
       providers: [
         IrisPayService,
         { provide: ConfigService, useValue: mockConfigService },
-        { provide: HttpService, useValue: mockHttpService },
+        { provide: IrisPayApiClient, useValue: mockIrisApi },
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: CampaignService, useValue: mockCampaignService },
         { provide: DonationsService, useValue: mockDonationsService },
@@ -107,46 +107,47 @@ describe('IrisPayService', () => {
     })
   })
 
-  describe('findCustomer / createCustomer', () => {
+  describe('createCustomer', () => {
     const customerDto = { email: 'john@example.com', name: 'John', family: 'Doe' }
 
     it('returns the userHash from IRIS when the customer is found', async () => {
-      mockHttpService.axiosRef.post.mockResolvedValueOnce({
-        data: { userHash: 'existing-hash', name: 'John', lastname: 'Doe', surname: null },
+      mockIrisApi.findCustomer.mockResolvedValueOnce({
+        userHash: 'existing-hash',
+        name: 'John',
+        lastname: 'Doe',
+        surname: null,
       })
       const result = await service.createCustomer(customerDto)
       expect(result).toBe('existing-hash')
-      // Only the /agent/user/check call — no fallback to /signup.
-      expect(mockHttpService.axiosRef.post).toHaveBeenCalledTimes(1)
+      // No fallback to signup when find succeeds.
+      expect(mockIrisApi.signupCustomer).not.toHaveBeenCalled()
     })
 
-    it('falls back to /signup when IRIS reports emailNotFound', async () => {
-      mockHttpService.axiosRef.post
-        .mockRejectedValueOnce({
-          isAxiosError: true,
-          response: { status: 400, data: { code: 'emailNotFound' } },
-        })
-        .mockResolvedValueOnce({ data: { userHash: 'new-hash' } })
+    it('falls back to signup when IRIS reports emailNotFound', async () => {
+      mockIrisApi.findCustomer.mockRejectedValueOnce({
+        isAxiosError: true,
+        response: { status: 400, data: { code: 'emailNotFound' } },
+      })
+      mockIrisApi.signupCustomer.mockResolvedValueOnce({ userHash: 'new-hash' })
       const result = await service.createCustomer(customerDto)
       expect(result).toBe('new-hash')
-      expect(mockHttpService.axiosRef.post).toHaveBeenCalledTimes(2)
+      expect(mockIrisApi.signupCustomer).toHaveBeenCalledTimes(1)
     })
 
-    it('rethrows non-emailNotFound errors from /agent/user/check', async () => {
+    it('rethrows non-emailNotFound errors from findCustomer', async () => {
       const networkErr = new Error('boom')
-      mockHttpService.axiosRef.post.mockRejectedValueOnce(networkErr)
+      mockIrisApi.findCustomer.mockRejectedValueOnce(networkErr)
       await expect(service.createCustomer(customerDto)).rejects.toBe(networkErr)
-      // /signup is never attempted on unexpected check failures.
-      expect(mockHttpService.axiosRef.post).toHaveBeenCalledTimes(1)
+      // signup is never attempted on unexpected check failures.
+      expect(mockIrisApi.signupCustomer).not.toHaveBeenCalled()
     })
 
-    it('throws when /signup returns no userHash', async () => {
-      mockHttpService.axiosRef.post
-        .mockRejectedValueOnce({
-          isAxiosError: true,
-          response: { status: 400, data: { code: 'emailNotFound' } },
-        })
-        .mockResolvedValueOnce({ data: {} })
+    it('throws when signup returns no userHash', async () => {
+      mockIrisApi.findCustomer.mockRejectedValueOnce({
+        isAxiosError: true,
+        response: { status: 400, data: { code: 'emailNotFound' } },
+      })
+      mockIrisApi.signupCustomer.mockResolvedValueOnce({})
       await expect(service.createCustomer(customerDto)).rejects.toThrow(/userHash/)
     })
   })
@@ -235,7 +236,8 @@ describe('IrisPayService', () => {
       // Validation should pass; we don't care what happens downstream here.
       mockCampaignService.getCampaignById.mockResolvedValue({ id: 'camp-1', currency: 'BGN' })
       mockCampaignService.validateCampaign.mockResolvedValue(undefined)
-      mockHttpService.axiosRef.post.mockResolvedValue({ data: { userHash: 'u' } })
+      mockIrisApi.findCustomer.mockResolvedValue({ userHash: 'u' })
+      mockIrisApi.createHook.mockResolvedValue('hook-abc')
       mockPrismaService.$transaction.mockResolvedValue(undefined)
 
       // We don't assert success — just that validation didn't reject.
@@ -250,7 +252,8 @@ describe('IrisPayService', () => {
     it('accepts when both URLs are omitted', async () => {
       mockCampaignService.getCampaignById.mockResolvedValue({ id: 'camp-1', currency: 'BGN' })
       mockCampaignService.validateCampaign.mockResolvedValue(undefined)
-      mockHttpService.axiosRef.post.mockResolvedValue({ data: { userHash: 'u' } })
+      mockIrisApi.findCustomer.mockResolvedValue({ userHash: 'u' })
+      mockIrisApi.createHook.mockResolvedValue('hook-abc')
       mockPrismaService.$transaction.mockResolvedValue(undefined)
       await expect(service.createCheckout(baseDto)).resolves.not.toThrow()
     })
@@ -305,8 +308,11 @@ describe('IrisPayService', () => {
 
     beforeEach(() => {
       mockPrismaService.payment.findUnique.mockResolvedValue(basePayment)
-      mockHttpService.axiosRef.get.mockResolvedValue({ data: baseIrisResult })
-      mockDonationsService.updateDonationPayment.mockResolvedValue('don-1')
+      mockIrisApi.getPaymentStatus.mockResolvedValue(baseIrisResult)
+      mockDonationsService.updateDonationPayment.mockResolvedValue({
+        id: 'don-1',
+        status: PaymentStatus.succeeded,
+      })
     })
 
     it('throws unknown_payment when Payment row missing', async () => {
@@ -326,7 +332,7 @@ describe('IrisPayService', () => {
         ],
       })
       const result = await service.finalizePayment(paymentId)
-      expect(mockHttpService.axiosRef.get).not.toHaveBeenCalled()
+      expect(mockIrisApi.getPaymentStatus).not.toHaveBeenCalled()
       expect(donationsService.updateDonationPayment).not.toHaveBeenCalled()
       expect(mockPrismaService.donationMetadata.upsert).not.toHaveBeenCalled()
       expect(result).toEqual({
@@ -348,7 +354,7 @@ describe('IrisPayService', () => {
         ],
       })
       const result = await service.finalizePayment(paymentId)
-      expect(mockHttpService.axiosRef.get).not.toHaveBeenCalled()
+      expect(mockIrisApi.getPaymentStatus).not.toHaveBeenCalled()
       expect(result.reason).toBe('insufficient funds')
     })
 
@@ -358,28 +364,24 @@ describe('IrisPayService', () => {
         status: PaymentStatus.waiting,
       })
       await service.finalizePayment(paymentId)
-      expect(mockHttpService.axiosRef.get).toHaveBeenCalled()
+      expect(mockIrisApi.getPaymentStatus).toHaveBeenCalled()
       expect(donationsService.updateDonationPayment).toHaveBeenCalled()
     })
 
     it('throws iris_unavailable when verifyPayment rejects', async () => {
-      mockHttpService.axiosRef.get.mockRejectedValue(new Error('network'))
+      mockIrisApi.getPaymentStatus.mockRejectedValue(new Error('network'))
       await expect(service.finalizePayment(paymentId)).rejects.toBeInstanceOf(
         ServiceUnavailableException,
       )
     })
 
     it('throws currency_mismatch on currency divergence', async () => {
-      mockHttpService.axiosRef.get.mockResolvedValue({
-        data: { ...baseIrisResult, currency: 'EUR' },
-      })
+      mockIrisApi.getPaymentStatus.mockResolvedValue({ ...baseIrisResult, currency: 'EUR' })
       await expect(service.finalizePayment(paymentId)).rejects.toBeInstanceOf(ConflictException)
     })
 
     it('uses IRIS amount even when it differs from DB amount', async () => {
-      mockHttpService.axiosRef.get.mockResolvedValue({
-        data: { ...baseIrisResult, sum: '15.00' },
-      })
+      mockIrisApi.getPaymentStatus.mockResolvedValue({ ...baseIrisResult, sum: '15.00' })
       await service.finalizePayment(paymentId)
       expect(donationsService.updateDonationPayment).toHaveBeenCalledWith(
         campaign,
@@ -456,7 +458,10 @@ describe('IrisPayService', () => {
 
     it('forwards to donationsService.updateDonationPayment', async () => {
       mockCampaignService.getCampaignById.mockResolvedValue(mockCampaign)
-      mockDonationsService.updateDonationPayment.mockResolvedValue('donation-123')
+      mockDonationsService.updateDonationPayment.mockResolvedValue({
+        id: 'donation-123',
+        status: PaymentStatus.succeeded,
+      })
 
       const result = await service.finishPaymentSession(finishPaymentDto)
 

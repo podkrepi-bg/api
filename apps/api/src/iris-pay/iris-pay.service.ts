@@ -11,14 +11,9 @@ import {
 import { createHmac, randomUUID, timingSafeEqual } from 'crypto'
 import { IRISCreateCheckoutSessionDto } from './dto/create-iris-pay.dto'
 
-import {
-  CreateCustomerReq,
-  CreateIrisCustomerResponse,
-  FindCustomerResponse,
-  RegisterWebhookReq,
-} from './entities/iris-pay.types'
+import { IrisHookHash } from './entities/iris-pay.types'
+import { IrisPayApiClient } from './iris-pay-api-client'
 import { ConfigService } from '@nestjs/config'
-import { HttpService } from '@nestjs/axios'
 import axios from 'axios'
 import { IrisCreateCustomerDto } from './dto/create-iris-customer'
 import { PrismaService } from '../prisma/prisma.service'
@@ -29,28 +24,6 @@ import { PaymentProvider, PaymentStatus, PaymentType, Prisma } from '@prisma/cli
 import { PaymentData } from '../donations/helpers/payment-intent-helpers'
 import { isFinal } from '../donations/helpers/donation-status-updates'
 
-export interface IrisHookHash {
-  date: Date
-  payeeName: string
-  payerName: string
-  payerBank: PayeBank
-  payeeBank: PayeBank
-  description: string
-  sum: string
-  payerIban: string
-  payeeIban: string
-  id: string
-  currency: string
-  status: string
-  reasonForFail: string
-}
-
-export interface PayeBank {
-  bankHash: string
-  name: string
-  country: string
-}
-
 export interface FinalizeResult {
   status: PaymentStatus
   donationId?: string
@@ -59,18 +32,14 @@ export interface FinalizeResult {
 
 @Injectable()
 export class IrisPayService {
-  agentHash: string
-  irisEndpoint: string
   private readonly irisWebhookSecret: string
   constructor(
     private config: ConfigService,
-    private httpService: HttpService,
+    private irisApi: IrisPayApiClient,
     private prismaService: PrismaService,
     private campaignService: CampaignService,
     private donationsService: DonationsService,
   ) {
-    this.agentHash = this.config.get<string>('IRIS_AGENT_HASH', '')
-    this.irisEndpoint = this.config.get<string>('IRIS_API_URL', '')
     this.irisWebhookSecret = this.config.get<string>('iris.irisWebhookSecret', '')
   }
 
@@ -134,7 +103,7 @@ export class IrisPayService {
       throw new BadRequestException(`Invalid ${field}`)
     }
     if (parsed.protocol !== allowed.protocol || parsed.host !== allowed.host) {
-      // throw new BadRequestException(`${field} origin not allowed`)
+      throw new BadRequestException(`${field} origin not allowed`)
     }
   }
 
@@ -143,81 +112,54 @@ export class IrisPayService {
     irisRegisterWebhookDto?: IRISCreateCheckoutSessionDto,
   ): Promise<string> {
     const APP_URL = this.config.get<string>('APP_URL')
-    const data: RegisterWebhookReq = {
+    return this.irisApi.createHook({
       url: `${APP_URL}/api/v1/iris-pay/webhook`,
-      agentHash: this.agentHash,
       // Signed so the webhook can authenticate IRIS's callback without trusting
       // the raw paymentId — anyone with the UUID alone can't forge this.
       state: this.signPaymentId(paymentId),
-    }
-
-    const webhookUrl = `${this.irisEndpoint}/createhook`
-    return (await this.httpService.axiosRef.post<string>(webhookUrl, data)).data
+    })
   }
 
-  async verifyPayment(body: { hookHash: string }) {
-    const result = await this.httpService.axiosRef.get<IrisHookHash>(
-      `${this.irisEndpoint}/status/${body.hookHash}`,
-      {
-        headers: {
-          'x-agent-hash': this.agentHash,
-        },
-      },
-    )
-
-    return result?.data
-  }
-
-  // Looks up an existing IRIS customer by email. Returns the userHash if
-  // found, null if IRIS reports `emailNotFound`, and throws on any other
-  // error so the caller aborts.
-  async findCustomer(email: string): Promise<string | null> {
-    const checkUrl = `${this.irisEndpoint}/agent/user/check`
-    try {
-      const res = await this.httpService.axiosRef.post<FindCustomerResponse>(
-        checkUrl,
-        { email },
-        { headers: { 'x-agent-hash': this.agentHash } },
-      )
-      return res.data?.userHash ?? null
-    } catch (err) {
-      if (
-        axios.isAxiosError(err) &&
-        err.response?.status === 400 &&
-        (err.response.data as { code?: string } | undefined)?.code === 'emailNotFound'
-      ) {
-        return null
-      }
-      throw err
-    }
+  async verifyPayment(body: { hookHash: string }): Promise<IrisHookHash> {
+    return this.irisApi.getPaymentStatus(body.hookHash)
   }
 
   async createCustomer(irisCreateCustomerDto: IrisCreateCustomerDto): Promise<string> {
-    const existingUserHash = await this.findCustomer(irisCreateCustomerDto.email)
-    if (existingUserHash) {
-      Logger.debug('IRIS customer found by email')
-      return existingUserHash
+    try {
+      const found = await this.irisApi.findCustomer(irisCreateCustomerDto.email)
+      if (found?.userHash) {
+        Logger.debug('IRIS customer found by email')
+        return found.userHash
+      }
+    } catch (err) {
+      if (!this.isEmailNotFoundError(err)) {
+        throw err
+      }
+      // emailNotFound — fall through to signup.
     }
 
     const APP_URL = this.config.get('APP_URL', '')
-    const data: CreateCustomerReq = {
-      agentHash: this.agentHash,
+    Logger.debug('IRIS Customer not found. Creating new one')
+    const created = await this.irisApi.signupCustomer({
       ...irisCreateCustomerDto,
       webhookUrl: `${APP_URL}/api/v1/iris-pay/webhook/customer`,
       identityHash: `${randomUUID()}`,
-    }
-
-    Logger.debug('IRIS Customer not found. Creating new one')
-    const createCustomerUrl = `${this.irisEndpoint}/signup`
-    const irisCreateCustomer = await this.httpService.axiosRef.post<CreateIrisCustomerResponse>(
-      createCustomerUrl,
-      data,
-    )
-    const userHash = irisCreateCustomer?.data?.userHash
-    if (!userHash) {
+    })
+    if (!created?.userHash) {
       throw new InternalServerErrorException('IRIS signup did not return a userHash')
     }
-    return userHash
+    return created.userHash
+  }
+
+  // IRIS reports an unknown email as HTTP 400 with body `{code: "emailNotFound"}`.
+  // Treated as a soft "not found" so `createCustomer` can fall through to signup;
+  // any other failure is a hard error and propagates.
+  private isEmailNotFoundError(err: unknown): boolean {
+    return (
+      axios.isAxiosError(err) &&
+      err.response?.status === 400 &&
+      (err.response.data as { code?: string } | undefined)?.code === 'emailNotFound'
+    )
   }
 
   async createCheckout(irisCreateCheckoutDto: IRISCreateCheckoutSessionDto) {
@@ -371,7 +313,7 @@ export class IrisPayService {
       type: donation.type,
     }
 
-    const donationId = await this.donationsService.updateDonationPayment(
+    const updated = await this.donationsService.updateDonationPayment(
       campaign,
       paymentData,
       status,
@@ -381,7 +323,7 @@ export class IrisPayService {
 
     return {
       status,
-      donationId,
+      donationId: updated?.id,
       reason: irisResult.reasonForFail,
     }
   }
@@ -475,7 +417,12 @@ export class IrisPayService {
     const paymentStatus = this.mapStatusToPaymentStatus(finishPaymentDto.status)
 
     // Call donationService.updateDonationPayment
-    return await this.donationsService.updateDonationPayment(campaign, paymentData, paymentStatus)
+    const updated = await this.donationsService.updateDonationPayment(
+      campaign,
+      paymentData,
+      paymentStatus,
+    )
+    return updated?.id
   }
 
   mapStatusToPaymentStatus(status: string): PaymentStatus {

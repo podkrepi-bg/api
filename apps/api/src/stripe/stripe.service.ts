@@ -476,7 +476,9 @@ export class StripeService {
    * https://stripe.com/docs/api/refunds/create
    * @param paymentIntentId Stripe payment intent id
    */
-  async refundStripePayment(paymentIntentId: string): Promise<{ id: string; status: PaymentStatus } | undefined> {
+  async refundStripePayment(
+    paymentIntentId: string,
+  ): Promise<{ id: string; status: PaymentStatus } | undefined> {
     const intent = await this.api.retrievePaymentIntent(paymentIntentId)
     if (!intent) {
       throw new BadRequestException('Payment Intent is missing from stripe')
@@ -488,7 +490,9 @@ export class StripeService {
     })
 
     if (refund.status !== 'succeeded') {
-      throw new BadRequestException(`Refund failed with status: ${refund.status}. Reason: ${refund.failure_reason}`)
+      throw new BadRequestException(
+        `Refund failed with status: ${refund.status}. Reason: ${refund.failure_reason}`,
+      )
     }
 
     const donation = await this.donationService.getDonationByPaymentIntent(paymentIntentId)
@@ -496,11 +500,14 @@ export class StripeService {
 
     if (campaign) {
       const charge = intent.latest_charge as Stripe.Charge | string
-      const chargeObj =
-        typeof charge === 'string' ? await this.api.retrieveCharge(charge) : charge
+      const chargeObj = typeof charge === 'string' ? await this.api.retrieveCharge(charge) : charge
 
       const billingData = getPaymentDataFromCharge(chargeObj)
-      return await this.donationService.updateDonationPayment(campaign, billingData, PaymentStatus.refund)
+      return await this.donationService.updateDonationPayment(
+        campaign,
+        billingData,
+        PaymentStatus.refund,
+      )
     }
   }
 

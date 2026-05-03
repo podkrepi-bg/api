@@ -32,3 +32,25 @@ export type FindCustomerResponse = {
   lastname: string | null
   surname: string | null
 }
+
+export type PayeBank = {
+  bankHash: string
+  name: string
+  country: string
+}
+
+export type IrisHookHash = {
+  date: Date
+  payeeName: string
+  payerName: string
+  payerBank: PayeBank
+  payeeBank: PayeBank
+  description: string
+  sum: string
+  payerIban: string
+  payeeIban: string
+  id: string
+  currency: string
+  status: string
+  reasonForFail: string
+}
