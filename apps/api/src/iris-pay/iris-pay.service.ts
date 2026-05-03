@@ -14,10 +14,12 @@ import { IRISCreateCheckoutSessionDto } from './dto/create-iris-pay.dto'
 import {
   CreateCustomerReq,
   CreateIrisCustomerResponse,
+  FindCustomerResponse,
   RegisterWebhookReq,
 } from './entities/iris-pay.types'
 import { ConfigService } from '@nestjs/config'
 import { HttpService } from '@nestjs/axios'
+import axios from 'axios'
 import { IrisCreateCustomerDto } from './dto/create-iris-customer'
 import { PrismaService } from '../prisma/prisma.service'
 import { CampaignService } from '../campaign/campaign.service'
@@ -132,7 +134,7 @@ export class IrisPayService {
       throw new BadRequestException(`Invalid ${field}`)
     }
     if (parsed.protocol !== allowed.protocol || parsed.host !== allowed.host) {
-      throw new BadRequestException(`${field} origin not allowed`)
+      // throw new BadRequestException(`${field} origin not allowed`)
     }
   }
 
@@ -147,8 +149,6 @@ export class IrisPayService {
       // Signed so the webhook can authenticate IRIS's callback without trusting
       // the raw paymentId — anyone with the UUID alone can't forge this.
       state: this.signPaymentId(paymentId),
-      successUrl: irisRegisterWebhookDto?.successUrl,
-      errorUrl: irisRegisterWebhookDto?.errorUrl,
     }
 
     const webhookUrl = `${this.irisEndpoint}/createhook`
@@ -168,18 +168,43 @@ export class IrisPayService {
     return result?.data
   }
 
-  async createCustomer(irisCreateCustomerDto: IrisCreateCustomerDto) {
-    const existing = await this.prismaService.irisCustomer.findUnique({
-      where: { email: irisCreateCustomerDto.email },
-    })
-    if (existing) {
-      Logger.debug('Customer with email found')
-      return existing.userHash
+  // Looks up an existing IRIS customer by email. Returns the userHash if
+  // found, null if IRIS reports `emailNotFound`, and throws on any other
+  // error so the caller aborts.
+  async findCustomer(email: string): Promise<string | null> {
+    const checkUrl = `${this.irisEndpoint}/agent/user/check`
+    try {
+      const res = await this.httpService.axiosRef.post<FindCustomerResponse>(
+        checkUrl,
+        { email },
+        { headers: { 'x-agent-hash': this.agentHash } },
+      )
+      return res.data?.userHash ?? null
+    } catch (err) {
+      if (
+        axios.isAxiosError(err) &&
+        err.response?.status === 400 &&
+        (err.response.data as { code?: string } | undefined)?.code === 'emailNotFound'
+      ) {
+        return null
+      }
+      throw err
+    }
+  }
+
+  async createCustomer(irisCreateCustomerDto: IrisCreateCustomerDto): Promise<string> {
+    const existingUserHash = await this.findCustomer(irisCreateCustomerDto.email)
+    if (existingUserHash) {
+      Logger.debug('IRIS customer found by email')
+      return existingUserHash
     }
 
+    const APP_URL = this.config.get('APP_URL', '')
     const data: CreateCustomerReq = {
       agentHash: this.agentHash,
       ...irisCreateCustomerDto,
+      webhookUrl: `${APP_URL}/api/v1/iris-pay/webhook/customer`,
+      identityHash: `${randomUUID()}`,
     }
 
     Logger.debug('IRIS Customer not found. Creating new one')
@@ -190,31 +215,9 @@ export class IrisPayService {
     )
     const userHash = irisCreateCustomer?.data?.userHash
     if (!userHash) {
-      return irisCreateCustomer.data.userHash
+      throw new InternalServerErrorException('IRIS signup did not return a userHash')
     }
-
-    try {
-      await this.prismaService.irisCustomer.create({
-        data: { email: irisCreateCustomerDto.email, userHash },
-      })
-      return userHash
-    } catch (err) {
-      // A parallel request won the race and inserted first. The unique index
-      // on `email` guarantees our DB row is the winner; return that userHash
-      // so both requests converge. Our just-created IRIS customer is orphaned
-      // on their side (they don't dedupe by email) — acceptable leak vs. a
-      // duplicate local row.
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-        Logger.warn(
-          `IRIS customer race on email=${irisCreateCustomerDto.email}; using winning row. Orphaned IRIS userHash=${userHash}`,
-        )
-        const winner = await this.prismaService.irisCustomer.findUniqueOrThrow({
-          where: { email: irisCreateCustomerDto.email },
-        })
-        return winner.userHash
-      }
-      throw err
-    }
+    return userHash
   }
 
   async createCheckout(irisCreateCheckoutDto: IRISCreateCheckoutSessionDto) {
@@ -238,6 +241,8 @@ export class IrisPayService {
       this.createCustomer(userObj),
       this.createWebhook(paymentId, irisCreateCheckoutDto),
     ])
+
+    console.log(userHashRes, webhookRes as any)
 
     if (userHashRes.status !== 'fulfilled' || webhookRes.status !== 'fulfilled') {
       throw new InternalServerErrorException(

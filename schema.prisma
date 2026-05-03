@@ -430,13 +430,6 @@ model Country {
   @@map("countries")
 }
 
-model IrisCustomer {
-  userHash String @id  @map("user_hash") @db.Uuid
-  email String @unique @db.VarChar
-
-  @@map("iris_customers")
-}
-
 model Vault {
   id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   currency           Currency            @default(EUR)

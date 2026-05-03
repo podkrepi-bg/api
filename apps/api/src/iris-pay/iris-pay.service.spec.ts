@@ -5,7 +5,7 @@ import { HttpService } from '@nestjs/axios'
 import { PrismaService } from '../prisma/prisma.service'
 import { CampaignService } from '../campaign/campaign.service'
 import { DonationsService } from '../donations/donations.service'
-import { PaymentStatus, PaymentProvider, Currency, DonationType, Prisma } from '@prisma/client'
+import { PaymentStatus, PaymentProvider, Currency, DonationType } from '@prisma/client'
 import { FinishPaymentDto } from './dto/finish-payment.dto'
 import {
   BadRequestException,
@@ -42,11 +42,6 @@ describe('IrisPayService', () => {
     },
     $transaction: jest.fn(),
     vault: { findFirstOrThrow: jest.fn() },
-    irisCustomer: {
-      findUnique: jest.fn(),
-      findUniqueOrThrow: jest.fn(),
-      create: jest.fn(),
-    },
   }
 
   const mockCampaignService = {
@@ -112,61 +107,47 @@ describe('IrisPayService', () => {
     })
   })
 
-  describe('createCustomer', () => {
+  describe('findCustomer / createCustomer', () => {
     const customerDto = { email: 'john@example.com', name: 'John', family: 'Doe' }
 
-    it('returns the cached userHash when the customer already exists locally', async () => {
-      mockPrismaService.irisCustomer.findUnique.mockResolvedValue({
-        email: customerDto.email,
-        userHash: 'existing-hash',
+    it('returns the userHash from IRIS when the customer is found', async () => {
+      mockHttpService.axiosRef.post.mockResolvedValueOnce({
+        data: { userHash: 'existing-hash', name: 'John', lastname: 'Doe', surname: null },
       })
       const result = await service.createCustomer(customerDto)
       expect(result).toBe('existing-hash')
-      expect(mockHttpService.axiosRef.post).not.toHaveBeenCalled()
-      expect(mockPrismaService.irisCustomer.create).not.toHaveBeenCalled()
+      // Only the /agent/user/check call — no fallback to /signup.
+      expect(mockHttpService.axiosRef.post).toHaveBeenCalledTimes(1)
     })
 
-    it('signs up via IRIS and inserts a row when the customer is new', async () => {
-      mockPrismaService.irisCustomer.findUnique.mockResolvedValue(null)
-      mockHttpService.axiosRef.post.mockResolvedValue({ data: { userHash: 'new-hash' } })
-      mockPrismaService.irisCustomer.create.mockResolvedValue({})
+    it('falls back to /signup when IRIS reports emailNotFound', async () => {
+      mockHttpService.axiosRef.post
+        .mockRejectedValueOnce({
+          isAxiosError: true,
+          response: { status: 400, data: { code: 'emailNotFound' } },
+        })
+        .mockResolvedValueOnce({ data: { userHash: 'new-hash' } })
       const result = await service.createCustomer(customerDto)
       expect(result).toBe('new-hash')
-      expect(mockPrismaService.irisCustomer.create).toHaveBeenCalledWith({
-        data: { email: customerDto.email, userHash: 'new-hash' },
-      })
+      expect(mockHttpService.axiosRef.post).toHaveBeenCalledTimes(2)
     })
 
-    it('falls back to the winning row on concurrent-insert race (P2002)', async () => {
-      mockPrismaService.irisCustomer.findUnique.mockResolvedValueOnce(null)
-      mockHttpService.axiosRef.post.mockResolvedValueOnce({ data: { userHash: 'loser-hash' } })
-      const p2002 = new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
-        code: 'P2002',
-        clientVersion: 'x',
-      })
-      mockPrismaService.irisCustomer.create.mockRejectedValueOnce(p2002)
-      mockPrismaService.irisCustomer.findUniqueOrThrow.mockResolvedValueOnce({
-        email: customerDto.email,
-        userHash: 'winner-hash',
-      })
-      const result = await service.createCustomer(customerDto)
-      // Converges on the row that actually made it to the DB.
-      expect(result).toBe('winner-hash')
-      expect(mockPrismaService.irisCustomer.findUniqueOrThrow).toHaveBeenCalledWith({
-        where: { email: customerDto.email },
-      })
+    it('rethrows non-emailNotFound errors from /agent/user/check', async () => {
+      const networkErr = new Error('boom')
+      mockHttpService.axiosRef.post.mockRejectedValueOnce(networkErr)
+      await expect(service.createCustomer(customerDto)).rejects.toBe(networkErr)
+      // /signup is never attempted on unexpected check failures.
+      expect(mockHttpService.axiosRef.post).toHaveBeenCalledTimes(1)
     })
 
-    it('rethrows non-P2002 Prisma errors', async () => {
-      mockPrismaService.irisCustomer.findUnique.mockResolvedValueOnce(null)
-      mockHttpService.axiosRef.post.mockResolvedValueOnce({ data: { userHash: 'new-hash' } })
-      const otherErr = new Prisma.PrismaClientKnownRequestError('Other failure', {
-        code: 'P2025',
-        clientVersion: 'x',
-      })
-      mockPrismaService.irisCustomer.create.mockRejectedValueOnce(otherErr)
-      await expect(service.createCustomer(customerDto)).rejects.toBe(otherErr)
-      expect(mockPrismaService.irisCustomer.findUniqueOrThrow).not.toHaveBeenCalled()
+    it('throws when /signup returns no userHash', async () => {
+      mockHttpService.axiosRef.post
+        .mockRejectedValueOnce({
+          isAxiosError: true,
+          response: { status: 400, data: { code: 'emailNotFound' } },
+        })
+        .mockResolvedValueOnce({ data: {} })
+      await expect(service.createCustomer(customerDto)).rejects.toThrow(/userHash/)
     })
   })
 
@@ -255,7 +236,6 @@ describe('IrisPayService', () => {
       mockCampaignService.getCampaignById.mockResolvedValue({ id: 'camp-1', currency: 'BGN' })
       mockCampaignService.validateCampaign.mockResolvedValue(undefined)
       mockHttpService.axiosRef.post.mockResolvedValue({ data: { userHash: 'u' } })
-      mockPrismaService.irisCustomer.findUnique.mockResolvedValue(null)
       mockPrismaService.$transaction.mockResolvedValue(undefined)
 
       // We don't assert success — just that validation didn't reject.
@@ -271,7 +251,6 @@ describe('IrisPayService', () => {
       mockCampaignService.getCampaignById.mockResolvedValue({ id: 'camp-1', currency: 'BGN' })
       mockCampaignService.validateCampaign.mockResolvedValue(undefined)
       mockHttpService.axiosRef.post.mockResolvedValue({ data: { userHash: 'u' } })
-      mockPrismaService.irisCustomer.findUnique.mockResolvedValue(null)
       mockPrismaService.$transaction.mockResolvedValue(undefined)
       await expect(service.createCheckout(baseDto)).resolves.not.toThrow()
     })

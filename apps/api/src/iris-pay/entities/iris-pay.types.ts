@@ -25,3 +25,10 @@ export type CreateIrisCustomerResponse = {
   identifyToken: string | null
   identified: boolean
 }
+
+export type FindCustomerResponse = {
+  userHash: string
+  name: string | null
+  lastname: string | null
+  surname: string | null
+}

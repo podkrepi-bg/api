@@ -7,6 +7,7 @@ import {
   Res,
   Query,
   Header,
+  Headers,
   HttpCode,
   UseGuards,
   Logger,
@@ -100,8 +101,27 @@ export class IrisPayController {
   @Get('webhook')
   @Public()
   @Header('Cache-Control', 'no-store')
-  async webhookEndpoint(@Query('state') state: string) {
-    Logger.debug('Iris webhook received')
+  async webhookEndpoint(
+    @Query() query: Record<string, string>,
+    @Headers() headers: Record<string, string>,
+    @Req() req: Request,
+  ) {
+    Logger.debug(
+      `Iris webhook received:\n${JSON.stringify(
+        {
+          method: req.method,
+          url: req.originalUrl,
+          eventType: headers['x-iris-event-type'],
+          query,
+          headers,
+          body: req.body,
+        },
+        null,
+        2,
+      )}`,
+    )
+
+    const state = query.state
     if (!state) {
       return { ok: true }
     }
@@ -123,6 +143,24 @@ export class IrisPayController {
     } catch (error) {
       Logger.warn(`Iris webhook finalize failed for paymentId=${paymentId}: ${error}`)
     }
+    return { ok: true }
+  }
+
+  @Get('webhook/customer')
+  @Public()
+  async customerWebhookGet(@Req() req: any) {
+    Logger.log('Customer endpoint called POST')
+    console.log(req)
+
+    return { ok: true }
+  }
+
+  @Post('webhook/customer')
+  @Public()
+  async customerWebhook(@Req() req: any) {
+    Logger.log('Customer endpoint called POST')
+    console.log(req)
+
     return { ok: true }
   }
 }
