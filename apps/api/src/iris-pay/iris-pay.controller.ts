@@ -19,7 +19,12 @@ import {
 import { Request, Response } from 'express'
 import { IrisPayService } from './iris-pay.service'
 import { IRISCreateCheckoutSessionDto } from './dto/create-iris-pay.dto'
-import { Public } from 'nest-keycloak-connect'
+import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
+import {
+  RealmBetaTester,
+  RealmViewSupporters,
+  ViewSupporters,
+} from '@podkrepi-bg/podkrepi-types'
 import { PaymentSessionGuard } from './guards/payment-session.guard'
 import { PaymentStep } from './decorators/payment-step.decorator'
 import { PaymentSessionService } from './services/payment-session.service'
@@ -35,14 +40,20 @@ export class IrisPayController {
   ) {}
 
   @Post('start-session')
-  @Public()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role, RealmBetaTester.role],
+    mode: RoleMatchingMode.ANY,
+  })
   async startSession(@Res({ passthrough: true }) res: Response) {
     this.paymentSessionService.createInitialSession(res)
     return { status: 'ok' }
   }
 
   @Post('create-payment-session')
-  @Public()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role, RealmBetaTester.role],
+    mode: RoleMatchingMode.ANY,
+  })
   @UseGuards(PaymentSessionGuard)
   @PaymentStep('initialSession')
   async createIRISCheckoutSession(
@@ -58,7 +69,10 @@ export class IrisPayController {
 
   @Post('finalize')
   @HttpCode(200)
-  @Public()
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role, RealmBetaTester.role],
+    mode: RoleMatchingMode.ANY,
+  })
   @UseGuards(PaymentSessionGuard)
   @PaymentStep('paymentSessionCreated')
   async finalize(
