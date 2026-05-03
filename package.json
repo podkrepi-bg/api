@@ -14,6 +14,7 @@
     "test:ci": "yarn prisma generate && yarn jest --reporters=jest-junit",
     "test:changed": "yarn jest --onlyChanged",
     "stripe:listen-webhook": "stripe listen --forward-to localhost:5010/api/v1/stripe/webhook",
+    "stripe:check-permissions": "TS_NODE_PROJECT=scripts/tsconfig.json node -r ts-node/register scripts/stripe/probe-permissions.ts",
     "format": "nx format",
     "migrate": "yarn prisma migrate deploy",
     "generate-schema": "yarn prisma generate && yarn format",

@@ -18,7 +18,6 @@ import {
 import { PaymentStatus, CampaignState } from '@prisma/client'
 import { EmailService } from '../../email/email.service'
 import { RefundDonationEmailDto } from '../../email/template.interface'
-import { PrismaService } from '../../prisma/prisma.service'
 import { StripeService } from '../stripe.service'
 import { DonationsService } from '../../donations/donations.service'
 
@@ -139,7 +138,7 @@ export class StripePaymentService {
 
     const billingData = getPaymentDataFromCharge(charge)
 
-    const donationId = await this.donationService.updateDonationPayment(
+    const result = await this.donationService.updateDonationPayment(
       campaign,
       billingData,
       PaymentStatus.succeeded,
@@ -148,47 +147,67 @@ export class StripePaymentService {
     await this.cancelSubscriptionsIfCompletedCampaign(metadata.campaignId)
 
     //and finally save the donation wish
-    if (donationId && metadata?.wish) {
-      await this.campaignService.createDonationWish(metadata.wish, donationId, campaign.id)
+    if (result?.id && metadata?.wish) {
+      await this.campaignService.createDonationWish(metadata.wish, result.id, campaign.id)
     }
   }
 
   @StripeWebhookHandler('charge.refunded')
   async handleRefundCreated(event: Stripe.Event) {
     const chargePaymentIntent: Stripe.Charge = event.data.object as Stripe.Charge
+    const paymentIntentId = chargePaymentIntent.payment_intent as string
+
     Logger.log(
-      '[ handleRefundCreated ]',
-      chargePaymentIntent,
-      chargePaymentIntent.metadata as StripeMetadata,
+      '[ handleRefundCreated ] Processing refund for charge ' +
+        chargePaymentIntent.id +
+        ' paymentIntent ' +
+        paymentIntentId,
     )
 
-    const metadata: StripeMetadata = chargePaymentIntent.metadata as StripeMetadata
+    try {
+      const donation = await this.donationService.getDonationByPaymentIntent(paymentIntentId)
+      const campaign = donation?.targetVault?.campaign
 
-    if (!metadata.campaignId) {
-      Logger.debug('[ handleRefundCreated ] No campaignId in metadata ' + chargePaymentIntent.id)
-      return
-    }
+      if (!campaign) {
+        Logger.error(
+          '[ handleRefundCreated ] No donation/campaign found for payment intent ' +
+            paymentIntentId,
+        )
+        return
+      }
 
-    const billingData = getPaymentDataFromCharge(chargePaymentIntent)
+      const billingData = getPaymentDataFromCharge(chargePaymentIntent)
 
-    const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
+      await this.donationService.updateDonationPayment(campaign, billingData, PaymentStatus.refund)
 
-    await this.donationService.updateDonationPayment(campaign, billingData, PaymentStatus.refund)
+      Logger.log(
+        '[ handleRefundCreated ] Successfully processed refund for payment intent ' +
+          paymentIntentId,
+      )
 
-    if (billingData.billingEmail !== undefined) {
-      const recepient = { to: [billingData.billingEmail] }
-      const mail = new RefundDonationEmailDto({
-        campaignName: campaign.title,
-        currency: billingData.currency.toUpperCase(),
-        netAmount: billingData.netAmount / 100,
-        taxAmount: (billingData.chargedAmount - billingData.netAmount) / 100,
-      })
-      // Send Notification
+      if (billingData.billingEmail !== undefined) {
+        const recepient = { to: [billingData.billingEmail] }
+        const mail = new RefundDonationEmailDto({
+          campaignName: campaign.title,
+          currency: billingData.currency.toUpperCase(),
+          netAmount: billingData.netAmount / 100,
+          taxAmount: (billingData.chargedAmount - billingData.netAmount) / 100,
+        })
+        // Send Notification
 
-      await this.sendEmail.sendFromTemplate(mail, recepient, {
-        //Allow users to receive the mail, regardles of unsubscribes
-        bypassUnsubscribeManagement: { enable: true },
-      })
+        await this.sendEmail.sendFromTemplate(mail, recepient, {
+          //Allow users to receive the mail, regardles of unsubscribes
+          bypassUnsubscribeManagement: { enable: true },
+        })
+      }
+    } catch (error) {
+      Logger.error(
+        '[ handleRefundCreated ] Failed to process refund for payment intent ' +
+          paymentIntentId +
+          ': ' +
+          error,
+      )
+      throw error
     }
   }
 
