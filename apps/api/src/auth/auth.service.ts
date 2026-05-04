@@ -430,6 +430,21 @@ export class AuthService {
     return true
   }
 
+  async toggleBetaTesterRole(keycloakId: string, assign: boolean) {
+    await this.authenticateAdmin()
+    const role = await this.admin.roles.findOneByName({ name: 'beta-tester' })
+    if (!role || !role.id || !role.name) {
+      throw new NotFoundException('beta-tester role not found in Keycloak realm')
+    }
+    const payload = { id: keycloakId, roles: [{ id: role.id, name: role.name }] }
+    if (assign) {
+      await this.admin.users.addRealmRoleMappings(payload)
+    } else {
+      await this.admin.users.delRealmRoleMappings(payload)
+    }
+    return { keycloakId, betaTester: assign }
+  }
+
   async changeEnabledStatus(keycloakId: string, enabled: boolean) {
     await this.authenticateAdmin()
     // check if user is admin before attempting to activate/deactivate
