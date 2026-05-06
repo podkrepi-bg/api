@@ -31,7 +31,7 @@ export class StatisticsService {
         ? Prisma.sql`GROUP BY DATE_TRUNC('WEEK', d.created_at)`
         : Prisma.sql`GROUP BY DATE_TRUNC('DAY', d.created_at)`
 
-    return this.prisma.$queryRaw`
+    const result = await this.prisma.$queryRaw`
     SELECT COALESCE(SUM(d.amount), 0)::NUMERIC as sum, COUNT(d.id)::INTEGER as count, ${date}
     FROM api.donations d
     INNER JOIN api.payments p ON p.id = d.payment_id
@@ -39,10 +39,16 @@ export class StatisticsService {
     ${Prisma.sql`AND d.target_vault_id IN ( SELECT id from api.vaults WHERE campaign_id = ${campaignId}::uuid)`}
     ${group}
     ORDER BY date ASC `
+
+    return (result as GroupedDonationsDto[]).map((row) => ({
+      sum: Number(row.sum),
+      count: Number(row.count),
+      date: new Date(row.date),
+    }))
   }
 
   async listUniqueDonations(campaignId: string): Promise<UniqueDonationsDto[]> {
-    return this.prisma.$queryRaw`
+    const result = await this.prisma.$queryRaw`
     SELECT d.amount::INTEGER as amount, COUNT(d.id)::INTEGER AS count
     FROM api.donations d
     INNER JOIN api.payments p ON p.id = d.payment_id
@@ -50,10 +56,14 @@ export class StatisticsService {
     ${Prisma.sql`AND d.target_vault_id IN ( SELECT id from api.vaults WHERE campaign_id = ${campaignId}::uuid)`}
     GROUP BY d.amount
     ORDER BY amount ASC`
+    return (result as UniqueDonationsDto[]).map((row) => ({
+      amount: Number(row.amount),
+      count: Number(row.count),
+    }))
   }
 
   async listHourlyDonations(campaignId: string): Promise<HourlyDonationsDto[]> {
-    return this.prisma.$queryRaw`
+    const result = await this.prisma.$queryRaw`
     SELECT EXTRACT(HOUR from d.created_at)::INTEGER AS hour, COUNT(d.id)::INTEGER AS count
     FROM api.donations d
     INNER JOIN api.payments p ON p.id = d.payment_id
@@ -61,5 +71,10 @@ export class StatisticsService {
     ${Prisma.sql`AND d.target_vault_id IN ( SELECT id from api.vaults WHERE campaign_id = ${campaignId}::uuid)`}
     GROUP BY hour
     ORDER BY hour ASC`
+    
+    return (result as HourlyDonationsDto[]).map((row) => ({
+      hour: Number(row.hour),
+      count: Number(row.count),
+    }))
   }
 }

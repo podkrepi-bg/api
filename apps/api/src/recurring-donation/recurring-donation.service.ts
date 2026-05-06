@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, Logger, BadRequestException, ForbiddenException } from '@nestjs/common'
+import {
+  Injectable,
+  NotFoundException,
+  Logger,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common'
 import { Prisma, RecurringDonation } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateRecurringDonationDto } from './dto/create-recurring-donation.dto'
@@ -10,7 +16,7 @@ import { StripeService } from '../stripe/stripe.service'
 
 @Injectable()
 export class RecurringDonationService {
-  constructor(private prisma: PrismaService, private readonly stripeService:StripeService) {}
+  constructor(private prisma: PrismaService, private readonly stripeService: StripeService) {}
 
   async create(CreateRecurringDonationDto: CreateRecurringDonationDto): Promise<RecurringDonation> {
     return await this.prisma.recurringDonation.create({
@@ -141,20 +147,33 @@ export class RecurringDonationService {
       throw new NotFoundException(`Recurring donation with id ${id} not found`)
     }
 
-    
+    if (recurringDonation.status === RecurringDonationStatus.canceled) {
+      return recurringDonation
+    }
+
     const isAdmin = user.realm_access?.roles.includes(RealmViewSupporters.role)
     const belongsTo = await this.donationBelongsTo(recurringDonation.id, user.sub)
     if (!isAdmin && !belongsTo) {
-      throw new ForbiddenException(`User ${user.sub} is not allowed to cancel recurring donation with id ${recurringDonation.id} of person: ${recurringDonation.personId}`,
+      throw new ForbiddenException(
+        `User ${user.sub} is not allowed to cancel recurring donation with id ${recurringDonation.id} of person: ${recurringDonation.personId}`,
       )
     }
-    
-    const subscription = await this.stripeService.cancelSubscription(recurringDonation.extSubscriptionId)
-    if (subscription?.status === 'canceled') {
-      Logger.log(`Subscription cancel attempt failed with status of ${subscription.id}: ${subscription.status}`)
-      return null
+
+    const subscription = await this.stripeService.cancelSubscription(
+      recurringDonation.extSubscriptionId,
+    )
+    if (subscription?.status !== 'canceled') {
+      throw new BadRequestException(
+        `Failed to cancel Stripe subscription ${recurringDonation.extSubscriptionId}: ` +
+          `status is ${subscription?.status}`,
+      )
     }
-    return await this.updateStatus(id, RecurringDonationStatus.canceled)
+
+    const result = await this.updateStatus(id, RecurringDonationStatus.canceled)
+    if (!result) {
+      throw new BadRequestException(`Unable to update recurring donation ${id}`)
+    }
+    return result
   }
 
   async remove(id: string): Promise<RecurringDonation | null> {
@@ -175,15 +194,22 @@ export class RecurringDonationService {
     id: string,
     status: RecurringDonationStatus,
   ): Promise<RecurringDonation | null> {
-    const result = await this.prisma.recurringDonation.update({
-      where: { id: id },
-      data: {
-        status: status,
-      },
-    })
-    if (!result) {
-      throw new BadRequestException(`Unable to find and update status of ${id} to ${status}`)
+    try {
+      return await this.prisma.recurringDonation.update({
+        where: { id, NOT: { status } },
+        data: { status },
+      })
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
+        const existing = await this.prisma.recurringDonation.findUnique({ where: { id } })
+        if (!existing) {
+          Logger.warn(`Recurring donation ${id} not found during status update`)
+          return null
+        }
+        Logger.debug(`Recurring donation ${id} already has status ${status}, skipping update`)
+        return existing
+      }
+      throw e
     }
-    return result
   }
 }

@@ -171,7 +171,7 @@ Table campaigns {
   updatedAt DateTime
   deletedAt DateTime
   approvedById String
-  currency Currency [not null, default: 'BGN']
+  currency Currency [not null, default: 'EUR']
   allowDonationOnComplete Boolean [not null, default: false]
   paymentReference String [unique, not null]
   organizerId String
@@ -355,7 +355,7 @@ Table countries {
 
 Table vaults {
   id String [pk]
-  currency Currency [not null, default: 'BGN']
+  currency Currency [not null, default: 'EUR']
   amount Int [not null, default: 0]
   campaignId String [not null]
   createdAt DateTime [default: `now()`, not null]
@@ -377,7 +377,7 @@ Table payments {
   extPaymentIntentId String [unique, not null]
   extPaymentMethodId String [not null]
   type PaymentType [not null]
-  currency Currency [not null, default: 'BGN']
+  currency Currency [not null, default: 'EUR']
   status PaymentStatus [not null, default: 'initial']
   provider PaymentProvider [not null, default: 'none']
   affiliateId String
@@ -438,7 +438,7 @@ Table recurring_donations {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
   amount Int [not null, default: 0]
-  currency Currency [not null, default: 'BGN']
+  currency Currency [not null, default: 'EUR']
   person people [not null]
   sourceVault vaults [not null]
 
@@ -448,7 +448,7 @@ Table recurring_donations {
 Table transfers {
   id String [pk]
   status TransferStatus [not null, default: 'initial']
-  currency Currency [not null]
+  currency Currency [not null, default: 'EUR']
   amount Int [not null, default: 0]
   reason String [not null]
   sourceVaultId String [not null, note: 'Source vault']
@@ -472,7 +472,7 @@ Table transfers {
 Table withdrawals {
   id String [pk]
   status WithdrawStatus [not null, default: 'initial']
-  currency Currency [not null]
+  currency Currency [not null, default: 'EUR']
   amount Int [not null, default: 0]
   reason String [not null]
   sourceVaultId String [not null, note: 'Source vault']
@@ -516,7 +516,7 @@ Table bank_transactions {
   senderIban String
   recipientIban String
   amount Float [not null, default: 0]
-  currency Currency [not null, default: 'BGN']
+  currency Currency [not null, default: 'EUR']
   description String [not null]
   matchedRef String
   type BankTransactionType [not null]
@@ -532,7 +532,7 @@ Table expenses {
   documentId String
   approvedById String
   amount Int [not null, default: 0]
-  currency Currency [not null, default: 'BGN']
+  currency Currency [not null, default: 'EUR']
   status ExpenseStatus [not null]
   deleted Boolean [not null, default: false]
   approvedBy people

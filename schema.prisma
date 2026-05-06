@@ -215,7 +215,7 @@ model Campaign {
   updatedAt               DateTime?          @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt               DateTime?          @map("deleted_at") @db.Timestamptz(6)
   approvedById            String?            @map("approved_by_id") @db.Uuid
-  currency                Currency           @default(BGN)
+  currency                Currency           @default(EUR)
   allowDonationOnComplete Boolean            @default(false) @map("allow_donation_on_complete")
   paymentReference        String             @unique @map("payment_reference") @db.VarChar(15)
   organizerId             String?            @map("organizer_id") @db.Uuid
@@ -432,7 +432,7 @@ model Country {
 
 model Vault {
   id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  currency           Currency            @default(BGN)
+  currency           Currency            @default(EUR)
   amount             Int                 @default(0)
   campaignId         String              @map("campaign_id") @db.Uuid
   createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -456,7 +456,7 @@ model Payment {
   extPaymentIntentId String          @unique @map("ext_payment_intent_id")
   extPaymentMethodId String          @map("ext_payment_method_id")
   type               PaymentType
-  currency           Currency        @default(BGN)
+  currency           Currency        @default(EUR)
   status             PaymentStatus   @default(initial)
   provider           PaymentProvider @default(none)
   affiliateId        String?         @map("affiliate_id") @db.Uuid
@@ -530,7 +530,7 @@ model RecurringDonation {
   createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime?               @updatedAt @map("updated_at") @db.Timestamptz(6)
   amount            Int                     @default(0)
-  currency          Currency                @default(BGN)
+  currency          Currency                @default(EUR)
   person            Person                  @relation(fields: [personId], references: [id])
   sourceVault       Vault                   @relation(fields: [vaultId], references: [id])
 
@@ -541,7 +541,7 @@ model RecurringDonation {
 model Transfer {
   id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   status           TransferStatus @default(initial)
-  currency         Currency
+  currency         Currency       @default(EUR)
   amount           Int            @default(0)
   reason           String         @db.VarChar(100)
   /// Source vault
@@ -568,7 +568,7 @@ model Transfer {
 model Withdrawal {
   id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   status           WithdrawStatus @default(initial)
-  currency         Currency
+  currency         Currency       @default(EUR)
   amount           Int            @default(0)
   reason           String         @db.VarChar(100)
   /// Source vault
@@ -625,7 +625,7 @@ model BankTransaction {
   senderIban         String?             @map("sender_iban") @db.VarChar(34)
   recipientIban      String?             @map("recipient_iban") @db.VarChar(34)
   amount             Float               @default(0)
-  currency           Currency            @default(BGN)
+  currency           Currency            @default(EUR)
   description        String              @db.Text
   //Matched campaign payment code
   matchedRef         String?             @map("matched_ref") @db.VarChar(100)
@@ -647,7 +647,7 @@ model Expense {
   documentId   String?       @map("document_id") @db.Uuid
   approvedById String?       @db.Uuid
   amount       Int           @default(0)
-  currency     Currency      @default(BGN)
+  currency     Currency      @default(EUR)
   status       ExpenseStatus
   deleted      Boolean       @default(false)
   approvedBy   Person?       @relation(fields: [approvedById], references: [id])

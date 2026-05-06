@@ -1,4 +1,5 @@
 import path from 'path'
+import { UnsupportedMediaTypeException } from '@nestjs/common'
 
 interface File {
   fieldname: string
@@ -34,7 +35,7 @@ export function validateFileType(
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   ]
   if (!mimeAllowlist.includes(file.mimetype)) {
-    return cb(new Error('File mime type is not allowed'), false)
+    return cb(new UnsupportedMediaTypeException('File mime type is not allowed'), false)
   }
 
   const allowedExtensions = /txt|json|pdf|jpeg|jpg|png|xml|xlsx|xls|docx/
@@ -47,7 +48,10 @@ export function validateFileType(
   }
   const isExtensionSupported = allowedExtensions.test(ext)
   if (!isExtensionSupported) {
-    return cb(new Error('File extension is not allowed: ' + file.filename), false)
+    return cb(
+      new UnsupportedMediaTypeException('File extension is not allowed: ' + file.filename),
+      false,
+    )
   }
 
   cb(null, true)

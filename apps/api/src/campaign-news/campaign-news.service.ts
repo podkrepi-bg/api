@@ -8,7 +8,7 @@ import { SendGridParams } from '../notifications/providers/notifications.sendgri
 import { DateTime } from 'luxon'
 import { ConfigService } from '@nestjs/config'
 import { MarketingNotificationsService } from '../notifications/notifications.service'
-import { CampaignNewsDraftEmailDto } from '../email/template.interface'
+import { CampaignNewsDraftEmailDto, CampaignNewsEditedEmailDto } from '../email/template.interface'
 import { EmailService } from '../email/email.service'
 import { KeycloakTokenParsed, isAdmin } from '../auth/keycloak'
 
@@ -27,10 +27,11 @@ export class CampaignNewsService {
     delete campaignNewsDto.notify
     try {
       const campaignNews = await this.prisma.campaignNews.create({ data: campaignNewsDto })
-      if (campaignNews.state === 'published' && notify)
+      if (campaignNews.state === 'published' && notify) {
         // USER Notification
         //Don't await --> send to background
         this.sendArticleNotification(campaignNews).catch((e) => Logger.warn(e))
+      }
 
       // ADMIN Notification
       //Don't await --> send to background
@@ -56,7 +57,7 @@ export class CampaignNewsService {
     const appUrl = this.config.get<string>(stage)
     const newsLink = `${appUrl}/campaigns/${campaign.slug}/news/admin-panel`
     const campaignLink = `${appUrl}/campaigns/${campaign.slug}`
-    const campaignAdminEmail = this.config.get<string>('mail.campaignAdminEmail', '')
+    const campaignAdminEmail = this.config.get<string>('mail.campaignCoordinatorEmail', '')
 
     if (!campaignAdminEmail) return
 
@@ -64,6 +65,39 @@ export class CampaignNewsService {
     const recepient = { to: [campaignAdminEmail] }
 
     const mail = new CampaignNewsDraftEmailDto({
+      campaignName: campaign.title,
+      campaignNewsTitle: news.title,
+      campaignLink,
+      newsLink,
+    })
+
+    // Send Notification
+    await this.sendEmail.sendFromTemplate(mail, recepient, {
+      //Allow users to receive the mail, regardles of unsubscribes
+      bypassUnsubscribeManagement: { enable: true },
+    })
+  }
+
+  async notifyAdminsForNewsEdit(news: CampaignNews) {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: news.campaignId },
+    })
+
+    if (!campaign) return
+
+    // Build the links
+    const stage = this.config.get<string>('APP_ENV') === 'development' ? 'APP_URL_LOCAL' : 'APP_URL'
+    const appUrl = this.config.get<string>(stage)
+    const newsLink = `${appUrl}/campaigns/${campaign.slug}/news/admin-panel`
+    const campaignLink = `${appUrl}/campaigns/${campaign.slug}`
+    const campaignAdminEmail = this.config.get<string>('mail.campaignCoordinatorEmail', '')
+
+    if (!campaignAdminEmail) return
+
+    // Prepare Email data
+    const recepient = { to: [campaignAdminEmail] }
+
+    const mail = new CampaignNewsEditedEmailDto({
       campaignName: campaign.title,
       campaignNewsTitle: news.title,
       campaignLink,
@@ -294,13 +328,9 @@ export class CampaignNewsService {
         },
       })
 
-      if (
-        state === CampaignNewsState.draft &&
-        updated.state === CampaignNewsState.published &&
-        notify
-      )
-        //Don't await --> send to background
-        this.sendArticleNotification(updated).catch((e) => console.log(e))
+      // ADMIN Notification for edited news
+      //Don't await --> send to background
+      this.notifyAdminsForNewsEdit(updated).catch((e) => Logger.warn(e))
 
       return updated
     } catch (error) {
