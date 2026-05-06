@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '18'
           cache: 'yarn'
@@ -47,7 +47,7 @@ jobs:
       - name: Run tests
         run: yarn test:ci
       - name: Upload test results artifact
-        uses: actions/upload-artifact@v4  # upload test results
+        uses: actions/upload-artifact@v6  # upload test results
         if: success() || failure()        # run this step even if previous step failed
         with:                             # upload a combined archive with unit and integration test results
           name: test-results

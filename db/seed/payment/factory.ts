@@ -12,7 +12,7 @@ export const paymentFactory = Factory.define<Payment>(({ associations }) => ({
   extCustomerId: 'cus_' + faker.random.alphaNumeric(8),
   extPaymentIntentId: 'pi_' + faker.random.alphaNumeric(8),
   extPaymentMethodId: 'pm_' + faker.random.alphaNumeric(8),
-  currency: Currency.BGN,
+  currency: Currency.EUR,
   billingEmail: faker.internet.email(),
   billingName: faker.name.fullName(),
   amount: parseInt(faker.finance.amount(2000, 20000)),
