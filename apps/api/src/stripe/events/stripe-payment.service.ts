@@ -18,7 +18,6 @@ import {
 import { PaymentStatus, CampaignState } from '@prisma/client'
 import { EmailService } from '../../email/email.service'
 import { RefundDonationEmailDto } from '../../email/template.interface'
-import { PrismaService } from '../../prisma/prisma.service'
 import { StripeService } from '../stripe.service'
 import { DonationsService } from '../../donations/donations.service'
 
@@ -139,7 +138,7 @@ export class StripePaymentService {
 
     const billingData = getPaymentDataFromCharge(charge)
 
-    const donationId = await this.donationService.updateDonationPayment(
+    const result = await this.donationService.updateDonationPayment(
       campaign,
       billingData,
       PaymentStatus.succeeded,
@@ -148,47 +147,67 @@ export class StripePaymentService {
     await this.cancelSubscriptionsIfCompletedCampaign(metadata.campaignId)
 
     //and finally save the donation wish
-    if (donationId && metadata?.wish) {
-      await this.campaignService.createDonationWish(metadata.wish, donationId, campaign.id)
+    if (result?.id && metadata?.wish) {
+      await this.campaignService.createDonationWish(metadata.wish, result.id, campaign.id)
     }
   }
 
   @StripeWebhookHandler('charge.refunded')
   async handleRefundCreated(event: Stripe.Event) {
     const chargePaymentIntent: Stripe.Charge = event.data.object as Stripe.Charge
+    const paymentIntentId = chargePaymentIntent.payment_intent as string
+
     Logger.log(
-      '[ handleRefundCreated ]',
-      chargePaymentIntent,
-      chargePaymentIntent.metadata as StripeMetadata,
+      '[ handleRefundCreated ] Processing refund for charge ' +
+        chargePaymentIntent.id +
+        ' paymentIntent ' +
+        paymentIntentId,
     )
 
-    const metadata: StripeMetadata = chargePaymentIntent.metadata as StripeMetadata
+    try {
+      const donation = await this.donationService.getDonationByPaymentIntent(paymentIntentId)
+      const campaign = donation?.targetVault?.campaign
 
-    if (!metadata.campaignId) {
-      Logger.debug('[ handleRefundCreated ] No campaignId in metadata ' + chargePaymentIntent.id)
-      return
-    }
+      if (!campaign) {
+        Logger.error(
+          '[ handleRefundCreated ] No donation/campaign found for payment intent ' +
+            paymentIntentId,
+        )
+        return
+      }
 
-    const billingData = getPaymentDataFromCharge(chargePaymentIntent)
+      const billingData = getPaymentDataFromCharge(chargePaymentIntent)
 
-    const campaign = await this.campaignService.getCampaignById(metadata.campaignId)
+      await this.donationService.updateDonationPayment(campaign, billingData, PaymentStatus.refund)
 
-    await this.donationService.updateDonationPayment(campaign, billingData, PaymentStatus.refund)
+      Logger.log(
+        '[ handleRefundCreated ] Successfully processed refund for payment intent ' +
+          paymentIntentId,
+      )
 
-    if (billingData.billingEmail !== undefined) {
-      const recepient = { to: [billingData.billingEmail] }
-      const mail = new RefundDonationEmailDto({
-        campaignName: campaign.title,
-        currency: billingData.currency.toUpperCase(),
-        netAmount: billingData.netAmount / 100,
-        taxAmount: (billingData.chargedAmount - billingData.netAmount) / 100,
-      })
-      // Send Notification
+      if (billingData.billingEmail !== undefined) {
+        const recepient = { to: [billingData.billingEmail] }
+        const mail = new RefundDonationEmailDto({
+          campaignName: campaign.title,
+          currency: billingData.currency.toUpperCase(),
+          netAmount: billingData.netAmount / 100,
+          taxAmount: (billingData.chargedAmount - billingData.netAmount) / 100,
+        })
+        // Send Notification
 
-      await this.sendEmail.sendFromTemplate(mail, recepient, {
-        //Allow users to receive the mail, regardles of unsubscribes
-        bypassUnsubscribeManagement: { enable: true },
-      })
+        await this.sendEmail.sendFromTemplate(mail, recepient, {
+          //Allow users to receive the mail, regardles of unsubscribes
+          bypassUnsubscribeManagement: { enable: true },
+        })
+      }
+    } catch (error) {
+      Logger.error(
+        '[ handleRefundCreated ] Failed to process refund for payment intent ' +
+          paymentIntentId +
+          ': ' +
+          error,
+      )
+      throw error
     }
   }
 
@@ -300,13 +319,13 @@ export class StripePaymentService {
       subscription.id,
     )
     if (!recurringDonation) {
-      this.handleSubscriptionCreated(event)
+      await this.handleSubscriptionCreated(event)
       return
     }
 
     Logger.debug('Updating recurring donation by id ' + recurringDonation.id)
 
-    this.recurringDonationService.updateStatus(
+    await this.recurringDonationService.updateStatus(
       recurringDonation.id,
       string2RecurringDonationStatus(subscription.status),
     )
@@ -317,20 +336,19 @@ export class StripePaymentService {
     const subscription: Stripe.Subscription = event.data.object as Stripe.Subscription
     Logger.log('[ handleSubscriptionDeleted ]', subscription)
 
-    const metadata = subscription.metadata as StripeMetadata & {
-      cancelReason?: string
-      currencyConvertedTo?: string
-    }
-
-    // Skip processing if this subscription was canceled for currency conversion
+    // Check if this subscription was canceled for currency conversion
     // The recurring donation will be updated with the new subscription ID, not marked as canceled
-    if (metadata.cancelReason === 'currency_conversion') {
+    const cancellationComment = subscription.cancellation_details?.comment
+    if (cancellationComment?.startsWith('currency_conversion:')) {
+      const targetCurrency = cancellationComment.split(':')[1]
       Logger.log(
         `[ handleSubscriptionDeleted ] Subscription ${subscription.id} was canceled for currency ` +
-          `conversion to ${metadata.currencyConvertedTo}. Skipping status update.`,
+          `conversion to ${targetCurrency}. Skipping status update.`,
       )
       return
     }
+
+    const metadata = subscription.metadata as StripeMetadata
 
     if (!metadata.campaignId) {
       throw new BadRequestException(
@@ -343,13 +361,25 @@ export class StripePaymentService {
       subscription.id,
     )
     if (!recurringDonation) {
+      // Check if this subscription is being converted to a new currency
+      // In that case, the extSubscriptionId has been prefixed with 'converting:'
+      const convertingDonation = await this.recurringDonationService.findSubscriptionByExtId(
+        `converting:${subscription.id}`,
+      )
+      if (convertingDonation) {
+        Logger.log(
+          `[ handleSubscriptionDeleted ] Subscription ${subscription.id} is being converted. ` +
+            `Skipping status update.`,
+        )
+        return
+      }
       Logger.debug('Received a notification about unknown subscription: ' + subscription.id)
       return
     }
 
     Logger.debug('Deleting recurring donation by id ' + recurringDonation.id)
 
-    this.recurringDonationService.updateStatus(
+    await this.recurringDonationService.updateStatus(
       recurringDonation.id,
       string2RecurringDonationStatus(subscription.status),
     )
@@ -459,7 +489,7 @@ export class StripePaymentService {
       )
     }
 
-    const paymentData = getInvoiceData(invoice, charge)
+    const paymentData = getInvoiceData(invoice, charge, metadata)
 
     await this.donationService.updateDonationPayment(campaign, paymentData, PaymentStatus.succeeded)
 

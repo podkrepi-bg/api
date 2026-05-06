@@ -20,7 +20,9 @@ export class ConvertSubscriptionsCurrencyDto {
 
   @ApiPropertyOptional({
     description:
-      'Custom exchange rate. If not provided, uses fixed rate for known pairs (e.g., BGN/EUR)',
+      'Exchange rate to MULTIPLY source amount by. For BGN→EUR use ~0.5113 (not 1.95583). ' +
+      'If not provided, uses the fixed BGN/EUR rate automatically.',
+    example: 0.5113,
   })
   @Expose()
   @IsNumber()

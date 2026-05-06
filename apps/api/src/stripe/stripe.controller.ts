@@ -138,6 +138,15 @@ export class StripeController {
     return this.stripeService.cancelPaymentIntent(id, cancelPaymentIntentDto)
   }
 
+  @Get('webhook-endpoints')
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  listWebhookEndpoints() {
+    return this.stripeService.listWebhookEndpoints()
+  }
+
   @Get('prices')
   @Public()
   findPrices() {

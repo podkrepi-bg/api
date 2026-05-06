@@ -2,6 +2,7 @@ import { DonationType, PaymentProvider } from '@prisma/client'
 import Stripe from 'stripe'
 import { getCountryRegion, stripeFeeCalculator } from './stripe-fee-calculator'
 import { RecurringDonationStatus, Currency } from '@prisma/client'
+import { StripeMetadata } from '../../stripe/stripe-metadata.interface'
 
 function getPaymentMethodId(paymentIntent: Stripe.PaymentIntent): string | undefined {
   if (typeof paymentIntent.payment_method === 'string') {
@@ -86,19 +87,16 @@ export function getPaymentDataFromCharge(charge: Stripe.Charge): PaymentData {
   }
 }
 
-export function getInvoiceData(invoice: Stripe.Invoice, charge: Stripe.Charge): PaymentData {
+export function getInvoiceData(
+  invoice: Stripe.Invoice,
+  charge: Stripe.Charge,
+  subscriptionMetadata?: StripeMetadata,
+): PaymentData {
   const lines: Stripe.InvoiceLineItem[] = invoice.lines.data as Stripe.InvoiceLineItem[]
 
-  let personId = ''
-  let type = ''
-  lines.map((line) => {
-    if (line.metadata.personId) {
-      personId = line.metadata.personId
-    }
-    if (line.metadata.type) {
-      type = line.metadata.type
-    }
-  })
+  const isAnonymous = subscriptionMetadata?.isAnonymous === 'true'
+  const personId = !isAnonymous ? subscriptionMetadata?.personId : undefined
+  const type = subscriptionMetadata?.type || ''
 
   const netAmount =
     lines.length === 0
@@ -125,7 +123,7 @@ export function getInvoiceData(invoice: Stripe.Invoice, charge: Stripe.Charge): 
     billingEmail: charge.billing_details?.email ?? invoice.customer_email ?? undefined,
     paymentMethodId: invoice.collection_method,
     stripeCustomerId: invoice.customer as string,
-    personId,
+    personId: personId as string | undefined,
     type: type || DonationType.donation,
   }
 }

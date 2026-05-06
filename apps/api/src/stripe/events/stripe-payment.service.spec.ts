@@ -59,6 +59,7 @@ import { TemplateService } from '../../email/template.service'
 import type { PaymentWithDonation } from '../../donations/types/donation'
 import { DonationsService } from '../../donations/donations.service'
 import { StripeService } from '../stripe.service'
+import { StripeApiClient } from '../stripe-api-client'
 import { ExportService } from '../../export/export.service'
 
 const defaultStripeWebhookEndpoint = '/stripe/webhook'
@@ -146,6 +147,7 @@ describe('StripePaymentService', () => {
         PersonService,
         RecurringDonationService,
         StripeService,
+        { provide: StripeApiClient, useValue: mockDeep<StripeApiClient>() },
         DonationsService,
         ExportService,
         {
@@ -447,12 +449,14 @@ describe('StripePaymentService', () => {
       secret: stripeSecret,
     })
 
-    const campaignService = app.get<CampaignService>(CampaignService)
     const vaultService = app.get<VaultService>(VaultService)
 
-    const mockedCampaignById = jest
-      .spyOn(campaignService, 'getCampaignById')
-      .mockImplementation(() => Promise.resolve(mockedCampaign))
+    const mockedGetDonationByPaymentIntent = jest
+      .spyOn(donationService, 'getDonationByPaymentIntent')
+      .mockResolvedValue({
+        id: 'test-donation-id',
+        targetVault: { campaign: mockedCampaign },
+      })
 
     const paymentData = getPaymentDataFromCharge(
       mockChargeEventSucceeded.data.object as Stripe.Charge,
@@ -489,7 +493,9 @@ describe('StripePaymentService', () => {
       .send(payloadString)
       .expect(201)
       .then(() => {
-        expect(mockedCampaignById).toHaveBeenCalledWith(campaignId) //campaignId from the Stripe Event
+        expect(mockedGetDonationByPaymentIntent).toHaveBeenCalledWith(
+          'pi_3MmYVtKApGjVGa9t1BtdkBrz',
+        )
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
         expect(prismaMock.payment.findUnique).toHaveBeenCalled()
         expect(prismaMock.payment.create).not.toHaveBeenCalled()
@@ -624,6 +630,80 @@ describe('StripePaymentService', () => {
         ) //campaignId from the Stripe Event
         expect(mockedFindChargeById).toHaveBeenCalledWith(mockCharge.id)
         expect(mockedUpdateDonationPayment).toHaveBeenCalled()
+      })
+  })
+
+  it('should handle invoice.paid for anonymous subscription with personId undefined', () => {
+    // Create anonymous version of the event
+    const mockAnonymousInvoicePaidEvent = {
+      ...mockInvoicePaidEvent,
+      data: {
+        object: {
+          ...mockInvoicePaidEvent.data.object,
+          parent: {
+            ...(mockInvoicePaidEvent.data.object as Stripe.Invoice).parent,
+            subscription_details: {
+              ...(mockInvoicePaidEvent.data.object as Stripe.Invoice).parent.subscription_details,
+              metadata: {
+                ...(mockInvoicePaidEvent.data.object as Stripe.Invoice).parent.subscription_details
+                  .metadata,
+                isAnonymous: 'true',
+              },
+            },
+          },
+        } as Stripe.Invoice,
+      },
+    }
+
+    const payloadString = JSON.stringify(mockAnonymousInvoicePaidEvent, null, 2)
+
+    const header = stripe.webhooks.generateTestHeaderString({
+      payload: payloadString,
+      secret: stripeSecret,
+    })
+
+    const campaignService = app.get<CampaignService>(CampaignService)
+
+    jest
+      .spyOn(campaignService, 'getCampaignById')
+      .mockImplementation(() => Promise.resolve(mockedCampaign))
+
+    jest.spyOn(stripeService, 'retrieveInvoice').mockResolvedValue({
+      ...(mockAnonymousInvoicePaidEvent.data.object as Stripe.Invoice),
+      payments: {
+        data: [
+          {
+            payment: {
+              payment_intent: {
+                latest_charge: mockCharge.id,
+              } as Stripe.PaymentIntent,
+            },
+          },
+        ],
+      },
+    } as any)
+
+    jest.spyOn(stripeService, 'findChargeById').mockResolvedValue(mockCharge)
+
+    const mockedUpdateDonationPayment = jest
+      .spyOn(donationService, 'updateDonationPayment')
+      .mockName('updateDonationPayment')
+      .mockResolvedValue('test-donation-id')
+
+    return request(app.getHttpServer())
+      .post(defaultStripeWebhookEndpoint)
+      .set('stripe-signature', header)
+      .type('json')
+      .send(payloadString)
+      .expect(201)
+      .then(() => {
+        expect(mockedUpdateDonationPayment).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            personId: undefined,
+          }),
+          expect.anything(),
+        )
       })
   })
 
