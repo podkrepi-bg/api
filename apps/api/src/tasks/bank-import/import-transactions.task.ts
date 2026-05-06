@@ -24,7 +24,7 @@ import {
 } from './dto/response.dto'
 
 import { DateTime } from 'luxon'
-import { toMoney } from '../../common/money'
+import { toMoney, BGN_TO_EUR_RATE } from '../../common/money'
 import { DonationsService } from '../../donations/donations.service'
 import { CreateBankPaymentDto } from '../../donations/dto/create-bank-payment.dto'
 import { EmailService } from '../../email/email.service'
@@ -301,15 +301,6 @@ export class IrisTasks {
     return response.transactions
   }
 
-  private extractAmountFromTransactionId(transactionId, transactionValueDate): number {
-    const formattedDate = DateTime.fromISO(transactionValueDate).toFormat('yyyyMMdd')
-    const matchAmountRegex = new RegExp(`${formattedDate}(?<amount>[0-9.]+)_${formattedDate}`)
-
-    const amount = Number(transactionId.match(matchAmountRegex)?.groups?.amount)
-
-    return amount
-  }
-
   // Only prepares the data, without inserting it in the DB
   private prepareBankTransactionRecords(
     transactions: IrisTransactionInfo[],
@@ -344,16 +335,18 @@ export class IrisTasks {
       }
       const id = trx.transactionId?.trim() || ''
 
-      // If we receive a transaction with Currency different than BGN - try parsing from the transaction id the amount in BGN
-      if (trx.transactionAmount?.currency !== Currency.BGN && trx.transactionAmount?.amount > 0) {
-        const amount = this.extractAmountFromTransactionId(id, trx.valueDate)
-        if (amount) {
-          transactionAmount.amount = amount
-          transactionAmount.currency = Currency.BGN
-        } else {
-          // mark as unrecognized
-          matchedRef = null
-        }
+      // Convert BGN to EUR, keep other currencies as-is
+      let amount: number
+      let currency: Currency
+      if (transactionAmount.currency === 'BGN') {
+        // Convert BGN to EUR: divide by the fixed rate
+        const eurAmount = Number(transactionAmount.amount) / BGN_TO_EUR_RATE
+        amount = toMoney(eurAmount)
+        currency = Currency.EUR
+      } else {
+        // Keep original currency and amount
+        amount = toMoney(transactionAmount.amount)
+        currency = transactionAmount.currency as Currency
       }
 
       filteredTransactions.push({
@@ -367,8 +360,8 @@ export class IrisTasks {
         senderIban: trx.debtorAccount?.iban?.trim(),
         recipientIban: trx.creditorAccount?.iban?.trim(),
         type: trx.creditDebitIndicator === 'CREDIT' ? 'credit' : 'debit',
-        amount: toMoney(transactionAmount.amount),
-        currency: transactionAmount.currency,
+        amount: amount,
+        currency: currency,
         description: trx.remittanceInformationUnstructured?.trim(),
         // Not saved in the DB, it's added only for convinience and efficiency
         matchedRef: matchedRef ? matchedRef : null,
