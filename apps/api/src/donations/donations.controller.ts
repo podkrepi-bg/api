@@ -26,6 +26,7 @@ import { isAdmin, KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
+import { UpdateDonationDto } from './dto/update-donation.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto'
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
@@ -88,12 +89,16 @@ export class DonationsController {
   @ApiQuery({ name: 'campaignId', required: false, type: String })
   @ApiQuery({ name: 'pageindex', required: false, type: Number })
   @ApiQuery({ name: 'pagesize', required: false, type: Number })
+  @ApiQuery({ name: 'sortBy', required: false, type: String })
+  @ApiQuery({ name: 'sortOrder', required: false, type: String })
   findAllPublic(@Query('campaignId') campaignId?: string, @Query() query?: DonationQueryDto) {
     return this.donationsService.listDonationsPublic(
       campaignId,
       query?.status,
       query?.pageindex,
       query?.pagesize,
+      query?.sortBy,
+      query?.sortOrder,
     )
   }
 
@@ -188,6 +193,19 @@ export class DonationsController {
   invalidate(@Param('id') id: string) {
     Logger.debug(`Invalidating donation with id ${id}`)
     return this.donationsService.invalidate(id)
+  }
+
+  @Patch(':id/type')
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  updateDonationType(
+    @Param('id') id: string,
+    @Body() updateDonationDto: UpdateDonationDto,
+  ) {
+    Logger.debug(`Updating donation type for donation with id ${id}`)
+    return this.donationsService.updateDonationType(id, updateDonationDto.type)
   }
 
   @Patch(':id')
