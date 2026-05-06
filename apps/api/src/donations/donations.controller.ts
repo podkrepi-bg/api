@@ -26,6 +26,7 @@ import { isAdmin, KeycloakTokenParsed } from '../auth/keycloak'
 import { DonationsService } from './donations.service'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { UpdatePaymentDto } from './dto/update-payment.dto'
+import { UpdateDonationDto } from './dto/update-donation.dto'
 import { CreateBankPaymentDto } from './dto/create-bank-payment.dto'
 import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto'
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto'
@@ -192,6 +193,19 @@ export class DonationsController {
   invalidate(@Param('id') id: string) {
     Logger.debug(`Invalidating donation with id ${id}`)
     return this.donationsService.invalidate(id)
+  }
+
+  @Patch(':id/type')
+  @Roles({
+    roles: [EditFinancialsRequests.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  updateDonationType(
+    @Param('id') id: string,
+    @Body() updateDonationDto: UpdateDonationDto,
+  ) {
+    Logger.debug(`Updating donation type for donation with id ${id}`)
+    return this.donationsService.updateDonationType(id, updateDonationDto.type)
   }
 
   @Patch(':id')
