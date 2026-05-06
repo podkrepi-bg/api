@@ -5,7 +5,7 @@ import { Public } from 'nest-keycloak-connect'
 export const StripeConfigFactory = {
   useFactory: async (config: ConfigService) =>
     ({
-      apiVersion: '2022-11-15',
+      apiVersion: '2025-12-15.clover',
       appInfo: {
         name: 'Podkrepi.bg open charity platform',
         url: 'https://podkrepi.bg',
@@ -24,6 +24,8 @@ export const StripeConfigFactory = {
         stripeSecrets: {
           connect: config.get('stripe.webhookSecret', ''),
           account: config.get('stripe.webhookSecret', ''),
+          accountTest: config.get('stripe.webhookSecret', ''),
+          connectTest: config.get('stripe.webhookSecret', ''),
         },
       },
     } as StripeModuleConfig),
