@@ -1,6 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common'
 import { StripeModule as StripeClientModule } from '@golevelup/nestjs-stripe'
 import { StripeService } from './stripe.service'
+import { StripeApiClient } from './stripe-api-client'
 import { StripeController } from './stripe.controller'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { StripeConfigFactory } from '../donations/helpers/stripe-config-factory'
@@ -12,10 +13,11 @@ import { RecurringDonationModule } from '../recurring-donation/recurring-donatio
 import { StripePaymentService } from './events/stripe-payment.service'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
+import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
   imports: [
-    StripeClientModule.forRootAsync(StripeClientModule, {
+    StripeClientModule.forRootAsync({
       inject: [ConfigService],
       useFactory: StripeConfigFactory.useFactory,
     }),
@@ -24,9 +26,10 @@ import { TemplateService } from '../email/template.service'
     PersonModule,
     DonationsModule,
     forwardRef(() => RecurringDonationModule),
+    PrismaModule,
   ],
-  providers: [StripeService, StripePaymentService, EmailService, TemplateService],
+  providers: [StripeApiClient, StripeService, StripePaymentService, EmailService, TemplateService],
   controllers: [StripeController],
-  exports: [StripeService]
+  exports: [StripeService],
 })
 export class StripeModule {}

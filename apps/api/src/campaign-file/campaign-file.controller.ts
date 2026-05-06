@@ -14,7 +14,8 @@ import {
   forwardRef,
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
-import { UseInterceptors, UploadedFiles } from '@nestjs/common'
+import { UseInterceptors } from '@nestjs/common'
+import { UploadedFiles } from '../common/uploaded-file.decorator'
 import { RoleMatchingMode, Roles } from 'nest-keycloak-connect'
 import { RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { Public, AuthenticatedUser } from 'nest-keycloak-connect'

@@ -10,7 +10,20 @@
     },
     {
       "files": ["*.ts", "*.tsx"],
-      "rules": {}
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@nestjs/common",
+                "importNames": ["UploadedFile", "UploadedFiles"],
+                "message": "Import UploadedFile/UploadedFiles from the local 'common/uploaded-file.decorator' module (use the appropriate relative path, e.g. '../common/uploaded-file.decorator') instead. The custom decorators re-encode `file.originalname` from latin1 to UTF-8 so non-ASCII filenames are stored correctly."
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "files": ["*.js", "*.jsx"],

@@ -2,6 +2,7 @@ import { DonationType, PaymentProvider } from '@prisma/client'
 import Stripe from 'stripe'
 import { getCountryRegion, stripeFeeCalculator } from './stripe-fee-calculator'
 import { RecurringDonationStatus, Currency } from '@prisma/client'
+import { StripeMetadata } from '../../stripe/stripe-metadata.interface'
 
 function getPaymentMethodId(paymentIntent: Stripe.PaymentIntent): string | undefined {
   if (typeof paymentIntent.payment_method === 'string') {
@@ -86,41 +87,43 @@ export function getPaymentDataFromCharge(charge: Stripe.Charge): PaymentData {
   }
 }
 
-export function getInvoiceData(invoice: Stripe.Invoice, charge: Stripe.Charge): PaymentData {
+export function getInvoiceData(
+  invoice: Stripe.Invoice,
+  charge: Stripe.Charge,
+  subscriptionMetadata?: StripeMetadata,
+): PaymentData {
   const lines: Stripe.InvoiceLineItem[] = invoice.lines.data as Stripe.InvoiceLineItem[]
 
-  let personId = ''
-  let type = ''
-  lines.map((line) => {
-    if (line.metadata.personId) {
-      personId = line.metadata.personId
-    }
-    if (line.metadata.type) {
-      type = line.metadata.type
-    }
-  })
+  const isAnonymous = subscriptionMetadata?.isAnonymous === 'true'
+  const personId = !isAnonymous ? subscriptionMetadata?.personId : undefined
+  const type = subscriptionMetadata?.type || ''
+
+  const netAmount =
+    lines.length === 0
+      ? 0
+      : Math.round(
+          charge.amount -
+            stripeFeeCalculator(
+              charge.amount,
+              getCountryRegion(charge?.payment_method_details?.card?.country as string),
+            ),
+        )
+
+  // Extract payment_intent ID - it might be a string or an expanded object
+  const paymentIntentId = (charge?.payment_intent as string) || invoice.id
 
   return {
     paymentProvider: PaymentProvider.stripe,
-    paymentIntentId: invoice.payment_intent as string,
+    paymentIntentId,
     //netAmount is 0 until we receive a payment_intent.successful event where charges array contains the card country
-    netAmount:
-      lines.length === 0
-        ? 0
-        : Math.round(
-            charge.amount -
-              stripeFeeCalculator(
-                charge.amount,
-                getCountryRegion(charge?.payment_method_details?.card?.country as string),
-              ),
-          ),
+    netAmount,
     chargedAmount: invoice.amount_paid,
     currency: invoice.currency.toUpperCase(),
-    billingName: invoice.account_name ?? undefined,
-    billingEmail: invoice.customer_email ?? undefined,
+    billingName: charge.billing_details?.name ?? invoice.account_name ?? undefined,
+    billingEmail: charge.billing_details?.email ?? invoice.customer_email ?? undefined,
     paymentMethodId: invoice.collection_method,
     stripeCustomerId: invoice.customer as string,
-    personId,
+    personId: personId as string | undefined,
     type: type || DonationType.donation,
   }
 }
