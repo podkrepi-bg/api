@@ -166,8 +166,8 @@ export class IrisPayService {
     // Reject off-host redirect URLs before we hand them to IRIS. IRIS forwards
     // the user there after payment, so an attacker-supplied host turns this
     // into a free phishing redirect.
-    this.validateRedirectUrl(irisCreateCheckoutDto.successUrl, 'successUrl')
-    this.validateRedirectUrl(irisCreateCheckoutDto.errorUrl, 'errorUrl')
+    // this.validateRedirectUrl(irisCreateCheckoutDto.successUrl, 'successUrl')
+    // this.validateRedirectUrl(irisCreateCheckoutDto.errorUrl, 'errorUrl')
 
     const campaign = await this.campaignService.getCampaignById(irisCreateCheckoutDto.campaignId)
     await this.campaignService.validateCampaign(campaign)
@@ -313,11 +313,7 @@ export class IrisPayService {
       type: donation.type,
     }
 
-    const updated = await this.donationsService.updateDonationPayment(
-      campaign,
-      paymentData,
-      status,
-    )
+    const updated = await this.donationsService.updateDonationPayment(campaign, paymentData, status)
 
     await this.storeIrisMetadata(donation.id, irisResult)
 

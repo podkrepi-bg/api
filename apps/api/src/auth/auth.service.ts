@@ -231,7 +231,7 @@ export class AuthService {
       }
       person = await this.createPerson(registerDto, user.id, company?.id)
 
-      if (isCorporateReg) { 
+      if (isCorporateReg) {
         const mail = new CorporateActivationEmailDto({
           corporateActivationTitle: 'Нова корпоративна регистрация',
           companyName: registerDto.companyName || '',
@@ -242,7 +242,7 @@ export class AuthService {
         await this.sendEmail.sendFromTemplate(
           mail,
           { to: [this.config.get('CORPORATE_DONORS_EMAIL', '')] },
-          { bypassUnsubscribeManagement: { enable: true } }
+          { bypassUnsubscribeManagement: { enable: true } },
         )
       }
     } catch (error) {

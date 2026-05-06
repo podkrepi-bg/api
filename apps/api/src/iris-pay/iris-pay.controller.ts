@@ -20,11 +20,7 @@ import { Request, Response } from 'express'
 import { IrisPayService } from './iris-pay.service'
 import { IRISCreateCheckoutSessionDto } from './dto/create-iris-pay.dto'
 import { Public, RoleMatchingMode, Roles } from 'nest-keycloak-connect'
-import {
-  RealmBetaTester,
-  RealmViewSupporters,
-  ViewSupporters,
-} from '@podkrepi-bg/podkrepi-types'
+import { RealmBetaTester, RealmViewSupporters, ViewSupporters } from '@podkrepi-bg/podkrepi-types'
 import { PaymentSessionGuard } from './guards/payment-session.guard'
 import { PaymentStep } from './decorators/payment-step.decorator'
 import { PaymentSessionService } from './services/payment-session.service'
