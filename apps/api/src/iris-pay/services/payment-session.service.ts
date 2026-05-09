@@ -1,15 +1,17 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
-import { CACHE_MANAGER } from '@nestjs/cache-manager'
-import { Cache } from 'cache-manager'
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
+import { Prisma } from '@prisma/client'
 import { randomUUID } from 'crypto'
 import { Request, Response } from 'express'
+
+import { PrismaService } from '../../prisma/prisma.service'
 
 export interface PaymentSessionPayload {
   step: 'initialSession' | 'paymentSessionCreated'
   jti?: string
   paymentId?: string
+  exp?: number
 }
 
 const COOKIE_NAME = 'payment_jwt'
@@ -22,7 +24,7 @@ export class PaymentSessionService {
   constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    private readonly prisma: PrismaService,
   ) {
     this.secret = this.configService.get<string>('iris.paymentSessionSecret', '')
   }
@@ -61,36 +63,39 @@ export class PaymentSessionService {
     return payload
   }
 
-  // Best-effort single-use guard for the JWT's jti. Guarantees are limited:
-  //
-  //   - Within a single process, sequential duplicates are rejected (second
-  //     call sees the cache entry from the first).
-  //   - Two *simultaneous* requests in the same process can both pass the
-  //     get-before-set window and double-submit; the damage is bounded to a
-  //     pair of orphan payment rows (no money, no auth impact).
-  //   - Across processes (multi-pod deploys), the in-memory cache is not
-  //     shared, so this guard provides no dedup at all.
-  //
-  // We accept this today because the public endpoint's worst-case outcome is
-  // a duplicate `payment` row that never gets completed — no privilege
-  // escalation, no value extracted, the attacker gains nothing for the cost
-  // of one real IRIS payment.
-  //
-  // TODO(cross-pod dedup): when the API is horizontally scaled, migrate this
-  // to a shared store (Redis SETNX, or a Postgres one-time-token table with
-  // `INSERT … ON CONFLICT DO NOTHING`) so the guard survives across replicas.
+  // Single-use guard backed by a Postgres row keyed on the JWT's `jti`. The
+  // create() call is atomic on the PK, so a second attempt with the same jti
+  // raises P2002 — translated to 401 — even when racing across replicas.
   async consumeSession(payload: PaymentSessionPayload): Promise<void> {
     if (!payload.jti) {
       throw new UnauthorizedException('Invalid payment session: missing jti')
     }
-
-    const cacheKey = `iris-pay:jti:${payload.jti}`
-    const consumed = await this.cacheManager.get(cacheKey)
-    if (consumed) {
-      throw new UnauthorizedException('Payment session already used')
+    if (!payload.exp) {
+      throw new UnauthorizedException('Invalid payment session: missing exp')
     }
 
-    await this.cacheManager.set(cacheKey, true, SESSION_TTL_SECONDS * 1000)
+    const expiresAt = new Date(payload.exp * 1000)
+
+    try {
+      await this.prisma.paymentSession.create({
+        data: { jti: payload.jti, expiresAt },
+      })
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        throw new UnauthorizedException('Payment session already used')
+      }
+      throw err
+    }
+  }
+
+  async purgeExpiredSessions(): Promise<number> {
+    const { count } = await this.prisma.paymentSession.deleteMany({
+      where: { expiresAt: { lt: new Date() } },
+    })
+    if (count > 0) {
+      Logger.debug(`Purged ${count} expired payment session(s)`)
+    }
+    return count
   }
 
   upgradeSession(res: Response, data: { paymentId: string }): void {

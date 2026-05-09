@@ -22,5 +22,6 @@ import { PaymentSessionGuard } from './guards/payment-session.guard'
   ],
   controllers: [IrisPayController],
   providers: [IrisPayService, IrisPayApiClient, PaymentSessionService, PaymentSessionGuard],
+  exports: [PaymentSessionService],
 })
 export class IrisPayModule {}

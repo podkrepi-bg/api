@@ -71,5 +71,6 @@ export default () => ({
   },
   tasks: {
     import_transactions: { interval: process.env.IMPORT_TRX_TASK_INTERVAL_MINUTES },
+    payment_sessions_purge: { cron: process.env.PAYMENT_SESSIONS_PURGE_CRON },
   },
 })
