@@ -95,6 +95,16 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 2
           env:
+            - name: IRIS_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: iris-secret
+                  key: webhook-secret
+            - name: PAYMENT_SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: iris-secret
+                  key: session-secret
             - name: NODE_ENV
               value: production
             - name: PORT
