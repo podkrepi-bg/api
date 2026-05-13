@@ -1,12 +1,10 @@
 FROM node:19-alpine3.17 as base
 WORKDIR /app
 
-# The @prisma/client package defines its own postinstall hook that's being
-# executed whenever the package is being installed. This hook invokes the
-# prisma generate command which in turn generates the Prisma Client code
-# into the default location `node_modules/.prisma/client`
-RUN yarn set version berry
-RUN yarn add prisma@5.1.1
+COPY .yarnrc.yml package.json yarn.lock ./
+COPY .yarn .yarn
+RUN yarn install --immutable
+
 COPY schema.prisma .
 COPY migrations migrations/
 
@@ -16,12 +14,5 @@ CMD yarn prisma migrate deploy
 
 FROM base AS seed
 USER 0
-RUN yarn set version berry
-COPY package.json yarn.lock .yarnrc.yml ./
-COPY .yarn .yarn
-
-RUN yarn
-
 COPY . .
-
 CMD yarn prisma generate && yarn prisma db seed
