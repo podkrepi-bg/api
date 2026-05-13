@@ -51,7 +51,7 @@ export const validationSchema = Joi.object({
 
   // Stripe
   STRIPE_SECRET_KEY: Joi.string().required(),
-  STRIPE_WEBHOOK_SECRET: Joi.string().allow('').optional(),
+  STRIPE_WEBHOOK_SECRET: Joi.string().required(),
 
   //Paypal
   PAYPAL_URL: Joi.string().required(),

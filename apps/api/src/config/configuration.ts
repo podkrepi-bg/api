@@ -1,16 +1,4 @@
-import { readFileSync } from 'fs'
 import { SeverityLevel } from '@sentry/node'
-
-function getStripeWebhookSecret(): string {
-  if (process.env.STRIPE_WEBHOOK_SECRET) {
-    return process.env.STRIPE_WEBHOOK_SECRET
-  }
-  try {
-    return readFileSync('/shared/stripe-webhook-secret', 'utf-8').trim()
-  } catch {
-    return ''
-  }
-}
 
 /**
  * Be sure to add `process.env` vars in validation schema at ./validation.config.ts
@@ -40,7 +28,7 @@ export default () => ({
   },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY,
-    webhookSecret: getStripeWebhookSecret(),
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
   },
   paypal: {
     apiUrl: process.env.PAYPAL_URL,
