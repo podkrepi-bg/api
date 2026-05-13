@@ -432,9 +432,13 @@ export class AuthService {
 
   async toggleBetaTesterRole(keycloakId: string, assign: boolean) {
     await this.authenticateAdmin()
-    const role = await this.admin.roles.findOneByName({ name: 'beta-tester' })
+    let role = await this.admin.roles.findOneByName({ name: 'beta-tester' })
     if (!role || !role.id || !role.name) {
-      throw new NotFoundException('beta-tester role not found in Keycloak realm')
+      await this.admin.roles.create({ name: 'beta-tester' })
+      role = await this.admin.roles.findOneByName({ name: 'beta-tester' })
+    }
+    if (!role || !role.id || !role.name) {
+      throw new NotFoundException('Failed to create or retrieve beta-tester role in Keycloak realm')
     }
     const payload = { id: keycloakId, roles: [{ id: role.id, name: role.name }] }
     if (assign) {
