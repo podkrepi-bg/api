@@ -8,9 +8,10 @@ import { TemplateService } from '../email/template.service'
 import { TasksInitializer } from './tasks-initializer.service'
 import { ConfigModule } from '@nestjs/config'
 import { ScheduleModule } from '@nestjs/schedule'
+import { IrisPayModule } from '../iris-pay/iris-pay.module'
 
 @Module({
-  imports: [HttpModule, DonationsModule, ConfigModule, ScheduleModule],
+  imports: [HttpModule, DonationsModule, ConfigModule, ScheduleModule, IrisPayModule],
   providers: [IrisTasks, PrismaService, EmailService, TemplateService, TasksInitializer],
   exports: [IrisTasks],
 })

@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core'
 import { Logger, LogLevel, VersioningType } from '@nestjs/common'
+import cookieParser from 'cookie-parser'
 
 import { AppModule } from './app/app.module'
 import { setupCors } from './config/cors.config'
@@ -26,6 +27,7 @@ async function bootstrap() {
     logger: isDevConfig ? ['debug', 'log', 'verbose', ...logLevels] : logLevels,
   })
 
+  app.use(cookieParser())
   app.setGlobalPrefix(globalPrefix)
   app.enableVersioning({ type: VersioningType.URI })
   app.useLogger(app.get(MyLogger))

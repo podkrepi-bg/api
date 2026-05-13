@@ -57,6 +57,7 @@ export class IrisTasks {
   // Used to check if the task should be stopped
   private canRun = true
   private readonly AFFILIATE_CODE_PREFIX = 'af_'
+  private readonly IRISPAY_PREFIX = 'IRISPAY'
 
   constructor(
     private readonly httpService: HttpService,
@@ -316,6 +317,10 @@ export class IrisTasks {
 
       // Stripe payments should not be parsed
       if (trx.remittanceInformationUnstructured?.trim() === 'STRIPE') {
+        continue
+      }
+
+      if (trx.remittanceInformationUnstructured?.trim().startsWith(this.IRISPAY_PREFIX)) {
         continue
       }
 

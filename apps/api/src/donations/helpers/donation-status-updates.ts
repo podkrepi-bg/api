@@ -24,7 +24,7 @@ function isChangeable(status: PaymentStatus) {
   return changeable.includes(status)
 }
 
-function isFinal(status: PaymentStatus) {
+export function isFinal(status: PaymentStatus) {
   return final.includes(status)
 }
 

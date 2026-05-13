@@ -35,4 +35,8 @@ export class AccountService {
   async changeProfileActivationStatus(keycloakId: string, newStatus: boolean) {
     return await this.authService.changeEnabledStatus(keycloakId, newStatus)
   }
+
+  async toggleBetaTesterRole(keycloakId: string, assign: boolean) {
+    return await this.authService.toggleBetaTesterRole(keycloakId, assign)
+  }
 }

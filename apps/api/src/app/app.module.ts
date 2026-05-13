@@ -64,6 +64,7 @@ import { StripeModule } from '../stripe/stripe.module'
 import { LoggerModule } from '../logger/logger.module'
 import { PrismaModule } from '../prisma/prisma.module'
 import { CampaignApplicationModule } from '../campaign-application/campaign-application.module'
+import { IrisPayModule } from '../iris-pay/iris-pay.module'
 
 @Module({
   imports: [
@@ -135,6 +136,7 @@ import { CampaignApplicationModule } from '../campaign-application/campaign-appl
     LoggerModule,
     CampaignApplicationModule,
     StripeModule,
+    IrisPayModule,
   ],
   controllers: [AppController],
   providers: [

@@ -17,6 +17,7 @@ import { TasksInitializer } from './tasks-initializer.service'
 import { EmailService } from '../email/email.service'
 import { TemplateService } from '../email/template.service'
 import { MarketingNotificationsModule } from '../notifications/notifications.module'
+import { PaymentSessionService } from '../iris-pay/services/payment-session.service'
 
 describe('ImportTransactionsTask', () => {
   let taskService: TasksInitializer
@@ -29,6 +30,9 @@ describe('ImportTransactionsTask', () => {
   }
   const stripeMock = {
     checkout: { sessions: { create: jest.fn() } },
+  }
+  const paymentSessionServiceMock = {
+    purgeExpiredSessions: jest.fn().mockResolvedValue(0),
   }
 
   // Mock the IrisTask check for environment variables
@@ -46,7 +50,7 @@ describe('ImportTransactionsTask', () => {
         {
           provide: ConfigService,
           useValue: {
-            get: jest.fn(),
+            get: jest.fn((_key: string, defaultValue?: unknown) => defaultValue),
           },
         },
         {
@@ -62,6 +66,7 @@ describe('ImportTransactionsTask', () => {
         TasksInitializer,
         EmailService,
         TemplateService,
+        { provide: PaymentSessionService, useValue: paymentSessionServiceMock },
       ],
     })
       .overrideProvider(PersonService)
@@ -75,6 +80,7 @@ describe('ImportTransactionsTask', () => {
   afterEach(() => {
     jest.clearAllMocks()
     scheduler.getIntervals().forEach((el) => scheduler.deleteInterval(el))
+    scheduler.getCronJobs().forEach((_, name) => scheduler.deleteCronJob(name))
   })
 
   it('should be defined', () => {
@@ -84,18 +90,26 @@ describe('ImportTransactionsTask', () => {
   describe('initIrisTasks', () => {
     it('should init all dynamicaly scheduled tasks', async () => {
       jest.spyOn(taskService, 'initImportTransactionsTask')
+      jest.spyOn(taskService, 'initPurgeExpiredPaymentSessionsTask')
       jest.spyOn(scheduler, 'addInterval')
+      jest.spyOn(scheduler, 'addCronJob')
 
       //   On module initiation all dynamic jobs must be scheduled
       taskService.onModuleInit()
 
       expect(taskService.initImportTransactionsTask).toHaveBeenCalled()
+      expect(taskService.initPurgeExpiredPaymentSessionsTask).toHaveBeenCalled()
 
       expect(scheduler.addInterval).toHaveBeenCalledWith(
         'import-bank-transactions',
         expect.anything(),
       )
+      expect(scheduler.addCronJob).toHaveBeenCalledWith(
+        'purge-expired-payment-sessions',
+        expect.anything(),
+      )
       expect(scheduler.getIntervals()).toEqual(['import-bank-transactions'])
+      expect(Array.from(scheduler.getCronJobs().keys())).toEqual(['purge-expired-payment-sessions'])
     })
   })
 })

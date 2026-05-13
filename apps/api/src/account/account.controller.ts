@@ -8,6 +8,7 @@ import { Person } from '../domain/generated/person/entities'
 import { UpdatePersonDto } from '../person/dto/update-person.dto'
 import { PersonService } from '../person/person.service'
 import { AccountService } from './account.service'
+import { ToggleBetaTesterDto } from './dto/toggle-beta-tester.dto'
 import { ApiTags } from '@nestjs/swagger'
 
 @Controller('account')
@@ -128,5 +129,17 @@ export class AccountController {
       keycloakId,
       !!data.profileEnabled,
     )
+  }
+
+  @Patch(':keycloakId/beta-tester')
+  @Roles({
+    roles: [RealmViewSupporters.role, ViewSupporters.role],
+    mode: RoleMatchingMode.ANY,
+  })
+  async toggleBetaTester(
+    @Param('keycloakId') keycloakId: string,
+    @Body() data: ToggleBetaTesterDto,
+  ) {
+    return await this.accountService.toggleBetaTesterRole(keycloakId, data.assign)
   }
 }

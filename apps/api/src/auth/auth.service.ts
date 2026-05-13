@@ -231,7 +231,7 @@ export class AuthService {
       }
       person = await this.createPerson(registerDto, user.id, company?.id)
 
-      if (isCorporateReg) { 
+      if (isCorporateReg) {
         const mail = new CorporateActivationEmailDto({
           corporateActivationTitle: 'Нова корпоративна регистрация',
           companyName: registerDto.companyName || '',
@@ -242,7 +242,7 @@ export class AuthService {
         await this.sendEmail.sendFromTemplate(
           mail,
           { to: [this.config.get('CORPORATE_DONORS_EMAIL', '')] },
-          { bypassUnsubscribeManagement: { enable: true } }
+          { bypassUnsubscribeManagement: { enable: true } },
         )
       }
     } catch (error) {
@@ -428,6 +428,25 @@ export class AuthService {
       },
     })
     return true
+  }
+
+  async toggleBetaTesterRole(keycloakId: string, assign: boolean) {
+    await this.authenticateAdmin()
+    let role = await this.admin.roles.findOneByName({ name: 'beta-tester' })
+    if (!role || !role.id || !role.name) {
+      await this.admin.roles.create({ name: 'beta-tester' })
+      role = await this.admin.roles.findOneByName({ name: 'beta-tester' })
+    }
+    if (!role || !role.id || !role.name) {
+      throw new NotFoundException('Failed to create or retrieve beta-tester role in Keycloak realm')
+    }
+    const payload = { id: keycloakId, roles: [{ id: role.id, name: role.name }] }
+    if (assign) {
+      await this.admin.users.addRealmRoleMappings(payload)
+    } else {
+      await this.admin.users.delRealmRoleMappings(payload)
+    }
+    return { keycloakId, betaTester: assign }
   }
 
   async changeEnabledStatus(keycloakId: string, enabled: boolean) {

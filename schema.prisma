@@ -699,6 +699,18 @@ model BankTransactionsFile {
   @@map("bank_transactions_files")
 }
 
+/// Single-use marker for payment-session JWTs. A row is inserted when a
+/// session JWT is consumed; the PK on `jti` makes the consume step atomic
+/// across replicas. Rows are purged after `expiresAt` by a cron job.
+model PaymentSession {
+  jti        String   @id @db.VarChar(64)
+  consumedAt DateTime @default(now()) @map("consumed_at") @db.Timestamptz(6)
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz(6)
+
+  @@index([expiresAt])
+  @@map("payment_sessions")
+}
+
 enum BeneficiaryType {
   individual
   company
@@ -789,6 +801,7 @@ enum PaymentProvider {
   epay
   bank
   cash
+  irispay
 
   @@map("payment_provider")
 }

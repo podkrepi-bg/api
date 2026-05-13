@@ -47,6 +47,8 @@ export default () => ({
     banksEndPoint: process.env.IRIS_API_URL + '/banks?country=bulgaria',
     ibansEndPoint: process.env.IRIS_API_URL + '/ibans',
     transactionsEndPoint: process.env.IRIS_API_URL + '/transactions',
+    paymentSessionSecret: process.env.PAYMENT_SESSION_SECRET,
+    irisWebhookSecret: process.env.IRIS_WEBHOOK_SECRET,
   },
   mail: {
     billingAdminEmail: process.env.BILLING_ADMIN_MAIL,
@@ -56,5 +58,6 @@ export default () => ({
   },
   tasks: {
     import_transactions: { interval: process.env.IMPORT_TRX_TASK_INTERVAL_MINUTES },
+    payment_sessions_purge: { cron: process.env.PAYMENT_SESSIONS_PURGE_CRON },
   },
 })
