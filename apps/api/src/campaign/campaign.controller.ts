@@ -128,12 +128,9 @@ export class CampaignController {
   }
 
   @Get('byId/:id')
-  @Roles({
-    roles: [RealmViewSupporters.role, ViewSupporters.role],
-    mode: RoleMatchingMode.ANY,
-  })
+  @Public()
   async findOne(@Param('id') id: string) {
-    return this.campaignService.getCampaignById(id)
+    return await this.campaignService.getCampaignById(id)
   }
 
   @Get('donations/:id')
@@ -176,10 +173,9 @@ export class CampaignController {
   ) {
     if (data.consent === false)
       throw new BadRequestException('Notification consent should be provided')
-
     // Subscribe to campaign notifications list
     await this.campaignService.subscribeToCampaignNotification(id, data)
-
+    
     return { message: 'Success' }
   }
 
