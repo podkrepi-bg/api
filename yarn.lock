@@ -13134,12 +13134,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:3.3.8":
-  version: 3.3.8
-  resolution: "nanoid@npm:3.3.8"
+"nanoid@npm:3.3.17":
+  version: 3.3.17
+  resolution: "nanoid@npm:3.3.17"
   bin:
     nanoid: bin/nanoid.cjs
-  checksum: dfe0adbc0c77e9655b550c333075f51bb28cfc7568afbf3237249904f9c86c9aaaed1f113f0fddddba75673ee31c758c30c43d4414f014a52a7a626efc5958c9
+  checksum: dbbfd5ccc15a9bce602797ee75b98ee5ad377bd217782b8d2e7438e6e0ba0c54529a9f60437910aa00e263224b3c074b51a1aa3e21084a3cb56347a6cbacc275
   languageName: node
   linkType: hard
 
@@ -13983,7 +13983,7 @@ __metadata:
     lint-staged: 11.1.2
     luxon: ^3.3.0
     mjml: ^4.14.1
-    nanoid: 3.3.8
+    nanoid: 3.3.17
     nest-keycloak-connect: ^1.9.1
     nx: ^15.5.1
     prettier: 2.6.0
