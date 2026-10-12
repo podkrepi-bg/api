@@ -102,6 +102,26 @@ export class DonationsController {
     )
   }
 
+  @Get('list-with-wishes/:campaignId')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(2 * 1000)
+  @Public()
+  @ApiQuery({ name: 'pageindex', required: false, type: Number })
+  @ApiQuery({ name: 'pagesize', required: false, type: Number })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'sortBy', required: false, type: String })
+  @ApiQuery({ name: 'sortOrder', required: false, type: String })
+  findAllWithWishes(@Param('campaignId') campaignId: string, @Query() query?: DonationQueryDto) {
+    return this.donationsService.listDonationsWithWishes(
+      campaignId,
+      query?.search,
+      query?.sortBy,
+      query?.sortOrder,
+      query?.pageindex,
+      query?.pagesize,
+    )
+  }
+
   @Get('list')
   @Roles({
     roles: [RealmViewSupporters.role, ViewSupporters.role],
@@ -200,10 +220,7 @@ export class DonationsController {
     roles: [EditFinancialsRequests.role],
     mode: RoleMatchingMode.ANY,
   })
-  updateDonationType(
-    @Param('id') id: string,
-    @Body() updateDonationDto: UpdateDonationDto,
-  ) {
+  updateDonationType(@Param('id') id: string, @Body() updateDonationDto: UpdateDonationDto) {
     Logger.debug(`Updating donation type for donation with id ${id}`)
     return this.donationsService.updateDonationType(id, updateDonationDto.type)
   }
