@@ -218,6 +218,73 @@ export class DonationsService {
     return result
   }
 
+  /**
+   * Lists all successful donations for a campaign, each with its wish attached when there is one.
+   */
+  async listDonationsWithWishes(
+    campaignId: string,
+    search?: string,
+    sortBy?: string,
+    sortOrder?: string,
+    pageIndex?: number,
+    pageSize?: number,
+  ) {
+    const validSortFields = ['createdAt', 'amount']
+    const validSortOrders = ['asc', 'desc']
+    const orderField = validSortFields.includes(sortBy || '') ? sortBy : 'createdAt'
+    const orderDirection = validSortOrders.includes(sortOrder || '') ? sortOrder : 'desc'
+    const orderBy = { [orderField as string]: orderDirection }
+
+    const whereClause: Prisma.DonationWhereInput = {
+      targetVault: { campaignId },
+      payment: { status: { in: [PaymentStatus.succeeded, PaymentStatus.guaranteed] } },
+      ...(search && {
+        OR: [
+          { DonationWish: { message: { contains: search, mode: 'insensitive' } } },
+          { metadata: { name: { contains: search, mode: 'insensitive' } } },
+          {
+            person: {
+              OR: [
+                { firstName: { contains: search, mode: 'insensitive' } },
+                { lastName: { contains: search, mode: 'insensitive' } },
+              ],
+            },
+          },
+        ],
+      }),
+    }
+
+    const [data, totalCount] = await this.prisma.$transaction([
+      this.prisma.donation.findMany({
+        where: whereClause,
+        orderBy: [orderBy, { id: 'asc' }],
+        select: {
+          id: true,
+          type: true,
+          amount: true,
+          createdAt: true,
+          payment: { select: { currency: true } },
+          person: {
+            select: { firstName: true, lastName: true, company: { select: { companyName: true } } },
+          },
+          metadata: { select: { name: true } },
+          DonationWish: { select: { id: true, message: true, createdAt: true } },
+        },
+        skip: pageIndex && pageSize ? pageIndex * pageSize : undefined,
+        take: pageSize ? pageSize : undefined,
+      }),
+      this.prisma.donation.count({ where: whereClause }),
+    ])
+
+    const items = data.map(({ payment, DonationWish, ...donation }) => ({
+      ...donation,
+      currency: payment.currency,
+      wish: DonationWish,
+    }))
+
+    return { items, totalCount }
+  }
+
   async createAffiliateDonation(donationDto: CreateAffiliateDonationDto) {
     const vault = await this.vaultService.findByCampaignId(donationDto.campaignId)
 
