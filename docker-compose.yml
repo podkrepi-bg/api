@@ -103,7 +103,7 @@ services:
   ## Stripe Development ##
   ##########################
   stripe-webhook:
-    image: stripe/stripe-cli:latest
+    image: stripe/stripe-cli:v1.53.1
     restart: always
     extra_hosts:
       - 'host.docker.internal:host-gateway'
@@ -116,7 +116,7 @@ services:
     entrypoint: ['/bin/sh', '-c']
     command:
       - |
-        stripe listen --api-key $$STRIPE_SECRET_KEY --forward-to host.docker.internal:5010/api/v1/stripe/webhook 2>&1 | while IFS= read -r line; do
+        stripe listen --all-snapshot --api-key $$STRIPE_SECRET_KEY --forward-to host.docker.internal:5010/api/v1/stripe/webhook 2>&1 | while IFS= read -r line; do
           printf '%s\n' "$$line"
           whsec=$$(printf '%s' "$$line" | grep -oE 'whsec_[a-zA-Z0-9_]+')
           if [ -n "$$whsec" ]; then
