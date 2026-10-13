@@ -3,6 +3,7 @@ export class CreatePersonDto {
   lastName: string
   email?: string
   phone?: string
+  deletedAt?: Date
   newsletter?: boolean
   helpUsImprove?: boolean
   address?: string

@@ -15,6 +15,7 @@ Table people {
   phone String
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
+  deletedAt DateTime
   newsletter Boolean [default: false]
   helpUsImprove Boolean [default: false]
   address String
