@@ -132,9 +132,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install kustomize
-        uses: imranismail/setup-kustomize@v2
-
       - name: Build development manifests
         run: kustomize build manifests/overlays/development > dev-manifests.yaml
 
@@ -167,9 +164,6 @@ jobs:
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v4
-
-      - name: Install kustomize
-        uses: imranismail/setup-kustomize@v2
 
       - name: Get tag
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -225,9 +219,6 @@ jobs:
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v4
-
-      - name: Install kustomize
-        uses: imranismail/setup-kustomize@v2
 
       - name: Get tag
         run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
