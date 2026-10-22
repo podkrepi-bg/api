@@ -1,5 +1,5 @@
 
-FROM node:19-alpine3.17 as base
+FROM node:24-alpine3.24 as base
 WORKDIR /app
 RUN apk add --update --no-cache openssl
 ARG TARGET_APP
@@ -22,7 +22,7 @@ FROM dependencies AS builder
 COPY . .
 RUN yarn
 RUN yarn generate-schema
-RUN yarn build-all --configuration=production
+RUN NX_DAEMON=false yarn build-all --configuration=production
 
 # Build target development #
 ############################
