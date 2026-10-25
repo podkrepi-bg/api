@@ -11,7 +11,7 @@ import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
 
 import { LoginDto } from './dto/login.dto'
 import { AuthService } from './auth.service'
-import { RegisterDto } from './dto/register.dto'
+import { ProfileType, RegisterDto } from './dto/register.dto'
 import { MockPrismaService, prismaMock } from '../prisma/prisma-client.mock'
 import { RefreshDto } from './dto/refresh.dto'
 import { firstValueFrom, Observable } from 'rxjs'
@@ -317,6 +317,11 @@ describe('AuthService', () => {
     const newsletter = personMock.newsletter
     const helpUsImprove = personMock.helpUsImprove
 
+    beforeEach(() => {
+      // Run interactive transactions against the same prisma mock
+      prismaMock.$transaction.mockImplementation((fn: any) => fn(prismaMock))
+    })
+
     it('should call keycloak and prisma', async () => {
       const keycloakId = 'u123'
       const registerDto = plainToClass(RegisterDto, {
@@ -459,6 +464,91 @@ describe('AuthService', () => {
 
       // Check was not added to list
       expect(marketingSpy).not.toHaveBeenCalled()
+    })
+
+    describe('corporate registration', () => {
+      const keycloakId = 'u123'
+      const companyId = 'c123'
+      const companyNumber = '123456789'
+      const companyName = 'Acme'
+      const registerDto = plainToClass(RegisterDto, {
+        type: ProfileType.CORPORATE,
+        email,
+        password,
+        firstName,
+        lastName,
+        companyName,
+        companyNumber,
+      })
+      let emailSpy: jest.SpyInstance
+
+      beforeEach(() => {
+        emailSpy = jest.spyOn(service['sendEmail'], 'sendFromTemplate').mockResolvedValue(undefined as any)
+      })
+
+      it('should create company and person in a transaction', async () => {
+        jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
+        prismaMock.person.findUnique.mockResolvedValue(null)
+        prismaMock.company.create.mockResolvedValue({ id: companyId } as any)
+        prismaMock.person.upsert.mockResolvedValue(person)
+
+        expect(await service.createUser(registerDto, true)).toBe(person)
+
+        expect(prismaMock.$transaction).toHaveBeenCalled()
+        expect(prismaMock.person.upsert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            create: expect.objectContaining({ companyId, profileEnabled: false }),
+            update: { keycloakId, companyId, profileEnabled: false },
+            where: { email },
+          }),
+        )
+        expect(emailSpy).toHaveBeenCalled()
+      })
+
+      it('should remove keycloak user and not send email when db write fails', async () => {
+        const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation()
+        jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
+        prismaMock.person.findUnique.mockResolvedValue(null)
+        prismaMock.company.create.mockResolvedValue({ id: companyId } as any)
+        prismaMock.person.upsert.mockRejectedValue(new Error('DB error'))
+
+        expect(await service.createUser(registerDto, true)).toEqual({
+          error: 'DB error',
+          data: undefined,
+        })
+
+        expect(admin.users.del).toHaveBeenCalledWith({ id: keycloakId })
+        expect(emailSpy).not.toHaveBeenCalled()
+        loggerSpy.mockRestore()
+      })
+
+      it('should reject when person is already linked to a company', async () => {
+        const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation()
+        jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
+        prismaMock.person.findUnique.mockResolvedValue({ ...person, companyId: 'other' })
+
+        expect(await service.createUser(registerDto, true)).toEqual({
+          error: 'Person is already linked to a company',
+          data: undefined,
+        })
+
+        expect(prismaMock.company.create).not.toHaveBeenCalled()
+        expect(admin.users.del).toHaveBeenCalledWith({ id: keycloakId })
+        loggerSpy.mockRestore()
+      })
+
+      it('should succeed even if activation email fails', async () => {
+        const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation()
+        jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
+        prismaMock.person.findUnique.mockResolvedValue(null)
+        prismaMock.company.create.mockResolvedValue({ id: companyId } as any)
+        prismaMock.person.upsert.mockResolvedValue(person)
+        emailSpy.mockRejectedValue(new Error('Mail error'))
+
+        expect(await service.createUser(registerDto, true)).toBe(person)
+        expect(admin.users.del).not.toHaveBeenCalled()
+        loggerSpy.mockRestore()
+      })
     })
   })
 
