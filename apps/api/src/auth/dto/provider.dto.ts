@@ -7,7 +7,6 @@ export class ProviderDto {
   @Expose()
   @IsNotEmpty()
   @IsString()
-  @IsJWT()
   public readonly providerToken: string
   @ApiProperty()
   @Expose()
