@@ -484,7 +484,15 @@ export class AuthService {
       throw new NotFoundException('Invalid email')
     }
 
-    const payload = { username: person.email, sub: person.keycloakId }
+    // Persons created without an account (e.g. guest donors) or whose link to
+    // Keycloak was lost have no keycloakId. Signing a token with `sub: null`
+    // produces a reset link that always fails, so link the account or bail out.
+    const keycloakId = person.keycloakId ?? (await this.linkKeycloakUserByEmail(person.email))
+    if (!keycloakId) {
+      throw new NotFoundException('No account found for this email')
+    }
+
+    const payload = { username: person.email, sub: keycloakId }
     const jtwSecret = process.env.JWT_SECRET_KEY
     const access_token = this.jwtService.sign(payload, {
       secret: jtwSecret,
@@ -506,11 +514,22 @@ export class AuthService {
     })
   }
 
+  private async linkKeycloakUserByEmail(email: string): Promise<string | undefined> {
+    await this.authenticateAdmin()
+    const [user] = await this.admin.users.find({ email, exact: true })
+    if (!user?.id) return undefined
+    await this.prismaService.person.update({ where: { email }, data: { keycloakId: user.id } })
+    return user.id
+  }
+
   async updateForgottenPassword(recoveryPasswordDto: NewPasswordDto) {
     try {
       const { sub: keycloakId } = this.jwtService.verify(recoveryPasswordDto.token, {
         secret: process.env.JWT_SECRET_KEY,
       })
+      if (!keycloakId) {
+        throw new Error('Password reset token has no keycloak id')
+      }
       return await this.updateUserPassword(keycloakId, recoveryPasswordDto)
     } catch (error) {
       const response = {

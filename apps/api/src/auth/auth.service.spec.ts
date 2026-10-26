@@ -4,7 +4,13 @@ import { ConfigService } from '@nestjs/config'
 import { HttpService } from '@nestjs/axios'
 import { plainToClass } from 'class-transformer'
 import { Test, TestingModule } from '@nestjs/testing'
-import { InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common'
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import KeycloakConnect, { Grant } from 'keycloak-connect'
 import { KEYCLOAK_INSTANCE } from 'nest-keycloak-connect'
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client'
@@ -35,6 +41,7 @@ describe('AuthService', () => {
   let keycloak: KeycloakConnect.Keycloak
   let marketing: NotificationsProviderInterface
   let personService: PersonService
+  let jwtService: JwtService
 
   const person: Person = personMock
 
@@ -102,6 +109,7 @@ describe('AuthService', () => {
     marketing = module.get<NotificationsProviderInterface<never>>(NotificationsProviderInterface)
     keycloak = module.get<KeycloakConnect.Keycloak>(KEYCLOAK_INSTANCE)
     personService = module.get<PersonService>(PersonService)
+    jwtService = module.get<JwtService>(JwtService)
   })
 
   it('should be defined', () => {
@@ -448,7 +456,7 @@ describe('AuthService', () => {
         // Don't subscribe to marketing list
         newsletter: false,
       })
-      
+
       jest.spyOn(prismaMock.person, 'upsert').mockResolvedValue(person)
       jest.spyOn(admin.users, 'create').mockResolvedValue({ id: keycloakId })
       const marketingSpy = jest
@@ -459,6 +467,63 @@ describe('AuthService', () => {
 
       // Check was not added to list
       expect(marketingSpy).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('sendMailForPasswordChange', () => {
+    const email = 'test@podkrepi.bg'
+
+    it('should sign the reset token with the stored keycloakId', async () => {
+      prismaMock.person.findFirst.mockResolvedValueOnce({ ...person, email, keycloakId: 'kc-1' })
+      const findSpy = jest.spyOn(admin.users, 'find')
+
+      await service.sendMailForPasswordChange({ email })
+
+      expect(findSpy).not.toHaveBeenCalled()
+      expect(jwtService.sign).toHaveBeenCalledWith(
+        { username: email, sub: 'kc-1' },
+        expect.anything(),
+      )
+    })
+
+    it('should link the keycloak user by email when keycloakId is missing', async () => {
+      prismaMock.person.findFirst.mockResolvedValueOnce({ ...person, email, keycloakId: null })
+      jest.spyOn(service as any, 'authenticateAdmin').mockResolvedValueOnce('')
+      const findSpy = jest.spyOn(admin.users, 'find').mockResolvedValueOnce([{ id: 'kc-2' }])
+
+      await service.sendMailForPasswordChange({ email })
+
+      expect(findSpy).toHaveBeenCalledWith({ email, exact: true })
+      expect(prismaMock.person.update).toHaveBeenCalledWith({
+        where: { email },
+        data: { keycloakId: 'kc-2' },
+      })
+      expect(jwtService.sign).toHaveBeenCalledWith(
+        { username: email, sub: 'kc-2' },
+        expect.anything(),
+      )
+    })
+
+    it('should not send a reset link when no keycloak user exists', async () => {
+      prismaMock.person.findFirst.mockResolvedValueOnce({ ...person, email, keycloakId: null })
+      jest.spyOn(service as any, 'authenticateAdmin').mockResolvedValueOnce('')
+      jest.spyOn(admin.users, 'find').mockResolvedValueOnce([])
+
+      await expect(service.sendMailForPasswordChange({ email })).rejects.toThrow(NotFoundException)
+      expect(jwtService.sign).not.toHaveBeenCalled()
+      expect(prismaMock.person.update).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('updateForgottenPassword', () => {
+    it('should reject a token without keycloak id', async () => {
+      jest.spyOn(jwtService, 'verify').mockReturnValueOnce({ username: 'a@b.c', sub: null })
+      const resetSpy = jest.spyOn(admin.users, 'resetPassword')
+
+      await expect(
+        service.updateForgottenPassword({ token: 'token', password: 'Password1!' }),
+      ).rejects.toThrow(BadRequestException)
+      expect(resetSpy).not.toHaveBeenCalled()
     })
   })
 
