@@ -19,7 +19,7 @@ import { RequiredActionAlias } from '@keycloak/keycloak-admin-client/lib/defs/re
 import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
 import { TokenResponseRaw } from '@keycloak/keycloak-admin-client/lib/utils/auth'
 
-import { Company, Person } from '@prisma/client'
+import { Company, Person, Prisma } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { LoginDto } from './dto/login.dto'
 import { ProfileType, RegisterDto } from './dto/register.dto'
@@ -220,32 +220,30 @@ export class AuthService {
     isCorporateReg = false,
   ): Promise<Person | ErrorResponse> {
     let person: Person
-    let company: Company | null = null
+    let keycloakId: string | undefined
     try {
       await this.authenticateAdmin()
       // Create user in Keycloak
       const user = await this.createKeycloakUser(registerDto, false, !isCorporateReg)
-      // Insert or connect person in app db
-      if (isCorporateReg) {
-        company = await this.createCompany(registerDto)
-      }
-      person = await this.createPerson(registerDto, user.id, company?.id)
-
-      if (isCorporateReg) {
-        const mail = new CorporateActivationEmailDto({
-          corporateActivationTitle: 'Нова корпоративна регистрация',
-          companyName: registerDto.companyName || '',
-          representitiveName: `${registerDto.firstName} ${registerDto.lastName}`,
-          representitiveEmail: registerDto.email,
-          activationLink: `${this.config.get('APP_URL')}/admin/users?search=${registerDto.email}`,
-        })
-        await this.sendEmail.sendFromTemplate(
-          mail,
-          { to: [this.config.get('CORPORATE_DONORS_EMAIL', '')] },
-          { bypassUnsubscribeManagement: { enable: true } },
-        )
-      }
+      keycloakId = user.id
+      // Create company and insert or connect person in app db atomically,
+      // so a failed registration doesn't leave an orphaned company behind
+      person = await this.prismaService.$transaction(async (tx) => {
+        let company: Company | null = null
+        if (isCorporateReg) {
+          const existingPerson = await tx.person.findUnique({
+            where: { email: registerDto.email },
+          })
+          if (existingPerson?.companyId) {
+            throw new ConflictException('Person is already linked to a company')
+          }
+          company = await this.createCompany(registerDto, tx)
+        }
+        return await this.createPerson(registerDto, user.id, company?.id, tx)
+      })
     } catch (error) {
+      // Remove the Keycloak user so the registration can be retried
+      if (keycloakId) await this.removeKeycloakUser(keycloakId)
       const response = {
         error: error.message,
         data: error?.response?.data,
@@ -253,6 +251,8 @@ export class AuthService {
       Logger.error(response)
       return response
     }
+
+    if (isCorporateReg) await this.sendCorporateActivationEmail(registerDto)
 
     // Add to marketing platform
     if (registerDto.newsletter)
@@ -275,6 +275,34 @@ export class AuthService {
       }
 
     return person
+  }
+
+  private async sendCorporateActivationEmail(registerDto: RegisterDto) {
+    // Registration is already persisted, so a mail failure must not fail it
+    try {
+      const mail = new CorporateActivationEmailDto({
+        corporateActivationTitle: 'Нова корпоративна регистрация',
+        companyName: registerDto.companyName || '',
+        representitiveName: `${registerDto.firstName} ${registerDto.lastName}`,
+        representitiveEmail: registerDto.email,
+        activationLink: `${this.config.get('APP_URL')}/admin/users?search=${registerDto.email}`,
+      })
+      await this.sendEmail.sendFromTemplate(
+        mail,
+        { to: [this.config.get('CORPORATE_DONORS_EMAIL', '')] },
+        { bypassUnsubscribeManagement: { enable: true } },
+      )
+    } catch (e) {
+      Logger.error('Failed to send corporate activation email', e)
+    }
+  }
+
+  private async removeKeycloakUser(keycloakId: string) {
+    try {
+      await this.admin.users.del({ id: keycloakId })
+    } catch (e) {
+      Logger.error(`Failed to remove Keycloak user ${keycloakId} after failed registration`, e)
+    }
   }
 
   private async authenticateAdmin() {
@@ -358,8 +386,9 @@ export class AuthService {
     registerDto: RegisterDto,
     keycloakId: string,
     companyId: string | null | undefined,
+    tx: Prisma.TransactionClient = this.prismaService,
   ) {
-    return await this.prismaService.person.upsert({
+    return await tx.person.upsert({
       // Create a person with the provided keycloakId
       create: {
         keycloakId,
@@ -371,17 +400,20 @@ export class AuthService {
         profileEnabled: companyId ? false : true,
         helpUsImprove: registerDto.helpUsImprove ? registerDto.helpUsImprove : false,
       },
-      // Store keycloakId to the person with same email
-      update: { keycloakId },
+      // Store keycloakId to the person with same email and link the company if any
+      update: { keycloakId, ...(companyId && { companyId, profileEnabled: false }) },
       where: { email: registerDto.email },
     })
   }
 
-  private async createCompany(registerDto: RegisterDto): Promise<Company> {
+  private async createCompany(
+    registerDto: RegisterDto,
+    tx: Prisma.TransactionClient = this.prismaService,
+  ): Promise<Company> {
     if (!registerDto.companyName || !registerDto.companyNumber) {
       throw new BadRequestException('Company name and companyNumber are missing')
     }
-    return await this.prismaService.company.create({
+    return await tx.company.create({
       // Create a person with the provided keycloakId
       data: {
         companyNumber: registerDto.companyNumber,

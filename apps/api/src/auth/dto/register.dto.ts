@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Expose } from 'class-transformer'
+import { Expose, Transform } from 'class-transformer'
 import {
   IsBoolean,
   IsEmail,
@@ -7,6 +7,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  Matches,
   MaxLength,
   ValidateIf,
 } from 'class-validator'
@@ -67,7 +68,9 @@ export class RegisterDto {
 
   @ValidateIf((o) => o.type === ProfileType.CORPORATE)
   @Expose()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
+  @Matches(/^(\d{9}|\d{13})$/, { message: 'companyNumber must be a 9 or 13 digit EIK' })
   @ApiProperty({
     description:
       'BULSTAT Unified Identification Code (UIC) https://psc.egov.bg/en/psc-starting-a-business-bulstat',
